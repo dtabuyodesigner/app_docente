@@ -205,6 +205,28 @@
             color: var(--dark);
         }
 
+        .obs-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .obs-item:last-child {
+            border-bottom: none;
+        }
+
+        .obs-meta {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .obs-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
         /* Navigation Menu */
         .menu-grid {
             display: grid;
@@ -445,20 +467,7 @@
                 <p id="mediaClase">-</p>
             </div>
 
-            <!-- Charts Row -->
-            <div class="chart-container" style="height: 230px; position: relative;">
-                <div class="section-header">📅 Asistencia Semanal</div>
-                <canvas id="attendanceChart"></canvas>
-            </div>
-
-            <div class="chart-container" style="height: 230px; position: relative;">
-                <div class="section-header">📊 Rendimiento Académico</div>
-                <div style="height: 180px; display: flex; justify-content: center;">
-                    <canvas id="gradesChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Lists Row -->
+            <!-- Priority Lists Row (Moved Up) -->
             <div class="list-container">
                 <div class="section-header">🔔 Avisos Importantes</div>
                 <div id="alertsList">
@@ -470,6 +479,27 @@
                 <div class="section-header">📅 Próximas Actividades</div>
                 <div id="activitiesList">
                     <div style="color: #999; font-style: italic;">No hay actividades próximas.</div>
+                </div>
+            </div>
+
+            <!-- New Section: Last Observations (Extra content) -->
+            <div class="list-container" style="grid-column: span 4; height: auto; max-height: 400px;">
+                <div class="section-header">📓 Últimas Observaciones del Diario</div>
+                <div id="lastObsList">
+                    <div style="color: #999; font-style: italic;">Cargando observaciones...</div>
+                </div>
+            </div>
+
+            <!-- Charts Row (Moved Down) -->
+            <div class="chart-container" style="height: 230px; position: relative;">
+                <div class="section-header">📅 Asistencia Semanal</div>
+                <canvas id="attendanceChart"></canvas>
+            </div>
+
+            <div class="chart-container" style="height: 230px; position: relative;">
+                <div class="section-header">📊 Rendimiento Académico</div>
+                <div style="height: 180px; display: flex; justify-content: center;">
+                    <canvas id="gradesChart"></canvas>
                 </div>
             </div>
         </div>
@@ -557,8 +587,40 @@
                 // 6. Grades Chart
                 renderGradesChart(data.distribucion_notas);
 
+                // 7. Last Observations
+                loadLastObservations();
+
             } catch (error) {
                 console.error("Error loading dashboard data:", error);
+            }
+        }
+
+        async function loadLastObservations() {
+            try {
+                const res = await fetch('/api/dashboard/ultimas_observaciones');
+                const obs = await res.json();
+                const container = document.getElementById('lastObsList');
+
+                if (obs.length === 0) {
+                    container.innerHTML = '<div style="color: #999; font-style: italic;">No hay observaciones recientes.</div>';
+                    return;
+                }
+
+                container.innerHTML = obs.map(o => {
+                    const d = new Date(o.fecha);
+                    const fechaFmt = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+                    return `
+                        <div class="obs-item">
+                            <div class="obs-meta">
+                                <span><b>${o.alumno}</b> - ${o.area}</span>
+                                <span>${fechaFmt}</span>
+                            </div>
+                            <div class="obs-text">${o.texto}</div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error(e);
             }
         }
 

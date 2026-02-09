@@ -120,23 +120,45 @@ def nuevo_alumno():
     no_comedor = int(d.get("no_comedor", 0))
     comedor_dias = d.get("comedor_dias")
 
+    # Campos de la ficha
+    f_nac = d.get("fecha_nacimiento")
+    direccion = d.get("direccion")
+    m_nom = d.get("madre_nombre")
+    m_tel = d.get("madre_telefono")
+    m_email = d.get("madre_email")
+    p_nom = d.get("padre_nombre")
+    p_tel = d.get("padre_telefono")
+    p_email = d.get("padre_email")
+    obs = d.get("observaciones_generales")
+    autorizados = d.get("personas_autorizadas")
+
     if not nombre:
         return jsonify({"ok": False, "error": "Nombre es obligatorio"}), 400
 
     conn = get_db()
     cur = conn.cursor()
     try:
+        # 1. Insertar en alumnos
         cur.execute("INSERT INTO alumnos (nombre, no_comedor, comedor_dias) VALUES (?, ?, ?)", 
                     (nombre, no_comedor, comedor_dias))
-        new_id = cur.lastrowid
+        alumno_id = cur.lastrowid
+        
+        # 2. Insertar en ficha_alumno
+        cur.execute("""
+            INSERT INTO ficha_alumno (
+                alumno_id, fecha_nacimiento, direccion, madre_nombre, 
+                madre_telefono, madre_email, padre_nombre, padre_telefono, padre_email,
+                observaciones_generales, personas_autorizadas
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (alumno_id, f_nac, direccion, m_nom, m_tel, m_email, p_nom, p_tel, p_email, obs, autorizados))
+        
         conn.commit()
+        return jsonify({"ok": True, "id": alumno_id})
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
         conn.close()
-
-    return jsonify({"ok": True, "id": new_id})
 
 
 # -------------------------------------------------
@@ -297,16 +319,53 @@ def editar_alumno_info(alumno_id):
 @app.route("/api/alumnos/<int:alumno_id>", methods=["DELETE"])
 def borrar_alumno(alumno_id):
     conn = get_db()
+    conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     try:
-        # Manual cascade delete since foreign keys might not have ON DELETE CASCADE
+        # 1. Recopilar datos para backup
+        backup_data = {}
+        
+        # Datos básicos
+        cur.execute("SELECT * FROM alumnos WHERE id = ?", (alumno_id,))
+        alumno = cur.fetchone()
+        if not alumno:
+            return jsonify({"ok": False, "error": "Alumno no encontrado"}), 404
+        backup_data["alumno"] = dict(alumno)
+        
+        # Ficha
+        cur.execute("SELECT * FROM ficha_alumno WHERE alumno_id = ?", (alumno_id,))
+        ficha = cur.fetchone()
+        backup_data["ficha"] = dict(ficha) if ficha else None
+        
+        # Asistencia
+        cur.execute("SELECT * FROM asistencia WHERE alumno_id = ?", (alumno_id,))
+        backup_data["asistencia"] = [dict(r) for r in cur.fetchall()]
+        
+        # Evaluaciones
+        cur.execute("SELECT * FROM evaluaciones WHERE alumno_id = ?", (alumno_id,))
+        backup_data["evaluaciones"] = [dict(r) for r in cur.fetchall()]
+        
+        # Observaciones
+        cur.execute("SELECT * FROM observaciones WHERE alumno_id = ?", (alumno_id,))
+        backup_data["observaciones"] = [dict(r) for r in cur.fetchall()]
+
+        # 2. Guardar backup en archivo
+        os.makedirs("backups/borrados", exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        nombre_safe = "".join(c for c in alumno["nombre"] if c.isalnum() or c in (" ", "_")).strip().replace(" ", "_")
+        filename = f"backups/borrados/{timestamp}_{nombre_safe}_id{alumno_id}.json"
+        
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(backup_data, f, ensure_ascii=False, indent=4)
+
+        # 3. Borrado manual en cascada
         cur.execute("DELETE FROM asistencia WHERE alumno_id = ?", (alumno_id,))
         cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ?", (alumno_id,))
         cur.execute("DELETE FROM ficha_alumno WHERE alumno_id = ?", (alumno_id,))
         cur.execute("DELETE FROM observaciones WHERE alumno_id = ?", (alumno_id,))
         cur.execute("DELETE FROM informe_observaciones WHERE alumno_id = ?", (alumno_id,))
         
-        # Finally delete student
+        # Borrar alumno
         cur.execute("DELETE FROM alumnos WHERE id = ?", (alumno_id,))
         
         conn.commit()
@@ -694,26 +753,38 @@ def obtener_observaciones_dia():
     
     if area_id:
         cur.execute("""
-            SELECT a.id, a.nombre, o.texto
+            SELECT a.id, a.nombre, a.foto, o.texto, asi.estado, 
+                   f.madre_telefono, f.padre_telefono, f.madre_email, f.padre_email
             FROM alumnos a
             LEFT JOIN observaciones o ON o.alumno_id = a.id AND o.fecha = ? AND o.area_id = ?
+            LEFT JOIN asistencia asi ON asi.alumno_id = a.id AND asi.fecha = ?
+            LEFT JOIN ficha_alumno f ON f.alumno_id = a.id
             ORDER BY a.nombre
-        """, (fecha, area_id))
+        """, (fecha, area_id, fecha))
     else:
         # Default to NULL area (general observations)
         cur.execute("""
-            SELECT a.id, a.nombre, o.texto
+            SELECT a.id, a.nombre, a.foto, o.texto, asi.estado, 
+                   f.madre_telefono, f.padre_telefono, f.madre_email, f.padre_email
             FROM alumnos a
             LEFT JOIN observaciones o ON o.alumno_id = a.id AND o.fecha = ? AND o.area_id IS NULL
+            LEFT JOIN asistencia asi ON asi.alumno_id = a.id AND asi.fecha = ?
+            LEFT JOIN ficha_alumno f ON f.alumno_id = a.id
             ORDER BY a.nombre
-        """, (fecha,))
+        """, (fecha, fecha))
     
     data = []
-    for uid, nombre, texto in cur.fetchall():
+    for uid, nombre, foto, texto, estado_asi, m_tel, p_tel, m_email, p_email in cur.fetchall():
         data.append({
             "id": uid,
             "nombre": nombre,
-            "observacion": texto or ""
+            "foto": foto or "",
+            "observacion": texto or "",
+            "asistencia": estado_asi or "presente",
+            "madre_tel": m_tel or "",
+            "padre_tel": p_tel or "",
+            "madre_email": m_email or "",
+            "padre_email": p_email or ""
         })
     
     conn.close()
@@ -1139,32 +1210,31 @@ def obtener_ficha_alumno(alumno_id):
 
     cur.execute("""
         SELECT
-            fecha_nacimiento,
-            direccion,
-            madre_nombre,
-            madre_telefono,
-            padre_nombre,
-            padre_telefono,
-            observaciones_generales,
-            personas_autorizadas
+            fecha_nacimiento, direccion, 
+            madre_nombre, madre_telefono, madre_email,
+            padre_nombre, padre_telefono, padre_email,
+            observaciones_generales, personas_autorizadas
         FROM ficha_alumno
         WHERE alumno_id = ?
     """, (alumno_id,))
 
-    fila = cur.fetchone()
+    f = cur.fetchone()
     conn.close()
 
-    if fila:
+    if f:
         return jsonify({
-            "fecha_nacimiento": fila[0] or "",
-            "direccion": fila[1] or "",
-            "madre_nombre": fila[2] or "",
-            "madre_telefono": fila[3] or "",
-            "padre_nombre": fila[4] or "",
-            "padre_telefono": fila[5] or "",
-            "observaciones_generales": fila[6] or "",
-            "personas_autorizadas": fila[7] or ""
+            "fecha_nacimiento": f[0] or "",
+            "direccion": f[1] or "",
+            "madre_nombre": f[2] or "",
+            "madre_telefono": f[3] or "",
+            "madre_email": f[4] or "",
+            "padre_nombre": f[5] or "",
+            "padre_telefono": f[6] or "",
+            "padre_email": f[7] or "",
+            "observaciones_generales": f[8] or "",
+            "personas_autorizadas": f[9] or ""
         })
+    return jsonify({})
 
     return jsonify({
         "fecha_nacimiento": "",
@@ -1183,63 +1253,31 @@ def obtener_ficha_alumno(alumno_id):
 @app.route("/api/alumnos/ficha", methods=["POST"])
 def guardar_ficha_alumno():
     d = request.json
-
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("SELECT alumno_id FROM ficha_alumno WHERE alumno_id = ?", (d["alumno_id"],))
-    existe = cur.fetchone()
-
-    if existe:
-        cur.execute("""
-            UPDATE ficha_alumno SET
-                fecha_nacimiento = ?,
-                direccion = ?,
-                madre_nombre = ?,
-                madre_telefono = ?,
-                padre_nombre = ?,
-                padre_telefono = ?,
-                observaciones_generales = ?,
-                personas_autorizadas = ?
-            WHERE alumno_id = ?
-        """, (
-            d.get("fecha_nacimiento", ""),
-            d.get("direccion", ""),
-            d.get("madre_nombre", ""),
-            d.get("madre_telefono", ""),
-            d.get("padre_nombre", ""),
-            d.get("padre_telefono", ""),
-            d.get("observaciones_generales", ""),
-            d.get("personas_autorizadas", ""),
-            d["alumno_id"]
-        ))
-    else:
-        cur.execute("""
-            INSERT INTO ficha_alumno (
-                alumno_id,
-                fecha_nacimiento,
-                direccion,
-                madre_nombre,
-                madre_telefono,
-                padre_nombre,
-                padre_telefono,
-                observaciones_generales
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            d["alumno_id"],
-            d.get("fecha_nacimiento", ""),
-            d.get("direccion", ""),
-            d.get("madre_nombre", ""),
-            d.get("madre_telefono", ""),
-            d.get("padre_nombre", ""),
-            d.get("padre_telefono", ""),
-            d.get("observaciones_generales", "")
-        ))
+    cur.execute("""
+        INSERT OR REPLACE INTO ficha_alumno (
+            alumno_id, fecha_nacimiento, direccion, madre_nombre, 
+            madre_telefono, madre_email, padre_nombre, padre_telefono, padre_email,
+            observaciones_generales, personas_autorizadas
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        d["alumno_id"],
+        d.get("fecha_nacimiento", ""),
+        d.get("direccion", ""),
+        d.get("madre_nombre", ""),
+        d.get("madre_telefono", ""),
+        d.get("madre_email", ""),
+        d.get("padre_nombre", ""),
+        d.get("padre_telefono", ""),
+        d.get("padre_email", ""),
+        d.get("observaciones_generales", ""),
+        d.get("personas_autorizadas", "")
+    ))
 
     conn.commit()
     conn.close()
-
     return jsonify({"ok": True})
 # -------------------------------------------------
 # BORRAR FICHA DEL ALUMNO 
@@ -3087,6 +3125,87 @@ def pdf_rubrica(sda_id):
                    headers={'Content-Disposition': f'attachment; filename=Rubrica_{sda_id}.pdf'})
 
 
+@app.route("/api/dashboard/ultimas_observaciones")
+def ultimas_observaciones():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT o.texto, o.fecha, al.nombre as alumno, ar.nombre as area
+        FROM observaciones o
+        JOIN alumnos al ON o.alumno_id = al.id
+        LEFT JOIN areas ar ON o.area_id = ar.id
+        ORDER BY o.fecha DESC, o.id DESC
+        LIMIT 5
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    
+    obs = []
+    for row in rows:
+        obs.append({
+            "texto": row[0],
+            "fecha": row[1],
+            "alumno": row[2],
+            "area": row[3] or "General"
+        })
+    return jsonify(obs)
+
+
+@app.route("/api/informe/preview_diario/<int:alumno_id>")
+def preview_diario(alumno_id):
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Get Student Info
+    cur.execute("SELECT nombre FROM alumnos WHERE id = ?", (alumno_id,))
+    alumno = cur.fetchone()
+    if not alumno:
+        return jsonify({"ok": False, "error": "Alumno no encontrado"}), 404
+    nombre_alumno = alumno[0]
+
+    # Get Observations
+    cur.execute("""
+        SELECT o.fecha, o.texto, a.nombre
+        FROM observaciones o
+        LEFT JOIN areas a ON o.area_id = a.id
+        WHERE o.alumno_id = ?
+        ORDER BY o.fecha DESC, a.nombre ASC
+    """, (alumno_id,))
+    rows = cur.fetchall()
+    conn.close()
+
+    # Group by Date
+    data_by_date = {}
+    for fecha, texto, area in rows:
+        if fecha not in data_by_date:
+            data_by_date[fecha] = []
+        data_by_date[fecha].append({
+            "texto": texto,
+            "area": area or "Observación General"
+        })
+
+    # Format for JSON
+    preview_data = []
+    for fecha, obs_list in data_by_date.items():
+        try:
+            d = datetime.strptime(fecha, "%Y-%m-%d")
+            fecha_fmt = d.strftime("%d/%m/%Y")
+        except:
+            fecha_fmt = fecha
+        
+        preview_data.append({
+            "fecha": fecha_fmt,
+            "raw_fecha": fecha,
+            "observaciones": obs_list
+        })
+
+    return jsonify({
+        "ok": True,
+        "nombre_alumno": nombre_alumno,
+        "data": preview_data
+    })
+
+
 @app.route("/api/informe/pdf_diario/<int:alumno_id>")
 def generar_pdf_diario(alumno_id):
     conn = get_db()
@@ -3403,6 +3522,51 @@ def calendar_import():
     
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/api/alumnos/exportar/json")
+def exportar_alumnos_json():
+    conn = get_db()
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT a.nombre, a.comedor_dias, f.* 
+        FROM alumnos a
+        LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    
+    data = [dict(row) for row in rows]
+    return jsonify(data)
+
+@app.route("/api/alumnos/exportar/csv")
+def exportar_alumnos_csv():
+    conn = get_db()
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT a.nombre, a.comedor_dias, f.fecha_nacimiento, f.direccion, 
+               f.madre_nombre, f.madre_telefono, f.madre_email,
+               f.padre_nombre, f.padre_telefono, f.padre_email,
+               f.observaciones_generales, f.personas_autorizadas
+        FROM alumnos a
+        LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
+    """)
+    rows = cur.fetchall()
+    conn.close()
+
+    output = io.StringIO()
+    if rows:
+        writer = csv.DictWriter(output, fieldnames=rows[0].keys())
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(dict(row))
+    
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=alumnos_export.csv"}
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -35,26 +35,33 @@
 
         /* Nav */
         .nav {
-            background: var(--primary);
+            background: #003366;
             padding: 10px 15px;
             margin-bottom: 25px;
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex;
-            gap: 15px;
-            box-shadow: var(--shadow);
-            overflow-x: auto;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
             align-items: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .nav a {
             color: white;
             text-decoration: none;
             font-weight: 600;
-            padding: 4px 6px;
-            font-size: 0.8rem;
+            padding: 8px 12px;
+            font-size: 0.85rem;
             border-radius: 8px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
         }
 
         .nav a:hover {
@@ -63,7 +70,8 @@
 
         .nav a.active {
             background: rgba(255, 255, 255, 0.2);
-            border-bottom: 2px solid white;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         a {
@@ -79,7 +87,7 @@
 
         .contenedor {
             display: grid;
-            grid-template-columns: 280px 1fr;
+            grid-template-columns: 320px 1fr;
             gap: 20px;
         }
 
@@ -87,11 +95,12 @@
 
         .lista {
             background: white;
-            border-radius: 10px;
-            padding: 10px;
-            height: calc(100vh - 120px);
+            border-radius: 12px;
+            padding: 15px;
+            height: calc(100vh - 180px);
             overflow-y: auto;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+            box-shadow: var(--shadow);
+            border: 1px solid #eef2f7;
         }
 
         .lista h3 {
@@ -99,18 +108,27 @@
         }
 
         .alumno-item {
-            padding: 8px 10px;
-            border-bottom: 1px solid #ddd;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 4px;
             cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .alumno-item:hover {
-            background: #eee;
+            background: #f0f4f8;
+            color: var(--primary);
         }
 
         .alumno-item.activo {
-            background: #dfefff;
-            font-weight: bold;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
         }
 
         /* ===== FICHA ===== */
@@ -150,6 +168,7 @@
         <div class="nav">
             <a href="/">🏠 Inicio</a>
             <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/comedor">🍽️ Comedor</a>
             <a href="/alumnos" class="active">👥 Alumnos</a>
             <a href="/diario">📓 Diario</a>
             <a href="/evaluacion">📊 Evaluación</a>
@@ -157,25 +176,34 @@
             <a href="/horario">⏰ Horario</a>
             <a href="/programacion">📅 Programación</a>
             <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/comedor">🍽️ Comedor</a>
         </div>
 
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 style="margin:0;">👦 Alumnos</h2>
-            <div style="display:flex; gap:10px;">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                <button class="nav-btn" onclick="mostrarModalNuevo()"
+                    style="background:var(--primary); color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:600; cursor:pointer;">
+                    ➕ Nuevo Alumno
+                </button>
                 <button onclick="descargarPlantilla()"
-                    style="background: var(--info); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem;">
-                    📥 Plantilla CSV
+                    style="background:white; border:1px solid #ddd; padding:10px 15px; border-radius:8px; cursor:pointer;">
+                    📄 Plantilla CSV
                 </button>
                 <button onclick="document.getElementById('csvInput').click()"
-                    style="background: var(--warning); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem;">
+                    style="background:white; border:1px solid #ddd; padding:10px 15px; border-radius:8px; cursor:pointer;">
                     📤 Importar CSV
                 </button>
-                <input type="file" id="csvInput" accept=".csv" style="display:none;" onchange="importarCSV(this)">
+                <input type="file" id="csvInput" hidden accept=".csv" onchange="importarCSV(this)">
 
-                <button onclick="mostrarModalNuevo()"
-                    style="background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
-                    ➕ Nuevo Alumno
+                <div style="flex-grow: 1;"></div>
+
+                <button onclick="exportarData('json')"
+                    style="background:#f8f9fa; border:1px solid #ddd; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">
+                    📥 Exportar JSON
+                </button>
+                <button onclick="exportarData('csv')"
+                    style="background:#f8f9fa; border:1px solid #ddd; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">
+                    📥 Exportar CSV
                 </button>
             </div>
         </div>
@@ -211,13 +239,32 @@
                     <label>Dirección</label>
                     <input type="text" id="direccion">
 
-                    <h4>Madre</h4>
-                    <input type="text" id="madre_nombre" placeholder="Nombre madre">
-                    <input type="text" id="madre_telefono" placeholder="Teléfono madre">
-
-                    <h4>Padre</h4>
-                    <input type="text" id="padre_nombre" placeholder="Nombre padre">
-                    <input type="text" id="padre_telefono" placeholder="Teléfono padre">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                        <div>
+                            <label>Madre (Nombre)</label>
+                            <input type="text" id="madre_nombre">
+                        </div>
+                        <div>
+                            <label>Teléfono Madre</label>
+                            <input type="text" id="madre_telefono">
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <label>Email Madre</label>
+                            <input type="email" id="madre_email">
+                        </div>
+                        <div>
+                            <label>Padre (Nombre)</label>
+                            <input type="text" id="padre_nombre">
+                        </div>
+                        <div>
+                            <label>Teléfono Padre</label>
+                            <input type="text" id="padre_telefono">
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <label>Email Padre</label>
+                            <input type="email" id="padre_email">
+                        </div>
+                    </div>
 
                     <label>Observaciones generales</label>
                     <textarea id="observaciones_generales"></textarea>
@@ -289,37 +336,105 @@
         <!-- MODAL NUEVO/EDITAR ALUMNO -->
         <div id="modalAlumno"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-            <div style="background:white; padding:20px; border-radius:10px; width:400px; max-width:90%;">
-                <h3 id="modalTitulo">Nuevo Alumno</h3>
+            <div
+                style="background:white; padding:25px; border-radius:12px; width:600px; max-width:95%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow);">
+                <h3 id="modalTitulo"
+                    style="margin-top:0; color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                    Nuevo Alumno</h3>
                 <input type="hidden" id="modalAlumnoId">
 
-                <label>Nombre y Apellidos</label>
-                <input type="text" id="modalNombre"
-                    style="width:100%; margin-bottom:15px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div style="grid-column: span 2;">
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Nombre y Apellidos</label>
+                        <input type="text" id="modalNombre" placeholder="Nombre completo"
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
 
-                <label>Foto (Opcional)</label>
-                <input type="file" id="modalFotoFile" accept="image/*"
-                    style="width:100%; margin-bottom:15px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                    <div>
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Fecha Nacimiento</label>
+                        <input type="date" id="modalFechaNac"
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Foto (Opcional)</label>
+                        <input type="file" id="modalFotoFile" accept="image/*"
+                            style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box; font-size: 0.8rem;">
+                    </div>
 
-                <label style="font-weight:bold; display:block; margin-bottom:5px;">Días de Comedor:</label>
+                    <div style="grid-column: span 2;">
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Dirección</label>
+                        <input type="text" id="modalDireccion" placeholder="Calle, número, piso..."
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
+
+                    <div>
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Nombre Madre</label>
+                        <input type="text" id="modalMadreNom"
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Teléfono Madre</label>
+                        <input type="text" id="modalMadreTel"
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Email Madre</label>
+                        <input type="email" id="modalMadreEmail"
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
+
+                    <div>
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Nombre Padre</label>
+                        <input type="text" id="modalPadreNom"
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Teléfono Padre</label>
+                        <input type="text" id="modalPadreTel"
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Email Padre</label>
+                        <input type="email" id="modalPadreEmail"
+                            style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
+                    </div>
+
+                    <div style="grid-column: span 2;">
+                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Personas Autorizadas / Otras
+                            Notas</label>
+                        <textarea id="modalAutorizados" placeholder="Otras personas que pueden recoger al alumno..."
+                            style="width:100%; height:60px; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box; font-family: inherit;"></textarea>
+                    </div>
+
+                    <div
+                        style="grid-column: span 2; background:#f8f9fa; padding:15px; border-radius:8px; border: 1px solid #eef2f7;">
+                        <label style="font-weight:bold; display:block; margin-bottom:10px;">🍽️ Días de Comedor:</label>
+                        <div style="display:flex; justify-content: space-between; align-items: center;">
+                            <div style="display:flex; gap:12px;">
+                                <label><input type="checkbox" class="chk-dia" value="0"> Lun</label>
+                                <label><input type="checkbox" class="chk-dia" value="1"> Mar</label>
+                                <label><input type="checkbox" class="chk-dia" value="2"> Mié</label>
+                                <label><input type="checkbox" class="chk-dia" value="3"> Jue</label>
+                                <label><input type="checkbox" class="chk-dia" value="4"> Vie</label>
+                            </div>
+                            <div style="font-size:0.85em; color:#666;">
+                                <a href="#" onclick="event.preventDefault(); toggleDias(true)"
+                                    style="color:var(--primary); font-weight:600;">Todos</a> |
+                                <a href="#" onclick="event.preventDefault(); toggleDias(false)"
+                                    style="color:var(--danger); font-weight:600;">Ninguno</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div
-                    style="display:flex; justify-content: space-between; margin-bottom:15px; background:#f8f9fa; padding:10px; border-radius:6px;">
-                    <label><input type="checkbox" class="chk-dia" value="0"> Lun</label>
-                    <label><input type="checkbox" class="chk-dia" value="1"> Mar</label>
-                    <label><input type="checkbox" class="chk-dia" value="2"> Mié</label>
-                    <label><input type="checkbox" class="chk-dia" value="3"> Jue</label>
-                    <label><input type="checkbox" class="chk-dia" value="4"> Vie</label>
-                </div>
-                <div style="font-size:0.85em; color:#666; margin-bottom:15px;">
-                    <a href="#" onclick="toggleDias(true)">Todos</a> | <a href="#"
-                        onclick="toggleDias(false)">Ninguno</a>
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px; border-top: 2px solid #eee; padding-top: 20px;">
                     <button onclick="cerrarModal()"
-                        style="background:#6c757d; color:white; border:none; border-radius:4px;">Cancelar</button>
+                        style="background:#f0f2f5; color:#666; border:none; border-radius:8px; font-weight:600; padding: 10px 20px;">Cancelar</button>
                     <button onclick="guardarAlumnoModal()"
-                        style="background:var(--primary); color:white; border:none; border-radius:4px;">Guardar</button>
+                        style="background:var(--primary); color:white; border:none; border-radius:8px; font-weight:600; padding: 10px 25px; box-shadow: 0 4px 6px rgba(0,51,102,0.2);">
+                        💾 Guardar Alumno
+                    </button>
                 </div>
             </div>
         </div>
@@ -438,8 +553,10 @@
                         document.getElementById("direccion").value = d.direccion || "";
                         document.getElementById("madre_nombre").value = d.madre_nombre || "";
                         document.getElementById("madre_telefono").value = d.madre_telefono || "";
+                        document.getElementById("madre_email").value = d.madre_email || "";
                         document.getElementById("padre_nombre").value = d.padre_nombre || "";
                         document.getElementById("padre_telefono").value = d.padre_telefono || "";
+                        document.getElementById("padre_email").value = d.padre_email || "";
                         document.getElementById("observaciones_generales").value = d.observaciones_generales || "";
                         document.getElementById("personas_autorizadas").value = d.personas_autorizadas || "";
                     });
@@ -557,8 +674,10 @@
                         direccion: document.getElementById("direccion").value,
                         madre_nombre: document.getElementById("madre_nombre").value,
                         madre_telefono: document.getElementById("madre_telefono").value,
+                        madre_email: document.getElementById("madre_email").value,
                         padre_nombre: document.getElementById("padre_nombre").value,
                         padre_telefono: document.getElementById("padre_telefono").value,
+                        padre_email: document.getElementById("padre_email").value,
                         observaciones_generales: document.getElementById("observaciones_generales").value,
                         personas_autorizadas: document.getElementById("personas_autorizadas").value
                     })
@@ -584,8 +703,10 @@
                     document.getElementById("direccion").value = "";
                     document.getElementById("madre_nombre").value = "";
                     document.getElementById("madre_telefono").value = "";
+                    document.getElementById("madre_email").value = "";
                     document.getElementById("padre_nombre").value = "";
                     document.getElementById("padre_telefono").value = "";
+                    document.getElementById("padre_email").value = "";
                     document.getElementById("observaciones_generales").value = "";
                     document.getElementById("personas_autorizadas").value = "";
                 });
@@ -606,28 +727,51 @@
                 modalTitulo.innerText = "Nuevo Alumno";
                 modalId.value = "";
                 modalNombre.value = "";
-                document.getElementById("modalFotoFile").value = ""; // Clear file input
-                // Por defecto marcamos todos los días
+                document.getElementById("modalFechaNac").value = "";
+                document.getElementById("modalDireccion").value = "";
+                document.getElementById("modalMadreNom").value = "";
+                document.getElementById("modalMadreTel").value = "";
+                document.getElementById("modalMadreEmail").value = "";
+                document.getElementById("modalPadreNom").value = "";
+                document.getElementById("modalPadreTel").value = "";
+                document.getElementById("modalPadreEmail").value = "";
+                document.getElementById("modalAutorizados").value = "";
+                document.getElementById("modalFotoFile").value = "";
                 toggleDias(true);
                 modal.style.display = "flex";
                 modalNombre.focus();
             }
 
-            function mostrarModalEditar(alumno) {
+            async function mostrarModalEditar(alumno) {
                 modalTitulo.innerText = "Editar Alumno";
                 modalId.value = alumno.id;
                 modalNombre.value = alumno.nombre;
-                document.getElementById("modalFotoFile").value = ""; // Clear file input
+                document.getElementById("modalFotoFile").value = "";
 
-                // Parse comedor_dias or fallback to no_comedor
+                // Cargar datos adicionales de la ficha
+                try {
+                    const r = await fetch(`/api/alumnos/ficha/${alumno.id}`);
+                    const d = await r.json();
+                    document.getElementById("modalFechaNac").value = d.fecha_nacimiento || "";
+                    document.getElementById("modalDireccion").value = d.direccion || "";
+                    document.getElementById("modalMadreNom").value = d.madre_nombre || "";
+                    document.getElementById("modalMadreTel").value = d.madre_telefono || "";
+                    document.getElementById("modalMadreEmail").value = d.madre_email || "";
+                    document.getElementById("modalPadreNom").value = d.padre_nombre || "";
+                    document.getElementById("modalPadreTel").value = d.padre_telefono || "";
+                    document.getElementById("modalPadreEmail").value = d.padre_email || "";
+                    document.getElementById("modalAutorizados").value = d.personas_autorizadas || "";
+                } catch (e) {
+                    console.error("Error al cargar ficha para editar", e);
+                }
+
                 if (alumno.comedor_dias) {
                     const dias = alumno.comedor_dias.split(",");
                     document.querySelectorAll(".chk-dia").forEach(c => {
                         c.checked = dias.includes(c.value);
                     });
                 } else {
-                    // Fallback legacy logic
-                    const come = (alumno.no_comedor === 0); // 0 = come, 1 = no_come
+                    const come = (alumno.no_comedor === 0);
                     toggleDias(come);
                 }
 
@@ -663,10 +807,25 @@
                 const url = id ? `/api/alumnos/${id}` : "/api/alumnos/nuevo";
                 const method = id ? "PUT" : "POST";
 
+                const payload = {
+                    nombre,
+                    no_comedor,
+                    comedor_dias,
+                    fecha_nacimiento: document.getElementById("modalFechaNac").value,
+                    direccion: document.getElementById("modalDireccion").value,
+                    madre_nombre: document.getElementById("modalMadreNom").value,
+                    madre_telefono: document.getElementById("modalMadreTel").value,
+                    madre_email: document.getElementById("modalMadreEmail").value,
+                    padre_nombre: document.getElementById("modalPadreNom").value,
+                    padre_telefono: document.getElementById("modalPadreTel").value,
+                    padre_email: document.getElementById("modalPadreEmail").value,
+                    personas_autorizadas: document.getElementById("modalAutorizados").value
+                };
+
                 fetch(url, {
                     method: method,
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ nombre, no_comedor, comedor_dias })
+                    body: JSON.stringify(payload)
                 })
                     .then(r => r.json())
                     .then(res => {
@@ -741,8 +900,10 @@
                 document.getElementById("direccion").value = "";
                 document.getElementById("madre_nombre").value = "";
                 document.getElementById("madre_telefono").value = "";
+                document.getElementById("madre_email").value = "";
                 document.getElementById("padre_nombre").value = "";
                 document.getElementById("padre_telefono").value = "";
+                document.getElementById("padre_email").value = "";
                 document.getElementById("observaciones_generales").value = "";
                 document.getElementById("personas_autorizadas").value = "";
                 if (charts.T1) charts.T1.destroy();
@@ -750,6 +911,9 @@
                 if (charts.T3) charts.T3.destroy();
             }
 
+            function exportarData(tipo) {
+                window.location.href = `/api/alumnos/exportar/${tipo}`;
+            }
             function descargarPlantilla() {
                 window.location.href = "/api/alumnos/plantilla";
             }

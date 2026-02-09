@@ -1,52 +1,46 @@
-import json
-from app import app, get_db
+import requests
 
-def test_save_grade():
-    app.config['TESTING'] = True
-    client = app.test_client()
+BASE_URL = "http://localhost:5000/api"
 
-    # Payload matching what frontend sends (note strings vs ints)
-    # Frontend sends strings for IDs because they come from <select> value
-    data = {
-        "alumno_id": "1",
-        "area_id": "1",
-        "sda_id": "1",
-        "criterio_id": 1, 
-        "trimestre": 2,
-        "nivel": 4
+def reproduce_issue():
+    # 1. Create entry with dia as string "0"
+    payload = {
+        "dia": "0", # String!
+        "hora_inicio": "09:00",
+        "hora_fin": "10:00",
+        "asignatura": "Test String Dia",
+        "detalles": "Testing"
     }
+    
+    print(f"Sending payload: {payload}")
+    res = requests.post(f"{BASE_URL}/horario/manual", json=payload)
+    print(f"Save status: {res.status_code}")
+    print(f"Save response: {res.text}")
+    
+    if res.status_code != 200:
+        print("Failed to save.")
+        return
 
-    print(f"Sending data: {data}")
-
-    try:
-        rv = client.post('/api/evaluacion', json=data)
-        print(f"Status Code: {rv.status_code}")
-        print(f"Response: {rv.data.decode('utf-8')}")
+    # 2. Retrieve and check type
+    res = requests.get(f"{BASE_URL}/horario")
+    data = res.json()
+    manual_entries = data["manual"]
+    
+    entry = next((e for e in manual_entries if e["asignatura"] == "Test String Dia"), None)
+    
+    if entry:
+        print(f"Entry found: {entry}")
+        print(f"Type of 'dia': {type(entry['dia'])}")
         
-        if rv.status_code == 200:
-            print("Success! Checking DB...")
-            with app.app_context():
-                conn = get_db()
-                cur = conn.cursor()
-                cur.execute("""
-                    SELECT * FROM evaluaciones 
-                    WHERE alumno_id=1 AND area_id=1 AND sda_id=1 AND criterio_id=1
-                """)
-                row = cur.fetchone()
-                print(f"DB Row: {row}")
-                conn.close()
+        if isinstance(entry['dia'], int):
+             print("Dia is Integer (Good)")
         else:
-            print("Request failed.")
-
-    except Exception as e:
-        print(f"Exception: {e}")
-        # Debug: list tables
-        with app.app_context():
-            conn = get_db()
-            cur = conn.cursor()
-            cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            print(f"Tables in DB: {cur.fetchall()}")
-            conn.close()
+             print("Dia is String (BAD)")
+             
+        # Cleanup
+        requests.delete(f"{BASE_URL}/horario/manual/{entry['id']}")
+    else:
+        print("Entry NOT found!")
 
 if __name__ == "__main__":
-    test_save_grade()
+    reproduce_issue()

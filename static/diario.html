@@ -32,26 +32,33 @@
 
         /* Nav */
         .nav {
-            background: var(--primary);
+            background: #003366;
             padding: 10px 15px;
             margin-bottom: 25px;
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex;
-            gap: 15px;
-            box-shadow: var(--shadow);
-            overflow-x: auto;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
             align-items: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .nav a {
             color: white;
             text-decoration: none;
             font-weight: 600;
-            padding: 4px 6px;
-            font-size: 0.8rem;
+            padding: 8px 12px;
+            font-size: 0.85rem;
             border-radius: 8px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
         }
 
         .nav a:hover {
@@ -60,7 +67,8 @@
 
         .nav a.active {
             background: rgba(255, 255, 255, 0.2);
-            border-bottom: 2px solid white;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         /* Controls */
@@ -135,6 +143,64 @@
             opacity: 1;
         }
 
+        .student-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #eee;
+        }
+
+        .attendance-tag {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .attendance-tag.presente {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .attendance-tag.retraso {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .attendance-tag.falta_justificada {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .attendance-tag.falta_no_justificada {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .contact-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 8px;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .btn-contact {
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0;
+            text-decoration: underline;
+            margin-top: 5px;
+        }
+
         @media (max-width: 600px) {
             .student-card {
                 grid-template-columns: 1fr;
@@ -145,6 +211,81 @@
                 text-align: left;
             }
         }
+
+        /* Preview Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 700px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .preview-header {
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .preview-date-group {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .preview-date {
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: underline;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .preview-obs {
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .btn-print {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: block;
+            margin: 20px auto 0;
+        }
     </style>
 </head>
 
@@ -154,6 +295,7 @@
         <div class="nav">
             <a href="/">🏠 Inicio</a>
             <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/comedor">🍽️ Comedor</a>
             <a href="/alumnos">👥 Alumnos</a>
             <a href="/diario" class="active">📓 Diario</a>
             <a href="/evaluacion">📊 Evaluación</a>
@@ -161,7 +303,6 @@
             <a href="/horario">⏰ Horario</a>
             <a href="/programacion">📅 Programación</a>
             <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/comedor">🍽️ Comedor</a>
         </div>
 
         <div class="controls">
@@ -182,6 +323,21 @@
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
         <div id="studentList" class="student-list"></div>
 
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePreview()">&times;</span>
+            <div id="previewContent">
+                <div class="preview-header">
+                    <h2 id="previewStudentName" style="margin:0;"></h2>
+                    <p style="margin:5px 0 0; color:#666;">Vista previa de observaciones</p>
+                </div>
+                <div id="previewBody"></div>
+                <button id="modalPrintBtn" class="btn-print">📄 Generar PDF</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -234,19 +390,54 @@
                 const card = document.createElement('div');
                 card.className = 'student-card';
 
-                // Name
+                // Photo + Name info
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'student-name';
+                nameDiv.style.display = 'flex';
+                nameDiv.style.gap = '12px';
+                nameDiv.style.alignItems = 'flex-start';
+
+                const photoPath = s.foto ? `/static/uploads/${s.foto}` : 'https://via.placeholder.com/50';
+
+                const attendanceLabels = {
+                    'presente': 'Presente',
+                    'retraso': 'Retraso',
+                    'falta_justificada': 'Falta Justif.',
+                    'falta_no_justificada': 'No Justif.'
+                };
+
                 nameDiv.innerHTML = `
-                    ${s.nombre} 
-                    <a href="/api/informe/pdf_diario/${s.id}" target="_blank" style="text-decoration:none; margin-left:10px; font-size:0.9rem;" title="Descargar PDF">
-                        📄
-                    </a>`;
+                    <img src="${photoPath}" class="student-photo" onerror="this.src='https://via.placeholder.com/50'">
+                    <div style="flex-grow:1;">
+                        <div style="font-size:1rem; line-height:1.2;">${s.nombre}</div>
+                        <div class="attendance-tag ${s.asistencia}">${attendanceLabels[s.asistencia] || s.asistencia}</div>
+                        <div style="margin-top:8px;">
+                            <button onclick="openPreview(${s.id})" style="background:none; border:none; cursor:pointer; font-size:1.2rem; padding:0;" title="Vista previa">👁️</button>
+                            <button class="btn-contact" onclick="this.parentElement.nextElementSibling.style.display = (this.parentElement.nextElementSibling.style.display === 'block' ? 'none' : 'block')">📞 Contacto</button>
+                        </div>
+                        <div class="contact-info">
+                            ${s.madre_tel ? `<div>👩 <b>Madre:</b> ${s.madre_tel} <br> <span style="font-size:0.7rem;">${s.madre_email}</span></div>` : ''}
+                            ${s.padre_tel ? `<div style="margin-top:5px;">👨 <b>Padre:</b> ${s.padre_tel} <br> <span style="font-size:0.7rem;">${s.padre_email}</span></div>` : ''}
+                            ${!s.madre_tel && !s.padre_tel ? 'No hay info de contacto' : ''}
+                        </div>
+                    </div>
+                `;
 
                 // Textarea
                 const txt = document.createElement('textarea');
                 txt.placeholder = "Escribe una observación...";
                 txt.value = s.observacion;
+
+                // Auto-expand function
+                const autoExpand = (el) => {
+                    el.style.height = 'auto';
+                    el.style.height = el.scrollHeight + 'px';
+                };
+
+                // Initial expand
+                setTimeout(() => autoExpand(txt), 0);
+
+                txt.addEventListener('input', () => autoExpand(txt));
 
                 // Save on blur
                 txt.addEventListener('blur', () => {
@@ -305,7 +496,62 @@
 
         // Init
         loadData();
+        function openPreview(alumnoId) {
+            const modal = document.getElementById('previewModal');
+            const nameEl = document.getElementById('previewStudentName');
+            const bodyEl = document.getElementById('previewBody');
+            const printBtn = document.getElementById('modalPrintBtn');
 
+            bodyEl.innerHTML = '<p style="text-align:center;">Cargando vista previa...</p>';
+            modal.style.display = 'block';
+
+            fetch(`/api/informe/preview_diario/${alumnoId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok) {
+                        bodyEl.innerHTML = `<p style="color:red; text-align:center;">Error: ${data.error}</p>`;
+                        return;
+                    }
+
+                    nameEl.textContent = data.nombre_alumno;
+                    printBtn.onclick = () => window.open(`/api/informe/pdf_diario/${alumnoId}`, '_blank');
+
+                    if (data.data.length === 0) {
+                        bodyEl.innerHTML = '<p style="text-align:center; padding:20px;">No hay observaciones registradas para este alumno.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.data.forEach(group => {
+                        html += `
+                            <div class="preview-date-group">
+                                <span class="preview-date">${group.fecha}</span>
+                                ${group.observaciones.map(o => `
+                                    <div class="preview-obs">
+                                        <b>[${o.area}]</b>: ${o.texto}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    });
+                    bodyEl.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    bodyEl.innerHTML = '<p style="color:red; text-align:center;">Error al cargar la vista previa.</p>';
+                });
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target == modal) {
+                closePreview();
+            }
+        }
     </script>
 
 </body>

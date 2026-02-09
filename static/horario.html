@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Horario</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Nav */
+        .nav {
+            background: var(--primary);
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 6px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid white;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .section {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Grid Manual */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            gap: 1px;
+            background: #ddd;
+            border: 1px solid #ddd;
+        }
+
+        .header-cell,
+        .time-cell,
+        .slot-cell {
+            background: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .header-cell {
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+        }
+
+        .time-cell {
+            background: #f8f9fa;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slot-cell {
+            min-height: 80px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .slot-cell:hover {
+            background: #f0f8ff;
+        }
+
+        .subject {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .details {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .btn-add {
+            font-size: 1.5rem;
+            color: #ccc;
+            display: none;
+        }
+
+        .slot-cell:hover .btn-add {
+            display: block;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-save {
+            background: var(--success);
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+        }
+
+        .btn-delete {
+            background: var(--danger);
+            float: right;
+        }
+
+        /* Image View */
+        .img-container {
+            text-align: center;
+        }
+
+        .img-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/horario" class="active">⏰ Horario</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/comedor">🍽️ Comedor</a>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('manual')">📅 Vista Manual</button>
+            <button class="tab-btn" onclick="showTab('imagen')">🖼️ Vista Imagen</button>
+        </div>
+
+        <!-- VISTA MANUAL -->
+        <div id="tab-manual" class="section active">
+            <div style="text-align: right; margin-bottom: 10px;">
+                <button class="btn" style="background: #6c757d;" onclick="openConfigModal()">⚙️ Configurar
+                    Horas</button>
+            </div>
+            <div class="schedule-grid" id="scheduleGrid">
+                <!-- Headers generated by JS -->
+            </div>
+        </div>
+
+        <!-- VISTA IMAGEN -->
+        <div id="tab-imagen" class="section">
+            <div style="margin-bottom: 20px; text-align: center;">
+                <input type="file" id="uploadInput" accept="image/*" style="display: none;" onchange="uploadImage()">
+                <button class="btn" style="background: var(--secondary);"
+                    onclick="document.getElementById('uploadInput').click()">
+                    📤 Subir Nueva Foto
+                </button>
+            </div>
+            <div class="img-container" id="imgContainer">
+                <p style="color: #666;">No hay imagen subida.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIGURACION -->
+    <div id="modalConfig" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <h3>⚙️ Configurar Tramos Horarios</h3>
+            <div id="configRows" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;">
+                <!-- Rows generated by JS -->
+            </div>
+            <button class="btn" style="background: #28a745; width: 100%; margin-bottom: 10px;"
+                onclick="addConfigRow()">+ Añadir Tramo</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-save" style="flex: 1;" onclick="saveConfig()">Guardar</button>
+                <button class="btn btn-cancel" style="flex: 1;" onclick="closeConfigModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+        let scheduleData = {
+            manual: [],
+            config: []
+        };
+
+        // Init
+        loadData();
+
+        function showTab(tab) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            event.target.classList.add('active'); // active btn
+        }
+
+        function loadData() {
+            fetch("/api/horario")
+                .then(r => r.json())
+                .then(data => {
+                    scheduleData = data;
+                    renderGrid();
+                    renderImage(data.imagen);
+                });
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('scheduleGrid');
+            grid.innerHTML = '';
+
+            // Headers
+            grid.appendChild(createCell('header-cell', 'Hora'));
+            DIAS.forEach(dia => grid.appendChild(createCell('header-cell', dia)));
+
+            // Rows based on CONFIG
+            if (!scheduleData.config || scheduleData.config.length === 0) {
+                grid.innerHTML = '<div style="grid-column: span 6; padding: 20px; text-align: center;">No hay tramos horarios configurados.</div>';
+                return;
+            }
+
+            scheduleData.config.forEach((slot, i) => {
+                // Time column
+                grid.appendChild(createCell('time-cell', `${slot.start} - ${slot.end}`));
+
+                // Days columns
+                for (let d = 0; d < 5; d++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'slot-cell';
+
+                    // Find entry
+                    const entry = scheduleData.manual.find(e => e.dia === d && e.hora_inicio === slot.start);
+
+                    if (entry) {
+                        cell.innerHTML = `
+                        <div class="subject">${entry.asignatura}</div>
+                        <div class="details">${entry.detalles}</div>
+                    `;
+                        cell.onclick = () => openModal(d, slot, entry);
+                    } else {
+                        cell.innerHTML = `<div class="btn-add">+</div>`;
+                        cell.onclick = () => openModal(d, slot);
+                    }
+                    grid.appendChild(cell);
+                }
+            });
+        }
+
+        function createCell(className, text) {
+            const div = document.createElement('div');
+            div.className = className;
+            div.innerText = text;
+            return div;
+        }
+
+        function renderImage(filename) {
+            const container = document.getElementById('imgContainer');
+            if (filename) {
+                container.innerHTML = `<img src="/static/uploads/${filename}" alt="Horario">`;
+            } else {
+                container.innerHTML = `<p style="color: #666;">No hay imagen subida.</p>`;
+            }
+        }
+
+        // --- MODAL EVENTO ---
+
+        const modal = document.getElementById('modalEvento');
+
+        function openModal(dia, slot, entry = null) {
+            document.getElementById('modalDia').value = dia;
+            document.getElementById('modalHora').value = slot.start;
+            // Store end time in a data attribute or hidden field if needed, 
+            // but we can just use slot.end directly if we pass it or look it up.
+            // Simplified: we will use modalHora as start, and find end from config in saveEvent if needed,
+            // OR simpler: just pass it to the hidden field. I'll reuse modalHora for start.
+            // I'll add a hidden field for end time to be robust.
+
+            // Hack: add hidden input for end time if not exists, or just use a global var for current slot
+            window.currentSlotEnd = slot.end;
+
+            if (entry) {
+                document.getElementById('modalTitle').innerText = "Editar Clase";
+                document.getElementById('modalId').value = entry.id;
+                document.getElementById('modalAsignatura').value = entry.asignatura;
+                document.getElementById('modalDetalles').value = entry.detalles;
+                document.getElementById('btnDelete').style.display = 'block';
+            } else {
+                document.getElementById('modalTitle').innerText = "Nueva Clase";
+                document.getElementById('modalId').value = "";
+                document.getElementById('modalAsignatura').value = "";
+                document.getElementById('modalDetalles').value = "";
+                document.getElementById('btnDelete').style.display = 'none';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        function saveEvent() {
+            const id = document.getElementById('modalId').value;
+            const dia = document.getElementById('modalDia').value;
+            const hora_inicio = document.getElementById('modalHora').value;
+            const hora_fin = window.currentSlotEnd; // Use the stored end time
+            const asignatura = document.getElementById('modalAsignatura').value;
+            const detalles = document.getElementById('modalDetalles').value;
+
+            if (!asignatura) return alert("Escribe una asignatura");
+
+            if (id) {
+                fetch(`/api/horario/manual/${id}`, { method: 'DELETE' })
+                    .then(() => performSave(dia, hora_inicio, hora_fin, asignatura, detalles));
+            } else {
+                performSave(dia, hora_inicio, hora_fin, asignatura, detalles);
+            }
+        }
+
+        function performSave(dia, hora_inicio, hora_fin, asignatura, detalles) {
+            fetch('/api/horario/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dia, hora_inicio, hora_fin, asignatura, detalles })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        closeModal();
+                        loadData();
+                    } else {
+                        alert("Error: " + res.error);
+                    }
+                });
+        }
+
+        function deleteEvent() {
+            const id = document.getElementById('modalId').value;
+            if (!confirm("¿Borrar clase?")) return;
+
+            fetch(`/api/horario/manual/${id}`, { method: 'DELETE' })
+                .then(() => {
+                    closeModal();
+                    loadData();
+                });
+        }
+
+        function uploadImage() {
+            const input = document.getElementById('uploadInput');
+            if (input.files.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('foto', input.files[0]);
+
+            fetch('/api/horario/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        // Just update image part
+                        loadData(); // reload
+                        alert("Imagen subida correctamente");
+                    } else {
+                        alert("Error al subir imagen");
+                    }
+                });
+        }
+
+        // --- CONFIGURACION ---
+
+        function openConfigModal() {
+            const container = document.getElementById('configRows');
+            container.innerHTML = '';
+
+            // Create inputs for each row
+            scheduleData.config.forEach((slot, i) => {
+                addConfigRowHTML(container, slot.start, slot.end);
+            });
+
+            document.getElementById('modalConfig').style.display = 'flex';
+        }
+
+        function closeConfigModal() {
+            document.getElementById('modalConfig').style.display = 'none';
+        }
+
+        function addConfigRow() {
+            const container = document.getElementById('configRows');
+            // Suggest next hour based on last
+            let start = "09:00";
+            let end = "10:00";
+            const lastRow = container.lastElementChild;
+            if (lastRow) {
+                const lastEnd = lastRow.querySelector('input[name="end"]').value;
+                if (lastEnd) {
+                    start = lastEnd;
+                    // Add 1 hour roughly
+                    let [h, m] = start.split(':');
+                    end = (parseInt(h) + 1).toString().padStart(2, '0') + ":" + m;
+                }
+            }
+            addConfigRowHTML(container, start, end);
+        }
+
+        function addConfigRowHTML(container, startVal, endVal) {
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.gap = '10px';
+            div.style.marginBottom = '10px';
+            div.innerHTML = `
+                <input type="time" name="start" value="${startVal}" required>
+                <span>a</span>
+                <input type="time" name="end" value="${endVal}" required>
+                <button class="btn btn-delete" style="padding: 5px 10px;" onclick="this.parentElement.remove()">🗑️</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function saveConfig() {
+            const container = document.getElementById('configRows');
+            const rows = [];
+            let valid = true;
+
+            container.querySelectorAll('div').forEach(div => {
+                const start = div.querySelector('input[name="start"]').value;
+                const end = div.querySelector('input[name="end"]').value;
+                if (!start || !end) valid = false;
+                rows.push({ start, end });
+            });
+
+            if (!valid) return alert("Por favor completa todas las horas.");
+            if (rows.length === 0) return alert("Debe haber al menos un tramo horario.");
+
+            if (!confirm("Al cambiar los tramos, las clases que no coincidan con las nuevas horas de inicio podrían dejar de verse. ¿Continuar?")) return;
+
+            fetch('/api/horario/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rows })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        closeConfigModal();
+                        loadData();
+                    } else {
+                        alert("Error al guardar configuración");
+                    }
+                });
+        }
+
+    </script>
+
+</body>
+
+</html>

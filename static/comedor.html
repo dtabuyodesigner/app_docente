@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Comedor</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Nav */
+        .nav {
+            background: var(--primary);
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 6px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid white;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .upload-area {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 800px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/horario">⏰ Horario</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/comedor" class="active">🍽️ Comedor</a>
+        </div>
+
+        <div class="card">
+            <h2>🍽️ Menú del Comedor</h2>
+
+            <div style="margin-bottom: 20px; text-align: center;">
+                <label for="mesMenu" style="font-weight: bold; margin-right: 10px;">Seleccionar Mes:</label>
+                <input type="month" id="mesMenu"
+                    style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem;">
+            </div>
+
+            <div class="upload-area">
+                <input type="file" id="menuFile" accept="image/*" style="display:none;" onchange="uploadMenu()">
+                <button onclick="document.getElementById('menuFile').click()">
+                    📤 Subir/Actualizar Menú del Mes Seleccionado
+                </button>
+            </div>
+
+            <div id="imageContainer">
+                <p>Cargando menú...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const mesInput = document.getElementById('mesMenu');
+
+        // Set current month default
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        mesInput.value = `${yyyy}-${mm}`;
+
+        mesInput.addEventListener('change', loadMenu);
+
+        loadMenu();
+
+        function loadMenu() {
+            const mes = mesInput.value;
+            if (!mes) return;
+
+            document.getElementById('imageContainer').innerHTML = "<p>Cargando...</p>";
+
+            fetch(`/api/comedor/menu?mes=${mes}`)
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('imageContainer');
+                    if (data.imagen) {
+                        container.innerHTML = `<img src="/static/uploads/${data.imagen}" alt="Menú Comedor">`;
+                    } else {
+                        container.innerHTML = `<p style="color: #888;">No hay menú subido para ${mes}.</p>`;
+                    }
+                });
+        }
+
+        function uploadMenu() {
+            const input = document.getElementById('menuFile');
+            const mes = mesInput.value;
+
+            if (input.files.length === 0) return;
+            if (!mes) return alert("Selecciona un mes primero");
+
+            if (!confirm(`¿Subir menú para el mes ${mes}?`)) {
+                input.value = ""; // clear
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('foto', input.files[0]);
+            formData.append('mes', mes);
+
+            // Show loading
+            document.getElementById('imageContainer').innerHTML = "<p>Subiendo imagen...</p>";
+
+            fetch('/api/comedor/menu/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(r => r.json())
+                .then(res => {
+                    input.value = ""; // clear input
+                    if (res.ok) {
+                        loadMenu();
+                        alert("Menú actualizado correctamente");
+                    } else {
+                        alert("Error al subir menú: " + (res.error || "Desconocido"));
+                        loadMenu();
+                    }
+                });
+        }
+    </script>
+
+</body>
+
+</html>

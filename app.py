@@ -799,6 +799,195 @@ def progreso_alumno(alumno_id):
     
     return jsonify(result)
 
+# -------------------------------------------------
+# HORARIO Y COMEDOR (NUEVO)
+# -------------------------------------------------
+
+def get_config_value(key):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT valor FROM config WHERE clave = ?", (key,))
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else None
+
+def set_config_value(key, value):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO config (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor", (key, value))
+    conn.commit()
+    conn.close()
+
+# --- HORARIO ---
+
+@app.route("/horario")
+def horario_page():
+    return send_from_directory("static", "horario.html")
+
+@app.route("/api/horario")
+def get_horario():
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Get manual entries
+    cur.execute("SELECT id, dia, hora_inicio, hora_fin, asignatura, detalles FROM horario ORDER BY dia, hora_inicio")
+    rows = cur.fetchall()
+    
+    manual = []
+    for r in rows:
+        manual.append({
+            "id": r[0],
+            "dia": r[1],
+            "hora_inicio": r[2],
+            "hora_fin": r[3],
+            "asignatura": r[4],
+            "detalles": r[5]
+        })
+    
+    # Get image path
+    img_path = get_config_value("horario_img_path")
+    
+    # Get rows config
+    rows_config_json = get_config_value("horario_rows")
+    if rows_config_json:
+        rows_config = json.loads(rows_config_json)
+    else:
+        # Default configuration if none exists
+        rows_config = [
+            {"start": "09:00", "end": "10:00"},
+            {"start": "10:00", "end": "11:00"},
+            {"start": "11:00", "end": "12:00"},
+            {"start": "12:00", "end": "13:00"},
+            {"start": "13:00", "end": "14:00"},
+        ]
+
+    conn.close()
+    return jsonify({"manual": manual, "imagen": img_path, "config": rows_config})
+
+@app.route("/api/horario/config", methods=["POST"])
+def set_horario_config():
+    data = request.json
+    if not data or 'rows' not in data:
+        return jsonify({"ok": False, "error": "Invalid data"}), 400
+    
+    try:
+        rows_json = json.dumps(data['rows'])
+        set_config_value("horario_rows", rows_json)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/api/horario/manual", methods=["POST"])
+def save_horario_manual():
+    d = request.json
+    dia = d.get("dia")
+    hora_inicio = d.get("hora_inicio")
+    hora_fin = d.get("hora_fin")
+    asignatura = d.get("asignatura")
+    detalles = d.get("detalles", "")
+    
+    if dia is None or not hora_inicio or not hora_fin or not asignatura:
+        return jsonify({"ok": False, "error": "Faltan datos obligatorios"}), 400
+        
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO horario (dia, hora_inicio, hora_fin, asignatura, detalles)
+            VALUES (?, ?, ?, ?, ?)
+        """, (dia, hora_inicio, hora_fin, asignatura, detalles))
+        new_id = cur.lastrowid
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
+        
+    return jsonify({"ok": True, "id": new_id})
+
+@app.route("/api/horario/manual/<int:id>", methods=["DELETE"])
+def delete_horario_manual(id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM horario WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+@app.route("/api/horario/upload", methods=["POST"])
+def upload_horario_img():
+    if 'foto' not in request.files:
+        return jsonify({"ok": False, "error": "No file part"}), 400
+    
+    file = request.files['foto']
+    if file.filename == '':
+        return jsonify({"ok": False, "error": "No selected file"}), 400
+
+    if file:
+        filename = f"horario_{int(datetime.now().timestamp())}.jpg"
+        filepath = os.path.join("static", "uploads", filename)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        file.save(filepath)
+        
+        set_config_value("horario_img_path", filename)
+        return jsonify({"ok": True, "imagen": filename})
+        
+    return jsonify({"ok": False}), 500
+
+# --- COMEDOR MENU ---
+
+@app.route("/comedor")
+def comedor_page():
+    return send_from_directory("static", "comedor.html")
+
+@app.route("/api/comedor/menu")
+def get_comedor_menu():
+    mes = request.args.get("mes")
+    if not mes:
+        mes = datetime.now().strftime("%Y-%m")
+        
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT imagen FROM menus_comedor WHERE mes = ?", (mes,))
+    row = cur.fetchone()
+    conn.close()
+    
+    return jsonify({"imagen": row[0] if row else None, "mes": mes})
+
+@app.route("/api/comedor/menu/upload", methods=["POST"])
+def upload_comedor_menu():
+    if 'foto' not in request.files:
+        return jsonify({"ok": False, "error": "No file part"}), 400
+    
+    file = request.files['foto']
+    mes = request.form.get('mes')
+    
+    if file.filename == '' or not mes:
+        return jsonify({"ok": False, "error": "No selected file or month"}), 400
+
+    if file:
+        filename = f"menu_comedor_{mes}_{int(datetime.now().timestamp())}.jpg"
+        filepath = os.path.join("static", "uploads", filename)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        file.save(filepath)
+        
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            cur.execute("INSERT OR REPLACE INTO menus_comedor (mes, imagen) VALUES (?, ?)", (mes, filename))
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"ok": False, "error": str(e)}), 500
+        finally:
+            conn.close()
+            
+        return jsonify({"ok": True, "imagen": filename})
+        
+    return jsonify({"ok": False}), 500
+
+
 
 @app.route("/api/alumnos/ficha/<int:alumno_id>")
 def obtener_ficha_alumno(alumno_id):

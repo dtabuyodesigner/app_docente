@@ -162,10 +162,22 @@
 
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 style="margin:0;">👦 Alumnos</h2>
-            <button onclick="mostrarModalNuevo()"
-                style="background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
-                ➕ Nuevo Alumno
-            </button>
+            <div style="display:flex; gap:10px;">
+                <button onclick="descargarPlantilla()"
+                    style="background: var(--info); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem;">
+                    📥 Plantilla CSV
+                </button>
+                <button onclick="document.getElementById('csvInput').click()"
+                    style="background: var(--warning); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem;">
+                    📤 Importar CSV
+                </button>
+                <input type="file" id="csvInput" accept=".csv" style="display:none;" onchange="importarCSV(this)">
+
+                <button onclick="mostrarModalNuevo()"
+                    style="background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                    ➕ Nuevo Alumno
+                </button>
+            </div>
         </div>
 
         <div class="contenedor">
@@ -736,6 +748,37 @@
                 if (charts.T1) charts.T1.destroy();
                 if (charts.T2) charts.T2.destroy();
                 if (charts.T3) charts.T3.destroy();
+            }
+
+            function descargarPlantilla() {
+                window.location.href = "/api/alumnos/plantilla";
+            }
+
+            async function importarCSV(input) {
+                if (!input.files || input.files.length === 0) return;
+
+                const file = input.files[0];
+                const formData = new FormData();
+                formData.append("file", file);
+
+                try {
+                    const response = await fetch("/api/alumnos/importar", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const res = await response.json();
+
+                    if (res.ok) {
+                        alert(`¡Éxito! Se han importado ${res.count} alumnos.`);
+                        cargarAlumnos();
+                    } else {
+                        alert("Error al importar: " + res.error);
+                    }
+                } catch (error) {
+                    alert("Error de red al importar CSV.");
+                }
+
+                input.value = ""; // Limpiar el input
             }
 
         </script>

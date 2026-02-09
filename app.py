@@ -14,6 +14,8 @@ from reportlab.pdfgen import canvas
 import pandas as pd
 import os
 import json
+import csv
+import io
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -137,7 +139,104 @@ def nuevo_alumno():
     return jsonify({"ok": True, "id": new_id})
 
 
-@app.route("/api/alumnos/<int:alumno_id>/foto", methods=["POST"])
+# -------------------------------------------------
+# IMPORTAR ALUMNOS POR CSV
+# -------------------------------------------------
+
+@app.route("/api/alumnos/plantilla")
+def descargar_plantilla_alumnos():
+    output = io.StringIO()
+    writer = csv.writer(output)
+    # Cabeceras
+    writer.writerow([
+        "Nombre", 
+        "Fecha Nacimiento", 
+        "Dirección", 
+        "Madre Nombre", 
+        "Madre Teléfono", 
+        "Padre Nombre", 
+        "Padre Teléfono", 
+        "Observaciones Generales", 
+        "Personas Autorizadas",
+        "Días Comedor (0-4 separados por comas)"
+    ])
+    # Ejemplo
+    writer.writerow([
+        "Ejemplo Alumno", 
+        "2018-05-15", 
+        "Calle Mayor 1", 
+        "Carmen", 
+        "611223344", 
+        "Alberto", 
+        "655443322", 
+        "Sin alergias", 
+        "Abuela Maria",
+        "0,1,2,3,4"
+    ])
+    
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=plantilla_alumnos.csv"}
+    )
+
+@app.route("/api/alumnos/importar", methods=["POST"])
+def importar_alumnos_csv():
+    if 'file' not in request.files:
+        return jsonify({"ok": False, "error": "No hay archivo"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"ok": False, "error": "Nombre de archivo vacío"}), 400
+
+    try:
+        # Use StringIO handle decode
+        stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
+        reader = csv.DictReader(stream)
+        
+        conn = get_db()
+        cur = conn.cursor()
+        count = 0
+        
+        for row in reader:
+            nombre = row.get("Nombre")
+            if not nombre: continue # Saltar filas vacías
+            
+            f_nac = row.get("Fecha Nacimiento")
+            direccion = row.get("Dirección")
+            m_nom = row.get("Madre Nombre")
+            m_tel = row.get("Madre Teléfono")
+            p_nom = row.get("Padre Nombre")
+            p_tel = row.get("Padre Teléfono")
+            obs = row.get("Observaciones Generales")
+            autorizados = row.get("Personas Autorizadas")
+            dias = row.get("Días Comedor (0-4 separados por comas)") or ""
+            
+            no_comedor = 0 if dias else 1
+            
+            # Insertar alumno
+            cur.execute("INSERT INTO alumnos (nombre, no_comedor, comedor_dias) VALUES (?, ?, ?)",
+                        (nombre, no_comedor, dias))
+            alumno_id = cur.lastrowid
+            
+            # Insertar ficha
+            cur.execute("""
+                INSERT INTO ficha_alumno (
+                    alumno_id, fecha_nacimiento, direccion, madre_nombre, 
+                    madre_telefono, padre_nombre, padre_telefono, 
+                    observaciones_generales, personas_autorizadas
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (alumno_id, f_nac, direccion, m_nom, m_tel, p_nom, p_tel, obs, autorizados))
+            
+            count += 1
+            
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "count": count})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 def subir_foto_alumno(alumno_id):
     if 'foto' not in request.files:
         return jsonify({"ok": False, "error": "No file part"}), 400

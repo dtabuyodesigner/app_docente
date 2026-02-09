@@ -158,8 +158,8 @@
         }
 
         .card.justificada {
-            border-color: #17a2b8;
-            background: #f2fdff;
+            border-color: #007bff;
+            background: #f0f7ff;
         }
 
         .card.nojustificada {
@@ -199,8 +199,8 @@
         }
 
         .justificada .status-badge {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: #cfe2ff;
+            color: #084298;
         }
 
         .nojustificada .status-badge {
@@ -250,8 +250,8 @@
         }
 
         .btn-status[data-status="falta_justificada"].active {
-            background: var(--info);
-            border-color: var(--info);
+            background: #007bff;
+            border-color: #0056b3;
         }
 
         .btn-status[data-status="falta_no_justificada"].active {
@@ -393,7 +393,7 @@
         }
 
         .tag.falta_justificada {
-            background: var(--info);
+            background: #007bff;
         }
 
         .tag.falta_no_justificada {
@@ -498,7 +498,7 @@
                 <h4>🔴 Ausencias</h4>
                 <p id="totalFaltas">0</p>
                 <div style="font-size: 0.85rem; margin-top: 8px; font-weight: 500;">
-                    <span style="color: #17a2b8;">Justif: <b id="totalJustificadas">0</b></span>
+                    <span style="color: #007bff;">Justif: <b id="totalJustificadas">0</b></span>
                     <span style="margin: 0 4px; color: #ccc;">|</span>
                     <span style="color: var(--danger);">No Justif: <b id="totalInjustificadas">0</b></span>
                 </div>
@@ -587,7 +587,7 @@
                         </button>
                         <button class="btn-status ${student.estado === 'falta_justificada' ? 'active' : ''}" 
                                 data-status="falta_justificada" onclick="markStatus(${student.id}, 'falta_justificada')">
-                            🟡 Justif.
+                            🔵 Justif.
                         </button>
                         <button class="btn-status ${student.estado === 'falta_no_justificada' ? 'active' : ''}" 
                                 data-status="falta_no_justificada" onclick="markStatus(${student.id}, 'falta_no_justificada')">

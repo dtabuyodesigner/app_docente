@@ -71,6 +71,27 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
+        /* Tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
         /* Controls */
         .controls {
             background: white;
@@ -121,6 +142,10 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             border-left: 5px solid var(--secondary);
             position: relative;
+        }
+
+        .meeting-card.cycle {
+            border-left-color: var(--warning);
         }
 
         .meeting-header {
@@ -275,22 +300,23 @@
             <a href="/reuniones" class="active">👨‍👩‍👧‍👦 Reuniones</a>
         </div>
 
+        <div class="tabs">
+            <div class="tab active" onclick="setMode('PADRES')" id="tabPadres">👨‍👩‍👧‍👦 Reuniones con Familias</div>
+            <div class="tab" onclick="setMode('CICLO')" id="tabCiclo">🏫 Reuniones de Ciclo</div>
+        </div>
+
         <div class="controls">
             <div>
-                <h2 style="margin:0 0 5px 0;">👨‍👩‍👧‍👦 Reuniones con Familias</h2>
+                <h2 style="margin:0 0 5px 0;" id="pageTitle">Reuniones con Familias</h2>
                 <select id="studentSelect">
-                    <option value="">-- Seleccionar Alumno --</option>
+                    <option value="">-- Ver Todas (Resumen) --</option>
                 </select>
             </div>
             <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
         </div>
 
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
-        <div id="meetingList" class="meeting-list">
-            <div style="text-align:center; padding:30px; color:#888; font-style:italic;">
-                Selecciona un alumno para ver su historial de reuniones.
-            </div>
-        </div>
+        <div id="meetingList" class="meeting-list"></div>
 
     </div>
 
@@ -301,13 +327,15 @@
             <h2 id="modalTitle">Nueva Reunión</h2>
 
             <input type="hidden" id="editingId">
+            <input type="hidden" id="meetingType">
+            <input type="hidden" id="editingAlumnoId">
 
             <div class="form-group">
                 <label>Fecha</label>
                 <input type="date" id="mFecha" class="form-control">
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="groupAsistentes">
                 <label>Asistentes</label>
                 <select id="mAsistentesSelect" class="form-control" onchange="toggleOtherAssistants()">
                     <option value="">-- Seleccionar --</option>
@@ -321,6 +349,12 @@
                 </select>
                 <input type="text" id="mAsistentesOtro" class="form-control"
                     placeholder="Especificar quién ha asistido..." style="display:none; margin-top: 5px;">
+            </div>
+
+            <div class="form-group" id="groupAsistentesCiclo" style="display:none;">
+                <label>Asistentes (Ciclo)</label>
+                <input type="text" id="mAsistentesCiclo" class="form-control"
+                    placeholder="Ej: Claustro, Profesores de Nivel...">
             </div>
 
             <div class="form-group">
@@ -338,19 +372,29 @@
     </div>
 
     <script>
+        let currentMode = 'PADRES'; // PADRES or CICLO
+
         const studentSelect = document.getElementById('studentSelect');
         const listContainer = document.getElementById('meetingList');
         const loading = document.getElementById('loading');
+        const pageTitle = document.getElementById('pageTitle');
+        const tabPadres = document.getElementById('tabPadres');
+        const tabCiclo = document.getElementById('tabCiclo');
 
         // Modal elements
         const modal = document.getElementById('meetingModal');
         const mFecha = document.getElementById('mFecha');
         const mAsistentesSelect = document.getElementById('mAsistentesSelect');
         const mAsistentesOtro = document.getElementById('mAsistentesOtro');
+        const mAsistentesCiclo = document.getElementById('mAsistentesCiclo');
+        const groupAsistentes = document.getElementById('groupAsistentes');
+        const groupAsistentesCiclo = document.getElementById('groupAsistentesCiclo');
+
         const mTemas = document.getElementById('mTemas');
         const mAcuerdos = document.getElementById('mAcuerdos');
         const editingId = document.getElementById('editingId');
         const modalTitle = document.getElementById('modalTitle');
+        const meetingTypeInput = document.getElementById('meetingType');
 
         // Initial Load
         fetch('/api/alumnos').then(r => r.json()).then(data => {
@@ -360,48 +404,70 @@
                 opt.textContent = s.nombre;
                 studentSelect.appendChild(opt);
             });
+            loadMeetings(); // Load initial view
         });
 
         studentSelect.addEventListener('change', loadMeetings);
 
-        function loadMeetings() {
-            const sid = studentSelect.value;
-            if (!sid) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#888; font-style:italic;">Selecciona un alumno para ver su historial.</div>';
-                return;
+        function setMode(mode) {
+            currentMode = mode;
+            if (mode === 'PADRES') {
+                tabPadres.classList.add('active');
+                tabCiclo.classList.remove('active');
+                studentSelect.style.display = 'inline-block';
+                pageTitle.textContent = "Reuniones con Familias";
+            } else {
+                tabPadres.classList.remove('active');
+                tabCiclo.classList.add('active');
+                studentSelect.style.display = 'none';
+                pageTitle.textContent = "Reuniones de Ciclo";
             }
+            loadMeetings();
+        }
 
+        function loadMeetings() {
             loading.style.display = 'block';
             listContainer.innerHTML = '';
 
-            fetch(`/api/reuniones?alumno_id=${sid}`)
+            let url = `/api/reuniones?tipo=${currentMode}`;
+            if (currentMode === 'PADRES' && studentSelect.value) {
+                url += `&alumno_id=${studentSelect.value}`;
+            }
+
+            fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     loading.style.display = 'none';
                     if (data.length === 0) {
-                        listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No hay reuniones registradas para este alumno.</div>';
+                        listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No hay reuniones registradas.</div>';
                         return;
                     }
 
                     data.forEach(m => {
                         const card = document.createElement('div');
-                        card.className = 'meeting-card';
+                        card.className = `meeting-card ${m.tipo === 'CICLO' ? 'cycle' : ''}`;
 
                         // Format date
                         let d = new Date(m.fecha);
                         let dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+                        let headerTitle = m.asistentes;
+                        if (m.tipo === 'PADRES' && m.alumno_nombre) {
+                            headerTitle = `<strong>${m.alumno_nombre}</strong>: ${m.asistentes}`;
+                        } else if (m.tipo === 'CICLO') {
+                            headerTitle = `🏫 ${m.asistentes || 'Reunión de Ciclo'}`;
+                        }
+
                         card.innerHTML = `
                             <div class="meeting-header">
                                 <span class="meeting-date">📅 ${dateStr}</span>
-                                <span class="meeting-attendees">👥 ${m.asistentes}</span>
+                                <span class="meeting-attendees">${headerTitle}</span>
                             </div>
                             <div class="meeting-body">
                                 <h4>📝 Temas Tratados</h4>
                                 <div class="meeting-text">${m.temas}</div>
                                 
-                                <h4>🤝 Acuerdos</h4>
-                                <div class="meeting-text">${m.acuerdos}</div>
+                                ${m.acuerdos ? `<h4>🤝 Acuerdos</h4><div class="meeting-text">${m.acuerdos}</div>` : ''}
                             </div>
                             <div class="meeting-actions">
                                 <button class="btn-edit" onclick='editMeeting(${JSON.stringify(m)})'>✏️ Editar</button>
@@ -414,37 +480,60 @@
         }
 
         function openModal() {
-            if (!studentSelect.value) {
-                alert("Por favor, selecciona un alumno primero.");
+            if (currentMode === 'PADRES' && !studentSelect.value) {
+                alert("Para crear una reunión de familia, selecciona primero un alumno.");
                 return;
             }
+
             // Reset form
             editingId.value = "";
+            meetingTypeInput.value = currentMode;
             mFecha.valueAsDate = new Date();
-            mAsistentesSelect.value = "";
-            mAsistentesOtro.value = "";
-            toggleOtherAssistants();
+
+            if (currentMode === 'PADRES') {
+                groupAsistentes.style.display = 'block';
+                groupAsistentesCiclo.style.display = 'none';
+                mAsistentesSelect.value = "";
+                mAsistentesOtro.value = "";
+                toggleOtherAssistants();
+            } else {
+                groupAsistentes.style.display = 'none';
+                groupAsistentesCiclo.style.display = 'block';
+                mAsistentesCiclo.value = "";
+            }
+
             mTemas.value = "";
             mAcuerdos.value = "";
-            modalTitle.textContent = "Nueva Reunión";
+            modalTitle.textContent = currentMode === 'PADRES' ? "Nueva Reunión de Familia" : "Nueva Reunión de Ciclo";
 
             modal.style.display = 'block';
         }
 
         function editMeeting(meeting) {
             editingId.value = meeting.id;
+            document.getElementById('editingAlumnoId').value = meeting.alumno_id || "";
+            meetingTypeInput.value = meeting.tipo;
             mFecha.value = meeting.fecha;
 
-            // Check if attendees is in list
-            const options = Array.from(mAsistentesSelect.options).map(o => o.value);
-            if (options.includes(meeting.asistentes)) {
-                mAsistentesSelect.value = meeting.asistentes;
-                mAsistentesOtro.value = "";
+            if (meeting.tipo === 'PADRES') {
+                groupAsistentes.style.display = 'block';
+                groupAsistentesCiclo.style.display = 'none';
+
+                // Check if attendees is in list
+                const options = Array.from(mAsistentesSelect.options).map(o => o.value);
+                if (options.includes(meeting.asistentes)) {
+                    mAsistentesSelect.value = meeting.asistentes;
+                    mAsistentesOtro.value = "";
+                } else {
+                    mAsistentesSelect.value = "Otro";
+                    mAsistentesOtro.value = meeting.asistentes;
+                }
+                toggleOtherAssistants();
             } else {
-                mAsistentesSelect.value = "Otro";
-                mAsistentesOtro.value = meeting.asistentes;
+                groupAsistentes.style.display = 'none';
+                groupAsistentesCiclo.style.display = 'block';
+                mAsistentesCiclo.value = meeting.asistentes;
             }
-            toggleOtherAssistants();
 
             mTemas.value = meeting.temas;
             mAcuerdos.value = meeting.acuerdos;
@@ -459,25 +548,40 @@
 
         function saveMeeting() {
             const id = editingId.value;
+            const type = meetingTypeInput.value;
 
-            let asistentes = mAsistentesSelect.value;
-            if (asistentes === "Otro") {
-                asistentes = mAsistentesOtro.value;
-            }
+            let asistentes = "";
 
-            if (!asistentes) {
-                alert("Por favor, indica los asistentes.");
-                return;
+            if (type === 'PADRES') {
+                asistentes = mAsistentesSelect.value;
+                if (asistentes === "Otro") {
+                    asistentes = mAsistentesOtro.value;
+                }
+                if (!asistentes) {
+                    alert("Por favor, indica los asistentes.");
+                    return;
+                }
+            } else {
+                asistentes = mAsistentesCiclo.value || "Reunión de Ciclo";
             }
 
             const payload = {
-                alumno_id: studentSelect.value,
+                alumno_id: type === 'PADRES' ? studentSelect.value : null,
+                // If we are editing, we preserve the linked student even if select changed, 
+                // but for simplicity we rely on current select for new ones.
+                // Ideally backend ignores alumno_id update if not provided or handled differently.
+                // For 'PADRES' new/edit we assume selected student is correct.
+
                 fecha: mFecha.value,
                 asistentes: asistentes,
                 temas: mTemas.value,
-                acuerdos: mAcuerdos.value
+                acuerdos: mAcuerdos.value,
+                tipo: type
             };
 
+            // Fix: If editing, better keep existing student id from somewhere? 
+            // In this UI flow, you can only edit visible items. 
+            // If in Summary View (no student selected), creating new parent meeting requires selection.
             const url = id ? `/api/reuniones/${id}` : '/api/reuniones';
             const method = id ? 'PUT' : 'POST';
 
@@ -505,7 +609,6 @@
             if (!confirm("¿Seguro que quieres borrar esta reunión?")) return;
 
             fetch(`/api/reuniones/${id}`, { method: 'DELETE' })
-                .then(r => r.json())
                 .then(res => {
                     if (res.ok) {
                         loadMeetings();

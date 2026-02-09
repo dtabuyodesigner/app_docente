@@ -3599,31 +3599,51 @@ def api_reuniones():
     cur = conn.cursor()
 
     if request.method == "GET":
+        tipo = request.args.get("tipo", "PADRES")
         alumno_id = request.args.get("alumno_id")
-        if not alumno_id:
-            return jsonify([])
         
-        cur.execute("SELECT id, fecha, asistentes, temas, acuerdos FROM reuniones WHERE alumno_id = ? ORDER BY fecha DESC", (alumno_id,))
+        if tipo == "CICLO":
+             cur.execute("SELECT id, fecha, asistentes, temas, acuerdos, tipo, alumno_id FROM reuniones WHERE tipo = 'CICLO' ORDER BY fecha DESC")
+        elif alumno_id:
+             cur.execute("SELECT id, fecha, asistentes, temas, acuerdos, tipo, alumno_id FROM reuniones WHERE alumno_id = ? AND tipo = 'PADRES' ORDER BY fecha DESC", (alumno_id,))
+        else:
+             # Global view for Parents
+             cur.execute("""
+                SELECT r.id, r.fecha, r.asistentes, r.temas, r.acuerdos, r.tipo, r.alumno_id, a.nombre
+                FROM reuniones r
+                JOIN alumnos a ON r.alumno_id = a.id
+                WHERE r.tipo = 'PADRES'
+                ORDER BY r.fecha DESC
+             """)
+             
         rows = cur.fetchall()
         conn.close()
 
         data = []
         for r in rows:
-            data.append({
+            item = {
                 "id": r[0],
                 "fecha": r[1],
                 "asistentes": r[2],
                 "temas": r[3],
-                "acuerdos": r[4]
-            })
+                "acuerdos": r[4],
+                "tipo": r[5],
+                "alumno_id": r[6]
+            }
+            if len(r) > 7:
+                item["alumno_nombre"] = r[7]
+            data.append(item)
         return jsonify(data)
 
     elif request.method == "POST":
         d = request.json
+        alumno_id = d.get("alumno_id")
+        tipo = d.get("tipo", "PADRES")
+        
         cur.execute("""
-            INSERT INTO reuniones (alumno_id, fecha, asistentes, temas, acuerdos)
-            VALUES (?, ?, ?, ?, ?)
-        """, (d["alumno_id"], d["fecha"], d["asistentes"], d["temas"], d["acuerdos"]))
+            INSERT INTO reuniones (alumno_id, fecha, asistentes, temas, acuerdos, tipo)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (alumno_id, d["fecha"], d["asistentes"], d["temas"], d["acuerdos"], tipo))
         conn.commit()
         lid = cur.lastrowid
         conn.close()
@@ -3643,11 +3663,12 @@ def api_reuniones_item(rid):
 
     elif request.method == "PUT":
         d = request.json
+        tipo = d.get("tipo", "PADRES")
         cur.execute("""
             UPDATE reuniones 
-            SET fecha = ?, asistentes = ?, temas = ?, acuerdos = ?
+            SET fecha = ?, asistentes = ?, temas = ?, acuerdos = ?, tipo = ?
             WHERE id = ?
-        """, (d["fecha"], d["asistentes"], d["temas"], d["acuerdos"], rid))
+        """, (d["fecha"], d["asistentes"], d["temas"], d["acuerdos"], tipo, rid))
         conn.commit()
         conn.close()
         return jsonify({"ok": True})

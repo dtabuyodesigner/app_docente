@@ -445,7 +445,25 @@
             </div>
         </div>
 
-        <!-- History Modal -->
+        <!-- Hour Selection Modal -->
+        <div class="modal-overlay" id="hourModal">
+            <div class="modal" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3>⏰ Seleccionar Horas</h3>
+                    <button class="modal-close" onclick="closeHourModal()">&times;</button>
+                </div>
+                <div id="hourSelectionList" style="margin-bottom: 20px;">
+                    <!-- Slots will be here -->
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-status" onclick="saveHours()"
+                        style="flex: 1; background: var(--success); color: white; border: none;">Guardar</button>
+                    <button class="btn-status" onclick="closeHourModal()"
+                        style="flex: 1; background: #6c757d; color: white; border: none;">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-overlay" id="historyModal">
             <div class="modal">
                 <div class="modal-header">
@@ -496,6 +514,8 @@
         const studentGrid = document.getElementById("studentGrid");
         const dateInput = document.getElementById("fecha");
         let selectedDate = new Date().toISOString().split("T")[0];
+        let scheduleSlots = [];
+        let currentStudentForHours = null;
 
         dateInput.value = selectedDate;
         dateInput.addEventListener("change", (e) => {
@@ -507,6 +527,13 @@
 
         async function loadAttendance() {
             try {
+                // Load schedule config once
+                if (scheduleSlots.length === 0) {
+                    const resConfig = await fetch('/api/horario');
+                    const configData = await resConfig.json();
+                    scheduleSlots = configData.config || [];
+                }
+
                 const response = await fetch(`/api/asistencia/hoy?fecha=${selectedDate}`);
                 const students = await response.json();
                 studentData = students; // Store for auto-dining logic
@@ -526,8 +553,14 @@
                 let statusLabel = "Presente";
 
                 if (student.estado === "retraso") { statusClass = "retraso"; statusLabel = "Retraso"; }
-                else if (student.estado === "falta_justificada") { statusClass = "justificada"; statusLabel = "Justificada"; }
-                else if (student.estado === "falta_no_justificada") { statusClass = "nojustificada"; statusLabel = "No Justif."; }
+                else if (student.estado === "falta_justificada") {
+                    statusClass = "justificada";
+                    statusLabel = student.tipo_ausencia === 'horas' ? "Falta Parcial (J)" : "Justificada";
+                }
+                else if (student.estado === "falta_no_justificada") {
+                    statusClass = "nojustificada";
+                    statusLabel = student.tipo_ausencia === 'horas' ? "Falta Parcial (NJ)" : "No Justif.";
+                }
 
                 card.className = `card ${statusClass}`;
                 card.innerHTML = `
@@ -535,7 +568,14 @@
                         <div class="card-name">${student.nombre}</div>
                         <span class="status-badge">${statusLabel}</span>
                     </div>
-                    
+                `;
+
+                if (student.estado.startsWith("falta") && student.tipo_ausencia === "horas" && student.horas_ausencia) {
+                    const hours = JSON.parse(student.horas_ausencia);
+                    card.innerHTML += `<div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">🕒 Horas: ${hours.join(", ")}</div>`;
+                }
+
+                card.innerHTML += `
                     <div class="btn-group">
                         <button class="btn-status ${student.estado === 'presente' ? 'active' : ''}" 
                                 data-status="presente" onclick="markStatus(${student.id}, 'presente')">
@@ -554,7 +594,20 @@
                             🔴 No Justif.
                         </button>
                     </div>
-                    
+                `;
+
+                if (student.estado.startsWith("falta")) {
+                    card.innerHTML += `
+                        <div style="margin-bottom: 15px; text-align: center;">
+                            <a href="#" onclick="openHourModal(${student.id}); return false;" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">
+                                ${student.tipo_ausencia === 'horas' ? '⚙️ Cambiar horas' : '⏰ Marcar por horas'}
+                            </a>
+                            ${student.tipo_ausencia === 'horas' ? ` | <a href="#" onclick="markFullDay(${student.id}); return false;" style="font-size: 0.85rem; color: var(--danger);">Día completo</a>` : ''}
+                        </div>
+                    `;
+                }
+
+                card.innerHTML += `
                     <label class="comedor-toggle">
                         <input type="checkbox" ${student.comedor ? 'checked' : ''} 
                                onchange="toggleComedor(${student.id}, this.checked)">
@@ -580,12 +633,26 @@
             let payload = {
                 alumno_id: id,
                 estado: status,
-                fecha: selectedDate
+                fecha: selectedDate,
+                tipo_ausencia: student ? (student.tipo_ausencia || 'dia') : 'dia',
+                horas_ausencia: student ? student.horas_ausencia : null
             };
 
-            // Auto-dining logic: if returning to class and is a diner student
-            if ((status === 'presente' || status === 'retraso') && student && student.no_comedor === 0) {
-                payload.comedor = 1;
+            // Auto-dining logic: 
+            // 1. If returning to class (presente/retraso) and is a habitual diner
+            if ((status === 'presente' || status === 'retraso')) {
+                if (student && student.no_comedor === 0) payload.comedor = 1;
+                payload.tipo_ausencia = 'dia';
+                payload.horas_ausencia = null;
+            }
+            // 2. If it's a partial absence, we don't automatically set comedor=0
+            else if (status.startsWith('falta')) {
+                if (payload.tipo_ausencia === 'dia') {
+                    payload.comedor = 0;
+                } else {
+                    // Partial absence: preserve comedor if already set
+                    payload.comedor = student ? student.comedor : 0;
+                }
             }
 
             await fetch("/api/asistencia", {
@@ -784,6 +851,82 @@
         historyModal.addEventListener("click", (e) => {
             if (e.target === historyModal) closeHistory();
         });
+
+        async function markFullDay(id) {
+            const student = studentData.find(s => s.id === id);
+            await fetch("/api/asistencia", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    alumno_id: id,
+                    estado: student.estado,
+                    fecha: selectedDate,
+                    tipo_ausencia: 'dia',
+                    horas_ausencia: null,
+                    comedor: 0
+                })
+            });
+            loadAttendance();
+        }
+
+        function openHourModal(id) {
+            currentStudentForHours = studentData.find(s => s.id === id);
+            const list = document.getElementById("hourSelectionList");
+            list.innerHTML = "";
+
+            let selectedHours = [];
+            if (currentStudentForHours.tipo_ausencia === 'horas' && currentStudentForHours.horas_ausencia) {
+                selectedHours = JSON.parse(currentStudentForHours.horas_ausencia);
+            }
+
+            if (scheduleSlots.length === 0) {
+                list.innerHTML = "<p>No hay tramos horarios configurados.</p>";
+            } else {
+                scheduleSlots.forEach(slot => {
+                    const label = `${slot.start} - ${slot.end}`;
+                    const isChecked = selectedHours.includes(label);
+                    list.innerHTML += `
+                        <label style="display: block; padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;">
+                            <input type="checkbox" name="selectedSlot" value="${label}" ${isChecked ? 'checked' : ''}>
+                            <strong>${label}</strong> ${slot.label ? `(${slot.label})` : ''}
+                        </label>
+                    `;
+                });
+            }
+
+            document.getElementById("hourModal").style.display = "flex";
+        }
+
+        function closeHourModal() {
+            document.getElementById("hourModal").style.display = "none";
+        }
+
+        async function saveHours() {
+            if (!currentStudentForHours) return;
+
+            const checkboxes = document.querySelectorAll('input[name="selectedSlot"]:checked');
+            const selectedHours = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedHours.length === 0) {
+                return alert("Selecciona al menos una hora o usa 'Día completo'");
+            }
+
+            await fetch("/api/asistencia", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    alumno_id: currentStudentForHours.id,
+                    estado: currentStudentForHours.estado,
+                    fecha: selectedDate,
+                    tipo_ausencia: 'horas',
+                    horas_ausencia: JSON.stringify(selectedHours),
+                    comedor: 1 // If partial absence, we assume they might eat (user can toggle)
+                })
+            });
+
+            closeHourModal();
+            loadAttendance();
+        }
 
         loadAttendance();
     </script>

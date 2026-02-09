@@ -242,7 +242,9 @@ def asistencia_hoy():
             a.comedor_dias,
             COALESCE(asist.estado, 'presente') AS estado,
             asist.id AS asistencia_id,
-            asist.comedor AS asist_comedor
+            asist.comedor AS asist_comedor,
+            asist.tipo_ausencia,
+            asist.horas_ausencia
         FROM alumnos a
         LEFT JOIN asistencia asist
             ON asist.alumno_id = a.id
@@ -254,11 +256,13 @@ def asistencia_hoy():
     conn.close()
 
     resultado = []
-    for (aid, nombre, no_comedor, comedor_dias, estado, asist_id, asist_comedor) in datos:
+    for (aid, nombre, no_comedor, comedor_dias, estado, asist_id, asist_comedor, tipo_ausencia, horas_ausencia) in datos:
         # Calculate default dining status checking specific days
         if asist_id is not None:
              final_comedor = asist_comedor
         else:
+             tipo_ausencia = "dia"
+             horas_ausencia = None
              # Logic for default
              if comedor_dias:
                  # Check if today is in the allowed list
@@ -269,13 +273,15 @@ def asistencia_hoy():
              else:
                  # Standard logic
                  final_comedor = 0 if no_comedor == 1 else 1
-        
+
         resultado.append({
             "id": aid,
             "nombre": nombre,
-            "no_comedor": no_comedor,
             "estado": estado,
-            "comedor": final_comedor
+            "comedor": final_comedor,
+            "no_comedor": no_comedor,
+            "tipo_ausencia": tipo_ausencia,
+            "horas_ausencia": horas_ausencia
         })
     
 
@@ -367,19 +373,24 @@ def guardar_asistencia():
 
     new_estado = d.get("estado", current_estado)
     new_comedor = d.get("comedor", current_comedor)
+    tipo_ausencia = d.get("tipo_ausencia", "dia")
+    horas_ausencia = d.get("horas_ausencia")
 
     # Business rule: if they are absent, they can't eat
     if new_estado in ("falta_justificada", "falta_no_justificada"):
-        new_comedor = 0
+        if tipo_ausencia == "dia":
+            new_comedor = 0
 
     cur.execute("""
-        INSERT INTO asistencia (alumno_id, fecha, estado, comedor)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO asistencia (alumno_id, fecha, estado, comedor, tipo_ausencia, horas_ausencia)
+        VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(alumno_id, fecha)
         DO UPDATE SET
             estado = excluded.estado,
-            comedor = excluded.comedor
-    """, (alumno_id, fecha, new_estado, new_comedor))
+            comedor = excluded.comedor,
+            tipo_ausencia = excluded.tipo_ausencia,
+            horas_ausencia = excluded.horas_ausencia
+    """, (alumno_id, fecha, new_estado, new_comedor, tipo_ausencia, horas_ausencia))
 
     conn.commit()
     conn.close()
@@ -401,7 +412,9 @@ def resumen_asistencia():
     cur.execute("""
         SELECT 
             a.nombre,
-            COALESCE(asist.estado, 'presente')
+            COALESCE(asist.estado, 'presente'),
+            asist.tipo_ausencia,
+            asist.horas_ausencia
         FROM alumnos a
         LEFT JOIN asistencia asist
             ON asist.alumno_id = a.id
@@ -418,7 +431,7 @@ def resumen_asistencia():
     faltas_injustificadas = 0
     lista_faltan = []
 
-    for nombre, estado in filas:
+    for nombre, estado, tipo_ausencia, horas_ausencia in filas:
         if estado == "presente":
             presentes += 1
         elif estado == "retraso":
@@ -427,13 +440,24 @@ def resumen_asistencia():
         elif estado == "falta_justificada":
             faltas += 1
             faltas_justificadas += 1
-            lista_faltan.append(f"{nombre} (J)")
+            label = nombre
+            if tipo_ausencia == "horas" and horas_ausencia:
+                h_list = json.loads(horas_ausencia)
+                label += f" ({len(h_list)}h J)"
+            else:
+                label += " (J)"
+            lista_faltan.append(label)
         elif estado == "falta_no_justificada":
             faltas += 1
             faltas_injustificadas += 1
-            lista_faltan.append(f"{nombre} (NJ)")
+            label = nombre
+            if tipo_ausencia == "horas" and horas_ausencia:
+                h_list = json.loads(horas_ausencia)
+                label += f" ({len(h_list)}h NJ)"
+            else:
+                label += " (NJ)"
+            lista_faltan.append(label)
         else:
-            # Fallback for old/unknown states (treat as unjustified or generic)
             faltas += 1
             faltas_injustificadas += 1
             lista_faltan.append(nombre)
@@ -465,7 +489,9 @@ def calculate_comedor_total(conn, fecha_iso):
             a.no_comedor, 
             a.comedor_dias,
             asist.estado,
-            asist.comedor
+            asist.comedor,
+            asist.tipo_ausencia,
+            asist.horas_ausencia
         FROM alumnos a
         LEFT JOIN asistencia asist ON asist.alumno_id = a.id AND asist.fecha = ?
     """, (fecha_iso,))
@@ -474,13 +500,19 @@ def calculate_comedor_total(conn, fecha_iso):
     total = 0
     
     for r in rows:
-        a_id, no_comedor, comedor_dias, estado, as_comedor = r
+        a_id, no_comedor, comedor_dias, estado, as_comedor, tipo_ausencia, horas_ausencia = r  # Note: I need to check if I updated the SELECT in calculate_comedor_total
         
-        # If absent, they don't eat (unless explicitly overridden)
+        # If absent (full day), they don't eat (unless explicitly overridden)
         current_state = estado if estado else 'presente'
+        current_tipo = tipo_ausencia if tipo_ausencia else 'dia'
         
-        if current_state not in ('presente', 'retraso'):
-            continue
+        # Business rule check:
+        # Full day absent (tipo='dia') -> skip (unless overridden by as_comedor)
+        # Partial absent (tipo='horas') -> allow (follow dining settings)
+        if current_state in ('falta_justificada', 'falta_no_justificada') and current_tipo == 'dia':
+            # Only count if explicitly marked as comedor=1 today
+            if as_comedor != 1:
+                continue
             
         # Determine if they eat
         eats = False
@@ -830,7 +862,10 @@ def get_horario():
     cur = conn.cursor()
     
     # Get manual entries
-    cur.execute("SELECT id, dia, hora_inicio, hora_fin, asignatura, detalles FROM horario ORDER BY dia, hora_inicio")
+    tipo = request.args.get("tipo", "clase")
+    
+    # Get manual entries
+    cur.execute("SELECT id, dia, hora_inicio, hora_fin, asignatura, detalles FROM horario WHERE tipo = ? ORDER BY dia, hora_inicio", (tipo,))
     rows = cur.fetchall()
     
     manual = []
@@ -881,10 +916,19 @@ def set_horario_config():
 def save_horario_manual():
     d = request.json
     dia = d.get("dia")
+    
+    # Enforce integer for dia
+    try:
+        if dia is not None:
+            dia = int(dia)
+    except ValueError:
+        pass # Let validation fail below if needed
+        
     hora_inicio = d.get("hora_inicio")
     hora_fin = d.get("hora_fin")
     asignatura = d.get("asignatura")
     detalles = d.get("detalles", "")
+    tipo = d.get("tipo", "clase")
     
     if dia is None or not hora_inicio or not hora_fin or not asignatura:
         return jsonify({"ok": False, "error": "Faltan datos obligatorios"}), 400
@@ -893,9 +937,9 @@ def save_horario_manual():
     cur = conn.cursor()
     try:
         cur.execute("""
-            INSERT INTO horario (dia, hora_inicio, hora_fin, asignatura, detalles)
-            VALUES (?, ?, ?, ?, ?)
-        """, (dia, hora_inicio, hora_fin, asignatura, detalles))
+            INSERT INTO horario (dia, hora_inicio, hora_fin, asignatura, detalles, tipo)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (dia, hora_inicio, hora_fin, asignatura, detalles, tipo))
         new_id = cur.lastrowid
         conn.commit()
     except Exception as e:
@@ -3026,6 +3070,20 @@ def init_db_tables():
     with app.app_context():
         conn = get_db()
         cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS asistencia (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                alumno_id INTEGER NOT NULL,
+                fecha TEXT NOT NULL,
+                estado TEXT CHECK (estado IN ('presente', 'retraso', 'falta_justificada', 'falta_no_justificada')) NOT NULL,
+                comedor INTEGER DEFAULT 1,
+                observacion TEXT,
+                tipo_ausencia TEXT DEFAULT 'dia',
+                horas_ausencia TEXT,
+                UNIQUE (alumno_id, fecha),
+                FOREIGN KEY (alumno_id) REFERENCES alumnos(id)
+            )
+        """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS tareas (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

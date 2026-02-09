@@ -269,6 +269,10 @@
             }
 
             window.rellenarTodos = function (nivel) {
+                if (!alumnoSelect.value) {
+                    alert("Por favor, selecciona un alumno primero.");
+                    return;
+                }
                 if (!confirm("¿Asignar nota " + nivel + " a todos los criterios visibles?")) return;
                 document.getElementById("tbody").querySelectorAll("tr").forEach(tr => {
                     guardar(tr.id.replace("row-", ""), nivel);
@@ -276,6 +280,10 @@
             }
 
             window.limpiarTodos = function () {
+                if (!alumnoSelect.value) {
+                    alert("Por favor, selecciona un alumno primero.");
+                    return;
+                }
                 if (!confirm("¿Borrar todas las notas de este alumno en esta SDA?")) return;
                 fetch(`/api/evaluacion?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${trimestre}`, { method: 'DELETE' })
                     .then(r => r.json()).then(d => {

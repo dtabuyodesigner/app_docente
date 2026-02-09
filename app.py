@@ -3650,28 +3650,166 @@ def api_reuniones():
         return jsonify({"ok": True, "id": lid})
 
 
-@app.route("/api/reuniones/<int:rid>", methods=["PUT", "DELETE"])
-def api_reuniones_item(rid):
+@app.route("/api/reuniones/<int:rid>/pdf")
+def api_reuniones_pdf(rid):
     conn = get_db()
     cur = conn.cursor()
-
-    if request.method == "DELETE":
-        cur.execute("DELETE FROM reuniones WHERE id = ?", (rid,))
-        conn.commit()
+    
+    # Get meeting details
+    cur.execute("SELECT * FROM reuniones WHERE id = ?", (rid,))
+    row = cur.fetchone()
+    
+    if not row:
         conn.close()
-        return jsonify({"ok": True})
+        return "Reunión no encontrada", 404
 
-    elif request.method == "PUT":
-        d = request.json
-        tipo = d.get("tipo", "PADRES")
-        cur.execute("""
-            UPDATE reuniones 
-            SET fecha = ?, asistentes = ?, temas = ?, acuerdos = ?, tipo = ?
-            WHERE id = ?
-        """, (d["fecha"], d["asistentes"], d["temas"], d["acuerdos"], tipo, rid))
-        conn.commit()
-        conn.close()
-        return jsonify({"ok": True})
+    # Map row to dict
+    meeting = {
+        "id": row[0],
+        "alumno_id": row[1],
+        "fecha": row[2],
+        "asistentes": row[3],
+        "temas": row[4],
+        "acuerdos": row[5],
+        "tipo": row[6] if len(row) > 6 else 'PADRES'
+    }
+
+    # Get student name if applicable
+    alumno_nombre = ""
+    if meeting["tipo"] == "PADRES" and meeting["alumno_id"]:
+        cur.execute("SELECT nombre FROM alumnos WHERE id = ?", (meeting["alumno_id"],))
+        ar = cur.fetchone()
+        if ar:
+            alumno_nombre = ar[0]
+            
+    conn.close()
+
+    # Get tutor name from query param (passed from frontend)
+    tutor_nombre = request.args.get("tutor", "El Tutor/a")
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    
+    # Helper to draw wrapped text
+    def draw_wrapped_text(c, text, x, y, max_width, line_height=14):
+        if not text:
+            return y
+        lines = []
+        words = text.split(' ')
+        current_line = []
+        
+        for word in words:
+            test_line = ' '.join(current_line + [word])
+            if c.stringWidth(test_line) < max_width:
+                current_line.append(word)
+            else:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+        lines.append(' '.join(current_line))
+        
+        for line in lines:
+            c.drawString(x, y, line)
+            y -= line_height
+        return y
+
+    # Header
+    p.setFont("Helvetica-Bold", 16)
+    title = "ACTA DE REUNIÓN"
+    if meeting["tipo"] == "CICLO":
+        title += " DE CICLO / CLAUSTRO"
+    elif meeting["tipo"] == "PADRES":
+        title += " CON FAMILIA"
+        
+    p.drawCentredString(width/2, height - 50, title)
+    
+    p.setFont("Helvetica", 10)
+    p.drawRightString(width - 50, height - 70, f"Fecha: {meeting['fecha']}")
+    
+    y = height - 100
+    
+    # Info Block
+    p.setFont("Helvetica-Bold", 12)
+    if meeting["tipo"] == "PADRES":
+        p.drawString(50, y, f"Alumno/a: {alumno_nombre}")
+        y -= 25
+        p.drawString(50, y, f"Asistentes: {meeting['asistentes']}")
+        y -= 40
+    else:
+        # Cycle: Asistentes might be a long list
+        p.drawString(50, y, "Asistentes / Grupo:")
+        y -= 20
+        p.setFont("Helvetica", 10)
+        y = draw_wrapped_text(p, meeting['asistentes'], 50, y, width - 100)
+        y -= 30
+
+    # Content
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, "Temas Tratados:")
+    y -= 20
+    p.setFont("Helvetica", 10)
+    y = draw_wrapped_text(p, meeting['temas'], 50, y, width - 100)
+    y -= 30
+    
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, "Acuerdos / Conclusiones:")
+    y -= 20
+    p.setFont("Helvetica", 10)
+    y = draw_wrapped_text(p, meeting['acuerdos'], 50, y, width - 100)
+    y -= 50
+
+    # Signatures
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, "Firmas:")
+    y -= 40
+    
+    if meeting["tipo"] == "PADRES":
+        # Signature 1: Tutor
+        p.line(50, y, 200, y)
+        p.setFont("Helvetica", 9)
+        p.drawCentredString(125, y - 15, "Fdo: " + tutor_nombre)
+        p.drawCentredString(125, y - 25, "(Tutor/a)")
+        
+        # Signature 2: Family
+        p.line(300, y, 450, y)
+        p.drawCentredString(375, y - 15, f"Fdo: {meeting['asistentes']}")
+        p.drawCentredString(375, y - 25, "(Familia / Representante Legal)")
+        
+    else:
+        # Cycle: Multiple signatures
+        # Parse attendees (comma or newline separated)
+        attendees = [a.strip() for a in meeting['asistentes'].replace('\n', ',').split(',') if a.strip()]
+        
+        # If list is empty or generic, just put blank lines
+        if not attendees or len(attendees) < 2:
+             # Default 4 blank lines
+             attendees = ["Asistente 1", "Asistente 2", "Asistente 3", "Asistente 4"]
+        
+        # Grid of signatures (2 per row)
+        x_positions = [50, 300]
+        current_col = 0
+        
+        for att in attendees:
+             x = x_positions[current_col]
+             p.line(x, y, x + 150, y)
+             p.setFont("Helvetica", 9)
+             p.drawCentredString(x + 75, y - 15, f"Fdo: {att}")
+             
+             if current_col == 1:
+                 current_col = 0
+                 y -= 60
+             else:
+                 current_col = 1
+        
+        # Ensure tutor signature is also there if not in list? 
+        # Usually tutor is one of the attendees in cycle meetings.
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    filename = f"reunion_{meeting['fecha']}_{meeting['tipo']}.pdf"
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
 
 
 if __name__ == "__main__":

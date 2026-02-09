@@ -207,6 +207,15 @@
             color: white;
         }
 
+        .btn-pdf {
+            background: #17a2b8;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -311,6 +320,13 @@
                 <select id="studentSelect">
                     <option value="">-- Ver Todas (Resumen) --</option>
                 </select>
+                <div style="margin-top: 10px;">
+                    <label style="font-size: 0.9rem; color: #555;">Nombre Tutor/a (para firmas):</label>
+                    <input type="text" id="tutorName" placeholder="Tu Nombre completo"
+                        style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; width: 250px;">
+                    <button onclick="saveTutorName()"
+                        style="padding: 5px 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">💾</button>
+                </div>
             </div>
             <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
         </div>
@@ -395,8 +411,13 @@
         const editingId = document.getElementById('editingId');
         const modalTitle = document.getElementById('modalTitle');
         const meetingTypeInput = document.getElementById('meetingType');
+        const tutorNameInput = document.getElementById('tutorName');
 
         // Initial Load
+        // Load Tutor Name
+        const savedTutor = localStorage.getItem('tutorName') || "";
+        tutorNameInput.value = savedTutor;
+
         fetch('/api/alumnos').then(r => r.json()).then(data => {
             data.forEach(s => {
                 const opt = document.createElement('option');
@@ -470,6 +491,7 @@
                                 ${m.acuerdos ? `<h4>🤝 Acuerdos</h4><div class="meeting-text">${m.acuerdos}</div>` : ''}
                             </div>
                             <div class="meeting-actions">
+                                <button class="btn-pdf" onclick="generatePDF(${m.id})">📄 PDF</button>
                                 <button class="btn-edit" onclick='editMeeting(${JSON.stringify(m)})'>✏️ Editar</button>
                                 <button class="btn-delete" onclick="deleteMeeting(${m.id})">🗑️ Borrar</button>
                             </div>
@@ -630,6 +652,19 @@
             } else {
                 mAsistentesOtro.style.display = 'none';
             }
+        }
+
+        function saveTutorName() {
+            const name = tutorNameInput.value.trim();
+            if (name) {
+                localStorage.setItem('tutorName', name);
+                alert("Nombre del tutor guardado.");
+            }
+        }
+
+        function generatePDF(id) {
+            const tutor = localStorage.getItem('tutorName') || "El Tutor/a";
+            window.open(`/api/reuniones/${id}/pdf?tutor=${encodeURIComponent(tutor)}`, '_blank');
         }
     </script>
 </body>

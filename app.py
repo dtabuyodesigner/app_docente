@@ -3801,8 +3801,18 @@ def api_reuniones_pdf(rid):
              else:
                  current_col = 1
         
-        # Ensure tutor signature is also there if not in list? 
-        # Usually tutor is one of the attendees in cycle meetings.
+        # Add Tutor Signature explicitly if not covered
+        # We add it at the end or in the next available slot
+        if current_col == 1:
+             current_col = 0
+             y -= 60
+             
+        # Tutor Signature
+        x = x_positions[current_col]
+        p.line(x, y, x + 150, y)
+        p.setFont("Helvetica", 9)
+        p.drawCentredString(x + 75, y - 15, f"Fdo: {tutor_nombre}")
+        p.drawCentredString(x + 75, y - 25, "(Tutor/a)")
 
     p.showPage()
     p.save()

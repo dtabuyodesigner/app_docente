@@ -721,6 +721,16 @@ def guardar_observacion():
     conn = get_db()
     cur = conn.cursor()
 
+    # If text is empty, delete if exists
+    if not texto.strip():
+        if area_id:
+            cur.execute("DELETE FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id = ?", (alumno_id, fecha, area_id))
+        else:
+            cur.execute("DELETE FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id IS NULL", (alumno_id, fecha))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "deleted": True})
+
     # Check if exists
     if area_id:
         cur.execute("SELECT id FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id = ?", (alumno_id, fecha, area_id))
@@ -814,9 +824,18 @@ def ver_observaciones(alumno_id):
 @app.route("/api/observaciones/<int:obs_id>", methods=["PUT"])
 def editar_observacion(obs_id):
     d = request.json
+    texto = d.get("texto", "")
+    
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("UPDATE observaciones SET texto = ? WHERE id = ?", (d["texto"], obs_id))
+    
+    if not texto.strip():
+        cur.execute("DELETE FROM observaciones WHERE id = ?", (obs_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "deleted": True})
+        
+    cur.execute("UPDATE observaciones SET texto = ? WHERE id = ?", (texto, obs_id))
     conn.commit()
     conn.close()
     return jsonify({"ok": True})

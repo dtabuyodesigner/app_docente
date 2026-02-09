@@ -502,8 +502,13 @@
                 .then(r => r.json())
                 .then(res => {
                     if (res.ok) {
-                        statusDiv.textContent = "✔ Guardado";
-                        statusDiv.style.color = "var(--success)";
+                        if (res.deleted) {
+                            statusDiv.textContent = "🗑️ Eliminado";
+                            statusDiv.style.color = "var(--danger)";
+                        } else {
+                            statusDiv.textContent = "✔ Guardado";
+                            statusDiv.style.color = "var(--success)";
+                        }
                         setTimeout(() => {
                             statusDiv.classList.remove('visible');
                         }, 2000);
@@ -596,7 +601,15 @@
                 if (data.ok) {
                     statusEl.textContent = "✔ Guardado";
                     statusEl.style.color = "var(--success)";
-                    setTimeout(() => { statusEl.textContent = ""; }, 2000);
+
+                    if (data.deleted) {
+                        statusEl.textContent = "🗑️ Eliminado";
+                        setTimeout(() => {
+                            textarea.parentElement.style.display = 'none';
+                        }, 1000);
+                    } else {
+                        setTimeout(() => { statusEl.textContent = ""; }, 2000);
+                    }
 
                     // Important: If we edited an observation that is also visible in the background list
                     // we might want to refresh the main view too, but let's keep it simple for now.

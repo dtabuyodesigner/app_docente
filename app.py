@@ -3130,7 +3130,7 @@ def ultimas_observaciones():
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
-        SELECT o.texto, o.fecha, al.nombre as alumno, ar.nombre as area
+        SELECT o.texto, o.fecha, al.nombre as alumno, ar.nombre as area, o.id
         FROM observaciones o
         JOIN alumnos al ON o.alumno_id = al.id
         LEFT JOIN areas ar ON o.area_id = ar.id
@@ -3146,7 +3146,8 @@ def ultimas_observaciones():
             "texto": row[0],
             "fecha": row[1],
             "alumno": row[2],
-            "area": row[3] or "General"
+            "area": row[3] or "General",
+            "id": row[4]
         })
     return jsonify(obs)
 
@@ -3165,7 +3166,7 @@ def preview_diario(alumno_id):
 
     # Get Observations
     cur.execute("""
-        SELECT o.fecha, o.texto, a.nombre
+        SELECT o.fecha, o.texto, a.nombre, o.id
         FROM observaciones o
         LEFT JOIN areas a ON o.area_id = a.id
         WHERE o.alumno_id = ?
@@ -3176,12 +3177,13 @@ def preview_diario(alumno_id):
 
     # Group by Date
     data_by_date = {}
-    for fecha, texto, area in rows:
+    for fecha, texto, area, obs_id in rows:
         if fecha not in data_by_date:
             data_by_date[fecha] = []
         data_by_date[fecha].append({
             "texto": texto,
-            "area": area or "Observación General"
+            "area": area or "Observación General",
+            "id": obs_id
         })
 
     # Format for JSON

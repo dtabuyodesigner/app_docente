@@ -286,6 +286,30 @@
             display: block;
             margin: 20px auto 0;
         }
+
+        .preview-textarea {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 5px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        .preview-textarea:hover {
+            border-color: #ddd;
+            background: #fff;
+        }
+
+        .preview-textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
     </style>
 </head>
 
@@ -527,19 +551,67 @@
                             <div class="preview-date-group">
                                 <span class="preview-date">${group.fecha}</span>
                                 ${group.observaciones.map(o => `
-                                    <div class="preview-obs">
-                                        <b>[${o.area}]</b>: ${o.texto}
+                                    <div class="preview-obs" style="position:relative; margin-bottom:10px;">
+                                        <div style="font-size:0.8rem; color:#666; margin-bottom:2px;">
+                                            <b>[${o.area}]</b>
+                                        </div>
+                                        <textarea class="preview-textarea" 
+                                            onblur="savePreviewEdit(${o.id}, this, '${group.raw_fecha}', '${o.area}')"
+                                            oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"
+                                        >${o.texto}</textarea>
+                                        <div class="edit-status" id="status-${o.id}" style="font-size:0.7rem; text-align:right; height:12px;"></div>
                                     </div>
                                 `).join('')}
                             </div>
                         `;
                     });
                     bodyEl.innerHTML = html;
+
+                    // Initial auto-expand
+                    document.querySelectorAll('.preview-textarea').forEach(el => {
+                        el.style.height = 'auto';
+                        el.style.height = el.scrollHeight + 'px';
+                    });
                 })
                 .catch(err => {
                     console.error(err);
                     bodyEl.innerHTML = '<p style="color:red; text-align:center;">Error al cargar la vista previa.</p>';
                 });
+        }
+
+        async function savePreviewEdit(obsId, textarea, fecha, area) {
+            const statusEl = document.getElementById(`status-${obsId}`);
+            const nuevoTexto = textarea.value;
+
+            statusEl.textContent = "Guardando...";
+            statusEl.style.color = "#666";
+
+            try {
+                const res = await fetch(`/api/observaciones/${obsId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto: nuevoTexto })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    statusEl.textContent = "✔ Guardado";
+                    statusEl.style.color = "var(--success)";
+                    setTimeout(() => { statusEl.textContent = ""; }, 2000);
+
+                    // Important: If we edited an observation that is also visible in the background list
+                    // we might want to refresh the main view too, but let's keep it simple for now.
+                    // Or check if current date/area match.
+                    if (datePicker.value === fecha) {
+                        loadData(); // This might be overkill but ensures consistency
+                    }
+                } else {
+                    statusEl.textContent = "❌ Error";
+                    statusEl.style.color = "var(--danger)";
+                }
+            } catch (e) {
+                statusEl.textContent = "❌ Error red";
+                statusEl.style.color = "var(--danger)";
+            }
         }
 
         function closePreview() {

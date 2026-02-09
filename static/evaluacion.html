@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Evaluación sencilla</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --text: #333;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav {
+            background: var(--primary);
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 6px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid white;
+        }
+
+        select {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 6px 12px;
+            margin: 2px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #e2e6ea;
+        }
+
+        button.selected {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav"><a href="/">🏠 Inicio</a><a href="/asistencia">📋 Pasar lista</a><a href="/alumnos">👥
+                Alumnos</a><a href="/diario">📓 Diario</a><a href="/evaluacion" class="active">📊 Evaluación</a><a
+                href="/informes">📜 Informes</a><a href="/programacion">📅 Programación</a><a href="/rubricas">📝
+                Rúbricas</a></div>
+        <div style="margin-bottom: 15px;"><label>Alumno: <select id="alumno"></select></label><label>Área: <select
+                    id="area"></select></label><label>SDA: <select id="sda"></select></label></div>
+        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+            <button onclick="rellenarTodos(3)" style="background:#007bff; color: white;">⚡ Rellenar Visible a 3</button>
+            <button onclick="limpiarTodos()" style="background:#dc3545; color:white; border-color:#dc3545;">🗑️ Limpiar
+                Visible</button>
+        </div>
+        <table>
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
+        </table>
+        <div id="mediaSDA"
+            style="margin-top: 15px; text-align: right; font-size: 18px; font-weight: bold; color: #333;">📊 Media de la
+            situación: — </div>
+        <div id="mediaArea"
+            style="margin-top: 5px; text-align: right; font-size: 18px; font-weight: bold; color: #28a745;">📈 Media del
+            Área: — </div>
+        <div style="margin-top: 30px; border-top: 2px solid #ddd; padding-top: 15px;">
+            <h3>📋 Resumen por Alumno</h3>
+            <div id="resumenAlumno"
+                style="background: #fff; padding: 15px; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                <em>Selecciona un alumno para ver su media en cada área.</em>
+            </div>
+        </div>
+        <script>
+            let alumnoSelect = document.getElementById("alumno");
+            let areaSelect = document.getElementById("area");
+            let sdaSelect = document.getElementById("sda");
+            let thead = document.getElementById("thead");
+            let tbody = document.getElementById("tbody");
+            const trimestre = 2;
+
+            fetch("/api/alumnos").then(r => r.json()).then(datos => {
+                alumnoSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Alumno --</option>';
+                datos.forEach(a => { alumnoSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
+                // checkAndLoad(); // Don't auto-load first item
+            });
+
+            fetch("/api/evaluacion/areas").then(r => r.json()).then(datos => {
+                areaSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Área --</option>';
+                datos.forEach(a => { areaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
+                // cargarSDA(); // Don't auto-load first item
+            });
+
+            areaSelect.addEventListener("change", cargarSDA);
+            sdaSelect.addEventListener("change", () => cargarCriterios());
+            alumnoSelect.addEventListener("change", () => { cargarNotasExistentes(); cargarResumenAlumno(); });
+
+            function cargarSDA() {
+                if (!areaSelect.value) return;
+                fetch(`/api/evaluacion/sda/${areaSelect.value}`).then(r => r.json()).then(datos => {
+                    sdaSelect.innerHTML = "";
+                    datos.forEach(s => { sdaSelect.innerHTML += `<option value="${s.id}">${s.nombre}</option>`; });
+                    cargarCriterios();
+                });
+            }
+
+            function checkAndLoad() {
+                if (alumnoSelect.value && sdaSelect.value) cargarCriterios();
+                if (alumnoSelect.value) cargarResumenAlumno();
+            }
+
+            function cargarCriterios() {
+                if (!sdaSelect.value) { tbody.innerHTML = ""; return; }
+                fetch(`/api/evaluacion/criterios/${sdaSelect.value}`).then(r => r.json()).then(criterios => {
+                    thead.innerHTML = `<tr><th style="width: 150px;">Código</th><th>Descripción</th><th style="width: 200px;">Nivel</th></tr>`;
+                    tbody.innerHTML = "";
+                    criterios.forEach(c => {
+                        const tr = document.createElement("tr");
+                        tr.id = `row-${c.id}`;
+                        tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align: left;">${c.descripcion}</td>
+                        <td>
+                            <button onclick="guardar(${c.id}, 1)" id="btn-${c.id}-1">1</button>
+                            <button onclick="guardar(${c.id}, 2)" id="btn-${c.id}-2">2</button>
+                            <button onclick="guardar(${c.id}, 3)" id="btn-${c.id}-3">3</button>
+                            <button onclick="guardar(${c.id}, 4)" id="btn-${c.id}-4">4</button>
+                        </td>`;
+                        tbody.appendChild(tr);
+                    });
+                    cargarNotasExistentes();
+                });
+            }
+
+            function cargarNotasExistentes() {
+                if (!alumnoSelect.value || !sdaSelect.value) return;
+                document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+                fetch(`/api/evaluacion/alumno?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${trimestre}`)
+                    .then(r => r.json()).then(notas => {
+                        for (const [criterioId, nivel] of Object.entries(notas)) {
+                            let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
+                            if (btn) btn.classList.add("selected");
+                        }
+                        cargarMedia();
+                    });
+            }
+
+            function getColorNota(nota) {
+                if (nota < 5) return "#dc3545";
+                if (nota < 7) return "#ffc107";
+                return "#28a745";
+            }
+
+            function cargarMedia() {
+                fetch(`/api/evaluacion/media?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${trimestre}`)
+                    .then(r => r.json()).then(d => {
+                        const el = document.getElementById("mediaSDA");
+                        el.innerText = "📊 Media de la situación: " + (d.media ? d.media : "—");
+                        el.style.color = d.media ? getColorNota(d.media) : "#333";
+                    });
+                fetch(`/api/evaluacion/media_area?alumno_id=${alumnoSelect.value}&area_id=${areaSelect.value}&trimestre=${trimestre}`)
+                    .then(r => r.json()).then(d => {
+                        const el = document.getElementById("mediaArea");
+                        el.innerText = "📈 Media del Área: " + (d.media ? d.media : "—");
+                        el.style.color = d.media ? getColorNota(d.media) : "#333";
+                    });
+            }
+
+            function cargarResumenAlumno() {
+                if (!alumnoSelect.value) return;
+                fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoSelect.value}&trimestre=${trimestre}`)
+                    .then(r => r.json()).then(datos => {
+                        let html = `<table style="width: auto; margin: 0;">`;
+                        if (datos.length === 0) html = "<em>No hay calificaciones registradas para este trimestre.</em>";
+                        else {
+                            datos.forEach(d => {
+                                html += `<tr><td style="text-align: left; border: none; padding: 4px 10px;"><strong>${d.area}:</strong></td><td style="text-align: left; border: none; padding: 4px 10px; color: ${getColorNota(d.media)}; font-weight: bold;">${d.media}</td></tr>`;
+                            });
+                            html += `</table>`;
+                        }
+                        document.getElementById("resumenAlumno").innerHTML = html;
+                    });
+            }
+
+            window.rellenarTodos = function (nivel) {
+                if (!confirm("¿Asignar nota " + nivel + " a todos los criterios visibles?")) return;
+                document.getElementById("tbody").querySelectorAll("tr").forEach(tr => {
+                    guardar(tr.id.replace("row-", ""), nivel);
+                });
+            }
+
+            window.limpiarTodos = function () {
+                if (!confirm("¿Borrar todas las notas de este alumno en esta SDA?")) return;
+                fetch(`/api/evaluacion?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${trimestre}`, { method: 'DELETE' })
+                    .then(r => r.json()).then(d => {
+                        if (d.ok) {
+                            cargarNotasExistentes();
+                            document.querySelectorAll("button.selected").forEach(b => b.classList.remove("selected"));
+                            cargarMedia();
+                            cargarResumenAlumno();
+                        } else alert("Error: " + d.error);
+                    });
+            }
+
+            window.guardar = function (criterio_id, nivel) {
+                for (let i = 1; i <= 4; i++) {
+                    let b = document.getElementById(`btn-${criterio_id}-${i}`);
+                    if (b) b.classList.remove("selected");
+                }
+                let b = document.getElementById(`btn-${criterio_id}-${nivel}`);
+                if (b) b.classList.add("selected");
+
+                fetch("/api/evaluacion", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        alumno_id: alumnoSelect.value,
+                        area_id: areaSelect.value,
+                        sda_id: sdaSelect.value,
+                        criterio_id: criterio_id,
+                        trimestre: trimestre,
+                        nivel: nivel
+                    })
+                }).then(r => r.json()).then(data => {
+                    if (data.ok) { cargarMedia(); cargarResumenAlumno(); }
+                    else alert("Error al guardar");
+                });
+            }
+        </script>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Informes</title>
+
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --text: #333;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Nav */
+        .nav {
+            background: var(--primary);
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 6px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid white;
+        }
+
+        select {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .report-section {
+            background: white;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .report-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 50%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .stat-clickable {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .stat-clickable:hover {
+            background: rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav"><a href="/">🏠 Inicio</a><a href="/asistencia">📋 Pasar lista</a><a href="/alumnos">👥
+                Alumnos</a><a href="/diario">📓 Diario</a><a href="/evaluacion">📊 Evaluación</a><a href="/informes"
+                class="active">📜 Informes</a><a href="/programacion">📅 Programación</a><a href="/rubricas">📝
+                Rúbricas</a></div>
+        <h1>📜 Gestión de Informes</h1>
+        <!-- PESTAÑAS -->
+        <div class="tab-container" style="margin-bottom: 20px;"><button class="tab-button active"
+                onclick="switchTab('tabIndividual')">👤 Informes Individuales</button><button class="tab-button"
+                onclick="switchTab('tabGrupo')">👨‍👩‍👧‍👦 Informe de Grupo (Global)</button></div>
+        <!-- MODAL DETALLE ASISTENCIA -->
+        <div id="modalAsistencia" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Detalle de Asistencia</h2><span class="close" onclick="cerrarModal()">&times;
+                    </span>
+                </div>
+                <div id="modalBody">
+                    <p>Cargando detalles...</p>
+                </div>
+            </div>
+        </div>
+        <!-- SECCIÓN INDIVIDUAL -->
+        <div id="tabIndividual" class="tab-content active">
+            <div class="report-section"><label for="alumno"><strong>Seleccionar
+                        Alumno:</strong></label><select id="alumno"
+                    style="padding: 5px; min-width: 200px;"></select><label for="trimestreIndividual"
+                    style="margin-left: 20px;"><strong>Trimestre:</strong></label><select id="trimestreIndividual"
+                    style="padding: 5px;">
+                    <option value="1">1º Trimestre</option>
+                    <option value="2" selected>2º Trimestre</option>
+                    <option value="3">3º Trimestre</option>
+                </select><button onclick="generarPDFIndividual()"
+                    style="margin-left: 20px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">📄
+                    Descargar PDF Individual</button><button onclick="generarPDFGeneral()"
+                    style="margin-left: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">📑
+                    Generar todos los PDFs</button></div>
+            <div class="grid-container">
+                <div class="report-section">
+                    <h3>📘 Medias por Área</h3>
+                    <div id="mediasAreas"></div>
+                </div>
+                <div class="report-section">
+                    <h3>📚 Medias por SDA</h3>
+                    <div id="mediasSDA"></div>
+                </div>
+                <div class="report-section">
+                    <h3>📅 Asistencia del Alumno</h3>
+                    <div id="asistenciaAlumno"></div>
+                </div>
+            </div>
+            <div class="report-section">
+                <h3>📝 Observaciones Individuales</h3><textarea id="observacionesTexto" rows="5"
+                    style="width: 100%; border-radius: 4px; padding: 10px; border: 1px solid #ddd;"></textarea>
+                <div style="margin-top: 10px;"><button onclick="guardarObservaciones()"
+                        style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">💾
+                        Guardar Observaciones</button><span id="mensajeGuardado"
+                        style="margin-left: 10px; color: #28a745; font-weight: bold; display: none;">✓
+                        Guardado</span></div>
+            </div>
+        </div>
+        <!-- SECCIÓN GRUPO -->
+        <div id="tabGrupo" class="tab-content">
+            <div class="report-section"><label for="trimestreGrupo"><strong>Seleccionar Trimestre para
+                        el Grupo:</strong></label><select id="trimestreGrupo" style="padding: 5px;"
+                    onchange="cargarInformeGrupo()">
+                    <option value="1">1º Trimestre</option>
+                    <option value="2" selected>2º Trimestre</option>
+                    <option value="3">3º Trimestre</option>
+                </select></div>
+            <div class="report-section" id="resumenGrupoStats"
+                style="background: #e9ecef; border-left: 5px solid #007bff;">
+                <!-- Se carga vía JS -->Cargando estadísticas...
+            </div>
+            <div class="report-section">
+                <h3>📊 Valoración del Grupo</h3>
+                <div style="margin-bottom: 15px;"><label><strong>7. Valoración General del
+                            Tutor:</strong></label><textarea id="grupoObservaciones" rows="4"
+                        style="width: 100%; margin-top: 5px; padding: 10px;"
+                        placeholder="Escribe aquí la valoración general del grupo..."></textarea><label
+                        style="display: block; margin-top: 15px;"><strong>8. Propuestas de
+                            Mejora:</strong></label><textarea id="grupoPropuestas" rows="4"
+                        style="width: 100%; margin-top: 5px; padding: 10px;"
+                        placeholder="Escribe aquí las propuestas de mejora..."></textarea><label
+                        style="display: block; margin-top: 15px;"><strong>9. Conclusión
+                            Final:</strong></label>
+                    <div style="display: flex; gap: 10px; align-items: flex-start; margin-top: 5px;">
+                        <textarea id="grupoConclusion" rows="4" style="flex-grow: 1; padding: 10px;"
+                            placeholder="Conclusión final del trimestre..."></textarea><button
+                            onclick="sugerirConclusionIA()"
+                            style="padding: 10px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer;"
+                            title="Sugerir con IA">🤖 Sugerir IA</button>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><button
+                        onclick="guardarGrupoObs()"
+                        style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">💾
+                        Guardar Datos del Grupo</button><button onclick="generarPDFGrupo()"
+                        style="padding: 12px 24px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold;">📄
+                        Descargar Informe Global PDF</button><button onclick="generarExcelGrupo()"
+                        style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold;">📊
+                        Descargar Excel de Grupo</button><span id="mensajeGuardadoGrupo"
+                        style="margin-left: 10px; color: #28a745; font-weight: bold; display: none;">✓
+                        Guardado</span></div>
+            </div>
+        </div>
+        <style>
+            .tab-button {
+                padding: 10px 20px;
+                border: 1px solid #ddd;
+                background: #f8f9fa;
+                cursor: pointer;
+                border-bottom: none;
+                border-radius: 8px 8px 0 0;
+                font-weight: bold;
+            }
+
+            .tab-button.active {
+                background: #fff;
+                color: #007bff;
+                border-bottom: 2px solid #007bff;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+
+            select,
+            textarea {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+
+            .stat-card {
+                display: inline-block;
+                background: white;
+                padding: 10px;
+                margin-right: 15px;
+                border-radius: 4px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+        </style>
+
+        <script>
+            let alumnoSelect = document.getElementById("alumno");
+            let trimInd = document.getElementById("trimestreIndividual");
+            let trimGrp = document.getElementById("trimestreGrupo");
+
+            function switchTab(tabId) {
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                event.currentTarget.classList.add('active');
+
+                if (tabId === 'tabGrupo') cargarInformeGrupo();
+                else cargarInforme();
+            }
+
+            // Cargar alumnos Inicial
+            fetch("/api/alumnos")
+                .then(r => r.json())
+                .then(datos => {
+                    alumnoSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Alumno --</option>';
+                    datos.forEach(a => {
+                        alumnoSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                    });
+                    // cargarInforme(); // Don't auto-load
+                });
+
+            alumnoSelect.addEventListener("change", cargarInforme);
+            trimInd.addEventListener("change", cargarInforme);
+
+            function getColorNota(nota) {
+                if (nota < 5) return "#dc3545";
+                if (nota < 7) return "#ffc107";
+                return "#28a745";
+            }
+
+            function cargarInforme() {
+                if (!alumnoSelect.value) return;
+                const alumnoId = alumnoSelect.value;
+                const trimestre = trimInd.value;
+
+                fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoId}&trimestre=${trimestre}`)
+                    .then(r => r.json())
+                    .then(datos => {
+                        let html = datos.length === 0 ? "<em>No hay calificaciones.</em>" : "<table><tr><th>Área</th><th>Media</th></tr>";
+                        datos.forEach(d => {
+                            html += `<tr><td>${d.area}</td><td style="color:${getColorNota(d.media)};font-weight:bold;">${d.media}</td></tr>`;
+                        });
+                        document.getElementById("mediasAreas").innerHTML = html + "</table>";
+                    });
+
+                fetch(`/api/evaluacion/resumen_sda_todos?alumno_id=${alumnoId}&trimestre=${trimestre}`)
+                    .then(r => r.json())
+                    .then(datos => {
+                        let html = datos.length === 0 ? "<em>No hay calificaciones.</em>" : "<table><tr><th>Área</th><th>SDA</th><th>Media</th></tr>";
+                        datos.forEach(d => {
+                            html += `<tr><td>${d.area}</td><td>${d.sda}</td><td style="color:${getColorNota(d.media)};font-weight:bold;">${d.media}</td></tr>`;
+                        });
+                        document.getElementById("mediasSDA").innerHTML = html + "</table>";
+                    });
+
+                fetch(`/api/informe/observacion?alumno_id=${alumnoId}&trimestre=${trimestre}`)
+                    .then(r => r.json())
+                    .then(d => document.getElementById("observacionesTexto").value = d.texto || "");
+
+                fetch(`/api/informe/asistencia_alumno?alumno_id=${alumnoId}&trimestre=${trimestre}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        document.getElementById("asistenciaAlumno").innerHTML = `
+                        <table style="margin-top:0;">
+                            <tr><td>✅ Retrasos:</td><td><b>${d.retrasos}</b></td></tr>
+                            <tr><td>⚠️ Justificadas:</td><td><b>${d.f_justificada}</b></td></tr>
+                            <tr><td>❌ Injustificadas:</td><td><b>${d.f_no_justificada}</b></td></tr>
+                            <tr style="background:#f8f9fa;"><td><b>Total Faltas:</b></td><td><b>${d.total_faltas}</b></td></tr>
+                        </table>
+                    `;
+                    });
+            }
+
+            function cargarInformeGrupo() {
+                const trimestre = trimGrp.value;
+
+                // Cargar Observaciones y Conclusion
+                fetch(`/api/informe/grupo_obs?trimestre=${trimestre}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        document.getElementById("grupoObservaciones").value = d.observaciones || "";
+                        document.getElementById("grupoPropuestas").value = d.propuestas_mejora || "";
+                        document.getElementById("grupoConclusion").value = d.conclusion || "";
+                    });
+
+                // Cargar Dashboard rápido
+                fetch(`/api/informe/grupo_data?trimestre=${trimestre}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        const g = d.generales;
+                        const a = d.asistencia;
+                        const p = d.promocion;
+                        document.getElementById("resumenGrupoStats").innerHTML = `
+                        <div style="padding: 10px;">
+                            <strong>Dashboard T${trimestre}:</strong> 
+                            <div class="stat-card">👥 Alumnos: <b>${g.total_alumnos}</b></div>
+                            <div class="stat-card">📊 Media: <b style="color:${getColorNota(g.media_general)}">${g.media_general}</b></div>
+                            <div class="stat-card">📝 Evaluaciones: <b>${g.total_evals}</b></div>
+                            <div class="stat-card">📅 Faltas: <b>${a.total_faltas}</b> (
+                                <span class="stat-clickable" style="color:green; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_justificada')">J: ${a.f_justificada}</span> / 
+                                <span class="stat-clickable" style="color:red; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_no_justificada')">I: ${a.f_no_justificada}</span>
+                            )</div>
+                            <div class="stat-card stat-clickable" onclick="mostrarDetalleAsistencia('retraso')">🕒 Retrasos: <b>${a.total_retrasos}</b></div>
+                        </div>
+                        <div style="padding: 10px; border-top: 1px solid #ddd; display: flex; gap: 20px;">
+                            <div style="flex: 1;">
+                                <strong>Análisis de Promoción:</strong>
+                                <table style="margin-top: 5px; font-size: 13px;">
+                                    <tr><td>✅ Todo aprobado:</td><td><b>${p.todo.num}</b> (${p.todo.pct}%)</td></tr>
+                                    <tr><td>⚠️ 1 Suspenso:</td><td><b>${p.una.num}</b> (${p.una.pct}%)</td></tr>
+                                    <tr><td>❌ 2 Suspensos:</td><td><b>${p.dos.num}</b> (${p.dos.pct}%)</td></tr>
+                                    <tr><td>🚫 +2 Suspensos:</td><td><b>${p.mas_de_dos.num}</b> (${p.mas_de_dos.pct}%)</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    });
+            }
+
+            function guardarObservaciones() {
+                const alumnoId = alumnoSelect.value;
+                const trimestre = trimInd.value;
+                const texto = document.getElementById("observacionesTexto").value;
+                fetch("/api/informe/observacion", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ alumno_id: alumnoId, trimestre: trimestre, texto: texto })
+                }).then(r => r.json()).then(data => {
+                    if (data.ok) {
+                        const mensaje = document.getElementById("mensajeGuardado");
+                        mensaje.style.display = "inline";
+                        setTimeout(() => mensaje.style.display = "none", 2000);
+                    }
+                });
+            }
+
+            function guardarGrupoObs() {
+                const trimestre = trimGrp.value;
+                const obs = document.getElementById("grupoObservaciones").value;
+                const prop = document.getElementById("grupoPropuestas").value;
+                const conc = document.getElementById("grupoConclusion").value;
+
+                fetch("/api/informe/grupo_obs", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ trimestre: trimestre, observaciones: obs, propuestas_mejora: prop, conclusion: conc })
+                }).then(r => r.json()).then(data => {
+                    if (data.ok) {
+                        const mensaje = document.getElementById("mensajeGuardadoGrupo");
+                        mensaje.style.display = "inline";
+                        setTimeout(() => mensaje.style.display = "none", 2000);
+                    }
+                });
+            }
+
+            function sugerirConclusionIA() {
+                const trimestre = trimGrp.value;
+                fetch(`/api/informe/grupo_data?trimestre=${trimestre}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        const media = d.generales.media_general;
+                        const prom = d.promocion.todo.pct;
+                        let c = `Tras analizar los datos del ${trimestre}º trimestre, se observa un rendimiento global medio de ${media}. `;
+                        if (media >= 7) c += "El grupo muestra una actitud muy positiva y un alto grado de consecución de objetivos. ";
+                        else if (media >= 5) c += "El grupo progresa adecuadamente, aunque existen áreas con margen de mejora. ";
+                        else c += "Se detectan dificultades significativas que requieren un plan de acción conjunto. ";
+
+                        c += `Un ${prom}% del alumnado ha superado satisfactoriamente todas las áreas. `;
+                        c += "Como conclusión, el grupo muestra una evolución adecuada acorde a su nivel educativo, con aspectos positivos en la implicación y participación.";
+
+                        document.getElementById("grupoConclusion").value = c;
+                    });
+            }
+
+            function generarPDFIndividual() {
+                window.open(`/api/informe/pdf_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}`, '_blank');
+            }
+
+            function generarPDFGeneral() {
+                window.open(`/api/informe/pdf_general?trimestre=${trimInd.value}`, '_blank');
+            }
+
+            function generarPDFGrupo() {
+                window.open(`/api/informe/pdf_grupo?trimestre=${trimGrp.value}`, '_blank');
+            }
+
+            function generarExcelGrupo() {
+                window.open(`/api/informe/excel_grupo?trimestre=${trimGrp.value}`, '_blank');
+            }
+
+            // FUNCIONES MODAL ASISTENCIA
+            function mostrarDetalleAsistencia(estado) {
+                const modal = document.getElementById("modalAsistencia");
+                const title = document.getElementById("modalTitle");
+                const body = document.getElementById("modalBody");
+                const trimestre = trimGrp.value;
+
+                let label = estado === 'falta_justificada' ? 'Faltas Justificadas' :
+                    estado === 'falta_no_justificada' ? 'Faltas Injustificadas' : 'Retrasos';
+
+                title.innerText = `Detalle: ${label} (Trimestre ${trimestre})`;
+                body.innerHTML = "<p>Cargando detalles...</p>";
+                modal.style.display = "block";
+
+                fetch(`/api/informe/asistencia_detalle?trimestre=${trimestre}&estado=${estado}`)
+                    .then(r => r.json())
+                    .then(datos => {
+                        if (datos.length === 0) {
+                            body.innerHTML = "<p>No hay registros para este tipo de incidencia.</p>";
+                            return;
+                        }
+
+                        let html = `<table style="margin-top:10px;">
+                                    <tr><th>Fecha</th><th>Alumno</th></tr>`;
+                        datos.forEach(d => {
+                            html += `<tr><td>${d.fecha}</td><td>${d.nombre}</td></tr>`;
+                        });
+                        html += "</table>";
+                        body.innerHTML = html;
+                    });
+            }
+
+            function cerrarModal() {
+                document.getElementById("modalAsistencia").style.display = "none";
+            }
+
+            // Cerrar al pulsar fuera
+            window.onclick = function (event) {
+                const modal = document.getElementById("modalAsistencia");
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        </script>
+    </div>
+</body>
+
+</html>

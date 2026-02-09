@@ -1,0 +1,16 @@
+# Google OAuth tokens
+token.json
+credentials.json
+
+# Python
+__pycache__/
+*.pyc
+venv/
+*.log
+
+# Database
+*.db
+*.sqbpro
+
+# Uploads
+static/uploads/

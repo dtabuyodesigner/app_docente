@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Alumnos</title>
+
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --text: #333;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Nav */
+        .nav {
+            background: var(--primary);
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 6px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid white;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .volver {
+            margin-bottom: 15px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .contenedor {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+        }
+
+        /* ===== LISTADO ===== */
+
+        .lista {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+        }
+
+        .lista h3 {
+            margin-top: 0;
+        }
+
+        .alumno-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+
+        .alumno-item:hover {
+            background: #eee;
+        }
+
+        .alumno-item.activo {
+            background: #dfefff;
+            font-weight: bold;
+        }
+
+        /* ===== FICHA ===== */
+
+        .ficha {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+        }
+
+        .ficha h2 {
+            margin-top: 0;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            height: 80px;
+        }
+
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/alumnos" class="active">👥 Alumnos</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+        </div>
+
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin:0;">👦 Alumnos</h2>
+            <button onclick="mostrarModalNuevo()"
+                style="background: var(--success); color: white; border: none; border-radius: 6px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                ➕ Nuevo Alumno
+            </button>
+        </div>
+
+        <div class="contenedor">
+
+            <!-- LISTADO -->
+            <div class="lista">
+                <h3>Listado</h3>
+                <div id="listaAlumnos"></div>
+            </div>
+
+            <!-- FICHA -->
+            <div class="ficha">
+                <h2 id="nombreAlumno">Selecciona un alumno</h2>
+
+                <!-- TABS SUPERIORES -->
+                <div class="profile-tabs"
+                    style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                    <button onclick="changeProfileTab('datos')" id="btnTabDatos"
+                        style="background:none; border:none; border-bottom:3px solid #003366; padding:8px 15px; cursor:pointer; font-weight:bold; color: #003366;">📁
+                        Datos Personales</button>
+                    <button onclick="changeProfileTab('progreso')" id="btnTabProgreso"
+                        style="background:none; border:none; padding:8px 15px; cursor:pointer; font-weight:bold; color: #666;">📈
+                        Progreso Académico</button>
+                </div>
+
+                <!-- CONTENIDO: DATOS -->
+                <div id="sectionDatos">
+                    <label>Fecha nacimiento</label>
+                    <input type="date" id="fecha_nacimiento">
+
+                    <label>Dirección</label>
+                    <input type="text" id="direccion">
+
+                    <h4>Madre</h4>
+                    <input type="text" id="madre_nombre" placeholder="Nombre madre">
+                    <input type="text" id="madre_telefono" placeholder="Teléfono madre">
+
+                    <h4>Padre</h4>
+                    <input type="text" id="padre_nombre" placeholder="Nombre padre">
+                    <input type="text" id="padre_telefono" placeholder="Teléfono padre">
+
+                    <label>Observaciones generales</label>
+                    <textarea id="observaciones_generales"></textarea>
+
+                    <label>Personas Autorizadas</label>
+                    <textarea id="personas_autorizadas" placeholder="Lista de personas autorizadas..."></textarea>
+
+                    <div style="margin-top:15px; text-align:right;">
+                        <button onclick="limpiarFicha()"
+                            style="background:#ddd; border-radius: 4px; border: 1px solid #ccc;">
+                            🧹 Limpiar ficha
+                        </button>
+
+                        <button onclick="guardarFicha()"
+                            style="background:#2ecc71; color:white; border-radius: 4px; border: none; font-weight: bold;">
+                            💾 Guardar ficha
+                        </button>
+                    </div>
+                    <div id="mensajeGuardado" style="margin-top:10px; color:#2ecc71; font-weight:bold; display:none;">
+                        ✔ Ficha guardada
+                    </div>
+                </div>
+
+                <!-- CONTENIDO: PROGRESO -->
+                <div id="sectionProgreso" style="display:none; padding: 20px 0;">
+                    <div style="display: flex; flex-direction: column; gap: 30px;">
+                        <!-- T1 -->
+                        <div class="chart-container-box"
+                            style="background: #f8fbff; border-radius: 12px; padding: 20px; border: 1px solid #eef2f7;">
+                            <h4 style="margin-top: 0; color: #003366; display: flex; align-items: center; gap: 8px;">
+                                <span>1️⃣</span> 1º Trimestre: Medias por Área
+                            </h4>
+                            <div style="height: 250px;">
+                                <canvas id="chartT1"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- T2 -->
+                        <div class="chart-container-box"
+                            style="background: #f8fbff; border-radius: 12px; padding: 20px; border: 1px solid #eef2f7;">
+                            <h4 style="margin-top: 0; color: #003366; display: flex; align-items: center; gap: 8px;">
+                                <span>2️⃣</span> 2º Trimestre: Medias por Área
+                            </h4>
+                            <div style="height: 250px;">
+                                <canvas id="chartT2"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- T3 -->
+                        <div class="chart-container-box"
+                            style="background: #f8fbff; border-radius: 12px; padding: 20px; border: 1px solid #eef2f7;">
+                            <h4 style="margin-top: 0; color: #003366; display: flex; align-items: center; gap: 8px;">
+                                <span>3️⃣</span> 3º Trimestre: Medias por Área
+                            </h4>
+                            <div style="height: 250px;">
+                                <canvas id="chartT3"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #7f8c8d; margin-top: 15px; text-align: center;">
+                        <em>* Los gráficos muestran la media de cada asignatura basada en las calificaciones
+                            registradas.</em>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MODAL NUEVO/EDITAR ALUMNO -->
+        <div id="modalAlumno"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+            <div style="background:white; padding:20px; border-radius:10px; width:400px; max-width:90%;">
+                <h3 id="modalTitulo">Nuevo Alumno</h3>
+                <input type="hidden" id="modalAlumnoId">
+
+                <label>Nombre y Apellidos</label>
+                <input type="text" id="modalNombre"
+                    style="width:100%; margin-bottom:15px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+
+                <label>Foto (Opcional)</label>
+                <input type="file" id="modalFotoFile" accept="image/*"
+                    style="width:100%; margin-bottom:15px; padding:8px; border:1px solid #ddd; border-radius:4px;">
+
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Días de Comedor:</label>
+                <div
+                    style="display:flex; justify-content: space-between; margin-bottom:15px; background:#f8f9fa; padding:10px; border-radius:6px;">
+                    <label><input type="checkbox" class="chk-dia" value="0"> Lun</label>
+                    <label><input type="checkbox" class="chk-dia" value="1"> Mar</label>
+                    <label><input type="checkbox" class="chk-dia" value="2"> Mié</label>
+                    <label><input type="checkbox" class="chk-dia" value="3"> Jue</label>
+                    <label><input type="checkbox" class="chk-dia" value="4"> Vie</label>
+                </div>
+                <div style="font-size:0.85em; color:#666; margin-bottom:15px;">
+                    <a href="#" onclick="toggleDias(true)">Todos</a> | <a href="#"
+                        onclick="toggleDias(false)">Ninguno</a>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button onclick="cerrarModal()"
+                        style="background:#6c757d; color:white; border:none; border-radius:4px;">Cancelar</button>
+                    <button onclick="guardarAlumnoModal()"
+                        style="background:var(--primary); color:white; border:none; border-radius:4px;">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let alumnoActual = null;
+
+            /* ===== CARGAR LISTADO ===== */
+            function cargarAlumnos() {
+                fetch("/api/alumnos")
+                    .then(r => r.json())
+                    .then(alumnos => {
+                        const lista = document.getElementById("listaAlumnos");
+                        lista.innerHTML = "";
+
+                        alumnos.forEach(a => {
+                            const div = document.createElement("div");
+                            div.className = "alumno-item";
+                            if (alumnoActual == a.id) div.classList.add("activo");
+
+                            // Contenedor principal flex
+                            const content = document.createElement("div");
+                            content.style.display = "flex";
+                            content.style.justifyContent = "space-between";
+                            content.style.alignItems = "center";
+
+                            // Nombre (Clickable para seleccionar)
+                            // Container de info principal (Foto + Nombre)
+                            const divInfo = document.createElement("div");
+                            divInfo.style.display = "flex";
+                            divInfo.style.alignItems = "center";
+                            divInfo.style.gap = "10px";
+                            divInfo.style.flexGrow = "1";
+                            divInfo.onclick = () => seleccionarAlumno(a.id, a.nombre, div); // Mover el click aquí
+
+                            // Foto
+                            const img = document.createElement("img");
+                            img.style.width = "40px";
+                            img.style.height = "40px";
+                            img.style.borderRadius = "50%";
+                            img.style.objectFit = "cover";
+                            img.style.border = "1px solid #ddd";
+                            if (a.foto) {
+                                img.src = "/static/uploads/" + a.foto;
+                            } else {
+                                // Placeholder emoji o imagen por defecto
+                                img.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>👤</text></svg>";
+                            }
+
+                            const spanNombre = document.createElement("span");
+                            spanNombre.innerText = a.nombre;
+
+                            divInfo.appendChild(img);
+                            divInfo.appendChild(spanNombre);
+
+                            // Botones acciones
+                            const divAcciones = document.createElement("div");
+                            divAcciones.style.display = "flex";
+                            divAcciones.style.gap = "5px";
+
+                            // Botón Editar
+                            const btnEdit = document.createElement("button");
+                            btnEdit.innerHTML = "✏️";
+                            btnEdit.title = "Editar nombre/comedor";
+                            btnEdit.style.padding = "2px 6px";
+                            btnEdit.style.background = "none";
+                            btnEdit.style.border = "none";
+                            btnEdit.style.fontSize = "1.1em";
+                            btnEdit.onclick = (e) => {
+                                e.stopPropagation();
+                                mostrarModalEditar(a);
+                            };
+
+                            // Botón Borrar
+                            const btnDel = document.createElement("button");
+                            btnDel.innerHTML = "🗑️";
+                            btnDel.title = "Borrar alumno";
+                            btnDel.style.padding = "2px 6px";
+                            btnDel.style.background = "none";
+                            btnDel.style.border = "none";
+                            btnDel.style.fontSize = "1.1em";
+                            btnDel.onclick = (e) => {
+                                e.stopPropagation();
+                                borrarAlumno(a.id, a.nombre);
+                            };
+
+                            divAcciones.appendChild(btnEdit);
+                            divAcciones.appendChild(btnDel);
+
+                            content.appendChild(divInfo); // Cambio: info completa (foto+nombre)
+                            content.appendChild(divAcciones);
+
+                            div.appendChild(content);
+                            lista.appendChild(div);
+                        });
+                    });
+            }
+
+            // Inicio
+            cargarAlumnos();
+
+            function seleccionarAlumno(id, nombre, div) {
+                alumnoActual = id;
+
+                document.querySelectorAll(".alumno-item").forEach(e =>
+                    e.classList.remove("activo")
+                );
+                div.classList.add("activo");
+
+                document.getElementById("nombreAlumno").innerText = nombre;
+
+                fetch(`/api/alumnos/ficha/${id}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        document.getElementById("fecha_nacimiento").value = d.fecha_nacimiento || "";
+                        document.getElementById("direccion").value = d.direccion || "";
+                        document.getElementById("madre_nombre").value = d.madre_nombre || "";
+                        document.getElementById("madre_telefono").value = d.madre_telefono || "";
+                        document.getElementById("padre_nombre").value = d.padre_nombre || "";
+                        document.getElementById("padre_telefono").value = d.padre_telefono || "";
+                        document.getElementById("observaciones_generales").value = d.observaciones_generales || "";
+                        document.getElementById("personas_autorizadas").value = d.personas_autorizadas || "";
+                    });
+
+                // Si estamos en la pestaña de progreso, cargar el gráfico
+                if (document.getElementById("sectionProgreso").style.display === "block") {
+                    renderProgressChart(id);
+                }
+            }
+
+            /* ===== TABS DE PERFIL ===== */
+            function changeProfileTab(tab) {
+                const sectionDatos = document.getElementById("sectionDatos");
+                const sectionProgreso = document.getElementById("sectionProgreso");
+                const btnDatos = document.getElementById("btnTabDatos");
+                const btnProgreso = document.getElementById("btnTabProgreso");
+
+                if (tab === 'datos') {
+                    sectionDatos.style.display = "block";
+                    sectionProgreso.style.display = "none";
+                    btnDatos.style.borderColor = "#003366";
+                    btnDatos.style.color = "#003366";
+                    btnProgreso.style.borderColor = "transparent";
+                    btnProgreso.style.color = "#666";
+                } else {
+                    sectionDatos.style.display = "none";
+                    sectionProgreso.style.display = "block";
+                    btnProgreso.style.borderColor = "#003366";
+                    btnProgreso.style.color = "#003366";
+                    btnDatos.style.borderColor = "transparent";
+                    btnDatos.style.color = "#666";
+                    if (alumnoActual) renderProgressChart(alumnoActual);
+                }
+            }
+
+            let charts = { T1: null, T2: null, T3: null };
+
+            function renderProgressChart(id) {
+                fetch(`/api/alumnos/progreso/${id}`)
+                    .then(r => r.json())
+                    .then(datos => {
+                        createTrimesterChart('chartT1', datos["1"], 'T1', '#007bff');
+                        createTrimesterChart('chartT2', datos["2"], 'T2', '#28a745');
+                        createTrimesterChart('chartT3', datos["3"], 'T3', '#ffc107');
+                    });
+            }
+
+            function createTrimesterChart(canvasId, items, chartKey, color) {
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                if (charts[chartKey]) charts[chartKey].destroy();
+
+                // Si no hay datos, mostrar placeholder o limpiar
+                if (!items || items.length === 0) {
+                    // Podríamos pintar algo opcional, por ahora vaciamos
+                    return;
+                }
+
+                charts[chartKey] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: items.map(i => i.area),
+                        datasets: [{
+                            label: 'Media',
+                            data: items.map(i => i.media),
+                            backgroundColor: color,
+                            borderRadius: 6,
+                            barThickness: 30
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 10,
+                                grid: { color: '#f0f0f0' },
+                                ticks: { font: { weight: 'bold' } }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { weight: 'bold', size: 11 },
+                                    autoSkip: false,
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#003366',
+                                padding: 10,
+                                displayColors: false,
+                                callbacks: {
+                                    label: (context) => `Nota Media: ${context.parsed.y}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            /* ===== GUARDAR FICHA ===== */
+            function guardarFicha() {
+                if (!alumnoActual) return;
+
+                fetch("/api/alumnos/ficha", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        alumno_id: alumnoActual,
+                        fecha_nacimiento: document.getElementById("fecha_nacimiento").value,
+                        direccion: document.getElementById("direccion").value,
+                        madre_nombre: document.getElementById("madre_nombre").value,
+                        madre_telefono: document.getElementById("madre_telefono").value,
+                        padre_nombre: document.getElementById("padre_nombre").value,
+                        padre_telefono: document.getElementById("padre_telefono").value,
+                        observaciones_generales: document.getElementById("observaciones_generales").value,
+                        personas_autorizadas: document.getElementById("personas_autorizadas").value
+                    })
+                }).then(() => {
+                    const msg = document.getElementById("mensajeGuardado");
+                    msg.style.display = "block";
+
+                    setTimeout(() => {
+                        msg.style.display = "none";
+                    }, 1500);
+                });
+            }
+
+
+            /* ===== LIMPIAR FICHA===== */
+            function limpiarFicha() {
+                if (!alumnoActual) return;
+
+                fetch(`/api/alumnos/ficha/${alumnoActual}`, {
+                    method: "DELETE"
+                }).then(() => {
+                    document.getElementById("fecha_nacimiento").value = "";
+                    document.getElementById("direccion").value = "";
+                    document.getElementById("madre_nombre").value = "";
+                    document.getElementById("madre_telefono").value = "";
+                    document.getElementById("padre_nombre").value = "";
+                    document.getElementById("padre_telefono").value = "";
+                    document.getElementById("observaciones_generales").value = "";
+                    document.getElementById("personas_autorizadas").value = "";
+                });
+            }
+
+            /* ===== GESTIÓN DE ALUMNOS (MODAL) ===== */
+            const modal = document.getElementById("modalAlumno");
+            const modalTitulo = document.getElementById("modalTitulo");
+            const modalId = document.getElementById("modalAlumnoId");
+            const modalNombre = document.getElementById("modalNombre");
+            // const modalNoComedor = document.getElementById("modalNoComedor"); // Removed
+
+            function toggleDias(check) {
+                document.querySelectorAll(".chk-dia").forEach(c => c.checked = check);
+            }
+
+            function mostrarModalNuevo() {
+                modalTitulo.innerText = "Nuevo Alumno";
+                modalId.value = "";
+                modalNombre.value = "";
+                document.getElementById("modalFotoFile").value = ""; // Clear file input
+                // Por defecto marcamos todos los días
+                toggleDias(true);
+                modal.style.display = "flex";
+                modalNombre.focus();
+            }
+
+            function mostrarModalEditar(alumno) {
+                modalTitulo.innerText = "Editar Alumno";
+                modalId.value = alumno.id;
+                modalNombre.value = alumno.nombre;
+                document.getElementById("modalFotoFile").value = ""; // Clear file input
+
+                // Parse comedor_dias or fallback to no_comedor
+                if (alumno.comedor_dias) {
+                    const dias = alumno.comedor_dias.split(",");
+                    document.querySelectorAll(".chk-dia").forEach(c => {
+                        c.checked = dias.includes(c.value);
+                    });
+                } else {
+                    // Fallback legacy logic
+                    const come = (alumno.no_comedor === 0); // 0 = come, 1 = no_come
+                    toggleDias(come);
+                }
+
+                modal.style.display = "flex";
+                modalNombre.focus();
+            }
+
+            function cerrarModal() {
+                modal.style.display = "none";
+            }
+
+            function guardarAlumnoModal() {
+                const nombre = modalNombre.value.trim();
+
+                // Get selected days
+                const diasSeleccionados = Array.from(document.querySelectorAll(".chk-dia:checked"))
+                    .map(c => c.value);
+
+                // Logic compatible with DB:
+                // comedor_dias = "0,1,2..."
+                // no_comedor = 1 if list is empty, 0 otherwise (legacy fallback)
+
+                const comedor_dias = diasSeleccionados.join(",");
+                const no_comedor = (diasSeleccionados.length > 0) ? 0 : 1;
+
+                if (!nombre) {
+                    alert("El nombre no puede estar vacío");
+                    return;
+                }
+
+                // 1. Guardar datos básicos
+                const id = modalId.value;
+                const url = id ? `/api/alumnos/${id}` : "/api/alumnos/nuevo";
+                const method = id ? "PUT" : "POST";
+
+                fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nombre, no_comedor, comedor_dias })
+                })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.ok) {
+                            // 2. Si hay foto nueva, subirla
+                            const fileInput = document.getElementById("modalFotoFile");
+                            const newId = id || res.id; // Si era nuevo, usamos el ID devuelto
+
+                            if (fileInput.files.length > 0) {
+                                const formData = new FormData();
+                                formData.append("foto", fileInput.files[0]);
+
+                                fetch(`/api/alumnos/${newId}/foto`, {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                    .then(r => r.json())
+                                    .then(uploadRes => {
+                                        if (uploadRes.ok) {
+                                            cerrarModal();
+                                            cargarAlumnos();
+                                            if (id && alumnoActual == id) { // Update header if same student
+                                                document.getElementById("nombreAlumno").innerText = nombre;
+                                                // Update profile pic in header if we had one (optional)
+                                            }
+                                        } else {
+                                            alert("Datos guardados, pero error al subir foto: " + uploadRes.error);
+                                            cerrarModal();
+                                            cargarAlumnos();
+                                        }
+                                    });
+                            } else {
+                                // Sin foto nueva
+                                cerrarModal();
+                                cargarAlumnos();
+                                if (id && alumnoActual == id) {
+                                    document.getElementById("nombreAlumno").innerText = nombre;
+                                }
+                            }
+                        } else {
+                            alert("Error al guardar: " + res.error);
+                        }
+                    })
+                    .catch(err => alert("Error de red: " + err));
+            }
+
+            function borrarAlumno(id, nombre) {
+                if (!confirm(`¿Estás SEGURO de que quieres borrar a ${nombre}?\n\n⚠️ ESTA ACCIÓN BORRARÁ TODOS SUS DATOS (Notas, Asistencia, etc) Y NO SE PUEDE DESHACER.`)) {
+                    return;
+                }
+
+                fetch(`/api/alumnos/${id}`, {
+                    method: "DELETE"
+                })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.ok) {
+                            if (alumnoActual == id) {
+                                alumnoActual = null;
+                                document.getElementById("nombreAlumno").innerText = "Selecciona un alumno";
+                                limpiarFichaUI();
+                            }
+                            cargarAlumnos();
+                        } else {
+                            alert("Error al borrar: " + res.error);
+                        }
+                    });
+            }
+
+            function limpiarFichaUI() {
+                document.getElementById("fecha_nacimiento").value = "";
+                document.getElementById("direccion").value = "";
+                document.getElementById("madre_nombre").value = "";
+                document.getElementById("madre_telefono").value = "";
+                document.getElementById("padre_nombre").value = "";
+                document.getElementById("padre_telefono").value = "";
+                document.getElementById("observaciones_generales").value = "";
+                document.getElementById("personas_autorizadas").value = "";
+                if (charts.T1) charts.T1.destroy();
+                if (charts.T2) charts.T2.destroy();
+                if (charts.T3) charts.T3.destroy();
+            }
+
+        </script>
+</body>
+
+</html>

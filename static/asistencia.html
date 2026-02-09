@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>📋 Pasar lista</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary: #003366;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Nav */
+        .nav {
+            background: var(--primary);
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 6px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid white;
+        }
+
+        /* Header & Dashboard */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .stat-card h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .stat-card p {
+            margin: 10px 0 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .card.presente {
+            border-color: var(--success);
+            background: #f8fff9;
+        }
+
+        .card.retraso {
+            border-color: var(--warning);
+            background: #fffdf2;
+        }
+
+        .card.justificada {
+            border-color: #17a2b8;
+            background: #f2fdff;
+        }
+
+        .card.nojustificada {
+            border-color: var(--danger);
+            background: #fff5f5;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .card-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .presente .status-badge {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .retraso .status-badge {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .justificada .status-badge {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .nojustificada .status-badge {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .btn-status {
+            padding: 8px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .btn-status:hover {
+            background: #f0f2f5;
+        }
+
+        .btn-status.active {
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-status[data-status="presente"].active {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .btn-status[data-status="retraso"].active {
+            background: var(--warning);
+            border-color: var(--warning);
+            color: var(--dark);
+        }
+
+        .btn-status[data-status="falta_justificada"].active {
+            background: var(--info);
+            border-color: var(--info);
+        }
+
+        .btn-status[data-status="falta_no_justificada"].active {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .comedor-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .comedor-toggle input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            flex: 1;
+            padding: 8px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: background 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: #f8f9fa;
+        }
+
+        .obs-list {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            background: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            border-left: 3px solid var(--info);
+            display: none;
+        }
+
+        /* Animations */
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .history-table th,
+        .history-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-table th {
+            background-color: var(--light);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .history-card {
+            background: #fff;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin: 2px;
+            color: #fff;
+        }
+
+        .tag.retraso {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .tag.falta_justificada {
+            background: var(--info);
+        }
+
+        .tag.falta_no_justificada {
+            background: var(--danger);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/asistencia" class="active">📋 Pasar lista</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+        </div>
+
+        <div class="header">
+            <h2>📋 Pasar lista</h2>
+            <div class="controls">
+                <label for="fecha">📅 <strong>Fecha:</strong></label>
+                <input type="date" id="fecha">
+                <button class="btn-status" onclick="openHistory()"
+                    style="margin-left: auto; background: var(--primary); color: white; border: none;">
+                    📜 Historial Mensual
+                </button>
+            </div>
+        </div>
+
+        <!-- History Modal -->
+        <div class="modal-overlay" id="historyModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>📜 Historial de Faltas Mensual</h3>
+                    <button class="modal-close" onclick="closeHistory()">&times;</button>
+                </div>
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <label>Mes:</label>
+                    <input type="month" id="mesHistorial"
+                        style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                </div>
+                <div id="historyContent">
+                    <!-- Table will here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard" id="dashboard">
+            <div class="stat-card">
+                <h4>🍽️ Comensales</h4>
+                <p id="totalComedor">0</p>
+            </div>
+            <div class="stat-card" style="border-color: var(--success);">
+                <h4>🟢 Presentes</h4>
+                <p id="totalPresentes">0</p>
+            </div>
+            <div class="stat-card" style="border-color: var(--warning);">
+                <h4>🟠 Retrasos</h4>
+                <p id="totalRetrasos">0</p>
+            </div>
+            <div class="stat-card" style="border-color: var(--danger);">
+                <h4>🔴 Ausencias</h4>
+                <p id="totalFaltas">0</p>
+                <div style="font-size: 0.85rem; margin-top: 8px; font-weight: 500;">
+                    <span style="color: #17a2b8;">Justif: <b id="totalJustificadas">0</b></span>
+                    <span style="margin: 0 4px; color: #ccc;">|</span>
+                    <span style="color: var(--danger);">No Justif: <b id="totalInjustificadas">0</b></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid" id="studentGrid">
+            <!-- Cards will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        const studentGrid = document.getElementById("studentGrid");
+        const dateInput = document.getElementById("fecha");
+        let selectedDate = new Date().toISOString().split("T")[0];
+
+        dateInput.value = selectedDate;
+        dateInput.addEventListener("change", (e) => {
+            selectedDate = e.target.value;
+            loadAttendance();
+        });
+
+        let studentData = [];
+
+        async function loadAttendance() {
+            try {
+                const response = await fetch(`/api/asistencia/hoy?fecha=${selectedDate}`);
+                const students = await response.json();
+                studentData = students; // Store for auto-dining logic
+
+                renderStudents(students);
+                updateStats();
+            } catch (error) {
+                console.error("Error loading attendance:", error);
+            }
+        }
+
+        function renderStudents(students) {
+            studentGrid.innerHTML = "";
+            students.forEach(student => {
+                const card = document.createElement("div");
+                let statusClass = "presente";
+                let statusLabel = "Presente";
+
+                if (student.estado === "retraso") { statusClass = "retraso"; statusLabel = "Retraso"; }
+                else if (student.estado === "falta_justificada") { statusClass = "justificada"; statusLabel = "Justificada"; }
+                else if (student.estado === "falta_no_justificada") { statusClass = "nojustificada"; statusLabel = "No Justif."; }
+
+                card.className = `card ${statusClass}`;
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-name">${student.nombre}</div>
+                        <span class="status-badge">${statusLabel}</span>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn-status ${student.estado === 'presente' ? 'active' : ''}" 
+                                data-status="presente" onclick="markStatus(${student.id}, 'presente')">
+                            🟢 Presente
+                        </button>
+                        <button class="btn-status ${student.estado === 'retraso' ? 'active' : ''}" 
+                                data-status="retraso" onclick="markStatus(${student.id}, 'retraso')">
+                            🟠 Retraso
+                        </button>
+                        <button class="btn-status ${student.estado === 'falta_justificada' ? 'active' : ''}" 
+                                data-status="falta_justificada" onclick="markStatus(${student.id}, 'falta_justificada')">
+                            🟡 Justif.
+                        </button>
+                        <button class="btn-status ${student.estado === 'falta_no_justificada' ? 'active' : ''}" 
+                                data-status="falta_no_justificada" onclick="markStatus(${student.id}, 'falta_no_justificada')">
+                            🔴 No Justif.
+                        </button>
+                    </div>
+                    
+                    <label class="comedor-toggle">
+                        <input type="checkbox" ${student.comedor ? 'checked' : ''} 
+                               onchange="toggleComedor(${student.id}, this.checked)">
+                        🍽️ Comedor
+                    </label>
+                    
+                    <div class="card-actions">
+                        <button class="btn-icon" onclick="addObservation(${student.id}, '${student.nombre}')">
+                            📝 Nota
+                        </button>
+                        <button class="btn-icon" onclick="viewObservations(${student.id})">
+                            👁️ Ver
+                        </button>
+                    </div>
+                    <div id="obs-${student.id}" class="obs-list"></div>
+                `;
+                studentGrid.appendChild(card);
+            });
+        }
+
+        async function markStatus(id, status) {
+            const student = studentData.find(s => s.id === id);
+            let payload = {
+                alumno_id: id,
+                estado: status,
+                fecha: selectedDate
+            };
+
+            // Auto-dining logic: if returning to class and is a diner student
+            if ((status === 'presente' || status === 'retraso') && student && student.no_comedor === 0) {
+                payload.comedor = 1;
+            }
+
+            await fetch("/api/asistencia", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            loadAttendance();
+        }
+
+        async function toggleComedor(id, checked) {
+            await fetch("/api/asistencia", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    alumno_id: id,
+                    comedor: checked ? 1 : 0,
+                    fecha: selectedDate
+                })
+            });
+            updateStats();
+        }
+
+        async function addObservation(id, name) {
+            const text = prompt(`Añadir observación para ${name}:`);
+            if (!text) return;
+
+            await fetch("/api/observaciones", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    alumno_id: id,
+                    texto: text,
+                    fecha: selectedDate
+                })
+            });
+            alert("Observación guardada.");
+        }
+
+        async function viewObservations(id) {
+            const div = document.getElementById(`obs-${id}`);
+            if (div.style.display === "block") {
+                div.style.display = "none";
+                return;
+            }
+
+            const response = await fetch(`/api/observaciones/${id}`);
+            const notes = await response.json();
+
+            if (notes.length === 0) {
+                div.innerHTML = "<em>Sin notas.</em>";
+            } else {
+                div.innerHTML = notes.map(n => `
+                    <div style="margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                        <strong>${n.fecha}:</strong> ${n.texto}
+                        <div style="margin-top: 4px; display: flex; gap: 5px;">
+                            <button onclick="editObservation(${n.id}, '${n.texto}', ${id})" style="font-size: 0.7rem; padding: 2px 5px; cursor: pointer;">✏️</button>
+                            <button onclick="deleteObservation(${n.id}, ${id})" style="font-size: 0.7rem; padding: 2px 5px; cursor: pointer;">🗑️</button>
+                        </div>
+                    </div>
+                `).join("");
+            }
+            div.style.display = "block";
+        }
+
+        async function editObservation(obsId, currentText, studentId) {
+            const newText = prompt("Editar nota:", currentText);
+            if (newText === null || newText === currentText) return;
+
+            await fetch(`/api/observaciones/${obsId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ texto: newText })
+            });
+
+            // Force refresh of the obs list for that student
+            const div = document.getElementById(`obs-${studentId}`);
+            div.style.display = "none";
+            viewObservations(studentId);
+        }
+
+        async function deleteObservation(obsId, studentId) {
+            if (!confirm("¿Seguro que quieres borrar esta nota?")) return;
+
+            await fetch(`/api/observaciones/${obsId}`, {
+                method: "DELETE"
+            });
+
+            // Force refresh
+            const div = document.getElementById(`obs-${studentId}`);
+            div.style.display = "none";
+            viewObservations(studentId);
+        }
+
+        async function updateStats() {
+            const resResumen = await fetch(`/api/asistencia/resumen?fecha=${selectedDate}`);
+            const d = await resResumen.json();
+            document.getElementById("totalPresentes").innerText = d.presentes;
+            document.getElementById("totalRetrasos").innerText = d.retrasos;
+            document.getElementById("totalFaltas").innerText = d.faltan;
+
+            // Breakdown
+            document.getElementById("totalJustificadas").innerText = d.faltas_justificadas;
+            document.getElementById("totalInjustificadas").innerText = d.faltas_injustificadas;
+
+            const resComedor = await fetch(`/api/comedor/hoy?fecha=${selectedDate}`);
+            const c = await resComedor.json();
+            document.getElementById("totalComedor").innerText = c.total;
+        }
+
+        // History Modal Logic
+        const historyModal = document.getElementById("historyModal");
+        const monthInput = document.getElementById("mesHistorial");
+
+        function openHistory() {
+            // Set current month by default if not set
+            if (!monthInput.value) {
+                const now = new Date();
+                const m = (now.getMonth() + 1).toString().padStart(2, '0');
+                monthInput.value = `${now.getFullYear()}-${m}`;
+            }
+            historyModal.style.display = "flex";
+            loadHistory();
+        }
+
+        function closeHistory() {
+            historyModal.style.display = "none";
+        }
+
+        monthInput.addEventListener("change", loadHistory);
+
+        async function loadHistory() {
+            const mes = monthInput.value;
+            if (!mes) return;
+
+            const content = document.getElementById("historyContent");
+            content.innerHTML = "<p style='text-align:center'>Cargando...</p>";
+
+            try {
+                const res = await fetch(`/api/asistencia/mes?mes=${mes}`);
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    content.innerHTML = "<p style='text-align:center; color:#666;'>No hay registros de faltas/retrasos este mes.</p>";
+                    return;
+                }
+
+                let html = `
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Alumno</th>
+                                <th>Resumen</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.forEach(item => {
+                    // Create detail tags
+                    const tags = item.detalles.map(d => {
+                        let cls = d.estado;
+                        let label = d.fecha.slice(8); // just the day
+                        let title = d.estado.replace('_', ' ');
+                        return `<span class="tag ${cls}" title="${title} ${d.fecha}">${label}</span>`;
+                    }).join(" ");
+
+                    html += `
+                        <tr>
+                            <td><strong>${item.nombre}</strong></td>
+                            <td>
+                                <div style="display:flex; gap:10px; font-size:0.85rem;">
+                                    ${item.retrasos ? `<span style="color:#856404">🟠: ${item.retrasos}</span>` : ''}
+                                    ${item.justificadas ? `<span style="color:#0c5460">🟡: ${item.justificadas}</span>` : ''}
+                                    ${item.injustificadas ? `<span style="color:#721c24">🔴: ${item.injustificadas}</span>` : ''}
+                                </div>
+                            </td>
+                            <td>
+                                ${tags}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table>`;
+                content.innerHTML = html;
+
+            } catch (e) {
+                console.error(e);
+                content.innerHTML = "<p style='color:red; text-align:center'>Error cargando datos.</p>";
+            }
+        }
+
+        // Close modal if clicking outside
+        historyModal.addEventListener("click", (e) => {
+            if (e.target === historyModal) closeHistory();
+        });
+
+        loadAttendance();
+    </script>
+</body>
+
+</html>

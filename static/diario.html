@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Diario de Clase</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Nav */
+        .nav {
+            background: var(--primary);
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 6px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid white;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="date"] {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        /* List */
+        .student-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .student-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: grid;
+            grid-template-columns: 200px 1fr 100px;
+            gap: 15px;
+            align-items: start;
+        }
+
+        .student-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary);
+            padding-top: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 60px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .status-indicator {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #28a745;
+            opacity: 0;
+            transition: opacity 0.3s;
+            padding-top: 10px;
+        }
+
+        .status-indicator.visible {
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            .student-card {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .status-indicator {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/diario" class="active">📓 Diario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+        </div>
+
+        <div class="controls">
+            <h2 style="margin:0;">📓 Diario de Clase</h2>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div>
+                    <select id="areaSelect"
+                        style="padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 1rem;">
+                        <option value="">-- Observaciones Generales --</option>
+                    </select>
+                </div>
+                <div>
+                    <input type="date" id="datePicker">
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
+        <div id="studentList" class="student-list"></div>
+
+    </div>
+
+    <script>
+        const datePicker = document.getElementById('datePicker');
+        const areaSelect = document.getElementById('areaSelect');
+        const studentList = document.getElementById('studentList');
+        const loading = document.getElementById('loading');
+
+        // Set today
+        datePicker.valueAsDate = new Date();
+
+        datePicker.addEventListener('change', loadData);
+        areaSelect.addEventListener('change', loadData);
+
+        // Load Areas
+        fetch('/api/evaluacion/areas').then(r => r.json()).then(areas => {
+            areas.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a.id;
+                opt.textContent = a.nombre;
+                areaSelect.appendChild(opt);
+            });
+        });
+
+        function loadData() {
+            const fecha = datePicker.value;
+            const areaId = areaSelect.value;
+            loading.style.display = 'block';
+            studentList.innerHTML = '';
+
+            fetch(`/api/observaciones/dia?fecha=${fecha}&area_id=${areaId}`)
+                .then(r => r.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    renderStudents(data);
+                })
+                .catch(err => {
+                    console.error(err);
+                    loading.innerText = "Error al cargar datos";
+                });
+        }
+
+        function renderStudents(students) {
+            if (students.length === 0) {
+                studentList.innerHTML = '<div style="text-align:center; padding:20px;">No hay alumnos registrados.</div>';
+                return;
+            }
+
+            students.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'student-card';
+
+                // Name
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'student-name';
+                nameDiv.innerHTML = `
+                    ${s.nombre} 
+                    <a href="/api/informe/pdf_diario/${s.id}" target="_blank" style="text-decoration:none; margin-left:10px; font-size:0.9rem;" title="Descargar PDF">
+                        📄
+                    </a>`;
+
+                // Textarea
+                const txt = document.createElement('textarea');
+                txt.placeholder = "Escribe una observación...";
+                txt.value = s.observacion;
+
+                // Save on blur
+                txt.addEventListener('blur', () => {
+                    if (txt.value !== s.observacion) {
+                        saveObservation(s.id, txt.value, statusDiv);
+                        s.observacion = txt.value; // Update local model
+                    }
+                });
+
+                // Status
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'status-indicator';
+                statusDiv.textContent = '💾 Guardado';
+
+                card.appendChild(nameDiv);
+                card.appendChild(txt);
+                card.appendChild(statusDiv);
+                studentList.appendChild(card);
+            });
+        }
+
+        function saveObservation(alumnoId, texto, statusDiv) {
+            statusDiv.textContent = "Guardando...";
+            statusDiv.classList.add('visible');
+            statusDiv.style.color = "#666";
+
+            // This will now use the UPSERT logic we are adding to backend
+            fetch('/api/observaciones', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    alumno_id: alumnoId,
+                    fecha: datePicker.value,
+                    texto: texto,
+                    area_id: areaSelect.value
+                })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        statusDiv.textContent = "✔ Guardado";
+                        statusDiv.style.color = "var(--success)";
+                        setTimeout(() => {
+                            statusDiv.classList.remove('visible');
+                        }, 2000);
+                    } else {
+                        statusDiv.textContent = "❌ Error";
+                        statusDiv.style.color = "var(--danger)";
+                    }
+                })
+                .catch(() => {
+                    statusDiv.textContent = "❌ Error red";
+                    statusDiv.style.color = "var(--danger)";
+                });
+        }
+
+        // Init
+        loadData();
+
+    </script>
+
+</body>
+
+</html>

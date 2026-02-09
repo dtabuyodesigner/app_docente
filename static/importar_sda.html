@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Importar SDA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            padding: 20px;
+        }
+
+        .nav {
+            background: #003366;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid white;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            color: #003366;
+            margin-top: 0;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        .btn-import {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-import:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .info {
+            background: #e7f3fe;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #1e4265;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        #status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .success {
+            display: block !important;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            display: block !important;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <a href="/">🏠 Inicio</a>
+        <a href="/asistencia">📋 Pasar lista</a>
+        <a href="/alumnos">👥 Alumnos</a>
+        <a href="/evaluacion">📊 Evaluación</a>
+        <a href="/informes">📜 Informes</a>
+        <a href="/importar_sda" class="active">📥 Importar SDA</a>
+        <a href="/programacion">📅 Programación</a>
+    </div>
+
+    <div class="card">
+        <h2>📥 Importación Masiva de SDA</h2>
+        <div class="info">
+            <strong>Formato esperado (CSV):</strong><br>
+            <code>Área;Nombre de la SDA;Trimestre;Código Criterio;Descripción del Criterio</code><br><br>
+            Pega aquí el contenido. El sistema creará automáticamente las áreas y situaciones de aprendizaje si no
+            existen.
+        </div>
+
+        <textarea id="csvData" placeholder="Matemáticas;SDA 1: Operaciones;1;MAT.1.1;Sumar y restar..."></textarea>
+
+        <button class="btn-import" onclick="importSDA()">Comenzar Importación</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function importSDA() {
+            const text = document.getElementById('csvData').value.trim();
+            const statusDiv = document.getElementById('status');
+
+            if (!text) {
+                statusDiv.className = 'error';
+                statusDiv.innerText = "⚠️ Por favor, pega algún contenido primero.";
+                return;
+            }
+
+            statusDiv.className = '';
+            statusDiv.style.display = 'block';
+            statusDiv.innerText = "⏳ Importando datos...";
+
+            fetch('/api/importar_sda', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ csv: text })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        statusDiv.className = 'success';
+                        statusDiv.innerText = `✅ ¡Éxito! Se han procesado ${res.count} líneas correctamente.`;
+                        document.getElementById('csvData').value = "";
+                    } else {
+                        statusDiv.className = 'error';
+                        statusDiv.innerText = "❌ Error: " + (res.error || "Algo salió mal.");
+                    }
+                })
+                .catch(err => {
+                    statusDiv.className = 'error';
+                    statusDiv.innerText = "❌ Error de conexión: " + err;
+                });
+        }
+    </script>
+</body>
+
+</html>

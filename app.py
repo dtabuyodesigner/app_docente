@@ -82,6 +82,10 @@ def rubricas_page():
 def diario_page():
     return send_from_directory("static", "diario.html")
 
+@app.route("/reuniones")
+def reuniones_page():
+    return send_from_directory('static', 'reuniones.html')
+
 
 # -------------------------------------------------
 # ALUMNOS
@@ -3588,6 +3592,66 @@ def exportar_alumnos_csv():
         mimetype="text/csv",
         headers={"Content-disposition": "attachment; filename=alumnos_export.csv"}
     )
+
+@app.route("/api/reuniones", methods=["GET", "POST"])
+def api_reuniones():
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "GET":
+        alumno_id = request.args.get("alumno_id")
+        if not alumno_id:
+            return jsonify([])
+        
+        cur.execute("SELECT id, fecha, asistentes, temas, acuerdos FROM reuniones WHERE alumno_id = ? ORDER BY fecha DESC", (alumno_id,))
+        rows = cur.fetchall()
+        conn.close()
+
+        data = []
+        for r in rows:
+            data.append({
+                "id": r[0],
+                "fecha": r[1],
+                "asistentes": r[2],
+                "temas": r[3],
+                "acuerdos": r[4]
+            })
+        return jsonify(data)
+
+    elif request.method == "POST":
+        d = request.json
+        cur.execute("""
+            INSERT INTO reuniones (alumno_id, fecha, asistentes, temas, acuerdos)
+            VALUES (?, ?, ?, ?, ?)
+        """, (d["alumno_id"], d["fecha"], d["asistentes"], d["temas"], d["acuerdos"]))
+        conn.commit()
+        lid = cur.lastrowid
+        conn.close()
+        return jsonify({"ok": True, "id": lid})
+
+
+@app.route("/api/reuniones/<int:rid>", methods=["PUT", "DELETE"])
+def api_reuniones_item(rid):
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "DELETE":
+        cur.execute("DELETE FROM reuniones WHERE id = ?", (rid,))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True})
+
+    elif request.method == "PUT":
+        d = request.json
+        cur.execute("""
+            UPDATE reuniones 
+            SET fecha = ?, asistentes = ?, temas = ?, acuerdos = ?
+            WHERE id = ?
+        """, (d["fecha"], d["asistentes"], d["temas"], d["acuerdos"], rid))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True})
+
 
 if __name__ == "__main__":
     app.run(debug=True)

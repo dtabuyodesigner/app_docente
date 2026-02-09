@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reuniones con Padres</title>
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Nav */
+        .nav {
+            background: #003366;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            min-width: 250px;
+        }
+
+        .btn-new {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-new:hover {
+            background-color: #218838;
+        }
+
+        /* Meetings List */
+        .meeting-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .meeting-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--secondary);
+            position: relative;
+        }
+
+        .meeting-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .meeting-date {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .meeting-attendees {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .meeting-body h4 {
+            margin: 10px 0 5px;
+            color: #444;
+            font-size: 0.95rem;
+        }
+
+        .meeting-text {
+            white-space: pre-wrap;
+            color: #333;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .meeting-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-edit {
+            background: #ffc107;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            height: 100px;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/comedor">🍽️ Comedor</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/horario">⏰ Horario</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/reuniones" class="active">👨‍👩‍👧‍👦 Reuniones</a>
+        </div>
+
+        <div class="controls">
+            <div>
+                <h2 style="margin:0 0 5px 0;">👨‍👩‍👧‍👦 Reuniones con Familias</h2>
+                <select id="studentSelect">
+                    <option value="">-- Seleccionar Alumno --</option>
+                </select>
+            </div>
+            <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
+        </div>
+
+        <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
+        <div id="meetingList" class="meeting-list">
+            <div style="text-align:center; padding:30px; color:#888; font-style:italic;">
+                Selecciona un alumno para ver su historial de reuniones.
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal -->
+    <div id="meetingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Nueva Reunión</h2>
+
+            <input type="hidden" id="editingId">
+
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="mFecha" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label>Asistentes (e.g. Madre, Padre, Ambos)</label>
+                <input type="text" id="mAsistentes" class="form-control" placeholder="Ej: Madre y Tutor">
+            </div>
+
+            <div class="form-group">
+                <label>Temas Tratados</label>
+                <textarea id="mTemas" class="form-control" placeholder="Puntos principales de la reunión..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Acuerdos / Conclusiones</label>
+                <textarea id="mAcuerdos" class="form-control" placeholder="Acuerdos llegados..."></textarea>
+            </div>
+
+            <button class="btn-save" onclick="saveMeeting()">Guardar Reunión</button>
+        </div>
+    </div>
+
+    <script>
+        const studentSelect = document.getElementById('studentSelect');
+        const listContainer = document.getElementById('meetingList');
+        const loading = document.getElementById('loading');
+
+        // Modal elements
+        const modal = document.getElementById('meetingModal');
+        const mFecha = document.getElementById('mFecha');
+        const mAsistentes = document.getElementById('mAsistentes');
+        const mTemas = document.getElementById('mTemas');
+        const mAcuerdos = document.getElementById('mAcuerdos');
+        const editingId = document.getElementById('editingId');
+        const modalTitle = document.getElementById('modalTitle');
+
+        // Initial Load
+        fetch('/api/alumnos').then(r => r.json()).then(data => {
+            data.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.nombre;
+                studentSelect.appendChild(opt);
+            });
+        });
+
+        studentSelect.addEventListener('change', loadMeetings);
+
+        function loadMeetings() {
+            const sid = studentSelect.value;
+            if (!sid) {
+                listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#888; font-style:italic;">Selecciona un alumno para ver su historial.</div>';
+                return;
+            }
+
+            loading.style.display = 'block';
+            listContainer.innerHTML = '';
+
+            fetch(`/api/reuniones?alumno_id=${sid}`)
+                .then(r => r.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    if (data.length === 0) {
+                        listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No hay reuniones registradas para este alumno.</div>';
+                        return;
+                    }
+
+                    data.forEach(m => {
+                        const card = document.createElement('div');
+                        card.className = 'meeting-card';
+
+                        // Format date
+                        let d = new Date(m.fecha);
+                        let dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                        card.innerHTML = `
+                            <div class="meeting-header">
+                                <span class="meeting-date">📅 ${dateStr}</span>
+                                <span class="meeting-attendees">👥 ${m.asistentes}</span>
+                            </div>
+                            <div class="meeting-body">
+                                <h4>📝 Temas Tratados</h4>
+                                <div class="meeting-text">${m.temas}</div>
+                                
+                                <h4>🤝 Acuerdos</h4>
+                                <div class="meeting-text">${m.acuerdos}</div>
+                            </div>
+                            <div class="meeting-actions">
+                                <button class="btn-edit" onclick='editMeeting(${JSON.stringify(m)})'>✏️ Editar</button>
+                                <button class="btn-delete" onclick="deleteMeeting(${m.id})">🗑️ Borrar</button>
+                            </div>
+                        `;
+                        listContainer.appendChild(card);
+                    });
+                });
+        }
+
+        function openModal() {
+            if (!studentSelect.value) {
+                alert("Por favor, selecciona un alumno primero.");
+                return;
+            }
+            // Reset form
+            editingId.value = "";
+            mFecha.valueAsDate = new Date();
+            mAsistentes.value = "";
+            mTemas.value = "";
+            mAcuerdos.value = "";
+            modalTitle.textContent = "Nueva Reunión";
+
+            modal.style.display = 'block';
+        }
+
+        function editMeeting(meeting) {
+            editingId.value = meeting.id;
+            mFecha.value = meeting.fecha;
+            mAsistentes.value = meeting.asistentes;
+            mTemas.value = meeting.temas;
+            mAcuerdos.value = meeting.acuerdos;
+            modalTitle.textContent = "Editar Reunión";
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        function saveMeeting() {
+            const id = editingId.value;
+            const payload = {
+                alumno_id: studentSelect.value,
+                fecha: mFecha.value,
+                asistentes: mAsistentes.value,
+                temas: mTemas.value,
+                acuerdos: mAcuerdos.value
+            };
+
+            const url = id ? `/api/reuniones/${id}` : '/api/reuniones';
+            const method = id ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        closeModal();
+                        loadMeetings();
+                    } else {
+                        alert("Error al guardar la reunión");
+                    }
+                })
+                .catch(e => {
+                    console.error(e);
+                    alert("Error de red");
+                });
+        }
+
+        function deleteMeeting(id) {
+            if (!confirm("¿Seguro que quieres borrar esta reunión?")) return;
+
+            fetch(`/api/reuniones/${id}`, { method: 'DELETE' })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        loadMeetings();
+                    } else {
+                        alert("Error al borrar");
+                    }
+                });
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

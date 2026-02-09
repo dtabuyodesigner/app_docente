@@ -285,6 +285,88 @@
                 opacity: 1;
             }
         }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .history-table th,
+        .history-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-table th {
+            background-color: var(--light);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin: 2px;
+            color: #fff;
+        }
+
+        .tag.retraso {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .tag.falta_justificada {
+            background: #007bff;
+        }
+
+        .tag.falta_no_justificada {
+            background: var(--danger);
+        }
     </style>
 </head>
 
@@ -346,10 +428,13 @@
                 <h4>🍽️ Comedor Hoy</h4>
                 <p id="totalComedor">-</p>
             </div>
-            <div class="stat-card" style="border-top: 4px solid var(--success);">
+            <div class="stat-card" style="border-top: 4px solid var(--success); position: relative;">
                 <h4>✅ Asistencia</h4>
                 <p id="statsAsistencia">-</p>
-                <!-- Show Present / Total -->
+                <button onclick="openHistory()"
+                    style="background: none; border: none; color: var(--info); cursor: pointer; font-size: 0.8rem; font-weight: bold; padding: 0; margin-top: 5px; text-decoration: underline;">
+                    📜 Ver Historial
+                </button>
             </div>
             <div class="stat-card" style="border-top: 4px solid var(--danger);">
                 <h4>⚠️ Alertas</h4>
@@ -389,6 +474,23 @@
             </div>
         </div>
 
+        <!-- History Modal -->
+        <div class="modal-overlay" id="historyModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>📜 Historial de Faltas</h3>
+                    <button class="modal-close" onclick="closeHistory()">&times;</button>
+                </div>
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <label>Mes:</label>
+                    <input type="month" id="mesHistorial"
+                        style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                </div>
+                <div id="historyContent">
+                    <!-- Table will be here -->
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -526,6 +628,91 @@
         }
 
         document.addEventListener('DOMContentLoaded', loadDashboard);
+
+        // --- HISTORY MODAL LOGIC ---
+        const historyModal = document.getElementById("historyModal");
+        const monthInput = document.getElementById("mesHistorial");
+
+        function openHistory() {
+            if (!monthInput.value) {
+                const now = new Date();
+                const m = (now.getMonth() + 1).toString().padStart(2, '0');
+                monthInput.value = `${now.getFullYear()}-${m}`;
+            }
+            historyModal.style.display = "flex";
+            loadHistory();
+        }
+
+        function closeHistory() {
+            historyModal.style.display = "none";
+        }
+
+        monthInput.addEventListener("change", loadHistory);
+
+        async function loadHistory() {
+            const mes = monthInput.value;
+            if (!mes) return;
+
+            const content = document.getElementById("historyContent");
+            content.innerHTML = "<p style='text-align:center'>Cargando...</p>";
+
+            try {
+                const res = await fetch(`/api/asistencia/mes?mes=${mes}`);
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    content.innerHTML = "<p style='text-align:center; color:#666;'>No hay registros de faltas/retrasos este mes.</p>";
+                    return;
+                }
+
+                let html = `
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Alumno</th>
+                                <th>Resumen</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.forEach(item => {
+                    const tags = item.detalles.map(d => {
+                        let cls = d.estado;
+                        let label = d.fecha.slice(8);
+                        let title = d.estado.replace('_', ' ');
+                        return `<span class="tag ${cls}" title="${title} ${d.fecha}">${label}</span>`;
+                    }).join(" ");
+
+                    html += `
+                        <tr>
+                            <td><strong>${item.nombre}</strong></td>
+                            <td>
+                                <div style="display:flex; gap:10px; font-size:0.85rem;">
+                                    ${item.retrasos ? `<span style="color:#856404">🟠: ${item.retrasos}</span>` : ''}
+                                    ${item.justificadas ? `<span style="color:#007bff">🔵: ${item.justificadas}</span>` : ''}
+                                    ${item.injustificadas ? `<span style="color:#721c24">🔴: ${item.injustificadas}</span>` : ''}
+                                </div>
+                            </td>
+                            <td>
+                                ${tags}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table>`;
+                content.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                content.innerHTML = "<p style='color:red; text-align:center'>Error cargando datos.</p>";
+            }
+        }
+
+        historyModal.addEventListener("click", (e) => {
+            if (e.target === historyModal) closeHistory();
+        });
     </script>
 </body>
 

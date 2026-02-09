@@ -19,3 +19,20 @@ CREATE TABLE evaluaciones (
     FOREIGN KEY(sda_id) REFERENCES sda(id),
     FOREIGN KEY(criterio_id) REFERENCES criterios(id)
 );
+CREATE TABLE IF NOT EXISTS informe_grupo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trimestre INTEGER NOT NULL UNIQUE,
+    observaciones TEXT,
+    propuestas_mejora TEXT,
+    conclusion TEXT,
+    fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS informe_individual (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    trimestre INTEGER NOT NULL,
+    texto TEXT,
+    fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(alumno_id, trimestre),
+    FOREIGN KEY(alumno_id) REFERENCES alumnos(id)
+);

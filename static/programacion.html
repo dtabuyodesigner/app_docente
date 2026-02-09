@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Cuaderno del Tutor - Programación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/es.js'></script>
@@ -37,7 +40,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             margin: 0;
             padding: 20px;
@@ -70,7 +73,7 @@
             text-decoration: none;
             font-weight: 600;
             padding: 8px 12px;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             border-radius: 8px;
             transition: all 0.2s ease;
             white-space: nowrap;
@@ -78,6 +81,7 @@
             align-items: center;
             gap: 6px;
             border: 1px solid transparent;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         .nav a:hover {
@@ -748,8 +752,8 @@
                 .then(r => r.json())
                 .then(areas => {
                     fullCurriculo = areas;
-                    const select = document.getElementById('sda_select');
-                    select.innerHTML = '<option value="">-- Ninguna --</option>';
+                    const select = document.getElementById('eventSda');
+                    if (select) select.innerHTML = '<option value="">-- Ninguna --</option>';
                     areas.forEach(area => {
                         const group = document.createElement('optgroup');
                         group.label = area.nombre;
@@ -766,9 +770,11 @@
         }
 
         function updateActivitySelect() {
-            const sdaId = document.getElementById('sda_select').value;
+            const sdaSelect = document.getElementById('eventSda');
+            if (!sdaSelect) return;
+            const sdaId = sdaSelect.value;
             const actSelect = document.getElementById('act_select');
-            actSelect.innerHTML = '<option value="">-- Selecciona actividad si aplica --</option>';
+            if (actSelect) actSelect.innerHTML = '<option value="">-- Selecciona actividad si aplica --</option>';
 
             if (!sdaId) return;
 

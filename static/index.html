@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <title>📘 Cuaderno del Tutor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -19,7 +22,7 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: #f0f4f8;
             margin: 0;
             padding: 20px;
@@ -487,10 +490,18 @@
             </div>
 
             <!-- New Section: Last Observations (Extra content) -->
-            <div class="list-container" style="grid-column: span 4; height: auto; max-height: 400px;">
-                <div class="section-header">📓 Últimas Observaciones del Diario</div>
+            <div class="list-container" style="grid-column: span 2; height: auto; max-height: 400px;">
+                <div class="section-header">📓 Últimas Observaciones</div>
                 <div id="lastObsList">
                     <div style="color: #999; font-style: italic;">Cargando observaciones...</div>
+                </div>
+            </div>
+
+            <!-- New Section: Last Meetings -->
+            <div class="list-container" style="grid-column: span 2; height: auto; max-height: 400px;">
+                <div class="section-header">👨‍👩‍👧‍👦 Últimas Reuniones</div>
+                <div id="lastMeetingsList">
+                    <div style="color: #999; font-style: italic;">Cargando reuniones...</div>
                 </div>
             </div>
 
@@ -593,6 +604,29 @@
 
                 // 7. Last Observations
                 loadLastObservations();
+
+                // 8. Last Meetings
+                if (data.ultimas_reuniones && data.ultimas_reuniones.length > 0) {
+                    document.getElementById('lastMeetingsList').innerHTML = data.ultimas_reuniones.map(r => {
+                        const d = new Date(r.fecha);
+                        const fechaFmt = `${d.getDate()}/${d.getMonth() + 1}`;
+                        // Limit temas text
+                        let temas = r.temas || 'Sin temas registrados';
+                        if (temas.length > 80) temas = temas.substring(0, 80) + '...';
+
+                        return `
+                            <div class="obs-item">
+                                <div class="obs-meta">
+                                    <span><b>${r.alumno}</b></span>
+                                    <span>${fechaFmt}</span>
+                                </div>
+                                <div class="obs-text">${temas}</div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    document.getElementById('lastMeetingsList').innerHTML = '<div style="color: #999; font-style: italic;">No hay reuniones recientes.</div>';
+                }
 
             } catch (error) {
                 console.error("Error loading dashboard data:", error);

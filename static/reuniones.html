@@ -308,8 +308,19 @@
             </div>
 
             <div class="form-group">
-                <label>Asistentes (e.g. Madre, Padre, Ambos)</label>
-                <input type="text" id="mAsistentes" class="form-control" placeholder="Ej: Madre y Tutor">
+                <label>Asistentes</label>
+                <select id="mAsistentesSelect" class="form-control" onchange="toggleOtherAssistants()">
+                    <option value="">-- Seleccionar --</option>
+                    <option value="Madre">Madre</option>
+                    <option value="Padre">Padre</option>
+                    <option value="Padre y Madre">Padre y Madre</option>
+                    <option value="Tutores">Tutores</option>
+                    <option value="Abuelo">Abuelo</option>
+                    <option value="Abuela">Abuela</option>
+                    <option value="Otro">Otro</option>
+                </select>
+                <input type="text" id="mAsistentesOtro" class="form-control"
+                    placeholder="Especificar quién ha asistido..." style="display:none; margin-top: 5px;">
             </div>
 
             <div class="form-group">
@@ -334,7 +345,8 @@
         // Modal elements
         const modal = document.getElementById('meetingModal');
         const mFecha = document.getElementById('mFecha');
-        const mAsistentes = document.getElementById('mAsistentes');
+        const mAsistentesSelect = document.getElementById('mAsistentesSelect');
+        const mAsistentesOtro = document.getElementById('mAsistentesOtro');
         const mTemas = document.getElementById('mTemas');
         const mAcuerdos = document.getElementById('mAcuerdos');
         const editingId = document.getElementById('editingId');
@@ -409,7 +421,9 @@
             // Reset form
             editingId.value = "";
             mFecha.valueAsDate = new Date();
-            mAsistentes.value = "";
+            mAsistentesSelect.value = "";
+            mAsistentesOtro.value = "";
+            toggleOtherAssistants();
             mTemas.value = "";
             mAcuerdos.value = "";
             modalTitle.textContent = "Nueva Reunión";
@@ -420,7 +434,18 @@
         function editMeeting(meeting) {
             editingId.value = meeting.id;
             mFecha.value = meeting.fecha;
-            mAsistentes.value = meeting.asistentes;
+
+            // Check if attendees is in list
+            const options = Array.from(mAsistentesSelect.options).map(o => o.value);
+            if (options.includes(meeting.asistentes)) {
+                mAsistentesSelect.value = meeting.asistentes;
+                mAsistentesOtro.value = "";
+            } else {
+                mAsistentesSelect.value = "Otro";
+                mAsistentesOtro.value = meeting.asistentes;
+            }
+            toggleOtherAssistants();
+
             mTemas.value = meeting.temas;
             mAcuerdos.value = meeting.acuerdos;
             modalTitle.textContent = "Editar Reunión";
@@ -434,10 +459,21 @@
 
         function saveMeeting() {
             const id = editingId.value;
+
+            let asistentes = mAsistentesSelect.value;
+            if (asistentes === "Otro") {
+                asistentes = mAsistentesOtro.value;
+            }
+
+            if (!asistentes) {
+                alert("Por favor, indica los asistentes.");
+                return;
+            }
+
             const payload = {
                 alumno_id: studentSelect.value,
                 fecha: mFecha.value,
-                asistentes: mAsistentes.value,
+                asistentes: asistentes,
                 temas: mTemas.value,
                 acuerdos: mAcuerdos.value
             };
@@ -482,6 +518,14 @@
         window.onclick = function (event) {
             if (event.target == modal) {
                 closeModal();
+            }
+        }
+
+        function toggleOtherAssistants() {
+            if (mAsistentesSelect.value === "Otro") {
+                mAsistentesOtro.style.display = 'block';
+            } else {
+                mAsistentesOtro.style.display = 'none';
             }
         }
     </script>

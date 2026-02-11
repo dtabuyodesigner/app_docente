@@ -722,7 +722,9 @@
                     <div style="margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
                         <strong>${n.fecha}:</strong> ${n.texto}
                         <div style="margin-top: 4px; display: flex; gap: 5px;">
-                            <button onclick="editObservation(${n.id}, '${n.texto}', ${id})" style="font-size: 0.7rem; padding: 2px 5px; cursor: pointer;">✏️</button>
+                            <button onclick="editObservation(${n.id}, this, ${id})" 
+                                    data-texto="${n.texto.replace(/"/g, '&quot;')}"
+                                    style="font-size: 0.7rem; padding: 2px 5px; cursor: pointer;">✏️</button>
                             <button onclick="deleteObservation(${n.id}, ${id})" style="font-size: 0.7rem; padding: 2px 5px; cursor: pointer;">🗑️</button>
                         </div>
                     </div>
@@ -731,7 +733,8 @@
             div.style.display = "block";
         }
 
-        async function editObservation(obsId, currentText, studentId) {
+        async function editObservation(obsId, btn, studentId) {
+            const currentText = btn.dataset.texto;
             const newText = prompt("Editar nota:", currentText);
             if (newText === null || newText === currentText) return;
 

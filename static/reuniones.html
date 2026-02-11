@@ -673,6 +673,7 @@
 
         function openModal() {
             modal.style.display = "block";
+            document.body.style.overflow = "hidden";
             modalTitle.innerText = "Nueva Reunión";
             editingId.value = "";
 
@@ -761,10 +762,12 @@
             }
 
             configModal.style.display = "block";
+            document.body.style.overflow = "hidden";
         }
 
         function closeConfigModal() {
             configModal.style.display = "none";
+            document.body.style.overflow = "";
         }
 
         function saveCycleConfig() {
@@ -793,6 +796,7 @@
 
         function closeModal() {
             modal.style.display = "none";
+            document.body.style.overflow = "";
         }
 
         function editMeeting(m) {

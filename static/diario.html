@@ -538,6 +538,7 @@
 
             bodyEl.innerHTML = '<p style="text-align:center;">Cargando vista previa...</p>';
             modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
 
             fetch(`/api/informe/preview_diario/${alumnoId}`)
                 .then(r => r.json())
@@ -671,6 +672,7 @@
 
         function closePreview() {
             document.getElementById('previewModal').style.display = 'none';
+            document.body.style.overflow = '';
         }
 
         window.onclick = function (event) {

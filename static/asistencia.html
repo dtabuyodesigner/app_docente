@@ -781,21 +781,24 @@
         const monthInput = document.getElementById("mesHistorial");
 
         function openHistory() {
-            // Set current month by default if not set
             if (!monthInput.value) {
                 const now = new Date();
                 const m = (now.getMonth() + 1).toString().padStart(2, '0');
                 monthInput.value = `${now.getFullYear()}-${m}`;
             }
             historyModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
             loadHistory();
         }
 
         function closeHistory() {
             historyModal.style.display = "none";
+            document.body.style.overflow = "";
         }
 
         monthInput.addEventListener("change", loadHistory);
+
+
 
         async function loadHistory() {
             const mes = monthInput.value;
@@ -908,11 +911,15 @@
             }
 
             document.getElementById("hourModal").style.display = "flex";
+            document.body.style.overflow = "hidden";
         }
 
         function closeHourModal() {
             document.getElementById("hourModal").style.display = "none";
+            document.body.style.overflow = "";
         }
+
+
 
         async function saveHours() {
             if (!currentStudentForHours) return;

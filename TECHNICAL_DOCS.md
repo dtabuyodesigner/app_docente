@@ -1,148 +1,96 @@
 # Documentación Técnica: Cuaderno del Tutor
 
 ## 1. Visión General
-**Cuaderno del Tutor** es una aplicación web diseñada para la gestión docente de un grupo de alumnos. Permite el control de asistencia, evaluación continua basada en criterios y competencias (SDA), generación de informes y planificación diaria.
+**Cuaderno del Tutor** es una solución integral para la gestión docente. La aplicación ha evolucionado hacia una arquitectura modular en el backend para facilitar su mantenimiento y escalabilidad.
 
 ### Stack Tecnológico
 *   **Backend**: Python 3 con Flask.
+*   **Arquitectura**: Modular (Blueprints de Flask).
 *   **Base de Datos**: SQLite (`app_evaluar.db`).
 *   **Frontend**: HTML5, JavaScript (Vanilla), CSS3.
-*   **Librerías Clave**:
-    *   `Flask`: Servidor web.
-    *   `google-api-python-client`: Integración con Google Calendar.
-    *   `xhtml2pdf`: Generación de informes en PDF.
-    *   `pandas`: Procesamiento de datos (importación/exportación).
-    *   `matplotlib`: Generación de gráficas para informes.
+*   **Sincronización**: Google Calendar API (v3).
 
 ---
 
-## 2. Diario de Clase
-El módulo de diario (`/diario`) permite registrar observaciones diarias de los alumnos.
+## 2. Estructura del Proyecto (Arquitectura Modular)
 
-### Características
-- **Filtrado por Asignatura**: Se pueden registrar observaciones generales o específicas por área (Lengua, Matemáticas, etc.).
-- **Persistencia**: Las observaciones se guardan automáticamente al perder el foco (evento `blur`) o cambiar de alumno.
-- **Exportación PDF**: Generación de informes en PDF por alumno, agrupando observaciones por fecha y asignatura.
-- **Interfaz**: Diseño en tarjetas con indicadores visuales de guardado.
-
-### Base de Datos
-- Tabla `observaciones`:
-    - `id`: PK
-    - `alumno_id`: FK -> alumnos
-    - `area_id`: FK -> areas (Nullable)
-    - `fecha`: TEXT (ISO 8601)
-    - `texto`: TEXT
-
-### API Endpoints
-- `POST /api/observaciones`: Crea o actualiza una observación (Upsert).
-- `GET /api/observaciones/dia`: Obtiene observaciones de un día, opcionalmente filtradas por `area_id`.
-- `GET /api/informe/pdf_diario/<id>`: Genera y descarga el PDF del diario del alumno.
-
----
-
-## 3. Estructura del Proyecto
+El proyecto se organiza en módulos lógicos para separar responsabilidades:
 
 ```
 /
-├── app.py                 # Punto de entrada de la aplicación y lógica del backend
-├── app_evaluar.db         # Base de datos SQLite
-├── schema.sql             # Esquema inicial de base de datos
-├── requirements.txt       # Dependencias del proyecto
-├── static/                # Archivos estáticos
-│   ├── css/               # Hojas de estilo
-│   ├── js/                # Scripts del frontend
-│   │   ├── alumnos.js     # Lógica de gestión de alumnos
-│   │   ├── asistencia.js  # Lógica de asistencia
-│   │   ├── evaluacion.js  # Lógica de evaluación y notas
-│   │   └── ...
-│   ├── *.html             # Vistas de la aplicación (SPA enrutada por backend)
-│   └── img/               # Imágenes y recursos
-└── templates/             # Plantillas Jinja2 (si se usan, mayormente estáticos servidos)
+├── app.py                 # Inicialización de la app y registro de Blueprints
+├── routes/                # Lógica de rutas y API por módulo
+│   ├── main.py            # Rutas de páginas estáticas
+│   ├── alumnos.py         # Gestión de estudiantes y fotos
+│   ├── asistencia.py      # Control de asistencia y faltas
+│   ├── evaluacion.py      # Notas, rúbricas y SDAs
+│   ├── informes.py        # Generación de PDF y exportación Excel
+│   ├── reuniones.py       # Gestión de reuniones de padres y ciclo
+│   ├── horario.py         # Gestión de horarios (Clase/Profesor)
+│   ├── google_cal.py      # Integración con Google Calendar
+│   └── ...
+├── utils/                 # Utilidades compartidas
+│   └── db.py              # Conexión y helpers de base de datos
+├── static/                # Frontend
+│   ├── index.html         # Dashboard (Punto de entrada)
+│   ├── programacion.html  # Agenda y Calendario
+│   ├── ...                # Resto de vistas HTML
+│   ├── css/               # Estilos globales y específicos
+│   └── js/                # Scripts de soporte (FullCalendar, etc.)
+└── app_evaluar.db         # Base de datos SQLite
 ```
 
 ---
 
-## 3. Esquema de Base de Datos
+## 3. Módulos Clave y Características
 
-El sistema utiliza una base de datos relacional SQLite con las siguientes tablas principales:
+### 📊 Informes y Estadísticas
+Permite la generación de informes PDF detallados y exportaciones a Excel.
+- **Informe Individual**: Resumen por alumno con notas y observaciones.
+- **Informe Grupal**: Visión global de la clase por área y trimestre.
+- **Excel**: Exportación de calificaciones mediante `pandas` y `openpyxl`.
 
-### Alumnos y Asistencia
-*   **`alumnos`**: Datos básicos (`id`, `nombre`, `no_comedor`).
-*   **`asistencia`**: Registro diario (`alumno_id`, `fecha`, `estado`, `observacion`). Estados: `presente`, `retraso`, `falta_justificada`, `falta_no_justificada`.
-*   **`observaciones`**: Notas generales por alumno y fecha.
+### 📅 Programación y Google Calendar
+Gestión de la agenda docente con sincronización bidireccional.
+- **Sincronización**: Usa OAuth 2.0. Se ha implementado `prompt='consent'` para asegurar la obtención del `refresh_token`.
+- **Importación/Exportación**: Permite volcar la programación diaria a Google Calendar y viceversa.
 
-### Currículo y Evaluación
-*   **`areas`**: Asignaturas (Matemáticas, Lengua, etc.).
-*   **`sda`**: Situaciones de Aprendizaje asociadas a un área y trimestre.
-*   **`criterios`**: Criterios de evaluación oficiales.
-*   **`evaluaciones`**: Notas registradas (`alumno_id`, `criterio_id`, `sda_id`, `nota`, `nivel`).
-*   **`rubricas`**: Definiciones de niveles de logro (1-4) para cada criterio.
+### 👥 Reuniones (Padres y Ciclo)
+Sistema de registro para reuniones de tutoría y coordinación pedagógica.
+- **Dualidad**: Soporta reuniones individuales (Padres) y colectivas (Ciclo).
+- **PDF**: Genera actas de reunión con logos y firmas dinámicas.
 
-### Programación
-*   **`programacion_diaria`**: Eventos del calendario (`fecha`, `actividad`, `tipo`, `observaciones`).
-*   **`tareas`**: Lista de tareas pendientes (ToDo).
-
----
-
-## 4. API Reference (Principales Endpoints)
-
-### Alumnos
-*   `GET /api/alumnos`: Devuelve lista de alumnos.
-*   `POST /api/alumnos/nuevo`: Crea un nuevo alumno.
-*   `PUT /api/alumnos/<id>`: Actualiza datos.
-*   `DELETE /api/alumnos/<id>`: Elimina un alumno.
-
-### Asistencia
-*   `GET /api/asistencia/hoy`: Asistencia del día actual.
-*   `POST /api/asistencia`: Guarda la asistencia del día.
-*   `GET /api/asistencia/mes`: Histórico mensual.
-
-### Evaluación
-*   `GET /api/evaluacion/areas`: Lista de áreas.
-*   `GET /api/evaluacion/sda/<area_id>`: SDAs de un área.
-*   `GET /api/evaluacion/criterios/<sda_id>`: Criterios de una SDA.
-*   `GET /api/evaluacion/alumno`: Notas de un alumno.
-*   `POST /api/evaluacion`: Guardar una nota.
-
-### Programación
-*   `GET /api/programacion`: Obtiene eventos del calendario.
-*   `POST /api/programacion`: Crea un evento.
-*   `POST /api/calendar/sync`: Sincroniza hacia Google Calendar.
-*   `POST /api/calendar/import`: Importa desde Google Calendar.
-
-### Informes
-*   `GET /api/informe/pdf_individual`: Genera PDF del alumno.
-*   `GET /api/informe/pdf_grupo`: Genera resumen de la clase.
+### ⏰ Horario Dual
+Permite gestionar dos horarios distintos de forma independiente.
+- **Clase**: Horario del grupo de alumnos.
+- **Profesor**: Horario personal del docente.
+- **Implementación**: Almacenamiento de imágenes con prefijos específicos en el servidor.
 
 ---
 
-## 5. Instalación y Despliegue
+## 4. Esquema de Base de Datos (Tablas Principales)
 
-### Requisitos previos
-*   Python 3.8+
-*   pip (gestor de paquetes)
+- **`alumnos`**: Registro de estudiantes, incluyendo ruta de la foto y estado en comedor.
+- **`asistencia`**: Registro por fecha y estado (presente, falta, retraso, etc.).
+- **`seguimiento_sda`**: Almacena las notas por alumno, criterio y situación de aprendizaje.
+- **`reuniones`**: Actas de reuniones, diferenciadas por el campo `tipo`.
+- **`informe_individual` / `informe_grupo`**: Observaciones específicas para los informes trimestrales.
+- **`horario`**: Almacena las rutas de las imágenes de los horarios.
 
-### Pasos
-1.  **Clonar el repositorio** o copiar los archivos.
-2.  **Crear entorno virtual**:
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # En Linux/Mac
-    ```
-3.  **Instalar dependencias**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  **Inicializar Base de Datos** (si es la primera vez):
-    ```bash
-    # Ejecutar script schema.sql manualmente o dejar que app.py lo cree si está configurado
-    python init_db.py  # (Si existe script de inicialización)
-    ```
-5.  **Ejecutar la aplicación**:
-    ```bash
-    python app.py
-    ```
-6.  Acceder a `http://localhost:5000` en el navegador.
+---
 
-### Google Calendar Setup
-Para que funcione la sincronización, el archivo `credentials.json` (OAuth 2.0 Client ID) debe estar presente en la raíz del proyecto.
+## 5. Mantenimiento y Desarrollo
+
+### Requisitos de Instalación
+```bash
+pip install -r requirements.txt
+```
+
+### Configuración de Entorno (.env)
+Se requiere un archivo `.env` con:
+- `SECRET_KEY`: Para la sesión de Flask.
+- `FLASK_APP`: app.py
+- `FLASK_ENV`: development/production
+
+### Google Calendar setup
+Es imperativo tener `credentials.json` en la raíz para habilitar la API. Los tokens de usuario se guardan en `token.json`.

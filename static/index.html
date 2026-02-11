@@ -519,6 +519,20 @@
             </div>
         </div>
 
+        <!-- Today Events Modal -->
+        <div class="modal-overlay" id="todayEventsModal">
+            <div class="modal" style="max-width: 500px; text-align: center;">
+                <div class="modal-header" style="justify-content: center;">
+                    <h3 style="color: var(--primary); margin: 0;">📅 Eventos de Hoy</h3>
+                </div>
+                <div id="todayEventsContent" style="font-size: 1.1rem; margin: 20px 0;"></div>
+                <button onclick="document.getElementById('todayEventsModal').style.display='none'"
+                    style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    Entendido
+                </button>
+            </div>
+        </div>
+
         <!-- History Modal -->
         <div class="modal-overlay" id="historyModal">
             <div class="modal">
@@ -626,6 +640,17 @@
                     }).join('');
                 } else {
                     document.getElementById('lastMeetingsList').innerHTML = '<div style="color: #999; font-style: italic;">No hay reuniones recientes.</div>';
+                }
+
+                // 9. Today Events Notification
+                const today = new Date().toISOString().split('T')[0];
+                const todayEvents = data.proximas_actividades.filter(a => a.fecha === today);
+
+                if (todayEvents.length > 0) {
+                    const modal = document.getElementById('todayEventsModal');
+                    const content = document.getElementById('todayEventsContent');
+                    content.innerHTML = todayEvents.map(e => `<p style="margin: 10px 0;">✨ <strong>${e.actividad}</strong></p>`).join('');
+                    modal.style.display = 'flex';
                 }
 
             } catch (error) {

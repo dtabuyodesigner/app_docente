@@ -246,10 +246,10 @@ def borrar_evento(event_id):
 def obtener_tareas():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT id, texto, completada FROM tareas ORDER BY id DESC")
+    cur.execute("SELECT id, texto, fecha, hecha FROM tareas ORDER BY id DESC")
     rows = cur.fetchall()
     conn.close()
-    return jsonify([{"id":r["id"], "texto":r["texto"], "completada":bool(r["completada"])} for r in rows])
+    return jsonify([{"id":r["id"], "texto":r["texto"], "fecha":r["fecha"], "completada":bool(r["hecha"])} for r in rows])
 
 @horario_bp.route("/api/tareas", methods=["POST"])
 def crear_tarea():
@@ -259,7 +259,7 @@ def crear_tarea():
         
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("INSERT INTO tareas (texto, completada) VALUES (?, 0)", (d["texto"],))
+    cur.execute("INSERT INTO tareas (texto, fecha, hecha) VALUES (?, ?, 0)", (d["texto"], d.get("fecha")))
     new_id = cur.lastrowid
     conn.commit()
     conn.close()
@@ -270,7 +270,18 @@ def actualizar_tarea(id):
     d = request.json
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("UPDATE tareas SET completada = ? WHERE id = ?", (1 if d.get("completada") else 0, id))
+    
+    # Support both toggle and full update
+    if "completada" in d and "texto" not in d:
+        # Just toggling completion status
+        cur.execute("UPDATE tareas SET hecha = ? WHERE id = ?", (1 if d.get("completada") else 0, id))
+    else:
+        # Full update (edit mode)
+        texto = d.get("texto")
+        fecha = d.get("fecha")
+        hecha = 1 if d.get("completada") else 0
+        cur.execute("UPDATE tareas SET texto = ?, fecha = ?, hecha = ? WHERE id = ?", (texto, fecha, hecha, id))
+    
     conn.commit()
     conn.close()
     return jsonify({"ok": True})
@@ -284,13 +295,30 @@ def borrar_tarea(id):
     conn.close()
     return jsonify({"ok": True})
 
+@horario_bp.route("/api/tareas/bulk_delete_completed", methods=["POST"])
+def borrar_tareas_completadas():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM tareas WHERE hecha = 1")
+    deleted = cur.rowcount
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True, "deleted": deleted})
+
 @horario_bp.route("/api/observaciones", methods=["POST"])
 def guardar_observacion():
     d = request.json
     alumno_id = d["alumno_id"]
     fecha = d.get("fecha")
     texto = d["texto"]
-    area_id = d.get("area_id") or None
+    area_id = d.get("area_id")
+    if area_id == "" or area_id is None:
+        area_id = None
+    else:
+        try:
+            area_id = int(area_id)
+        except:
+            area_id = None
 
     conn = get_db()
     cur = conn.cursor()
@@ -394,6 +422,7 @@ def ver_observaciones(alumno_id):
 def editar_observacion(obs_id):
     d = request.json
     texto = d.get("texto", "")
+    print(f"Editando observacion {obs_id}: '{texto}'")
     
     conn = get_db()
     cur = conn.cursor()

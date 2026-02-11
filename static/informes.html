@@ -222,11 +222,17 @@
                     <option value="1">1º Trimestre</option>
                     <option value="2" selected>2º Trimestre</option>
                     <option value="3">3º Trimestre</option>
-                </select><button onclick="generarPDFIndividual()"
+                </select>
+                <label for="tutorName" style="margin-left: 20px;"><strong>Tutor/a:</strong></label>
+                <input type="text" id="tutorName" placeholder="Nombre del Tutor/a" style="padding: 5px; width: 200px;"
+                    onchange="localStorage.setItem('tutorName', this.value)">
+
+                <button onclick="generarPDFIndividual()"
                     style="margin-left: 20px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">📄
                     Descargar PDF Individual</button><button onclick="generarPDFGeneral()"
                     style="margin-left: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">📑
-                    Generar todos los PDFs</button></div>
+                    Generar todos los PDFs</button>
+            </div>
             <div class="grid-container">
                 <div class="report-section">
                     <h3>📘 Medias por Área</h3>
@@ -259,7 +265,14 @@
                     <option value="1">1º Trimestre</option>
                     <option value="2" selected>2º Trimestre</option>
                     <option value="3">3º Trimestre</option>
-                </select></div>
+                </select>
+                <button onclick="generarPDFGrupo()"
+                    style="margin-left: 20px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">📄
+                    Descargar Informe Global PDF</button>
+                <button onclick="generarExcelGrupo()"
+                    style="margin-left: 10px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">📊
+                    Descargar Excel de Grupo</button>
+            </div>
             <div class="report-section" id="resumenGrupoStats"
                 style="background: #e9ecef; border-left: 5px solid #007bff;">
                 <!-- Se carga vía JS -->Cargando estadísticas...
@@ -284,16 +297,14 @@
                             title="Sugerir con IA">🤖 Sugerir IA</button>
                     </div>
                 </div>
-                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><button
-                        onclick="guardarGrupoObs()"
+                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <button onclick="guardarGrupoObs()"
                         style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">💾
-                        Guardar Datos del Grupo</button><button onclick="generarPDFGrupo()"
-                        style="padding: 12px 24px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold;">📄
-                        Descargar Informe Global PDF</button><button onclick="generarExcelGrupo()"
-                        style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold;">📊
-                        Descargar Excel de Grupo</button><span id="mensajeGuardadoGrupo"
+                        Guardar Datos del Grupo</button>
+                    <span id="mensajeGuardadoGrupo"
                         style="margin-left: 10px; color: #28a745; font-weight: bold; display: none;">✓
-                        Guardado</span></div>
+                        Guardado</span>
+                </div>
             </div>
         </div>
         <style>
@@ -439,7 +450,6 @@
                             <strong>Dashboard T${trimestre}:</strong> 
                             <div class="stat-card">👥 Alumnos: <b>${g.total_alumnos}</b></div>
                             <div class="stat-card">📊 Media: <b style="color:${getColorNota(g.media_general)}">${g.media_general}</b></div>
-                            <div class="stat-card">📝 Evaluaciones: <b>${g.total_evals}</b></div>
                             <div class="stat-card">📅 Faltas: <b>${a.total_faltas}</b> (
                                 <span class="stat-clickable" style="color:green; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_justificada')">J: ${a.f_justificada}</span> / 
                                 <span class="stat-clickable" style="color:red; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_no_justificada')">I: ${a.f_no_justificada}</span>
@@ -516,12 +526,21 @@
                     });
             }
 
+            // Inicializar Tutor
+            document.getElementById("tutorName").value = localStorage.getItem("tutorName") || "";
+
             function generarPDFIndividual() {
-                window.open(`/api/informe/pdf_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}`, '_blank');
+                if (!alumnoSelect.value) {
+                    alert("Por favor,selecciona un alumno primero.");
+                    return;
+                }
+                const tutor = document.getElementById("tutorName").value;
+                window.open(`/api/informe/pdf_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}`, '_blank');
             }
 
             function generarPDFGeneral() {
-                window.open(`/api/informe/pdf_general?trimestre=${trimInd.value}`, '_blank');
+                const tutor = document.getElementById("tutorName").value;
+                window.open(`/api/informe/pdf_general?trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}`, '_blank');
             }
 
             function generarPDFGrupo() {

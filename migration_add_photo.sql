@@ -1,1 +1,0 @@
-ALTER TABLE alumnos ADD COLUMN foto TEXT;

@@ -652,8 +652,10 @@
                         <label>Nueva Tarea:</label>
                         <div style="display: flex; gap: 10px;">
                             <input type="text" id="newTaskId" placeholder="Escribe algo pendiente...">
-                            <input type="date" id="newTaskDate" style="width: auto;">
+                            <input type="date" id="newTaskDate" style="width: auto;" title="Fecha límite (opcional)">
                             <button class="btn btn-success" onclick="addTarea()">➕ Añadir</button>
+                            <button class="btn btn-danger" onclick="deleteCompletedTasks()"
+                                style="margin-left: auto;">🗑️ Borrar Completadas</button>
                         </div>
                     </div>
                 </div>
@@ -1241,20 +1243,47 @@
                     return;
                 }
                 list.innerHTML = "";
+                const today = new Date().toISOString().split('T')[0];
+
+                // Detect overdue tasks
+                const overdueTasks = tasks.filter(t => t.fecha && t.fecha <= today && !t.completada);
+
+                // Show alert if there are overdue tasks
+                if (overdueTasks.length > 0) {
+                    const taskList = overdueTasks.map(t => `• ${t.texto} (${t.fecha})`).join('\n');
+                    setTimeout(() => {
+                        showToast(
+                            `⚠️ Tienes ${overdueTasks.length} tarea(s) vencida(s):\n${taskList}`,
+                            'error',
+                            7000
+                        );
+                    }, 500);
+                }
+
                 tasks.forEach(t => {
                     const div = document.createElement('div');
                     div.style = "background: white; border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;";
-                    if (t.hecha) div.style.background = "#f8f9fa";
+                    if (t.completada) div.style.background = "#f8f9fa";
+
+                    // Check if overdue
+                    const isOverdue = t.fecha && t.fecha < today && !t.completada;
+                    const borderColor = isOverdue ? '#dc3545' : '#eee';
+                    div.style.borderLeft = `4px solid ${borderColor}`;
+
+                    const dateDisplay = t.fecha ? `<span style="color: ${isOverdue ? '#dc3545' : '#666'}; font-weight: ${isOverdue ? 'bold' : 'normal'};">📅 ${t.fecha}${isOverdue ? ' ⚠️ VENCIDA' : ''}</span>` : '';
 
                     div.innerHTML = `
-                        <div style="display:flex; align-items:center; gap: 10px;">
-                            <input type="checkbox" ${t.hecha ? 'checked' : ''} onchange="toggleTarea(${t.id})" style="width: 20px; height: 20px;">
-                            <div>
-                                <div style="font-weight: bold; text-decoration: ${t.hecha ? 'line-through' : ''}; color: ${t.hecha ? '#999' : '#333'}">${t.texto}</div>
-                                <div style="font-size: 0.8rem; color: #666;">${t.fecha || ''}</div>
+                        <div style="display:flex; align-items:center; gap: 10px; flex: 1;">
+                            <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="toggleTarea(${t.id}, ${!t.completada})" style="width: 20px; height: 20px; cursor: pointer;">
+                            <div id="task-${t.id}" style="flex: 1;">
+                                <div style="font-weight: bold; text-decoration: ${t.completada ? 'line-through' : ''}; color: ${t.completada ? '#999' : '#333'}">${escapeHtml(t.texto)}</div>
+                                <div style="font-size: 0.85rem; margin-top: 4px;">${dateDisplay}</div>
                             </div>
                         </div>
-                        <button onclick="deleteTarea(${t.id})" class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="editTarea(${t.id}, '${escapeHtml(t.texto)}', '${t.fecha || ''}')" class="btn btn-info" style="padding: 5px 10px;" title="Editar">✏️</button>
+                            <button onclick="deleteTarea(${t.id})" class="btn btn-danger" style="padding: 5px 10px;" title="Borrar">🗑️</button>
+                        </div>
                     `;
                     list.appendChild(div);
                 });
@@ -1277,13 +1306,51 @@
             });
         }
 
-        function toggleTarea(id) {
-            fetch(`/api/tareas/${id}`, { method: 'PUT' }).then(() => loadTareas());
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function toggleTarea(id, completed) {
+            fetch(`/api/tareas/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ completada: completed })
+            }).then(() => loadTareas());
+        }
+
+        function editTarea(id, currentText, currentDate) {
+            const newText = prompt("Editar tarea:", currentText.replace(/\\'/g, "'"));
+            if (newText === null || newText.trim() === '') return;
+
+            const newDate = prompt("Fecha límite (YYYY-MM-DD, dejar vacío para sin fecha):", currentDate);
+
+            fetch(`/api/tareas/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ texto: newText.trim(), fecha: newDate || null })
+            }).then(() => {
+                showToast('Tarea actualizada', 'success');
+                loadTareas();
+            });
         }
 
         function deleteTarea(id) {
-            if (!confirm("¿Borrar tarea?")) return;
-            fetch(`/api/tareas/${id}`, { method: 'DELETE' }).then(() => loadTareas());
+            if (!confirm("¿Borrar esta tarea?")) return;
+            fetch(`/api/tareas/${id}`, { method: 'DELETE' }).then(() => {
+                showToast('Tarea eliminada', 'success');
+                loadTareas();
+            });
+        }
+
+        function deleteCompletedTasks() {
+            if (!confirm("¿Borrar todas las tareas completadas?")) return;
+            fetch('/api/tareas/bulk_delete_completed', { method: 'POST' })
+                .then(r => r.json())
+                .then(res => {
+                    showToast(`${res.deleted} tarea(s) eliminada(s)`, 'success');
+                    loadTareas();
+                });
         }
 
         // Init

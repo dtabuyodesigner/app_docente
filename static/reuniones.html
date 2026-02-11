@@ -554,6 +554,109 @@
             }
         }
 
+        function openModal() {
+            modal.style.display = "block";
+            modalTitle.innerText = "Nueva Reunión";
+            editingId.value = "";
+
+            // Clear fields
+            mFecha.value = new Date().toISOString().split('T')[0];
+            mAsistentesSelect.value = "";
+            mAsistentesOtro.value = "";
+            mAsistentesCiclo.value = "";
+            mTemas.value = "";
+            mAcuerdos.value = "";
+
+            // Show/Hide based on mode
+            if (currentMode === 'PADRES') {
+                groupAsistentes.style.display = 'block';
+                groupAsistentesCiclo.style.display = 'none';
+            } else {
+                groupAsistentes.style.display = 'none';
+                groupAsistentesCiclo.style.display = 'block';
+            }
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+
+        function editMeeting(m) {
+            modal.style.display = "block";
+            modalTitle.innerText = "Editar Reunión";
+            editingId.value = m.id;
+
+            mFecha.value = m.fecha;
+            mTemas.value = m.temas;
+            mAcuerdos.value = m.acuerdos;
+
+            if (currentMode === 'PADRES') {
+                groupAsistentes.style.display = 'block';
+                groupAsistentesCiclo.style.display = 'none';
+
+                // Try to map assistants
+                const options = Array.from(mAsistentesSelect.options).map(o => o.value);
+                if (options.includes(m.asistentes)) {
+                    mAsistentesSelect.value = m.asistentes;
+                    mAsistentesOtro.style.display = 'none';
+                } else {
+                    mAsistentesSelect.value = "Otro";
+                    mAsistentesOtro.style.display = 'block';
+                    mAsistentesOtro.value = m.asistentes;
+                }
+            } else {
+                groupAsistentes.style.display = 'none';
+                groupAsistentesCiclo.style.display = 'block';
+                mAsistentesCiclo.value = m.asistentes;
+            }
+        }
+
+        function saveMeeting() {
+            const id = editingId.value;
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/reuniones/${id}` : '/api/reuniones';
+
+            let asistentes = "";
+            if (currentMode === 'PADRES') {
+                if (mAsistentesSelect.value === "Otro") {
+                    asistentes = mAsistentesOtro.value;
+                } else {
+                    asistentes = mAsistentesSelect.value;
+                }
+            } else {
+                asistentes = mAsistentesCiclo.value;
+            }
+
+            const data = {
+                fecha: mFecha.value,
+                asistentes: asistentes,
+                temas: mTemas.value,
+                acuerdos: mAcuerdos.value,
+                tipo: currentMode,
+                alumno_id: currentMode === 'PADRES' ? studentSelect.value : null
+            };
+
+            if (currentMode === 'PADRES' && !data.alumno_id) {
+                alert("Por favor, selecciona un alumno primero.");
+                return;
+            }
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        closeModal();
+                        loadMeetings();
+                    } else {
+                        alert("Error al guardar: " + res.error);
+                    }
+                });
+        }
+
         function generatePDF(id) {
             const tutor = localStorage.getItem('tutorName') || "El Tutor/a";
             window.open(`/api/reuniones/${id}/pdf?tutor=${encodeURIComponent(tutor)}`, '_blank');

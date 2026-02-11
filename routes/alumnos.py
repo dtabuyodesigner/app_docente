@@ -1,10 +1,10 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from utils.db import get_db
 import os
 import io
 import csv
 import json
-from datetime import datetime
+from datetime import datetime, date
 
 alumnos_bp = Blueprint('alumnos', __name__)
 
@@ -240,3 +240,86 @@ def progreso_alumno(alumno_id):
         })
     
     return jsonify(result)
+
+@alumnos_bp.route("/api/alumnos/exportar/json")
+def exportar_alumnos_json():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT a.id, a.nombre, a.no_comedor, a.comedor_dias, 
+               f.fecha_nacimiento, f.direccion, f.madre_nombre, f.madre_telefono, f.madre_email,
+               f.padre_nombre, f.padre_telefono, f.padre_email, f.observaciones_generales
+        FROM alumnos a
+        LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    
+    data = [dict(r) for r in rows]
+    
+    output = io.BytesIO()
+    output.write(json.dumps(data, indent=4).encode('utf-8'))
+    output.seek(0)
+    
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=f"alumnos_export_{date.today()}.json",
+        mimetype='application/json'
+    )
+
+@alumnos_bp.route("/api/alumnos/exportar/csv")
+def exportar_alumnos_csv():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT a.id, a.nombre, a.no_comedor, a.comedor_dias, 
+               f.fecha_nacimiento, f.direccion, f.madre_nombre, f.madre_telefono, f.madre_email,
+               f.padre_nombre, f.padre_telefono, f.padre_email, f.observaciones_generales
+        FROM alumnos a
+        LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    
+    # Generate CSV
+    si = io.StringIO()
+    cw = csv.writer(si, delimiter=';')
+    cw.writerow(["ID", "Nombre", "No Comedor", "Días Comedor", "Fecha Nacimiento", "Dirección", 
+                 "Madre", "Tel Madre", "Email Madre", "Padre", "Tel Padre", "Email Padre", "Observaciones"])
+    
+    for r in rows:
+        cw.writerow([
+            r["id"], r["nombre"], r["no_comedor"], r["comedor_dias"],
+            r["fecha_nacimiento"], r["direccion"], r["madre_nombre"], r["madre_telefono"], r["madre_email"],
+            r["padre_nombre"], r["padre_telefono"], r["padre_email"], r["observaciones_generales"]
+        ])
+        
+    output = io.BytesIO()
+    output.write(si.getvalue().encode('utf-8-sig'))
+    output.seek(0)
+    
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=f"alumnos_export_{date.today()}.csv",
+        mimetype='text/csv'
+    )
+
+@alumnos_bp.route("/api/alumnos/plantilla")
+def descargar_plantilla_alumnos():
+    si = io.StringIO()
+    cw = csv.writer(si, delimiter=';')
+    cw.writerow(["Nombre", "No Comedor (0/1)", "Días Comedor (0,1,2,3,4)", "Fecha Nacimiento (YYYY-MM-DD)", "Dirección", "Madre", "Tel Madre", "Email Madre", "Padre", "Tel Padre", "Email Padre", "Observaciones"])
+    cw.writerow(["Juan Pérez", "0", "0,2,4", "2015-05-20", "Calle Falsa 123", "Maria", "600111222", "m@example.com", "Pepe", "600333444", "p@example.com", "Alérgico al polen"])
+    
+    output = io.BytesIO()
+    output.write(si.getvalue().encode('utf-8-sig'))
+    output.seek(0)
+    
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="plantilla_alumnos.csv",
+        mimetype='text/csv'
+    )

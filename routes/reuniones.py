@@ -69,6 +69,26 @@ def api_reuniones():
             rows = cur.fetchall()
             conn.close()
             return jsonify([dict(r) for r in rows])
+            
+@reuniones_bp.route("/api/reuniones/<int:rid>", methods=["PUT"])
+def editar_reunion(rid):
+    d = request.json
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("""
+            UPDATE reuniones 
+            SET fecha = ?, asistentes = ?, temas = ?, acuerdos = ?
+            WHERE id = ?
+        """, (d.get("fecha"), d.get("asistentes"), d.get("temas"), d.get("acuerdos"), rid))
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+    finally:
+        conn.close()
 
 @reuniones_bp.route("/api/reuniones/<int:rid>", methods=["DELETE"])
 def borrar_reunion(rid):

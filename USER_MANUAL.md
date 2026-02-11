@@ -1,121 +1,75 @@
-# Manual de Usuario: Cuaderno del Tutor
+# Manual de Usuario: Cuaderno del Tutor (V2.0)
 
-Bienvenido al manual de uso de la aplicación **Cuaderno del Tutor**. Esta guía te ayudará a gestionar tus clases, alumnos y evaluaciones de forma eficiente.
+Bienvenido a la versión actualizada del **Cuaderno del Tutor**. Este manual te guiará a través de todas las funcionalidades, incluyendo las nuevas mejoras de informes, reuniones y horarios.
 
 ## Índice
-
-1. [Inicio y Navegación](#1-inicio-y-navegación)
-2. [Gestión de Alumnos](#2-gestión-de-alumnos)
-3. [Control de Asistencia](#3-control-de-asistencia)
-4. [Evaluación y Notas](#4-evaluación-y-notas)
-5. [Programación y Calendario](#5-programación-y-calendario)
-6. [Gestión de Rúbricas](#6-gestión-de-rúbricas)
-7. [Informes](#7-informes)
-
----
-
-## 1. Inicio y Navegación
-
-Al acceder a la aplicación, verás el **Dashboard Principal**. Desde aquí tienes acceso rápido a las funciones más importantes y un resumen de tu clase.
-
-![Panel Principal](file:///home/danito73/.gemini/antigravity/brain/66147927-ef5d-4eb1-8498-dd54ec779a42/home_png_1770229590195.png)
-
-### Menú de Navegación
-La barra superior (color azul oscuro) te permite moverte entre las diferentes secciones:
-*   🏠 **Inicio**: Vuelve a esta pantalla.
-*   📋 **Pasar lista**: Acceso rápido al control de asistencia.
-*   📊 **Evaluar**: Acceso a la libreta de calificaciones.
-*   📈 **Informes**: Generación de PDFs y estadísticas.
-*   📅 **Programación**: Tu calendario y agenda diaria.
-*   📝 **Rúbricas**: Configuración de criterios de evaluación.
+1. [Inicio y Dashboard](#1-inicio-y-dashboard)
+2. [Gestión de Estudiantes](#2-gestión-de-estudiantes)
+3. [Asistencia y Comedor](#3-asistencia-y-comedor)
+4. [Evaluación y SDAs](#4-evaluación-y-sdas)
+5. [Programación y Agenda](#5-programación-y-agenda)
+6. [Gestión de Reuniones](#6-gestión-de-reuniones)
+7. [Horario Dual](#7-horario-dual)
+8. [Informes y Exportación](#8-informes-y-exportación)
 
 ---
 
-## 2. Gestión de Alumnos
-
-En la sección **Alumnos** puedes ver el listado completo de tu grupo, añadir nuevos estudiantes o editar sus datos.
-
-![Listado de Alumnos](file:///home/danito73/.gemini/antigravity/brain/66147927-ef5d-4eb1-8498-dd54ec779a42/alumnos_png_1770229754463.png)
-
-### Funciones Principales:
-*   **Añadir Alumno**: Pulsa el botón "Nuevo Alumno", rellena el nombre y pulsa "Guardar".
-*   **Editar**: Haz clic en el icono del lápiz ✏️ junto al nombre de un alumno.
-*   **Eliminar**: Haz clic en el icono de la papelera 🗑️ (¡Cuidado! borrará sus notas y asistencia).
-*   **Importar CSV**: Si tienes una lista en Excel/CSV, usa el botón "Importar Alumnos" para cargarlos todos a la vez.
+## 1. Inicio y Dashboard
+El panel principal ofrece una visión rápida de las tareas del día y estadísticas de la clase. La barra de navegación superior es ahora más legible y uniforme en todas las secciones.
 
 ---
 
-## 3. Control de Asistencia
-
-La sección **Pasar Lista** te permite registrar la asistencia diaria de forma rápida.
-
-![Control de Asistencia](file:///home/danito73/.gemini/antigravity/brain/66147927-ef5d-4eb1-8498-dd54ec779a42/asistencia_png_1770229845109.png)
-
-### Cómo pasar lista:
-1.  Por defecto, todos los alumnos aparecen marcados como **Presente** (verde).
-2.  Haz clic sobre el estado para cambiarlo cíclicamente:
-    *   🟢 Presente
-    *   🔴 Falta (No justificada)
-    *   🔵 Retraso
-    *   🟡 Falta Justificada
-3.  Usa el icono de **Comedor** 🍽️ para marcar si se quedan a comer.
-4.  Puedes añadir comentarios específicos usando el icono de **Comentario** 💬.
-
-### Histórico Mensual:
-En la pestaña "Histórico" puedes ver una vista de calendario con todas las faltas del mes para detectar patrones de absentismo rápidamente.
+## 2. Gestión de Estudiantes
+En la pestaña **Alumnos**, puedes gestionar las fichas individuales.
+- **Fotos**: Ahora puedes subir fotos de perfil para cada alumno.
+- **Importación**: Sigue disponible la carga masiva mediante CSV.
 
 ---
 
-## 4. Evaluación y Notas
-
-Aquí es donde calificas a tus alumnos. El sistema utiliza **Criterios de Evaluación** y **Situaciones de Aprendizaje (SDA)**.
-
-![Panel de Evaluación](file:///home/danito73/.gemini/antigravity/brain/66147927-ef5d-4eb1-8498-dd54ec779a42/evaluacion_png_1770229884726.png)
-
-### Pasos para evaluar:
-1.  Selecciona el **Trimestre** (1º, 2º o 3º).
-2.  Elige el **Área** (ej: Matemáticas).
-3.  Selecciona la **SDA** (Situación de Aprendizaje) que estás trabajando.
-4.  Aparecerán los criterios asociados.
-5.  Introduce la nota (1-10) o selecciona el nivel de logro.
-
-El sistema calcula automáticamente las medias por criterio, SDA y Área.
+## 3. Asistencia y Comedor
+Registra las faltas y retrasos diariamente.
+- **Comedor**: Marca quién se queda al comedor con un solo clic.
+- **Histórico**: Consulta el resumen mensual para ver patrones de asistencia.
 
 ---
 
-## 5. Programación y Calendario
-
-Organiza tus clases y eventos en el **Calendario**.
-
-![Calendario de Programación](file:///home/danito73/.gemini/antigravity/brain/66147927-ef5d-4eb1-8498-dd54ec779a42/programacion_view_png_1770230044527.png)
-
-### Gestión de Eventos:
-*   **Crear**: Haz clic en cualquier día. Elige el tipo (Clase, Examen, Excursión), pon un título y guarda.
-*   **Mover**: Arrastra y suelta los eventos para cambiarlos de día.
-*   **Google Calendar**: Usa el botón "Importar de Google Calendar" para traer tus eventos personales o del centro automáticamente.
-*   **Tareas**: En la barra lateral derecha puedes anotar tareas pendientes rápidas.
+## 4. Evaluación y SDAs
+Basado en Situciones de Aprendizaje (SDA) y criterios oficiales.
+- **Notas**: Introduce calificaciones del 1 al 10 o usa niveles de logro.
+- **Rúbricas**: Consulta las definiciones de niveles para una evaluación más objetiva.
 
 ---
 
-## 6. Gestión de Rúbricas
-
-Configura cómo evaluarás cada criterio.
-
-![Gestión de Rúbricas](file:///home/danito73/.gemini/antigravity/brain/66147927-ef5d-4eb1-8498-dd54ec779a42/rubricas_png_1770229983141.png)
-
-Desde aquí puedes definir qué significa sacar un 1, 2, 3 o 4 en cada criterio, facilitando una evaluación objetiva.
+## 5. Programación y Agenda
+Gestiona tu calendario docente.
+- **Sincronización con Google**: Ahora más robusta. Si es la primera vez que conectas, se te pedirá permiso explícito para que la conexión no caduque.
+- **Eventos**: Crea exámenes, excursiones o clases directamente en el calendario.
 
 ---
 
-## 7. Informes
+## 6. Gestión de Reuniones
+Registra todo lo hablado con familias o compañeros.
+- **Reuniones de Padres**: Actas individuales por alumno.
+- **Reuniones de Ciclo**: Actas compartidas para coordinación docente.
+- **PDF**: Genera actas formales con espacio para firmas y el nombre del tutor.
 
-Genera documentación oficial y resúmenes para las familias.
+---
 
-![Generación de Informes](file:///home/danito73/.gemini/antigravity/brain/66147927-ef5d-4eb1-8498-dd54ec779a42/informes_png_1770230004367.png)
+## 7. Horario Dual
+Visualiza dos horarios a la vez.
+- **Horario de Clase**: Ideal para mostrar a los alumnos.
+- **Horario del Profesor**: Tu agenda personal de sesiones.
+- **Subida**: Puedes subir una imagen distinta para cada tipo de horario.
 
-### Tipos de Informes:
-*   **Informe Individual (PDF)**: Un documento completo por alumno con sus notas, asistencia y observaciones. Ideal para entregar a las familias a final de trimestre.
-*   **Resumen de Grupo**: Una visión global de toda la clase.
-*   **Informe de Asistencia**: Detalle de faltas y retrasos.
+---
 
-Simplemente selecciona el alumno o el tipo de informe y pulsa el botón para descargar el PDF.
+## 8. Informes y Exportación
+Genera la documentación necesaria al final del trimestre.
+- **Informe Individual**: Un PDF elegante con todas las notas y observaciones del alumno.
+- **Resumen Grupal**: Comparativa de toda la clase.
+- **Exportar a Excel**: Descarga todas las notas en formato Excel para un análisis más profundo.
+
+---
+
+### Soporte Técnico
+Si encuentras algún problema con la conexión a Google, recuerda que puedes volver a conectar desde la pestaña de Programación para renovar los permisos.

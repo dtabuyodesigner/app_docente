@@ -243,6 +243,66 @@
             box-shadow: var(--shadow);
             margin-top: 20px;
         }
+
+        /* Print Styles */
+        @media print {
+
+            .nav,
+            .tabs,
+            .type-toggle button,
+            .btn,
+            .modal {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                max-width: 100%;
+                margin: 0;
+                box-shadow: none;
+            }
+
+            .section {
+                box-shadow: none;
+                padding: 0;
+                display: block !important;
+                /* Force show content */
+            }
+
+            /* Hide non-active sections if we only want to print the active one? 
+               Actually, usually we want to print what is visible. 
+               But .section.active is what is visible. 
+               We should ensure .section is visible if it has .active, but others are hidden.
+            */
+            .section:not(.active) {
+                display: none !important;
+            }
+
+            .schedule-grid {
+                border: 1px solid #000;
+            }
+
+            .header-cell,
+            .time-cell,
+            .slot-cell {
+                border: 1px solid #000;
+                color: black !important;
+                background: white !important;
+            }
+
+            .subject {
+                color: black !important;
+            }
+
+            /* Hide add buttons */
+            .btn-add {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
@@ -266,6 +326,8 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('manual')">📅 Vista Manual</button>
             <button class="tab-btn" onclick="showTab('imagen')">🖼️ Vista Imagen</button>
+            <button class="tab-btn" onclick="window.print()"
+                style="margin-left: auto; background: #17a2b8; color: white;">🖨️ Imprimir</button>
         </div>
 
         <!-- VISTA MANUAL -->

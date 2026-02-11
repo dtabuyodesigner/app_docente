@@ -571,6 +571,7 @@
                                                 title="Eliminar nota">🗑️</button>
                                         </div>
                                         <textarea class="preview-textarea" 
+                                            data-last-value="${o.texto.replace(/"/g, '&quot;')}"
                                             onblur="savePreviewEdit(${o.id}, this, '${group.raw_fecha}', '${o.area}')"
                                             oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"
                                         >${o.texto}</textarea>

@@ -368,9 +368,9 @@ def informe_reunion_pdf(rid):
     
     is_ciclo = (r['tipo'] == 'CICLO')
     if is_ciclo:
-        title = f"Acta de Reunión de {r['ciclo_nombre'] or 'Ciclo'}"
+        title = f"Acta de reunión de {r['ciclo_nombre'] or 'Ciclo'}"
     else:
-        title = f"Acta de Reunión con Familias"
+        title = f"Acta de reunión con familias"
         
     elements.append(Paragraph(title, styles['Title']))
     elements.append(Spacer(1, 15))

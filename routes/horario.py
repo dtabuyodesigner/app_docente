@@ -198,9 +198,9 @@ def guardar_evento():
     
     try:
         cur.execute("""
-            INSERT INTO programacion_diaria (fecha, actividad, tipo, observaciones, color)
-            VALUES (?, ?, ?, ?, ?)
-        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8")))
+            INSERT INTO programacion_diaria (fecha, actividad, tipo, observaciones, color, sda_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), d.get("sda_id") or None))
         new_id = cur.lastrowid
         conn.commit()
         return jsonify({"ok": True, "id": new_id})
@@ -218,9 +218,9 @@ def actualizar_evento(event_id):
     try:
         cur.execute("""
             UPDATE programacion_diaria
-            SET fecha = ?, actividad = ?, tipo = ?, observaciones = ?, color = ?
+            SET fecha = ?, actividad = ?, tipo = ?, observaciones = ?, color = ?, sda_id = ?
             WHERE id = ?
-        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), event_id))
+        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), d.get("sda_id") or None, event_id))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:

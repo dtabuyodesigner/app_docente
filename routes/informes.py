@@ -447,27 +447,22 @@ def informe_reunion_pdf(rid):
         # Row 1: Signature gap
         sig_table_rows.append(["", ""])
         
-        # Row 2: The names
-        row_names = [Paragraph(f"<b>{sig1_name}</b>", styles['Normal']), Paragraph(f"<b>{sig2_name}</b>", styles['Normal']) if sig2_name else ""]
+        # Row 2: "Fdo: Name" underlined
+        row_names = [
+            Paragraph(f"Fdo: <u>{sig1_name}</u>", styles['Normal']),
+            Paragraph(f"Fdo: <u>{sig2_name}</u>", styles['Normal']) if sig2_name else ""
+        ]
         sig_table_rows.append(row_names)
-        
-        # Row 3: The lines
-        row_line = [Paragraph("___________________________", styles['Normal']), Paragraph("___________________________", styles['Normal']) if sig2_name else ""]
-        sig_table_rows.append(row_line)
-        
-        # Row 4: "Fdo:" label
-        row_fdo = [Paragraph("<font size='8'>Fdo:</font>", styles['Normal']), Paragraph("<font size='8'>Fdo:</font>", styles['Normal']) if sig2_name else ""]
-        sig_table_rows.append(row_fdo)
         
     row_heights = []
     for _ in range(0, len(firmantes), 2):
-        row_heights.extend([2.0*cm, 0.6*cm, 0.4*cm, 0.6*cm]) # Gap, Name, Line, Fdo
+        row_heights.extend([2.5*cm, 1.0*cm]) # Gap, "Fdo: Name" 
     
     t_sig = Table(sig_table_rows, colWidths=[8.5*cm, 8.5*cm], rowHeights=row_heights)
     t_sig.setStyle(TableStyle([
         ('ALIGN', (0,0), (-1,-1), 'LEFT'),
         ('VALIGN', (0,0), (-1,-1), 'BOTTOM'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
     ]))
     
     elements.append(t_sig)

@@ -159,7 +159,7 @@ def obtener_programacion():
     cur = conn.cursor()
 
     sql = """
-        SELECT id, fecha, actividad, tipo, observaciones, color 
+        SELECT id, fecha, actividad, tipo, observaciones, color, sda_id
         FROM programacion_diaria
         WHERE 1=1
     """
@@ -182,11 +182,15 @@ def obtener_programacion():
             "id": r["id"],
             "title": r["actividad"],
             "start": r["fecha"],
-            "activity_type": r["tipo"],
-            "description": r["observaciones"],
-            "color": r["color"] or "#3788d8"
+            "color": r["color"] or "#3788d8",
+            "extendedProps": {
+                "tipo": r["tipo"],
+                "observaciones": r["observaciones"] or "",
+                "sda_id": r["sda_id"]
+            }
         })
     return jsonify(events)
+
 
 @horario_bp.route("/api/programacion", methods=["POST"])
 def guardar_evento():

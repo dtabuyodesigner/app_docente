@@ -116,7 +116,8 @@
             min-width: 250px;
         }
 
-        .btn-new {
+        .btn-new,
+        .btn-config {
             background-color: var(--success);
             color: white;
             border: none;
@@ -129,8 +130,16 @@
             gap: 5px;
         }
 
+        .btn-config {
+            background-color: var(--secondary);
+        }
+
         .btn-new:hover {
             background-color: #218838;
+        }
+
+        .btn-config:hover {
+            background-color: #0069d9;
         }
 
         /* Meetings List */
@@ -293,6 +302,24 @@
             width: 100%;
             margin-top: 10px;
         }
+
+        .attendees-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            margin-top: 5px;
+        }
+
+        .attendee-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 
@@ -324,6 +351,9 @@
                 <select id="studentSelect">
                     <option value="">-- Ver Todas (Resumen) --</option>
                 </select>
+                <select id="cycleSelect" style="display:none;">
+                    <option value="">-- Seleccionar Ciclo --</option>
+                </select>
                 <div style="margin-top: 10px;">
                     <label style="font-size: 0.9rem; color: #555;">Nombre Tutor/a (para firmas):</label>
                     <input type="text" id="tutorName" placeholder="Tu Nombre completo"
@@ -332,7 +362,11 @@
                         style="padding: 5px 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">💾</button>
                 </div>
             </div>
-            <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-config" id="btnConfig" onclick="openConfigModal()" style="display:none;">⚙️
+                    Configurar</button>
+                <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
+            </div>
         </div>
 
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
@@ -349,6 +383,13 @@
             <input type="hidden" id="editingId">
             <input type="hidden" id="meetingType">
             <input type="hidden" id="editingAlumnoId">
+
+            <div class="form-group" id="mCycleGroup" style="display:none;">
+                <label>Ciclo</label>
+                <select id="mCycleSelect" class="form-control" onchange="renderCycleAttendees()">
+                    <option value="">-- Seleccionar Ciclo --</option>
+                </select>
+            </div>
 
             <div class="form-group">
                 <label>Fecha</label>
@@ -373,9 +414,12 @@
 
             <div class="form-group" id="groupAsistentesCiclo" style="display:none;">
                 <label>Asistentes (Ciclo)</label>
+                <div id="cycleAttendeesCheckboxes" class="attendees-grid">
+                    <!-- Dynamic Checkboxes -->
+                </div>
                 <textarea id="mAsistentesCiclo" class="form-control"
-                    placeholder="Escribe los nombres de los asistentes separados por comas o en líneas distintas para generar sus firmas en el PDF..."
-                    style="height: 80px;"></textarea>
+                    placeholder="Otros asistentes (separados por comas)..."
+                    style="height: 60px; margin-top: 8px;"></textarea>
             </div>
 
             <div class="form-group">
@@ -392,15 +436,42 @@
         </div>
     </div>
 
+    <!-- Cycle Config Modal -->
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeConfigModal()">&times;</span>
+            <h2>Configurar Miembros del Ciclo</h2>
+            <div class="form-group">
+                <label>Ciclo seleccionado:</label>
+                <input type="text" id="configCycleName" class="form-control" disabled>
+                <input type="hidden" id="configCycleId">
+            </div>
+            <div class="form-group">
+                <label>Miembros (uno por línea)</label>
+                <textarea id="configMembers" class="form-control" style="height: 150px;"
+                    placeholder="Escribe los nombres de los miembros del ciclo..."></textarea>
+            </div>
+            <button class="btn-save" onclick="saveCycleConfig()">Guardar Configuración</button>
+        </div>
+    </div>
+
     <script>
         let currentMode = 'PADRES'; // PADRES or CICLO
 
         const studentSelect = document.getElementById('studentSelect');
+        const cycleSelect = document.getElementById('cycleSelect');
         const listContainer = document.getElementById('meetingList');
         const loading = document.getElementById('loading');
         const pageTitle = document.getElementById('pageTitle');
         const tabPadres = document.getElementById('tabPadres');
         const tabCiclo = document.getElementById('tabCiclo');
+        const btnConfig = document.getElementById('btnConfig');
+
+        // Config Modal elements
+        const configModal = document.getElementById('configModal');
+        const configCycleName = document.getElementById('configCycleName');
+        const configCycleId = document.getElementById('configCycleId');
+        const configMembers = document.getElementById('configMembers');
 
         // Modal elements
         const modal = document.getElementById('meetingModal');
@@ -417,12 +488,15 @@
         const modalTitle = document.getElementById('modalTitle');
         const meetingTypeInput = document.getElementById('meetingType');
         const tutorNameInput = document.getElementById('tutorName');
+        const mCycleSelect = document.getElementById('mCycleSelect');
+        const mCycleGroup = document.getElementById('mCycleGroup');
 
         // Initial Load
         // Load Tutor Name
         const savedTutor = localStorage.getItem('tutorName') || "";
         tutorNameInput.value = savedTutor;
 
+        // Load Students
         fetch('/api/alumnos').then(r => r.json()).then(data => {
             data.forEach(s => {
                 const opt = document.createElement('option');
@@ -433,7 +507,29 @@
             loadMeetings(); // Load initial view
         });
 
+        // Load Cycles
+        fetch('/api/ciclos').then(r => r.json()).then(data => {
+            cyclesData = data;
+            // Background select
+            cycleSelect.innerHTML = '<option value="">-- Ver Todos los Ciclos --</option>';
+            // Modal select
+            mCycleSelect.innerHTML = '<option value="">-- Seleccionar Ciclo --</option>';
+
+            data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.nombre;
+                cycleSelect.appendChild(opt);
+
+                const opt2 = opt.cloneNode(true);
+                mCycleSelect.appendChild(opt2);
+            });
+        });
+
         studentSelect.addEventListener('change', loadMeetings);
+        cycleSelect.addEventListener('change', loadMeetings);
+
+        let cyclesData = [];
 
         function setMode(mode) {
             currentMode = mode;
@@ -441,15 +537,34 @@
                 tabPadres.classList.add('active');
                 tabCiclo.classList.remove('active');
                 studentSelect.style.display = 'inline-block';
+                cycleSelect.style.display = 'none';
+                btnConfig.style.display = 'none';
                 pageTitle.textContent = "Reuniones con Familias";
             } else {
                 tabPadres.classList.remove('active');
                 tabCiclo.classList.add('active');
                 studentSelect.style.display = 'none';
+                cycleSelect.style.display = 'inline-block';
+                btnConfig.style.display = 'inline-block';
                 pageTitle.textContent = "Reuniones de Ciclo";
             }
             loadMeetings();
         }
+
+        // Fetch Cycles and store data
+        function fetchCycles() {
+            return fetch('/api/ciclos').then(r => r.json()).then(data => {
+                cyclesData = data;
+                cycleSelect.innerHTML = '<option value="">-- Seleccionar Ciclo --</option>';
+                data.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.nombre;
+                    cycleSelect.appendChild(opt);
+                });
+            });
+        }
+        fetchCycles();
 
         let meetingsData = [];
 
@@ -460,6 +575,8 @@
             let url = `/api/reuniones?tipo=${currentMode}`;
             if (currentMode === 'PADRES' && studentSelect.value) {
                 url += `&alumno_id=${studentSelect.value}`;
+            } else if (currentMode === 'CICLO' && cycleSelect.value) {
+                url += `&ciclo_id=${cycleSelect.value}`;
             }
 
             fetch(url)
@@ -567,14 +684,111 @@
             mTemas.value = "";
             mAcuerdos.value = "";
 
-            // Show/Hide based on mode
             if (currentMode === 'PADRES') {
                 groupAsistentes.style.display = 'block';
                 groupAsistentesCiclo.style.display = 'none';
+                mCycleGroup.style.display = 'none';
             } else {
                 groupAsistentes.style.display = 'none';
                 groupAsistentesCiclo.style.display = 'block';
+                mCycleGroup.style.display = 'block';
+                mCycleSelect.value = cycleSelect.value;
+                renderCycleAttendees();
             }
+        }
+
+        function renderCycleAttendees(selectedAsistentes = "") {
+            const cycleId = parseInt(mCycleSelect.value);
+            const cycle = cyclesData.find(c => c.id === cycleId);
+            const container = document.getElementById('cycleAttendeesCheckboxes');
+            container.innerHTML = '';
+
+            if (!cycleId) {
+                container.innerHTML = '<div style="grid-column: 1/-1; color: #888; font-size: 0.8rem;">Selecciona un ciclo para ver los miembros.</div>';
+                return;
+            }
+
+            if (!cycle || !cycle.asistentes_defecto || cycle.asistentes_defecto === "[]") {
+                container.innerHTML = '<div style="grid-column: 1/-1; color: #888; font-size: 0.8rem;">No hay miembros configurados para este ciclo.</div>';
+                return;
+            }
+
+            try {
+                let members = JSON.parse(cycle.asistentes_defecto);
+                let selectedList = [];
+                let isEditWithData = false;
+
+                if (selectedAsistentes) {
+                    isEditWithData = true;
+                    if (selectedAsistentes.startsWith('[') && selectedAsistentes.endsWith(']')) {
+                        try { selectedList = JSON.parse(selectedAsistentes); }
+                        catch (e) { selectedList = selectedAsistentes.split(',').map(a => a.trim()); }
+                    } else {
+                        selectedList = selectedAsistentes.split(',').map(a => a.trim());
+                    }
+                }
+
+                members.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'attendee-item';
+                    const isChecked = isEditWithData ? selectedList.includes(m) : true;
+                    div.innerHTML = `
+                        <input type="checkbox" class="cycle-member-check" value="${m}" ${isChecked ? 'checked' : ''}>
+                        <span>${m}</span>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) {
+                console.error("Error parsing members", e);
+            }
+        }
+
+        function openConfigModal() {
+            const cycleId = parseInt(cycleSelect.value);
+            if (!cycleId) {
+                alert("Por favor, selecciona un ciclo para configurar.");
+                return;
+            }
+            const cycle = cyclesData.find(c => c.id === cycleId);
+            configCycleName.value = cycle.nombre;
+            configCycleId.value = cycle.id;
+
+            try {
+                const members = JSON.parse(cycle.asistentes_defecto || '[]');
+                configMembers.value = members.join('\n');
+            } catch (e) {
+                configMembers.value = "";
+            }
+
+            configModal.style.display = "block";
+        }
+
+        function closeConfigModal() {
+            configModal.style.display = "none";
+        }
+
+        function saveCycleConfig() {
+            const id = configCycleId.value;
+            const members = configMembers.value.split('\n').map(m => m.trim()).filter(m => m);
+
+            fetch(`/api/ciclos/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre: configCycleName.value,
+                    asistentes_defecto: JSON.stringify(members)
+                })
+            }).then(r => r.json()).then(res => {
+                if (res.ok) {
+                    alert("Configuración guardada.");
+                    closeConfigModal();
+                    fetchCycles().then(() => {
+                        if (modal.style.display === "block") renderCycleAttendees();
+                    });
+                } else {
+                    alert("Error: " + res.error);
+                }
+            });
         }
 
         function closeModal() {
@@ -593,6 +807,7 @@
             if (currentMode === 'PADRES') {
                 groupAsistentes.style.display = 'block';
                 groupAsistentesCiclo.style.display = 'none';
+                mCycleGroup.style.display = 'none';
 
                 // Try to map assistants
                 const options = Array.from(mAsistentesSelect.options).map(o => o.value);
@@ -607,7 +822,10 @@
             } else {
                 groupAsistentes.style.display = 'none';
                 groupAsistentesCiclo.style.display = 'block';
-                mAsistentesCiclo.value = m.asistentes;
+                mCycleGroup.style.display = 'block';
+                mCycleSelect.value = m.ciclo_id || "";
+                renderCycleAttendees(m.asistentes);
+                mAsistentesCiclo.value = "";
             }
         }
 
@@ -624,7 +842,10 @@
                     asistentes = mAsistentesSelect.value;
                 }
             } else {
-                asistentes = mAsistentesCiclo.value;
+                const checks = document.querySelectorAll('.cycle-member-check:checked');
+                const checkedNames = Array.from(checks).map(c => c.value);
+                const extras = mAsistentesCiclo.value.split(',').map(a => a.trim()).filter(a => a);
+                asistentes = JSON.stringify([...checkedNames, ...extras]);
             }
 
             const data = {
@@ -633,11 +854,16 @@
                 temas: mTemas.value,
                 acuerdos: mAcuerdos.value,
                 tipo: currentMode,
-                alumno_id: currentMode === 'PADRES' ? studentSelect.value : null
+                alumno_id: currentMode === 'PADRES' ? studentSelect.value : null,
+                ciclo_id: currentMode === 'CICLO' ? mCycleSelect.value : null
             };
 
             if (currentMode === 'PADRES' && !data.alumno_id) {
                 alert("Por favor, selecciona un alumno primero.");
+                return;
+            }
+            if (currentMode === 'CICLO' && !data.ciclo_id) {
+                alert("Por favor, selecciona un ciclo primero.");
                 return;
             }
 

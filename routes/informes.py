@@ -345,9 +345,10 @@ def informe_reunion_pdf(rid):
     cur = conn.cursor()
     
     cur.execute("""
-        SELECT r.*, a.nombre as alumno_nombre
+        SELECT r.*, a.nombre as alumno_nombre, c.nombre as ciclo_nombre
         FROM reuniones r
         LEFT JOIN alumnos a ON r.alumno_id = a.id
+        LEFT JOIN config_ciclo c ON r.ciclo_id = c.id
         WHERE r.id = ?
     """, (rid, ))
     r = cur.fetchone()
@@ -357,7 +358,7 @@ def informe_reunion_pdf(rid):
         return "Reunión no encontrada", 404
         
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
     elements = []
     styles = getSampleStyleSheet()
     
@@ -365,29 +366,42 @@ def informe_reunion_pdf(rid):
     style_label = ParagraphStyle('LabelStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10)
     style_content = ParagraphStyle('ContentStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=10, leftIndent=10)
     
-    title = f"Acta de Reunión - {r['tipo']}"
+    is_ciclo = (r['tipo'] == 'CICLO')
+    if is_ciclo:
+        title = f"Acta de Reunión de {r['ciclo_nombre'] or 'Ciclo'}"
+    else:
+        title = f"Acta de Reunión con Familias"
+        
     elements.append(Paragraph(title, styles['Title']))
     elements.append(Spacer(1, 15))
     
     # Info Table
-    info_data = [
-        [Paragraph("<b>Fecha:</b>", style_label), Paragraph(r['fecha'], style_content)],
-        [Paragraph("<b>Tutor/a:</b>", style_label), Paragraph(tutor_nombre, style_content)]
-    ]
+    info_data = []
     
-    if r['alumno_nombre']:
-        info_data.insert(0, [Paragraph("<b>Alumno/a:</b>", style_label), Paragraph(r['alumno_nombre'], style_content)])
+    if not is_ciclo:
+        if r['alumno_nombre']:
+            info_data.append([Paragraph("<b>Alumno/a:</b>", style_label), Paragraph(r['alumno_nombre'], style_content)])
+        info_data.append([Paragraph("<b>Tutor/a:</b>", style_label), Paragraph(tutor_nombre, style_content)])
+    
+    info_data.append([Paragraph("<b>Fecha:</b>", style_label), Paragraph(r['fecha'], style_content)])
         
     # Asistentes parsing
     asistentes_str = r['asistentes'] or ""
     asistentes_list = []
     if asistentes_str:
-        # Normalize separators: replace newlines with commas, then split by comma
-        normalized = asistentes_str.replace('\n', ',')
-        asistentes_list = [a.strip() for a in normalized.split(',') if a.strip()]
+        # Normalize separators
+        if '[' in asistentes_str and ']' in asistentes_str:
+            # Handle JSON list if we start saving it as such, but for now it's TEXT
+            try:
+                asistentes_list = json.loads(asistentes_str)
+            except:
+                normalized = asistentes_str.replace('\n', ',')
+                asistentes_list = [a.strip() for a in normalized.split(',') if a.strip()]
+        else:
+            normalized = asistentes_str.replace('\n', ',')
+            asistentes_list = [a.strip() for a in normalized.split(',') if a.strip()]
     
-    # Display attendees list formatted
-    asistentes_display = ", ".join(asistentes_list)
+    asistentes_display = ", ".join(asistentes_list) if isinstance(asistentes_list, list) else asistentes_str
     info_data.append([Paragraph("<b>Asistentes:</b>", style_label), Paragraph(asistentes_display, style_content)])
     
     t_info = Table(info_data, colWidths=[3*cm, 14*cm])
@@ -409,40 +423,51 @@ def informe_reunion_pdf(rid):
     
     # Signatures
     elements.append(Paragraph("<b>Firmas:</b>", styles['Heading4']))
-    elements.append(Spacer(1, 20))
-    
-    # Simple layout: Name, then space for signature BELOW it.
+    elements.append(Spacer(1, 10))
     
     sig_table_rows = []
+    firmantes = []
     
-    # Always include Tutor
-    firmantes = [f"Tutor/a: {tutor_nombre}"]
-    
-    for p in asistentes_list:
-        if p.strip() and p.lower() not in tutor_nombre.lower(): 
-             firmantes.append(p.strip())
+    if not is_ciclo:
+        firmantes.append(f"Tutor/a: {tutor_nombre}")
+        for p in asistentes_list:
+             if p.strip() and p.lower() not in tutor_nombre.lower(): 
+                  firmantes.append(p.strip())
+    else:
+        if isinstance(asistentes_list, list):
+            firmantes = asistentes_list
+        else:
+            firmantes = [a.strip() for a in asistentes_str.replace('\n', ',').split(',') if a.strip()]
              
     # Create grid of 2 columns
     for i in range(0, len(firmantes), 2):
         sig1_name = firmantes[i]
         sig2_name = firmantes[i+1] if i+1 < len(firmantes) else ""
         
-        # Row 1: Names
+        # Row 1: Signature gap
+        sig_table_rows.append(["", ""])
+        
+        # Row 2: The names
         row_names = [Paragraph(f"<b>{sig1_name}</b>", styles['Normal']), Paragraph(f"<b>{sig2_name}</b>", styles['Normal']) if sig2_name else ""]
         sig_table_rows.append(row_names)
         
-        # Row 2: "Fdo: ...." (The line/space for signature)
-        row_sign = [Paragraph("Fdo: ___________________", styles['Normal']), Paragraph("Fdo: ___________________", styles['Normal']) if sig2_name else ""]
-        sig_table_rows.append(row_sign)
+        # Row 3: The lines
+        row_line = [Paragraph("___________________________", styles['Normal']), Paragraph("___________________________", styles['Normal']) if sig2_name else ""]
+        sig_table_rows.append(row_line)
         
-        # Row 3: Spacer
-        sig_table_rows.append(["", ""])
+        # Row 4: "Fdo:" label
+        row_fdo = [Paragraph("<font size='8'>Fdo:</font>", styles['Normal']), Paragraph("<font size='8'>Fdo:</font>", styles['Normal']) if sig2_name else ""]
+        sig_table_rows.append(row_fdo)
         
-    t_sig = Table(sig_table_rows, colWidths=[8*cm, 8*cm])
+    row_heights = []
+    for _ in range(0, len(firmantes), 2):
+        row_heights.extend([2.0*cm, 0.6*cm, 0.4*cm, 0.6*cm]) # Gap, Name, Line, Fdo
+    
+    t_sig = Table(sig_table_rows, colWidths=[8.5*cm, 8.5*cm], rowHeights=row_heights)
     t_sig.setStyle(TableStyle([
         ('ALIGN', (0,0), (-1,-1), 'LEFT'),
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 10), # Space between rows
+        ('VALIGN', (0,0), (-1,-1), 'BOTTOM'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 0),
     ]))
     
     elements.append(t_sig)

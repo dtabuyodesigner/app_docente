@@ -17,12 +17,13 @@ def api_reuniones():
         temas = d.get("temas")
         acuerdos = d.get("acuerdos")
         tipo = d.get("tipo", "PADRES")
+        ciclo_id = d.get("ciclo_id")  # Solo para tipo=CICLO
         
         try:
             cur.execute("""
-                INSERT INTO reuniones (alumno_id, fecha, asistentes, temas, acuerdos, tipo)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (alumno_id, fecha, asistentes, temas, acuerdos, tipo))
+                INSERT INTO reuniones (alumno_id, fecha, asistentes, temas, acuerdos, tipo, ciclo_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (alumno_id, fecha, asistentes, temas, acuerdos, tipo, ciclo_id))
             conn.commit()
             return jsonify({"ok": True, "id": cur.lastrowid})
         except Exception as e:
@@ -103,3 +104,69 @@ def borrar_reunion(rid):
     finally:
         conn.close()
     return jsonify({"ok": True})
+
+
+# --- CICLO CONFIGURATION ENDPOINTS ---
+
+@reuniones_bp.route("/api/ciclos", methods=["GET", "POST"])
+def api_ciclos():
+    conn = get_db()
+    cur = conn.cursor()
+    
+    if request.method == "POST":
+        d = request.json
+        nombre = d.get("nombre")
+        asistentes_defecto = d.get("asistentes_defecto", "[]")  # JSON string
+        
+        if not nombre:
+            return jsonify({"ok": False, "error": "Nombre requerido"}), 400
+            
+        try:
+            cur.execute("INSERT INTO config_ciclo (nombre, asistentes_defecto) VALUES (?, ?)", 
+                       (nombre, asistentes_defecto))
+            conn.commit()
+            return jsonify({"ok": True, "id": cur.lastrowid})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"ok": False, "error": str(e)}), 500
+        finally:
+            conn.close()
+    else:
+        # GET
+        cur.execute("SELECT * FROM config_ciclo ORDER BY nombre")
+        rows = cur.fetchall()
+        conn.close()
+        return jsonify([dict(r) for r in rows])
+
+
+@reuniones_bp.route("/api/ciclos/<int:cid>", methods=["PUT", "DELETE"])
+def api_ciclo(cid):
+    conn = get_db()
+    cur = conn.cursor()
+    
+    if request.method == "PUT":
+        d = request.json
+        nombre = d.get("nombre")
+        asistentes_defecto = d.get("asistentes_defecto", "[]")
+        
+        try:
+            cur.execute("UPDATE config_ciclo SET nombre = ?, asistentes_defecto = ? WHERE id = ?",
+                       (nombre, asistentes_defecto, cid))
+            conn.commit()
+            return jsonify({"ok": True})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"ok": False, "error": str(e)}), 500
+        finally:
+            conn.close()
+    else:
+        # DELETE
+        try:
+            cur.execute("DELETE FROM config_ciclo WHERE id = ?", (cid,))
+            conn.commit()
+            return jsonify({"ok": True})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"ok": False, "error": str(e)}), 500
+        finally:
+            conn.close()

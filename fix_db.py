@@ -28,6 +28,26 @@ def fix_db():
     else:
         print("'fecha' column already exists.")
 
+    # 2. Check and initialize config_ciclo
+    print("Checking config_ciclo table...")
+    cur.execute("SELECT COUNT(*) FROM config_ciclo")
+    count = cur.fetchone()[0]
+    
+    if count == 0 or (count == 1 and "Primaria" in [r[1] for r in cur.execute("SELECT * FROM config_ciclo").fetchall()]):
+        print("Initializing standard Primary Cycles...")
+        standard_cycles = [
+            ("Primer Ciclo", "[]"),
+            ("Segundo Ciclo", "[]"),
+            ("Tercer Ciclo", "[]")
+        ]
+        # Clear if it only has the previous placeholder "Primaria"
+        cur.execute("DELETE FROM config_ciclo WHERE nombre = 'Primaria'")
+        cur.executemany("INSERT INTO config_ciclo (nombre, asistentes_defecto) VALUES (?, ?)", standard_cycles)
+        conn.commit()
+        print("Cycles initialized.")
+    else:
+        print(f"config_ciclo already has {count} entries.")
+
     conn.close()
 
 if __name__ == "__main__":

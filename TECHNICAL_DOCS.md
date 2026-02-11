@@ -47,8 +47,29 @@ El proyecto se organiza en módulos lógicos para separar responsabilidades:
 ### 📊 Informes y Estadísticas
 Permite la generación de informes PDF detallados y exportaciones a Excel.
 - **Informe Individual**: Resumen por alumno con notas y observaciones.
+  - Generación de gráficas con `matplotlib` (barras horizontales por área)
+  - Validación de parámetros (`alumno_id` requerido)
+  - Corrección de encoding en headers (UTF-8)
 - **Informe Grupal**: Visión global de la clase por área y trimestre.
-- **Excel**: Exportación de calificaciones mediante `pandas` y `openpyxl`.
+  - **PDF**: Gráfico circular de promoción y gráfico de barras de asistencia
+  - **Excel**: Múltiples hojas con gráficos embebidos usando `openpyxl.drawing.image`
+- **Tecnologías**: `reportlab`, `matplotlib` (backend 'Agg'), `pandas`, `openpyxl`
+
+### ✅ Gestión de Tareas
+Sistema completo de tareas pendientes para el docente.
+- **CRUD Completo**: Crear, leer, actualizar y eliminar tareas
+- **Base de Datos**: Tabla `tareas` con campos: `id`, `texto`, `fecha`, `hecha`
+- **Endpoints**:
+  - `GET /api/tareas`: Listar todas las tareas
+  - `POST /api/tareas`: Crear nueva tarea
+  - `PUT /api/tareas/<id>`: Toggle completada o edición completa (soporta both modes)
+  - `DELETE /api/tareas/<id>`: Borrar tarea individual
+  - `POST /api/tareas/bulk_delete_completed`: Borrar todas las completadas
+- **Frontend Features**:
+  - Indicador visual de vencimiento (borde rojo, ⚠️ icon)
+  - Alerta automática al cargar si hay tareas vencidas
+  - Edición inline con prompts para texto y fecha
+  - Sistema de notificaciones toast
 
 ### 📅 Programación y Google Calendar
 Gestión de la agenda docente con sincronización bidireccional.
@@ -76,6 +97,11 @@ Permite gestionar dos horarios distintos de forma independiente.
 - **`reuniones`**: Actas de reuniones, diferenciadas por el campo `tipo`.
 - **`informe_individual` / `informe_grupo`**: Observaciones específicas para los informes trimestrales.
 - **`horario`**: Almacena las rutas de las imágenes de los horarios.
+- **`tareas`**: Gestión de tareas del docente
+  - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
+  - `texto`: TEXT NOT NULL (descripción de la tarea)
+  - `fecha`: TEXT (fecha límite en formato YYYY-MM-DD, opcional)
+  - `hecha`: INTEGER DEFAULT 0 (0 = pendiente, 1 = completada)
 
 ---
 

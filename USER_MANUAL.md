@@ -41,9 +41,19 @@ Basado en Situciones de Aprendizaje (SDA) y criterios oficiales.
 ---
 
 ## 5. Programación y Agenda
-Gestiona tu calendario docente.
+Gestiona tu calendario docente y tareas pendientes.
+
+### Calendario
 - **Sincronización con Google**: Ahora más robusta. Si es la primera vez que conectas, se te pedirá permiso explícito para que la conexión no caduque.
 - **Eventos**: Crea exámenes, excursiones o clases directamente en el calendario.
+
+### Tareas Pendientes
+Nueva funcionalidad para gestionar tus tareas docentes:
+- **Crear Tareas**: Escribe una tarea y opcionalmente añade una fecha límite.
+- **Marcar Completadas**: Haz clic en el checkbox para marcar una tarea como hecha.
+- **Editar**: Usa el botón ✏️ para modificar el texto o la fecha de cualquier tarea.
+- **Borrar**: Elimina tareas individuales con el botón 🗑️ o todas las completadas con "Borrar Completadas".
+- **Alertas de Vencimiento**: Las tareas vencidas aparecen con borde rojo y el indicador ⚠️ VENCIDA. Al cargar la página, recibirás una notificación si hay tareas vencidas pendientes.
 
 ---
 
@@ -65,9 +75,23 @@ Visualiza dos horarios a la vez.
 
 ## 8. Informes y Exportación
 Genera la documentación necesaria al final del trimestre.
-- **Informe Individual**: Un PDF elegante con todas las notas y observaciones del alumno.
-- **Resumen Grupal**: Comparativa de toda la clase.
-- **Exportar a Excel**: Descarga todas las notas en formato Excel para un análisis más profundo.
+
+### Informe Individual
+- **PDF Elegante**: Documento profesional con todas las notas y observaciones del alumno.
+- **Gráfica de Rendimiento**: Incluye una gráfica de barras horizontal mostrando las notas por área (verde para aprobado, rojo para suspenso).
+- **Validación**: El sistema verifica que hayas seleccionado un alumno antes de generar el PDF.
+
+### Informe Grupal
+- **PDF Global**: Comparativa de toda la clase con estadísticas de promoción, asistencia y gráficas visuales.
+  - Gráfico circular de promoción (aprobados/suspensos)
+  - Gráfico de barras de asistencia (faltas justificadas, injustificadas, retrasos)
+- **Excel Completo**: Descarga en múltiples hojas con:
+  - Notas por trimestre
+  - Valoración del grupo
+  - Estadísticas de promoción con gráfico
+  - Alumnos con suspensos
+  - Datos de asistencia con gráfico
+  - Rendimiento por áreas con gráfico de barras
 
 ---
 

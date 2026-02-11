@@ -80,9 +80,9 @@ def editar_reunion(rid):
     try:
         cur.execute("""
             UPDATE reuniones 
-            SET fecha = ?, asistentes = ?, temas = ?, acuerdos = ?
+            SET fecha = ?, asistentes = ?, temas = ?, acuerdos = ?, alumno_id = ?, ciclo_id = ?
             WHERE id = ?
-        """, (d.get("fecha"), d.get("asistentes"), d.get("temas"), d.get("acuerdos"), rid))
+        """, (d.get("fecha"), d.get("asistentes"), d.get("temas"), d.get("acuerdos"), d.get("alumno_id"), d.get("ciclo_id"), rid))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:

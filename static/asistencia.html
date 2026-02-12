@@ -400,16 +400,16 @@
         }
 
         .tag.retraso {
-            background: var(--warning);
+            background: #ffc107;
             color: #333;
         }
 
         .tag.falta_justificada {
-            background: #007bff;
+            background: #17a2b8;
         }
 
         .tag.falta_no_justificada {
-            background: var(--danger);
+            background: #dc3545;
         }
 
         @keyframes fadeIn {
@@ -427,6 +427,52 @@
         .card {
             animation: fadeIn 0.3s ease-out forwards;
         }
+
+        .cycle-block {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 5px solid #6f42c1;
+        }
+
+        .cycle-title {
+            font-weight: 800;
+            color: #6f42c1;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cycle-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .cycle-item {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            font-size: 0.85rem;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .cycle-item strong {
+            white-space: nowrap;
+            color: #666;
+            min-width: 85px;
+        }
+
+        .cycle-item span {
+            font-weight: 600;
+            color: var(--primary);
+        }
     </style>
 </head>
 
@@ -434,15 +480,15 @@
     <div class="container">
         <div class="nav">
             <a href="/">🏠 Inicio</a>
+            <a href="/alumnos">👥 Alumnos</a>
             <a href="/asistencia" class="active">📋 Pasar lista</a>
             <a href="/comedor">🍽️ Comedor</a>
-            <a href="/alumnos">👥 Alumnos</a>
             <a href="/diario">📓 Diario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/informes">📜 Informes</a>
+            <a href="/programacion">📅 Calendario</a>
             <a href="/horario">⏰ Horario</a>
-            <a href="/programacion">📅 Programación</a>
+            <a href="/evaluacion">📊 Evaluación</a>
             <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/informes">📜 Informes</a>
             <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
         </div>
 
@@ -494,6 +540,18 @@
             </div>
         </div>
 
+        <div class="modal-overlay" id="encargadoHistoryModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>📜 Historial de Encargados</h3>
+                    <button class="modal-close" onclick="closeEncargadoHistory()">&times;</button>
+                </div>
+                <div id="encargadoHistoryContent">
+                    <!-- Cycles will be loaded here -->
+                </div>
+            </div>
+        </div>
+
         <div class="dashboard" id="dashboard">
             <div class="stat-card" style="border-color: var(--success);">
                 <h4>🟢 Presentes</h4>
@@ -514,6 +572,26 @@
                     <span style="color: #007bff;">Justif: <b id="totalJustificadas">0</b></span>
                     <span style="margin: 0 4px; color: #ccc;">|</span>
                     <span style="color: var(--danger);">No Justif: <b id="totalInjustificadas">0</b></span>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: #6f42c1;">
+                <h4>⭐️ Encargado</h4>
+                <p id="nombreEncargado"
+                    style="font-size: 1.1rem; color: #6f42c1; min-height: 1.5em; display: flex; align-items: center; justify-content: center;">
+                    -</p>
+                <div style="display: flex; gap: 5px; justify-content: center; margin-top: 5px;">
+                    <button onclick="seleccionarEncargado()"
+                        style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #6f42c1; background: white; color: #6f42c1; cursor: pointer;">
+                        🎲 Elegir
+                    </button>
+                    <button onclick="openEncargadoHistory()" title="Ver historial completo"
+                        style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #6f42c1; background: white; color: #6f42c1; cursor: pointer;">
+                        📜
+                    </button>
+                    <button onclick="reiniciarCiclo()" title="Reiniciar ciclo de rotación"
+                        style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #6c757d; background: white; color: #6c757d; cursor: pointer;">
+                        🔄
+                    </button>
                 </div>
             </div>
         </div>
@@ -552,7 +630,8 @@
                 studentData = students; // Store for auto-dining logic
 
                 renderStudents(students);
-                updateStats();
+                await updateStats();
+                await loadEncargado();
             } catch (error) {
                 console.error("Error loading attendance:", error);
             }
@@ -779,6 +858,103 @@
             document.getElementById("totalComedor").innerText = c.total;
         }
 
+        async function loadEncargado() {
+            const res = await fetch(`/api/asistencia/encargado?fecha=${selectedDate}`);
+            const data = await res.json();
+            const p = document.getElementById("nombreEncargado");
+            if (data) {
+                p.innerText = data.nombre;
+                p.style.fontWeight = "bold";
+            } else {
+                p.innerText = "-";
+                p.style.fontWeight = "normal";
+            }
+        }
+
+        async function seleccionarEncargado() {
+            const res = await fetch("/api/asistencia/encargado/seleccionar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fecha: selectedDate })
+            });
+            const data = await res.json();
+            if (data.error) {
+                alert(data.error);
+            } else {
+                document.getElementById("nombreEncargado").innerText = data.nombre;
+                document.getElementById("nombreEncargado").style.fontWeight = "bold";
+            }
+        }
+
+        async function reiniciarCiclo() {
+            if (!confirm("¿Seguro que quieres reiniciar el ciclo de encargados? Se borrará el historial y todos volverán a tener 0 participaciones.")) return;
+
+            const res = await fetch("/api/asistencia/encargado/reiniciar", {
+                method: "POST"
+            });
+            if (res.ok) {
+                alert("Ciclo reiniciado.");
+                loadEncargado();
+            }
+        }
+
+        async function openEncargadoHistory() {
+            document.getElementById("encargadoHistoryModal").style.display = "flex";
+            document.body.style.overflow = "hidden";
+
+            const res = await fetch("/api/asistencia/encargado/historial");
+            const data = await res.json();
+            const history = data.historial;
+            const groupSize = data.total_alumnos || 11;
+
+            const container = document.getElementById("encargadoHistoryContent");
+            container.innerHTML = "";
+
+            if (history.length === 0) {
+                container.innerHTML = "<p style='text-align: center; color: #666;'>No hay historial todavía.</p>";
+                return;
+            }
+
+            // Group by cycles of dynamic size
+            const chronological = [...history].reverse();
+            const cycles = [];
+            for (let i = 0; i < chronological.length; i += groupSize) {
+                cycles.push(chronological.slice(i, i + groupSize));
+            }
+
+            // Show latest cycle first
+            cycles.reverse().forEach((cycle, index) => {
+                const cycleNum = cycles.length - index;
+                const block = document.createElement("div");
+                block.className = "cycle-block";
+
+                block.innerHTML = `
+                    <div class="cycle-title">
+                        <span>Ciclo ${cycleNum}</span>
+                        <span>${cycle.length} alumnos</span>
+                    </div>
+                    <div class="cycle-list">
+                        ${cycle.reverse().map(item => {
+                    const [y, m, d] = item.fecha.split('-');
+                    const formattedDate = `${d}-${m}-${y}`;
+                    return `
+                                <div class="cycle-item">
+                                    <strong>${formattedDate}</strong>
+                                    <span>${item.nombre}</span>
+                                </div>
+                            `;
+                }).join('')}
+                    </div>
+                `;
+                container.appendChild(block);
+            });
+        }
+
+        function closeEncargadoHistory() {
+            document.getElementById("encargadoHistoryModal").style.display = "none";
+            document.body.style.overflow = "";
+        }
+
         // History Modal Logic
         const historyModal = document.getElementById("historyModal");
         const monthInput = document.getElementById("mesHistorial");
@@ -845,9 +1021,9 @@
                             <td><strong>${item.nombre}</strong></td>
                             <td>
                                 <div style="display:flex; gap:10px; font-size:0.85rem;">
-                                    ${item.retrasos ? `<span style="color:#856404">🟠: ${item.retrasos}</span>` : ''}
-                                    ${item.justificadas ? `<span style="color:#0c5460">🟡: ${item.justificadas}</span>` : ''}
-                                    ${item.injustificadas ? `<span style="color:#721c24">🔴: ${item.injustificadas}</span>` : ''}
+                                    ${item.retrasos ? `<span style="color:#856404">🟠 ${item.retrasos}</span>` : ''}
+                                    ${item.justificadas ? `<span style="color:#0c5460">🔵 ${item.justificadas}</span>` : ''}
+                                    ${item.injustificadas ? `<span style="color:#721c24">🔴 ${item.injustificadas}</span>` : ''}
                                 </div>
                             </td>
                             <td>

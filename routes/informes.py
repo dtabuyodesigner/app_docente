@@ -121,12 +121,15 @@ def informe_pdf_individual():
     elements.append(Paragraph("Resumen de Asistencia", styles['Heading3']))
     data_asist = [
         ["Estado", "Días"],
-        ["Retraso", asist_data.get('retraso', 0)],
-        ["Falta Justificada", asist_data.get('falta_justificada', 0)],
-        ["Falta No Justificada", asist_data.get('falta_no_justificada', 0)],
+        [Paragraph('<font color="#ffc107">●</font> Retraso', styles['Normal']), asist_data.get('retraso', 0)],
+        [Paragraph('<font color="#17a2b8">●</font> Falta Justificada', styles['Normal']), asist_data.get('falta_justificada', 0)],
+        [Paragraph('<font color="#dc3545">●</font> Falta No Justificada', styles['Normal']), asist_data.get('falta_no_justificada', 0)],
     ]
-    t_asist = Table(data_asist)
-    t_asist.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+    t_asist = Table(data_asist, colWidths=[6*cm, 2*cm])
+    t_asist.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE')
+    ]))
     elements.append(t_asist)
     
     # Detalle de Faltas
@@ -137,8 +140,18 @@ def informe_pdf_individual():
             # Format date DD/MM
             d_obj = datetime.strptime(f, '%Y-%m-%d')
             d_str = d_obj.strftime('%d/%m')
-            tipo = "R" if e == 'retraso' else "F"
-            fechas_str.append(f"{d_str}({tipo})")
+            
+            if e == 'retraso':
+                color = "#ffc107"
+                tipo = "R"
+            elif e == 'falta_justificada':
+                color = "#17a2b8"
+                tipo = "F"
+            else: # falta_no_justificada
+                color = "#dc3545"
+                tipo = "F"
+                
+            fechas_str.append(f'<font color="{color}">{d_str}({tipo})</font>')
         
         elements.append(Paragraph("<b>Detalle (Día/Tipo):</b> " + ", ".join(fechas_str), styles['Normal']))
 
@@ -171,7 +184,11 @@ def informe_pdf_individual():
                 detail_lines.append(f"  • {crit_cod}: {nota}")
         
         detail_str = "<br/>".join(detail_lines) if detail_lines else "Sin datos"
-        data_notas.append([area_nombre, str(nota_media), Paragraph(detail_str, styles['Normal'])])
+        data_notas.append([
+            Paragraph(area_nombre, styles['Normal']), 
+            str(nota_media), 
+            Paragraph(detail_str, styles['Normal'])
+        ])
         
     t_notas = Table(data_notas, colWidths=[4*cm, 2.5*cm, 10*cm])
     t_notas.setStyle(TableStyle([
@@ -908,12 +925,15 @@ def informe_pdf_todos():
         elements.append(Paragraph("Resumen de Asistencia", styles['Heading3']))
         data_asist = [
             ["Estado", "Días"],
-            ["Retraso", asist_data.get('retraso', 0)],
-            ["Falta Justificada", asist_data.get('falta_justificada', 0)],
-            ["Falta No Justificada", asist_data.get('falta_no_justificada', 0)],
+            [Paragraph('<font color="#ffc107">●</font> Retraso', styles['Normal']), asist_data.get('retraso', 0)],
+            [Paragraph('<font color="#17a2b8">●</font> Falta Justificada', styles['Normal']), asist_data.get('falta_justificada', 0)],
+            [Paragraph('<font color="#dc3545">●</font> Falta No Justificada', styles['Normal']), asist_data.get('falta_no_justificada', 0)],
         ]
-        t_asist = Table(data_asist)
-        t_asist.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black)]))
+        t_asist = Table(data_asist, colWidths=[6*cm, 2*cm])
+        t_asist.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE')
+        ]))
         elements.append(t_asist)
         elements.append(Spacer(1, 12))
 
@@ -925,8 +945,18 @@ def informe_pdf_todos():
             for f, e in faltas_detalle:
                 d_obj = datetime.strptime(f, '%Y-%m-%d')
                 d_str = d_obj.strftime('%d/%m')
-                tipo = "R" if e == 'retraso' else "F"
-                fechas_str.append(f"{d_str}({tipo})")
+                
+                if e == 'retraso':
+                    color = "#ffc107"
+                    tipo = "R"
+                elif e == 'falta_justificada':
+                    color = "#17a2b8"
+                    tipo = "F"
+                else: # falta_no_justificada
+                    color = "#dc3545"
+                    tipo = "F"
+                    
+                fechas_str.append(f'<font color="{color}">{d_str}({tipo})</font>')
             elements.append(Paragraph("<b>Detalle (Día/Tipo):</b> " + ", ".join(fechas_str), styles['Normal']))
             elements.append(Spacer(1, 12))
 
@@ -948,10 +978,13 @@ def informe_pdf_todos():
             for sda_name, criterios in sda_dict.items():
                 sda_avg = round(sum(c[1] for c in criterios) / len(criterios), 2) if criterios else 0
                 detail_lines.append(f"<b>{sda_name}</b>: {sda_avg}")
-                for crit_cod, nota in criterios:
-                    detail_lines.append(f"  • {crit_cod}: {nota}")
+                detail_lines.append(f"  • {crit_cod}: {nota}")
             detail_str = "<br/>".join(detail_lines) if detail_lines else "Sin datos"
-            data_notas.append([area_nombre, str(nota_media), Paragraph(detail_str, styles['Normal'])])
+            data_notas.append([
+                Paragraph(area_nombre, styles['Normal']), 
+                str(nota_media), 
+                Paragraph(detail_str, styles['Normal'])
+            ])
             
         t = Table(data_notas, colWidths=[4*cm, 2.5*cm, 10*cm])
         t.setStyle(TableStyle([

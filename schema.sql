@@ -36,3 +36,9 @@ CREATE TABLE IF NOT EXISTS informe_individual (
     UNIQUE(alumno_id, trimestre),
     FOREIGN KEY(alumno_id) REFERENCES alumnos(id)
 );
+CREATE TABLE IF NOT EXISTS encargados (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha DATE NOT NULL UNIQUE,
+    alumno_id INTEGER NOT NULL,
+    FOREIGN KEY(alumno_id) REFERENCES alumnos(id)
+);

@@ -225,3 +225,106 @@ def resumen_asistencia():
         "faltas_injustificadas": faltas_injustificadas,
         "lista_faltan": lista_faltan
     })
+
+@asistencia_bp.route("/api/asistencia/encargado")
+def get_encargado():
+    fecha = request.args.get("fecha", date.today().isoformat())
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT a.id, a.nombre 
+        FROM encargados e
+        JOIN alumnos a ON e.alumno_id = a.id
+        WHERE e.fecha = ?
+    """, (fecha,))
+    row = cur.fetchone()
+    conn.close()
+    
+    if row:
+        return jsonify({"id": row["id"], "nombre": row["nombre"]})
+    return jsonify(None)
+
+@asistencia_bp.route("/api/asistencia/encargado/seleccionar", methods=["POST"])
+def seleccionar_encargado():
+    import random
+    data = request.json
+    fecha = data.get("fecha", date.today().isoformat())
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # 1. Get present students for this day
+    cur.execute("""
+        SELECT a.id, a.nombre
+        FROM alumnos a
+        LEFT JOIN asistencia asist ON asist.alumno_id = a.id AND asist.fecha = ?
+        WHERE COALESCE(asist.estado, 'presente') IN ('presente', 'retraso')
+    """, (fecha,))
+    presentes = cur.fetchall()
+    
+    if not presentes:
+        conn.close()
+        return jsonify({"error": "No hay alumnos presentes hoy"}), 400
+    
+    # 2. Count how many times each present student has been encargado
+    cur.execute("""
+        SELECT alumno_id, COUNT(*) as veces
+        FROM encargados
+        GROUP BY alumno_id
+    """)
+    conteos = {row["alumno_id"]: row["veces"] for row in cur.fetchall()}
+    
+    # 3. Find the minimum count among present students
+    present_counts = [(p["id"], p["nombre"], conteos.get(p["id"], 0)) for p in presentes]
+    min_veces = min(c[2] for c in present_counts)
+    
+    # 4. Filter candidates (those with the minimum count)
+    candidatos = [c for c in present_counts if c[2] == min_veces]
+    
+    # 5. Pick one randomly
+    elegido = random.choice(candidatos)
+    alumno_id, nombre = elegido[0], elegido[1]
+    
+    # 6. Save (overwrite if exists for that date)
+    cur.execute("""
+        INSERT INTO encargados (fecha, alumno_id) 
+        VALUES (?, ?)
+        ON CONFLICT(fecha) DO UPDATE SET alumno_id = excluded.alumno_id
+    """, (fecha, alumno_id))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({"id": alumno_id, "nombre": nombre})
+
+@asistencia_bp.route("/api/asistencia/encargado/reiniciar", methods=["POST"])
+def reiniciar_encargados():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM encargados")
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+@asistencia_bp.route("/api/asistencia/encargado/historial")
+def historial_encargados():
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Get total active students
+    cur.execute("SELECT COUNT(*) as total FROM alumnos")
+    total_alumnos = cur.fetchone()["total"]
+    
+    cur.execute("""
+        SELECT e.fecha, a.nombre 
+        FROM encargados e
+        JOIN alumnos a ON e.alumno_id = a.id
+        ORDER BY e.fecha DESC
+    """)
+    datos = cur.fetchall()
+    conn.close()
+    
+    return jsonify({
+        "total_alumnos": total_alumnos,
+        "historial": [{"fecha": row["fecha"], "nombre": row["nombre"]} for row in datos]
+    })

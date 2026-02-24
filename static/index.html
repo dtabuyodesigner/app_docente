@@ -453,6 +453,12 @@
                 <span class="nav-icon">✅</span>
                 <span class="nav-text">Tareas</span>
             </a>
+
+            <a href="/usuarios" class="nav-btn" style="background: #ffebee; border: 1px solid #ffcdd2;"
+                id="adminNavBtn">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text" style="color: #c62828;">Usuarios</span>
+            </a>
         </div>
 
         <div class="dashboard-grid">
@@ -656,6 +662,12 @@
                     }
                 } catch (e) {
                     console.error("Error loading tasks:", e);
+                }
+
+                // 4. Role Admin Toggle
+                if (data.user_role !== 'admin') {
+                    const adminBtn = document.getElementById('adminNavBtn');
+                    if (adminBtn) adminBtn.style.display = 'none';
                 }
 
                 // 5. Attendance Chart

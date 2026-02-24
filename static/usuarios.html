@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Usuarios - Cuaderno del Tutor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .role-admin {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .role-profesor {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav-bar">
+        <a href="/">← Volver al Dashboard</a>
+    </div>
+
+    <div class="container">
+        <div class="header-actions">
+            <h1>👥 Gestión de Usuarios</h1>
+            <button class="btn-primary" onclick="document.getElementById('newUserForm').style.display='block'">+ Crear
+                Usuario</button>
+        </div>
+
+        <div id="newUserForm"
+            style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3>Crear Nuevo Acceso</h3>
+            <form onsubmit="crearUsuario(event)">
+                <div class="form-group">
+                    <label>Nombre de Usuario</label>
+                    <input type="text" id="newUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="newPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select id="newRole">
+                        <option value="profesor">Profesor (Estándar)</option>
+                        <option value="admin">Administrador (Acceso a este panel)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Guardar Usuario</button>
+                <button type="button"
+                    onclick="document.getElementById('newUserForm').style.display='none'">Cancelar</button>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usersList">
+                <tr>
+                    <td colspan="5" style="text-align: center;">Cargando usuarios...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", loadUsuarios);
+
+        async function loadUsuarios() {
+            try {
+                const res = await fetch('/api/usuarios');
+                if (!res.ok) {
+                    alert("Acceso denegado. Solo los administradores pueden ver esta tabla.");
+                    if (res.status === 403) window.location.href = "/";
+                    return;
+                }
+                const data = await res.json();
+                const tbody = document.getElementById("usersList");
+
+                tbody.innerHTML = data.map(u => `
+                    <tr>
+                        <td>#${u.id}</td>
+                        <td><strong>${u.username}</strong></td>
+                        <td><span class="role-badge role-${u.role}">${u.role.toUpperCase()}</span></td>
+                        <td>${new Date(u.fecha_creacion).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn-danger" onclick="borrarUsuario(${u.id}, '${u.username}')">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function crearUsuario(e) {
+            e.preventDefault();
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('newRole').value;
+
+            try {
+                const res = await fetch('/api/usuarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role })
+                });
+
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('newUsername').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('newUserForm').style.display = 'none';
+                    loadUsuarios();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                alert("Error de conexión");
+            }
+        }
+
+        async function borrarUsuario(id, name) {
+            if (!confirm(`¿Estás SEGURO de revocar el acceso a "${name}"?`)) return;
+
+            try {
+                const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+
+                if (data.ok) {
+                    loadUsuarios();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                alert("Error de conexión");
+            }
+        }
+    </script>
+</body>
+
+</html>

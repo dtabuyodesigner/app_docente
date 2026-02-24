@@ -21,6 +21,7 @@ from routes.reuniones import reuniones_bp
 from routes.informes import informes_bp
 from routes.google_cal import google_cal_bp
 from routes.tareas import tareas_bp
+from routes.usuarios import usuarios_bp
 
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
@@ -33,6 +34,7 @@ app.register_blueprint(reuniones_bp)
 app.register_blueprint(informes_bp)
 app.register_blueprint(google_cal_bp)
 app.register_blueprint(tareas_bp)
+app.register_blueprint(usuarios_bp)
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db
@@ -61,7 +63,26 @@ def init_db_command():
             conn.executescript(f.read())
         print("Database initialized.")
     else:
-        print("Database already exists.")
+        print("Database already exists. Run migrations manually if schema changed.")
+
+@app.cli.command('create-user')
+@click.argument('username')
+@click.argument('password')
+@click.option('--role', default='profesor', help='Role del usuario (admin, profesor, etc)')
+def create_user_command(username, password, role):
+    from werkzeug.security import generate_password_hash
+    conn = get_db()
+    cur = conn.cursor()
+    
+    cur.execute("SELECT id FROM usuarios WHERE username = ?", (username,))
+    if cur.fetchone():
+        print(f"Error: El usuario '{username}' ya existe.")
+        return
+        
+    pwd_hash = generate_password_hash(password)
+    cur.execute("INSERT INTO usuarios (username, password_hash, role) VALUES (?, ?, ?)", (username, pwd_hash, role))
+    conn.commit()
+    print(f"Usuario '{username}' creado exitosamente con rol '{role}'.")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

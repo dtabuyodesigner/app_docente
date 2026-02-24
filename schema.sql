@@ -165,3 +165,10 @@ CREATE TABLE IF NOT EXISTS "informe_observaciones" (
             PRIMARY KEY (alumno_id, trimestre),
             FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
         );
+CREATE TABLE IF NOT EXISTS "usuarios" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT DEFAULT 'profesor',
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );

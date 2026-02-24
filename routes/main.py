@@ -1,4 +1,6 @@
 from flask import Blueprint, send_from_directory, request, jsonify, session, redirect, url_for
+from werkzeug.security import check_password_hash
+from utils.db import get_db
 import os
 
 main_bp = Blueprint('main', __name__)
@@ -61,20 +63,37 @@ def login_page():
 
 @main_bp.route("/login", methods=["POST"])
 def do_login():
-    pwd = os.getenv("APP_PASSWORD")
     data = request.get_json(silent=True) or {}
-    
-    if not pwd:
+    username = data.get("username", "").strip()
+    password = data.get("password", "")
+
+    if not username or not password:
+        return jsonify({"ok": False, "error": "Faltan credenciales"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, username, password_hash, role FROM usuarios WHERE username = ?", (username,))
+    user = cur.fetchone()
+
+    # Si por algún casual la DB no tiene usuarios y existe APP_PASSWORD, se deja como fallback de emergencia temporal
+    legacy_pwd = os.getenv("APP_PASSWORD")
+    if not user and legacy_pwd and password == legacy_pwd and username == "admin":
         session['logged_in'] = True
+        session['user_id'] = 0
+        session['username'] = 'admin'
+        session['role'] = 'admin'
+        return jsonify({"ok": True})
+
+    if user and check_password_hash(user["password_hash"], password):
+        session['logged_in'] = True
+        session['user_id'] = user["id"]
+        session['username'] = user["username"]
+        session['role'] = user["role"]
         return jsonify({"ok": True})
         
-    if data.get("password") == pwd:
-        session['logged_in'] = True
-        return jsonify({"ok": True})
-        
-    return jsonify({"ok": False, "error": "Contraseña incorrecta"}), 401
+    return jsonify({"ok": False, "error": "Credenciales incorrectas"}), 401
 
 @main_bp.route("/logout")
 def do_logout():
-    session.pop('logged_in', None)
+    session.clear()
     return redirect(url_for('main.login_page'))

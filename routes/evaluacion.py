@@ -10,10 +10,16 @@ def borrar_evaluacion():
     trimestre = request.args.get("trimestre")
     if not (alumno_id and sda_id and trimestre):
         return jsonify({"ok": False, "error": "Faltan parametros"}), 400
+
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?", (alumno_id, sda_id, trimestre))
-    conn.commit()
+    try:
+        cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?", (alumno_id, sda_id, trimestre))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print("Error en borrar_evaluacion:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al borrar."}), 500
     return jsonify({"ok": True})
 
 @evaluacion_bp.route("/api/evaluacion", methods=["POST"])
@@ -26,27 +32,33 @@ def guardar_evaluacion():
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("""
-        INSERT INTO evaluaciones (
-            alumno_id, area_id, trimestre, sda_id, criterio_id,
-            nivel, nota
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
-        DO UPDATE SET
-            nivel = excluded.nivel,
-            nota = excluded.nota
-    """, (
-        d["alumno_id"],
-        d["area_id"],
-        d["trimestre"],
-        d["sda_id"],
-        d["criterio_id"],
-        nivel,
-        nota
-    ))
+    try:
+        cur.execute("BEGIN")
+        cur.execute("""
+            INSERT INTO evaluaciones (
+                alumno_id, area_id, trimestre, sda_id, criterio_id,
+                nivel, nota
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
+            DO UPDATE SET
+                nivel = excluded.nivel,
+                nota = excluded.nota
+        """, (
+            d["alumno_id"],
+            d["area_id"],
+            d["trimestre"],
+            d["sda_id"],
+            d["criterio_id"],
+            nivel,
+            nota
+        ))
 
-    conn.commit()
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print("Error en guardar_evaluacion:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al guardar la evaluación."}), 500
 
     return jsonify({"ok": True})
 
@@ -273,27 +285,31 @@ def guardar_rubrica():
     cur = conn.cursor()
     
     try:
-        for nivel, texto in descriptores.items():
+        cur.execute("BEGIN")
+        for nivel_str, texto in descriptores.items():
             cur.execute("""
                 INSERT INTO rubricas (criterio_id, nivel, descriptor) 
                 VALUES (?, ?, ?)
                 ON CONFLICT(criterio_id, nivel) DO UPDATE SET descriptor = excluded.descriptor
-            """, (criterio_id, int(nivel), texto))
+            """, (criterio_id, int(nivel_str), texto))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
-        pass
+        print("Error en guardar_rubrica:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al guardar rúbrica."}), 500
 
 @evaluacion_bp.route("/api/rubricas/<int:criterio_id>", methods=["DELETE"])
 def borrar_rubrica_criterio(criterio_id):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("DELETE FROM rubricas WHERE criterio_id = ?", (criterio_id,))
-    conn.commit()
+    try:
+        cur.execute("DELETE FROM rubricas WHERE criterio_id = ?", (criterio_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print("Error en borrar_rubrica_criterio:", str(e))
+        return jsonify({"ok": False, "error": "Error al borrar la rúbrica."}), 500
     return jsonify({"ok": True})
 
 @evaluacion_bp.route("/api/curricular/full")
@@ -337,15 +353,36 @@ def importar_sda():
         return jsonify({"ok": False, "error": "No hay datos"}), 400
         
     lines = csv_text.strip().split("\n")
+    if not lines:
+        return jsonify({"ok": False, "error": "El archivo está vacío."}), 400
+        
+    start_idx = 0
+    if lines[0].lower().startswith("area"):
+        start_idx = 1
+        
+    valid_lines = []
+    for i in range(start_idx, len(lines)):
+        line = lines[i].strip()
+        if not line: continue
+        parts = line.split(";")
+        if len(parts) < 5:
+            return jsonify({"ok": False, "error": f"Error en línea {i+1}: Faltan columnas separadas por (;)"}), 400
+        try:
+            int(parts[2].strip() or 1)
+        except ValueError:
+            return jsonify({"ok": False, "error": f"Error en línea {i+1}: El trimestre debe ser un número entero."}), 400
+        valid_lines.append(parts)
+        
+    if not valid_lines:
+        return jsonify({"ok": False, "error": "No hay datos válidos para procesar."}), 400
+
     conn = get_db()
     cur = conn.cursor()
     
     imported = 0
     try:
-        for line in lines:
-            parts = line.split(";")
-            if len(parts) < 5: continue
-            
+        cur.execute("BEGIN")
+        for parts in valid_lines:
             area_name = parts[0].strip()
             sda_name = parts[1].strip()
             trimestre = int(parts[2].strip() or 1)
@@ -355,7 +392,8 @@ def importar_sda():
             # 1. Get/Create Area
             cur.execute("SELECT id FROM areas WHERE nombre = ?", (area_name,))
             row = cur.fetchone()
-            if row: area_id = row["id"]
+            if row: 
+                area_id = row["id"]
             else:
                 cur.execute("INSERT INTO areas (nombre) VALUES (?)", (area_name,))
                 area_id = cur.lastrowid
@@ -363,7 +401,8 @@ def importar_sda():
             # 2. Get/Create SDA
             cur.execute("SELECT id FROM sda WHERE nombre = ? AND area_id = ?", (sda_name, area_id))
             row = cur.fetchone()
-            if row: sda_id = row["id"]
+            if row: 
+                sda_id = row["id"]
             else:
                 cur.execute("INSERT INTO sda (nombre, area_id, trimestre) VALUES (?, ?, ?)", (sda_name, area_id, trimestre))
                 sda_id = cur.lastrowid
@@ -371,7 +410,8 @@ def importar_sda():
             # 3. Get/Create Criterion
             cur.execute("SELECT id FROM criterios WHERE codigo = ? AND area_id = ?", (crit_code, area_id))
             row = cur.fetchone()
-            if row: crit_id = row["id"]
+            if row: 
+                crit_id = row["id"]
             else:
                 cur.execute("INSERT INTO criterios (codigo, descripcion, area_id) VALUES (?, ?, ?)", (crit_code, crit_desc, area_id))
                 crit_id = cur.lastrowid
@@ -384,10 +424,8 @@ def importar_sda():
         return jsonify({"ok": True, "count": imported})
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
-        pass
+        print("Error en importar_sda:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al importar SDA."}), 500
 
 @evaluacion_bp.route("/api/importar_actividades", methods=["POST"])
 def importar_actividades():
@@ -397,15 +435,39 @@ def importar_actividades():
         return jsonify({"ok": False, "error": "No hay datos"}), 400
         
     lines = csv_text.strip().split("\n")
+    if not lines:
+        return jsonify({"ok": False, "error": "El archivo está vacío."}), 400
+        
+    start_idx = 0
+    if lines[0].lower().startswith("sda"):
+        start_idx = 1
+        
+    valid_lines = []
+    for i in range(start_idx, len(lines)):
+        line = lines[i].strip()
+        if not line: continue
+        parts = line.split(";")
+        if len(parts) < 2:
+            return jsonify({"ok": False, "error": f"Error en línea {i+1}: Faltan columnas (necesita SDA y Actividad)."}), 400
+            
+        if len(parts) > 2 and parts[2].strip():
+            try:
+                int(parts[2].strip())
+            except ValueError:
+                return jsonify({"ok": False, "error": f"Error en línea {i+1}: El número de sesiones debe ser un entero."}), 400
+                
+        valid_lines.append(parts)
+        
+    if not valid_lines:
+        return jsonify({"ok": False, "error": "No hay datos válidos para procesar."}), 400
+
     conn = get_db()
     cur = conn.cursor()
     
     imported = 0
     try:
-        for line in lines:
-            parts = line.split(";")
-            if len(parts) < 2: continue
-            
+        cur.execute("BEGIN")
+        for parts in valid_lines:
             sda_name = parts[0].strip()
             act_name = parts[1].strip()
             sesiones = int(parts[2].strip() if len(parts) > 2 and parts[2].strip() else 1)
@@ -428,6 +490,5 @@ def importar_actividades():
         return jsonify({"ok": True, "count": imported})
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
+        print("Error en importar_actividades:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al importar actividades."}), 500

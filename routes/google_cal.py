@@ -108,7 +108,7 @@ def import_calendar():
         return jsonify({"ok": True, "imported": imported, "count": imported})
     except Exception as e:
         print(f"Global error in import_calendar: {e}")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "error": "Error interno al importar calendario."}), 500
 
 @google_cal_bp.route("/api/calendar/sync", methods=['POST'])
 def sync_calendar():
@@ -151,4 +151,4 @@ def sync_calendar():
         return jsonify({"ok": True, "synced": pushed, "pushed": pushed})
     except Exception as e:
         print(f"Global error in sync_calendar: {e}")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return jsonify({"ok": False, "error": "Error interno al sincronizar con Google Calendar."}), 500

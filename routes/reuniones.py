@@ -28,7 +28,8 @@ def api_reuniones():
             return jsonify({"ok": True, "id": cur.lastrowid})
         except Exception as e:
             conn.rollback()
-            return jsonify({"ok": False, "error": str(e)}), 500
+            print("Error en api_reuniones (POST):", str(e))
+            return jsonify({"ok": False, "error": "Error interno al guardar la reunión."}), 500
         finally:
             pass
             pass
@@ -85,7 +86,8 @@ def editar_reunion(rid):
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
+        print("Error en editar_reunion:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al editar la reunión."}), 500
     finally:
         pass
         pass
@@ -99,7 +101,8 @@ def borrar_reunion(rid):
         conn.commit()
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
+        print("Error en borrar_reunion:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al borrar la reunión."}), 500
     finally:
         pass
     return jsonify({"ok": True})
@@ -127,7 +130,8 @@ def api_ciclos():
             return jsonify({"ok": True, "id": cur.lastrowid})
         except Exception as e:
             conn.rollback()
-            return jsonify({"ok": False, "error": str(e)}), 500
+            print("Error en api_ciclos (POST):", str(e))
+            return jsonify({"ok": False, "error": "Error interno al guardar ciclo."}), 500
         finally:
             pass
     else:
@@ -154,7 +158,8 @@ def api_ciclo(cid):
             return jsonify({"ok": True})
         except Exception as e:
             conn.rollback()
-            return jsonify({"ok": False, "error": str(e)}), 500
+            print("Error en api_ciclo (PUT):", str(e))
+            return jsonify({"ok": False, "error": "Error interno al editar ciclo."}), 500
         finally:
             pass
     else:
@@ -165,6 +170,8 @@ def api_ciclo(cid):
             return jsonify({"ok": True})
         except Exception as e:
             conn.rollback()
-            return jsonify({"ok": False, "error": str(e)}), 500
+            print("Error en api_ciclo (DELETE):", str(e))
+            return jsonify({"ok": False, "error": "Error interno al borrar ciclo."}), 500
+            return jsonify({"ok": False, "error": "Error interno al guardar la reunión."}), 500
         finally:
             pass

@@ -107,10 +107,8 @@ def upload_comedor_menu():
             conn.commit()
         except Exception as e:
             conn.rollback()
-            return jsonify({"ok": False, "error": str(e)}), 500
-        finally:
-            pass
-            pass
+            print("Error en upload_comedor_menu:", str(e))
+            return jsonify({"ok": False, "error": "Error interno al guardar menú de comedor."}), 500
             
         return jsonify({"ok": True, "imagen": filename})
         

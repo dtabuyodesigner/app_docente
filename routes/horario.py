@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from utils.db import get_db
 import json
 import os
+import re
 from datetime import datetime
 
 horario_bp = Blueprint('horario', __name__)
@@ -99,6 +100,12 @@ def save_horario_manual():
     if dia is None or not hora_inicio or not hora_fin or not asignatura:
         return jsonify({"ok": False, "error": "Faltan datos obligatorios"}), 400
         
+    if not re.match(r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$", hora_inicio):
+        return jsonify({"ok": False, "error": "El formato de la hora de inicio no es válido (HH:MM)."}), 400
+        
+    if not re.match(r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$", hora_fin):
+        return jsonify({"ok": False, "error": "El formato de la hora de fin no es válido (HH:MM)."}), 400
+        
     conn = get_db()
     cur = conn.cursor()
     try:
@@ -110,10 +117,8 @@ def save_horario_manual():
         conn.commit()
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
-        pass
+        print("Error en save_horario_manual:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al guardar el horario."}), 500
         
     return jsonify({"ok": True, "id": new_id})
 
@@ -206,10 +211,8 @@ def guardar_evento():
         return jsonify({"ok": True, "id": new_id})
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
-        pass
+        print("Error en guardar_evento:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al guardar el evento."}), 500
 
 @horario_bp.route("/api/programacion/<int:event_id>", methods=["PUT"])
 def actualizar_evento(event_id):
@@ -226,10 +229,8 @@ def actualizar_evento(event_id):
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
-        pass
+        print("Error en actualizar_evento:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al actualizar el evento."}), 500
 
 @horario_bp.route("/api/programacion/<int:event_id>", methods=["DELETE"])
 def borrar_evento(event_id):
@@ -239,9 +240,9 @@ def borrar_evento(event_id):
         cur.execute("DELETE FROM programacion_diaria WHERE id = ?", (event_id,))
         conn.commit()
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
+        conn.rollback()
+        print("Error en borrar_evento:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al borrar el evento."}), 500
     return jsonify({"ok": True})
 
 @horario_bp.route("/api/tareas")

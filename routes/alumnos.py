@@ -4,7 +4,34 @@ import os
 import io
 import csv
 import json
+import re
 from datetime import datetime, date
+
+# Validation helpers
+def _validar_email(email):
+    if not email: return True
+    return bool(re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email.strip()))
+
+def _validar_telefono(tel):
+    if not tel: return True
+    tel_clean = re.sub(r"[\s\-\.]", "", str(tel))
+    return bool(re.match(r"^\+?\d{9,15}$", tel_clean))
+
+def _validar_fecha(fecha):
+    if not fecha: return True
+    try:
+        datetime.strptime(fecha.strip(), "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+        
+def _check_validaciones(f_nac, m_tel, m_email, p_tel, p_email):
+    if not _validar_fecha(f_nac): return "El formato de la fecha de nacimiento no es válido (YYYY-MM-DD)."
+    if not _validar_telefono(m_tel): return "El teléfono de la madre no tiene un formato válido."
+    if not _validar_email(m_email): return "El email de la madre no tiene un formato válido."
+    if not _validar_telefono(p_tel): return "El teléfono del padre no tiene un formato válido."
+    if not _validar_email(p_email): return "El email del padre no tiene un formato válido."
+    return None
 
 alumnos_bp = Blueprint('alumnos', __name__)
 
@@ -52,11 +79,16 @@ def nuevo_alumno():
     autorizados = d.get("personas_autorizadas")
 
     if not nombre:
-        return jsonify({"ok": False, "error": "Nombre es obligatorio"}), 400
+        return jsonify({"ok": False, "error": "El nombre es obligatorio"}), 400
+
+    err = _check_validaciones(f_nac, m_tel, m_email, p_tel, p_email)
+    if err:
+        return jsonify({"ok": False, "error": err}), 400
 
     conn = get_db()
     cur = conn.cursor()
     try:
+        cur.execute("BEGIN")
         cur.execute("INSERT INTO alumnos (nombre, no_comedor, comedor_dias) VALUES (?, ?, ?)", 
                     (nombre, no_comedor, comedor_dias))
         alumno_id = cur.lastrowid
@@ -73,10 +105,8 @@ def nuevo_alumno():
         return jsonify({"ok": True, "id": alumno_id})
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
-        pass
+        print("Error en nuevo_alumno:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al guardar el alumno."}), 500
 
 @alumnos_bp.route("/api/alumnos/<int:alumno_id>", methods=["PUT"])
 def editar_alumno_info(alumno_id):
@@ -86,11 +116,12 @@ def editar_alumno_info(alumno_id):
     comedor_dias = d.get("comedor_dias")
 
     if not nombre:
-        return jsonify({"ok": False, "error": "Nombre es obligatorio"}), 400
+        return jsonify({"ok": False, "error": "El nombre es obligatorio"}), 400
 
     conn = get_db()
     cur = conn.cursor()
     try:
+        cur.execute("BEGIN")
         cur.execute("""
             UPDATE alumnos
             SET nombre = ?, no_comedor = ?, comedor_dias = ?
@@ -99,10 +130,8 @@ def editar_alumno_info(alumno_id):
         conn.commit()
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
-        pass
+        print("Error en editar_alumno_info:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al editar el alumno."}), 500
 
     return jsonify({"ok": True})
 
@@ -111,16 +140,15 @@ def borrar_alumno(alumno_id):
     conn = get_db()
     cur = conn.cursor()
     try:
+        cur.execute("BEGIN")
         # La base de datos se encarga de borrar de asistencia, evaluaciones, ficha_alumno, etc. gracias a ON DELETE CASCADE
         cur.execute("DELETE FROM alumnos WHERE id = ?", (alumno_id,))
         
         conn.commit()
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
-    finally:
-        pass
-        pass
+        print("Error en borrar_alumno:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al borrar el alumno."}), 500
 
     return jsonify({"ok": True})
 
@@ -184,31 +212,42 @@ def obtener_ficha_alumno(alumno_id):
 @alumnos_bp.route("/api/alumnos/ficha", methods=["POST"])
 def guardar_ficha_alumno():
     d = request.json
+    
+    err = _check_validaciones(d.get("fecha_nacimiento"), d.get("madre_telefono"), d.get("madre_email"), d.get("padre_telefono"), d.get("padre_email"))
+    if err:
+        return jsonify({"ok": False, "error": err}), 400
+
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("""
-        INSERT OR REPLACE INTO ficha_alumno (
-            alumno_id, fecha_nacimiento, direccion, madre_nombre, 
-            madre_telefono, madre_email, padre_nombre, padre_telefono, padre_email,
-            observaciones_generales, personas_autorizadas
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        d["alumno_id"],
-        d.get("fecha_nacimiento", ""),
-        d.get("direccion", ""),
-        d.get("madre_nombre", ""),
-        d.get("madre_telefono", ""),
-        d.get("madre_email", ""),
-        d.get("padre_nombre", ""),
-        d.get("padre_telefono", ""),
-        d.get("padre_email", ""),
-        d.get("observaciones_generales", ""),
-        d.get("personas_autorizadas", "")
-    ))
+    try:
+        cur.execute("BEGIN")
+        cur.execute("""
+            INSERT OR REPLACE INTO ficha_alumno (
+                alumno_id, fecha_nacimiento, direccion, madre_nombre, 
+                madre_telefono, madre_email, padre_nombre, padre_telefono, padre_email,
+                observaciones_generales, personas_autorizadas
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            d["alumno_id"],
+            d.get("fecha_nacimiento", ""),
+            d.get("direccion", ""),
+            d.get("madre_nombre", ""),
+            d.get("madre_telefono", ""),
+            d.get("madre_email", ""),
+            d.get("padre_nombre", ""),
+            d.get("padre_telefono", ""),
+            d.get("padre_email", ""),
+            d.get("observaciones_generales", ""),
+            d.get("personas_autorizadas", "")
+        ))
 
-    conn.commit()
-    return jsonify({"ok": True})
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        print("Error en guardar_ficha_alumno:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al guardar la ficha del alumno."}), 500
 
 @alumnos_bp.route("/api/alumnos/progreso/<int:alumno_id>")
 def progreso_alumno(alumno_id):

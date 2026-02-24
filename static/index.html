@@ -781,7 +781,14 @@
                             callbacks: {
                                 label: function (context) {
                                     const d = data[context.dataIndex];
-                                    if (d.faltas > 0) return `${d.porcentaje}% (${d.faltas} faltas)`;
+                                    if (d.faltas > 0) {
+                                        let lineas = [`${d.porcentaje}% (${d.faltas} faltas)`];
+                                        if (d.faltan_nombres && d.faltan_nombres.length > 0) {
+                                            lineas.push("--------------");
+                                            d.faltan_nombres.forEach(n => lineas.push(`• ${n}`));
+                                        }
+                                        return lineas;
+                                    }
                                     return `100% (Asistencia perfecta)`;
                                 }
                             }

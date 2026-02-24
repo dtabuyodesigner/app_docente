@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, session
 from utils.db import get_db
 from datetime import date, timedelta
 from routes.comedor import calculate_comedor_total
@@ -58,12 +58,21 @@ def dashboard_resumen():
     asist_semanal = []
     for f in fechas:
         cur.execute("""
-            SELECT COUNT(*) FROM asistencia
-            WHERE fecha = ? AND estado IN ('falta_justificada', 'falta_no_justificada')
+            SELECT a.nombre 
+            FROM asistencia ast
+            JOIN alumnos a ON a.id = ast.alumno_id
+            WHERE ast.fecha = ? AND ast.estado IN ('falta_justificada', 'falta_no_justificada')
         """, (f,))
-        faltas = cur.fetchone()[0]
+        nombres_faltan = [r[0] for r in cur.fetchall()]
+        faltas = len(nombres_faltan)
+        
         porcentaje = max(0, 100.0 - (faltas * 100.0 / total_a))
-        asist_semanal.append({"fecha": f, "porcentaje": round(porcentaje, 1), "faltas": faltas})
+        asist_semanal.append({
+            "fecha": f, 
+            "porcentaje": round(porcentaje, 1), 
+            "faltas": faltas,
+            "faltan_nombres": nombres_faltan
+        })
 
     # 6. Distribución de notas (Global del trimestre actual)
     cur.execute("""
@@ -163,7 +172,8 @@ def dashboard_resumen():
         "distribucion_notas": distribucion,
         "alertas": alertas,
         "proximas_actividades": proximas,
-        "ultimas_reuniones": ultimas_reuniones
+        "ultimas_reuniones": ultimas_reuniones,
+        "user_role": session.get("role", "profesor")
     })
 
 @dashboard_bp.route("/api/dashboard/ultimas_observaciones")

@@ -320,6 +320,30 @@
             gap: 8px;
             font-size: 0.9rem;
         }
+
+        /* Mobile tweaks */
+        @media (max-width: 768px) {
+            .nav {
+                justify-content: center;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            select {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .btn-new,
+            .btn-config {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 

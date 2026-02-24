@@ -163,6 +163,22 @@
             padding: 8px 14px;
             cursor: pointer;
         }
+
+        /* Mobile tweaks */
+        @media (max-width: 768px) {
+            .contenedor {
+                grid-template-columns: 1fr;
+            }
+
+            .lista {
+                height: 300px;
+                margin-bottom: 20px;
+            }
+
+            .nav {
+                justify-content: center;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -513,6 +529,19 @@
                                 mostrarModalEditar(a);
                             };
 
+                            // Botón Ver Perfil
+                            const btnView = document.createElement("button");
+                            btnView.innerHTML = "👀";
+                            btnView.title = "Ver Expediente Completo";
+                            btnView.style.padding = "2px 6px";
+                            btnView.style.background = "none";
+                            btnView.style.border = "none";
+                            btnView.style.fontSize = "1.1em";
+                            btnView.onclick = (e) => {
+                                e.stopPropagation();
+                                window.location.href = `/perfil/${a.id}`;
+                            };
+
                             // Botón Borrar
                             const btnDel = document.createElement("button");
                             btnDel.innerHTML = "🗑️";
@@ -526,6 +555,7 @@
                                 borrarAlumno(a.id, a.nombre);
                             };
 
+                            divAcciones.appendChild(btnView);
                             divAcciones.appendChild(btnEdit);
                             divAcciones.appendChild(btnDel);
 

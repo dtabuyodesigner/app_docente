@@ -45,3 +45,7 @@ def horario_page():
 @main_bp.route("/comedor")
 def comedor_page():
     return send_from_directory("static", "comedor.html")
+
+@main_bp.route("/perfil/<int:id>")
+def perfil_page(id):
+    return send_from_directory("static", "perfil.html")

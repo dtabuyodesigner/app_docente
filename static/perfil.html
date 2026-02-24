@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>📘 Perfil del Alumno</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #003366;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+        }
+
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eef2f7;
+            padding-bottom: 20px;
+        }
+
+        .h1-title {
+            color: var(--primary);
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .btn-back {
+            background: #eef2f7;
+            color: var(--primary);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #dce4ee;
+        }
+
+        /* Profile Layout Grid */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        /* Left Column (Info Card) */
+        .info-card {
+            background: #fdfdfd;
+            border: 1px solid #eef2f7;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            height: fit-content;
+        }
+
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 0 auto 20px;
+            display: block;
+            background-color: var(--light);
+        }
+
+        .info-card h2 {
+            margin: 0 0 5px;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .info-card p.subtitle {
+            margin: 0 0 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .ficha-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        .ficha-list li {
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ficha-list li:last-child {
+            border-bottom: none;
+        }
+
+        .ficha-list strong {
+            color: var(--primary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .ficha-list span.val {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Right Column (Tabs/Content) */
+        .main-content {
+            background: white;
+            border-radius: 16px;
+        }
+
+        .tab-box {
+            display: flex;
+            border-bottom: 2px solid #eef2f7;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 15px 25px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6c757d;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Generic Boxes inside Tabs */
+        .box-section {
+            background: #fdfdfd;
+            border: 1px solid #eef2f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .box-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Historial List Items */
+        .historial-item {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: white;
+        }
+
+        .historial-item .meta {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .historial-item .body-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .tag-area {
+            background: var(--info);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 850px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header-bar">
+            <h1 class="h1-title">📘 Expediente del Alumno</h1>
+            <a href="/alumnos" class="btn-back">⬅ Volver a Alumnos</a>
+        </div>
+
+        <div class="profile-grid">
+            <!-- Left Side: Mini Ficha -->
+            <div class="info-card">
+                <img id="imgAvatar" class="profile-pic" src="/static/placeholder.jpg" alt="Foto">
+                <h2 id="lblNombre">Cargando...</h2>
+                <p class="subtitle" id="lblComedor">Comedor: No</p>
+
+                <ul class="ficha-list">
+                    <li>
+                        <strong>Fecha de Nacimiento</strong>
+                        <span class="val" id="lblFechaNac">-</span>
+                    </li>
+                    <li>
+                        <strong>Dirección</strong>
+                        <span class="val" id="lblDireccion">-</span>
+                    </li>
+                    <li>
+                        <strong>Contacto Madre</strong>
+                        <span class="val" id="lblMadre">-</span>
+                    </li>
+                    <li>
+                        <strong>Contacto Padre</strong>
+                        <span class="val" id="lblPadre">-</span>
+                    </li>
+                    <li>
+                        <strong>Autorizados recogen</strong>
+                        <span class="val" id="lblAutorizados">-</span>
+                    </li>
+                    <li>
+                        <strong>Observaciones Médicas / Extras</strong>
+                        <span class="val" id="lblObsFicha">-</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Right Side: Interaction History -->
+            <div class="main-content">
+                <div class="tab-box">
+                    <button class="tab-btn active" onclick="switchTab('tab-progreso', this)">📈 Progreso</button>
+                    <button class="tab-btn" onclick="switchTab('tab-observaciones', this)">📓 Observaciones</button>
+                    <button class="tab-btn" onclick="switchTab('tab-reuniones', this)">👨‍👩‍👧‍👦 Reuniones</button>
+                </div>
+
+                <!-- TAB 1: PROGRESS -->
+                <div id="tab-progreso" class="tab-pane active">
+                    <div class="box-section">
+                        <div class="box-header">Evolución de Notas Medias por Área (T1 vs T2 vs T3)</div>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="progresoChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: OBSERVACIONES -->
+                <div id="tab-observaciones" class="tab-pane">
+                    <div class="box-section">
+                        <div class="box-header">Anotaciones Diarias</div>
+                        <div id="containerObservaciones">
+                            <p style="color:#999; font-style:italic;">Cargando observaciones...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: REUNIONES -->
+                <div id="tab-reuniones" class="tab-pane">
+                    <div class="box-section">
+                        <div class="box-header">Historial de Tutorías (Familias)</div>
+                        <div id="containerReuniones">
+                            <p style="color:#999; font-style:italic;">Cargando reuniones...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Extract ID from URL (e.g., /perfil/id or ?id=1)
+        const urlParams = new URLSearchParams(window.location.search);
+        let alumnoId = urlParams.get('id');
+
+        // If using path routing like /perfil/1 instead of query string:
+        const pathParts = window.location.pathname.split('/');
+        if (pathParts[pathParts.length - 1] && !isNaN(pathParts[pathParts.length - 1]) && pathParts[pathParts.length - 1].trim() !== '') {
+            alumnoId = pathParts[pathParts.length - 1];
+        }
+
+        // Tab Script
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        async function loadProfile() {
+            if (!alumnoId) {
+                alert("No se especificó alumno.");
+                return;
+            }
+
+            try {
+                // Load Base Data & Ficha (Combining endpoints logic for simplicity here or using specific API)
+                const [resAlumnos, resFicha, resProgreso, resObs, resReuniones] = await Promise.all([
+                    fetch('/api/alumnos'),
+                    fetch(`/api/alumnos/ficha/${alumnoId}`),
+                    fetch(`/api/alumnos/progreso/${alumnoId}`),
+                    fetch(`/api/observaciones/${alumnoId}`),
+                    fetch(`/api/reuniones?tipo=PADRES`) // We will filter by alumno_id client side if needed, or better build a specific endpoint. Ideally backend should do this.
+                ]);
+
+                const alumnos = await resAlumnos.json();
+                const me = alumnos.find(a => a.id == alumnoId);
+
+                if (!me) throw new Error("Alumno no encontrado");
+
+                // LEFT COLUMN (General Info)
+                document.getElementById('lblNombre').innerText = me.nombre;
+                document.getElementById('imgAvatar').src = me.foto ? `/static/uploads/${me.foto}` : '/static/placeholder.jpg';
+
+                let comedorText = me.no_comedor ? 'No asiste' : 'Todos los días';
+                if (!me.no_comedor && me.comedor_dias) {
+                    // translate 0,1,2,3,4 to Mon, Tue...
+                    const dMap = { 0: "L", 1: "M", 2: "X", 3: "J", 4: "V" };
+                    comedorText = "Días: " + me.comedor_dias.split(',').map(d => dMap[d]).join(', ');
+                }
+                document.getElementById('lblComedor').innerText = "Comedor: " + comedorText;
+
+                // Ficha
+                const f = await resFicha.json();
+                document.getElementById('lblFechaNac').innerText = f.fecha_nacimiento ? f.fecha_nacimiento.split("-").reverse().join("/") : 'Sin dato';
+                document.getElementById('lblDireccion').innerText = f.direccion || 'Sin dato';
+
+                const mText = [f.madre_nombre, f.madre_telefono, f.madre_email].filter(Boolean).join(" | ");
+                document.getElementById('lblMadre').innerText = mText || 'Sin dato';
+
+                const pText = [f.padre_nombre, f.padre_telefono, f.padre_email].filter(Boolean).join(" | ");
+                document.getElementById('lblPadre').innerText = pText || 'Sin dato';
+
+                document.getElementById('lblAutorizados').innerText = f.personas_autorizadas || 'Sin dato';
+                document.getElementById('lblObsFicha').innerText = f.observaciones_generales || 'Ninguna';
+
+                // TAB PROGRESO
+                const p_data = await resProgreso.json(); // returns {1: [{area, media}...], 2: [...], 3: [...]}
+                renderProgresoChart(p_data);
+
+                // TAB OBSERVACIONES
+                const obs_data = await resObs.json();
+                const cObs = document.getElementById('containerObservaciones');
+                if (obs_data.length === 0) {
+                    cObs.innerHTML = '<p style="color:#999; font-style:italic;">No tiene observaciones registradas.</p>';
+                } else {
+                    cObs.innerHTML = obs_data.map(o => `
+                    <div class="historial-item">
+                        <div class="meta">
+                            <span>${o.fecha.split("-").reverse().join("/")}</span>
+                        </div>
+                        <div class="body-text">${o.texto}</div>
+                    </div>
+                `).join('');
+                }
+
+                // TAB REUNIONES
+                let reuniones = await resReuniones.json();
+                reuniones = reuniones.filter(r => r.alumno_id == alumnoId);
+                const cReus = document.getElementById('containerReuniones');
+
+                if (reuniones.length === 0) {
+                    cReus.innerHTML = '<p style="color:#999; font-style:italic;">No hay reuniones de padres/madres registradas para este alumno.</p>';
+                } else {
+                    cReus.innerHTML = reuniones.map(r => `
+                    <div class="historial-item">
+                        <div class="meta">
+                            <span>📅 ${r.fecha.replace("T", " ")}</span>
+                        </div>
+                        <div class="body-text">
+                            <strong>Temas tratados:</strong><br>
+                            ${r.temas ? r.temas.replace(/\n/g, '<br>') : 'Sin especificar'}
+                        </div>
+                    </div>
+                 `).join('');
+                }
+
+            } catch (e) {
+                console.error("Error cargando perfil", e);
+                alert("No se pudo cargar el perfil del alumno.");
+            }
+        }
+
+        function renderProgresoChart(dataT) {
+            // Collect all unique areas
+            const areasSet = new Set();
+            [1, 2, 3].forEach(t => {
+                if (dataT[t]) {
+                    dataT[t].forEach(a => areasSet.add(a.area));
+                }
+            });
+
+            const areas = Array.from(areasSet);
+            if (areas.length === 0) {
+                document.getElementById('progresoChart').parentNode.innerHTML = "<p style='padding: 20px; color: #666; text-align:center;'>Aún no hay calificaciones para graficar.</p>";
+                return;
+            }
+
+            const createDataset = (trimestre, colorBg, colorBorder) => {
+                const values = areas.map(area => {
+                    const arr = dataT[trimestre] || [];
+                    const d = arr.find(item => item.area === area);
+                    return d ? d.media : null;
+                });
+                return {
+                    label: `Trimestre ${trimestre}`,
+                    data: values,
+                    backgroundColor: colorBg,
+                    borderColor: colorBorder,
+                    borderWidth: 2,
+                    borderRadius: 4
+                };
+            };
+
+            const datasets = [
+                createDataset(1, 'rgba(55, 136, 216, 0.7)', 'rgb(55, 136, 216)'), // Blue
+                createDataset(2, 'rgba(40, 167, 69, 0.7)', 'rgb(40, 167, 69)'),    // Green
+                createDataset(3, 'rgba(255, 193, 7, 0.7)', 'rgb(255, 193, 7)')     // Yellow
+            ].filter(d => d.data.some(val => val !== null)); // Remove empty trimesters
+
+            const ctx = document.getElementById('progresoChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: areas,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+</body>
+
+</html>

@@ -639,7 +639,7 @@
                                 let badgeColor = t.prioridad === 'alta' ? '#ffebee' : (t.prioridad === 'media' ? '#fff8e1' : '#e8f5e9');
                                 let textColor = t.prioridad === 'alta' ? '#c62828' : (t.prioridad === 'media' ? '#f57f17' : '#2e7d32');
                                 return `
-                            < div style = "padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;" >
+                            <div style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <div style="font-weight: 600; color: var(--primary);">${t.titulo}</div>
                                     <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">
@@ -647,11 +647,11 @@
                                         ${t.fecha_limite ? '🗓️ ' + new Date(t.fecha_limite).toLocaleDateString() : ''}
                                     </div>
                                 </div>
-                                    </div >
+                                    </div>
                             `;
                             }).join('');
                         } else {
-                            taskList.innerHTML = `< div style = "color: #999; font-style: italic;" >👍 Todo al día.Nada pendiente.</div > `;
+                            taskList.innerHTML = `<div style="color: #999; font-style: italic;">👍 Todo al día. Nada pendiente.</div>`;
                         }
                     }
                 } catch (e) {

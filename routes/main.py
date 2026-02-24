@@ -1,4 +1,5 @@
-from flask import Blueprint, send_from_directory
+from flask import Blueprint, send_from_directory, request, jsonify, session, redirect, url_for
+import os
 
 main_bp = Blueprint('main', __name__)
 
@@ -49,3 +50,31 @@ def comedor_page():
 @main_bp.route("/perfil/<int:id>")
 def perfil_page(id):
     return send_from_directory("static", "perfil.html")
+
+@main_bp.route("/tareas")
+def tareas_page():
+    return send_from_directory("static", "tareas.html")
+
+@main_bp.route("/login", methods=["GET"])
+def login_page():
+    return send_from_directory("static", "login.html")
+
+@main_bp.route("/login", methods=["POST"])
+def do_login():
+    pwd = os.getenv("APP_PASSWORD")
+    data = request.get_json(silent=True) or {}
+    
+    if not pwd:
+        session['logged_in'] = True
+        return jsonify({"ok": True})
+        
+    if data.get("password") == pwd:
+        session['logged_in'] = True
+        return jsonify({"ok": True})
+        
+    return jsonify({"ok": False, "error": "Contraseña incorrecta"}), 401
+
+@main_bp.route("/logout")
+def do_logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('main.login_page'))

@@ -100,6 +100,15 @@ CREATE TABLE IF NOT EXISTS "evaluaciones" (
                 FOREIGN KEY(sda_id) REFERENCES sda(id),
                 FOREIGN KEY(criterio_id) REFERENCES criterios(id)
             );
+CREATE TABLE IF NOT EXISTS gestor_tareas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    descripcion TEXT,
+    estado TEXT DEFAULT 'pendiente',
+    prioridad TEXT DEFAULT 'media',
+    fecha_limite DATE,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS "informe_individual" (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 alumno_id INTEGER NOT NULL,

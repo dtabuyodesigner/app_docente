@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, redirect, url_for, session
 import os
 from dotenv import load_dotenv
 
@@ -20,6 +20,7 @@ from routes.comedor import comedor_bp
 from routes.reuniones import reuniones_bp
 from routes.informes import informes_bp
 from routes.google_cal import google_cal_bp
+from routes.tareas import tareas_bp
 
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
@@ -31,12 +32,25 @@ app.register_blueprint(comedor_bp)
 app.register_blueprint(reuniones_bp)
 app.register_blueprint(informes_bp)
 app.register_blueprint(google_cal_bp)
+app.register_blueprint(tareas_bp)
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db
 import click
 
 app.teardown_appcontext(close_db)
+
+@app.before_request
+def require_auth():
+    # Allow static files and the login/logout routes
+    if request.path.startswith('/static/') or request.path in ['/login', '/logout'] or request.path.endswith('.js') or request.path.endswith('.css') or request.endpoint == 'static':
+        return
+        
+    pwd = os.getenv("APP_PASSWORD")
+    if pwd and not session.get('logged_in'):
+        if request.path.startswith('/api/'):
+            return {"ok": False, "error": "No autorizado"}, 401
+        return redirect(url_for('main.login_page'))
 
 @app.cli.command('init-db')
 def init_db_command():

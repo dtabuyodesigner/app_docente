@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Tareas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Nav */
+        .nav {
+            background: #003366;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-new {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-new:hover {
+            background-color: #218838;
+        }
+
+        /* Filtros */
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .filters button {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .filters button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Lista de Tareas */
+        .task-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .task-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-left: 5px solid #ccc;
+        }
+
+        .task-card.prioridad-alta {
+            border-left-color: var(--danger);
+        }
+
+        .task-card.prioridad-media {
+            border-left-color: var(--warning);
+        }
+
+        .task-card.prioridad-baja {
+            border-left-color: var(--success);
+        }
+
+        .task-card.completada {
+            opacity: 0.7;
+            background: #f8f9fa;
+        }
+
+        .task-card.completada .task-title {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .task-info {
+            flex-grow: 1;
+        }
+
+        .task-title {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #eee;
+        }
+
+        .badge-date {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        .badge-alta {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-media {
+            background: #fff8e1;
+            color: #f57f17;
+        }
+
+        .badge-baja {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .task-desc {
+            color: #555;
+            margin: 0;
+            white-space: pre-line;
+            font-size: 0.95rem;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 20px;
+        }
+
+        .task-actions button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .task-actions button:hover {
+            background: #eee;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                justify-content: center;
+            }
+
+            .task-card {
+                flex-direction: column;
+            }
+
+            .task-actions {
+                margin-left: 0;
+                margin-top: 15px;
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/comedor">🍽️ Comedor</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/programacion">📅 Calendario</a>
+            <a href="/horario">⏰ Horario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+            <a href="/tareas" class="active">✅ Tareas</a>
+        </div>
+
+        <div class="header-actions">
+            <h2 style="margin:0;">✅ Gestión de Tareas</h2>
+            <button class="btn-new" onclick="abrirModal()">➕ Nueva Tarea</button>
+        </div>
+
+        <div class="filters">
+            <button id="btnFilterTodo" class="active" onclick="setFiltro('')">Todas</button>
+            <button id="btnFilterPendientes" onclick="setFiltro('pendiente')">Pendientes</button>
+            <button id="btnFilterCompletadas" onclick="setFiltro('completada')">Completadas</button>
+        </div>
+
+        <div id="listaTareas" class="task-list">
+            <!-- Tareas insertadas por JS -->
+        </div>
+
+    </div>
+
+    <!-- Modal Tarea -->
+    <div class="modal" id="modalTarea">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="margin-top:0;">Nueva Tarea</h3>
+            <input type="hidden" id="tareaId">
+
+            <div class="form-group">
+                <label>Título / Asunto *</label>
+                <input type="text" id="titulo" placeholder="Ej: Corregir exámenes de mates" required>
+            </div>
+
+            <div class="form-group">
+                <label>Prioridad</label>
+                <select id="prioridad">
+                    <option value="alta">🔴 Alta</option>
+                    <option value="media" selected>🟡 Media</option>
+                    <option value="baja">🟢 Baja</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha Límite</label>
+                <input type="date" id="fecha_limite">
+            </div>
+
+            <div class="form-group">
+                <label>Descripción / Notas</label>
+                <textarea id="descripcion" placeholder="Detalles de lo que hay que hacer..."></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-save" onclick="guardarTarea()">Guardar Tarea</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = ''; // '' = todas, 'pendiente', 'completada'
+
+        function setFiltro(estado) {
+            currentFilter = estado;
+            document.querySelectorAll('.filters button').forEach(btn => btn.classList.remove('active'));
+            if (estado === '') document.getElementById('btnFilterTodo').classList.add('active');
+            if (estado === 'pendiente') document.getElementById('btnFilterPendientes').classList.add('active');
+            if (estado === 'completada') document.getElementById('btnFilterCompletadas').classList.add('active');
+            cargarTareas();
+        }
+
+        async function cargarTareas() {
+            const url = currentFilter ? `/api/gestor_tareas?estado=${currentFilter}` : '/api/gestor_tareas';
+            const res = await fetch(url);
+            const tareas = await res.json();
+
+            const lista = document.getElementById("listaTareas");
+            lista.innerHTML = "";
+
+            if (tareas.length === 0) {
+                lista.innerHTML = `<div style="text-align:center; padding: 40px; color: #888;">No hay tareas en esta vista. ¡Todo al día! 🎉</div>`;
+                return;
+            }
+
+            tareas.forEach(t => {
+                const card = document.createElement('div');
+                card.className = `task-card prioridad-${t.prioridad} ${t.estado}`;
+
+                let checkIcon = t.estado === 'completada' ? '✔️ Desmarcar' : '⭕ Completar';
+
+                let fechaHtml = '';
+                if (t.fecha_limite) {
+                    const d = new Date(t.fecha_limite);
+                    fechaHtml = `<span class="badge badge-date">📅 ${d.toLocaleDateString()}</span>`;
+                }
+
+                card.innerHTML = `
+                    <div class="task-info">
+                        <h4 class="task-title">
+                            ${t.titulo}
+                        </h4>
+                        <div class="task-badges">
+                            <span class="badge badge-${t.prioridad}">Prioridad ${t.prioridad.charAt(0).toUpperCase() + t.prioridad.slice(1)}</span>
+                            ${fechaHtml}
+                        </div>
+                        <p class="task-desc">${t.descripcion || '<em>Sin notas.</em>'}</p>
+                    </div>
+                    <div class="task-actions">
+                        <button onclick="toggleEstado(${t.id}, '${t.estado}')" title="Marcar/Desmarcar">
+                            ${t.estado === 'completada' ? '✅' : '⬜'}
+                        </button>
+                        <button onclick='editarTarea(${JSON.stringify(t)})' title="Editar">✏️</button>
+                        <button onclick="borrarTarea(${t.id})" title="Eliminar">🗑️</button>
+                    </div>
+                `;
+                lista.appendChild(card);
+            });
+        }
+
+        async function toggleEstado(id, estadoActual) {
+            const nuevoEstado = estadoActual === 'completada' ? 'pendiente' : 'completada';
+            await fetch(`/api/gestor_tareas/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: nuevoEstado })
+            });
+            cargarTareas();
+        }
+
+        async function borrarTarea(id) {
+            if (!confirm("¿Borrar esta tarea?")) return;
+            await fetch(`/api/gestor_tareas/${id}`, { method: 'DELETE' });
+            cargarTareas();
+        }
+
+        function abrirModal() {
+            document.getElementById("modalTitle").innerText = "Nueva Tarea";
+            document.getElementById("tareaId").value = "";
+            document.getElementById("titulo").value = "";
+            document.getElementById("descripcion").value = "";
+            document.getElementById("prioridad").value = "media";
+            document.getElementById("fecha_limite").value = "";
+            document.getElementById("modalTarea").style.display = "flex";
+        }
+
+        function editarTarea(t) {
+            document.getElementById("modalTitle").innerText = "Editar Tarea";
+            document.getElementById("tareaId").value = t.id;
+            document.getElementById("titulo").value = t.titulo;
+            document.getElementById("descripcion").value = t.descripcion;
+            document.getElementById("prioridad").value = t.prioridad;
+            document.getElementById("fecha_limite").value = t.fecha_limite || "";
+            document.getElementById("modalTarea").style.display = "flex";
+        }
+
+        function cerrarModal() {
+            document.getElementById("modalTarea").style.display = "none";
+        }
+
+        async function guardarTarea() {
+            const id = document.getElementById("tareaId").value;
+            const payload = {
+                titulo: document.getElementById("titulo").value,
+                descripcion: document.getElementById("descripcion").value,
+                prioridad: document.getElementById("prioridad").value,
+                fecha_limite: document.getElementById("fecha_limite").value
+            };
+
+            if (!payload.titulo.trim()) {
+                alert("El título es obligatorio");
+                return;
+            }
+
+            const method = id ? "PUT" : "POST";
+            const url = id ? `/api/gestor_tareas/${id}` : "/api/gestor_tareas";
+
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (data.ok) {
+                cerrarModal();
+                cargarTareas();
+            } else {
+                alert("Error: " + data.error);
+            }
+        }
+
+        // Init
+        cargarTareas();
+    </script>
+</body>
+
+</html>

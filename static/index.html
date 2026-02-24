@@ -233,7 +233,7 @@
         /* Navigation Menu */
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 15px;
             margin-top: 20px;
         }
@@ -449,6 +449,10 @@
                 <span class="nav-icon">👨‍👩‍👧‍👦</span>
                 <span class="nav-text">Reuniones</span>
             </a>
+            <a href="/tareas" class="nav-btn">
+                <span class="nav-icon">✅</span>
+                <span class="nav-text">Tareas</span>
+            </a>
         </div>
 
         <div class="dashboard-grid">
@@ -486,6 +490,19 @@
                 <div class="section-header">📅 Próximas Actividades</div>
                 <div id="activitiesList">
                     <div style="color: #999; font-style: italic;">No hay actividades próximas.</div>
+                </div>
+            </div>
+
+            <div class="list-container"
+                style="grid-column: span 2; height: auto; max-height: 400px; border-left: 4px solid var(--warning);">
+                <div class="section-header">✅ Tareas Pendientes</div>
+                <div id="pendingTasksList">
+                    <div style="color: #999; font-style: italic;">Cargando tareas...</div>
+                </div>
+                <div style="text-align: right; margin-top: 10px;">
+                    <a href="/tareas"
+                        style="font-size: 0.85rem; font-weight: bold; color: var(--primary); text-decoration: none;">Ir
+                        al Gestor de Tareas ➔</a>
                 </div>
             </div>
 
@@ -608,6 +625,37 @@
                             <div class="activity-text">${act.actividad}</div>
                         </div>`;
                     }).join('');
+                }
+
+                // 5. Pending Tasks
+                try {
+                    const taskRes = await fetch('/api/gestor_tareas?estado=pendiente');
+                    if (taskRes.ok) {
+                        const tasks = await taskRes.json();
+                        const taskList = document.getElementById('pendingTasksList');
+                        if (tasks.length > 0) {
+                            // Show max 4
+                            taskList.innerHTML = tasks.slice(0, 4).map(t => {
+                                let badgeColor = t.prioridad === 'alta' ? '#ffebee' : (t.prioridad === 'media' ? '#fff8e1' : '#e8f5e9');
+                                let textColor = t.prioridad === 'alta' ? '#c62828' : (t.prioridad === 'media' ? '#f57f17' : '#2e7d32');
+                                return `
+                            < div style = "padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;" >
+                                <div>
+                                    <div style="font-weight: 600; color: var(--primary);">${t.titulo}</div>
+                                    <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">
+                                        <span style="background: ${badgeColor}; color: ${textColor}; padding: 2px 6px; border-radius: 8px; font-weight: bold;">${t.prioridad.toUpperCase()}</span>
+                                        ${t.fecha_limite ? '🗓️ ' + new Date(t.fecha_limite).toLocaleDateString() : ''}
+                                    </div>
+                                </div>
+                                    </div >
+                            `;
+                            }).join('');
+                        } else {
+                            taskList.innerHTML = `< div style = "color: #999; font-style: italic;" >👍 Todo al día.Nada pendiente.</div > `;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error loading tasks:", e);
                 }
 
                 // 5. Attendance Chart

@@ -1,12 +1,19 @@
 import sqlite3
 import os
+from flask import g
 
 DB_PATH = "app_evaluar.db"
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # Access columns by name
-    return conn
+    if 'db' not in g:
+        g.db = sqlite3.connect(DB_PATH)
+        g.db.row_factory = sqlite3.Row  # Access columns by name
+    return g.db
+
+def close_db(e=None):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
 def nivel_a_nota(nivel):
     """Convierte un nivel (1-4) en una nota numérica (0-10)"""

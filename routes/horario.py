@@ -11,7 +11,6 @@ def get_config_value(key):
     cur = conn.cursor()
     cur.execute("SELECT valor FROM config WHERE clave = ?", (key,))
     row = cur.fetchone()
-    conn.close()
     return row["valor"] if row else None
 
 def set_config_value(key, value):
@@ -19,7 +18,6 @@ def set_config_value(key, value):
     cur = conn.cursor()
     cur.execute("INSERT INTO config (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor", (key, value))
     conn.commit()
-    conn.close()
 
 @horario_bp.route("/api/horario")
 def get_horario():
@@ -61,7 +59,6 @@ def get_horario():
             {"start": "13:00", "end": "14:00"},
         ]
 
-    conn.close()
     return jsonify({
         "manual": manual, 
         "imagen_clase": img_clase, 
@@ -115,7 +112,8 @@ def save_horario_manual():
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
         
     return jsonify({"ok": True, "id": new_id})
 
@@ -125,7 +123,6 @@ def delete_horario_manual(id):
     cur = conn.cursor()
     cur.execute("DELETE FROM horario WHERE id = ?", (id,))
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})
 
 @horario_bp.route("/api/horario/upload", methods=["POST"])
@@ -174,7 +171,6 @@ def obtener_programacion():
 
     cur.execute(sql, params)
     rows = cur.fetchall()
-    conn.close()
     
     events = []
     for r in rows:
@@ -212,7 +208,8 @@ def guardar_evento():
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
 
 @horario_bp.route("/api/programacion/<int:event_id>", methods=["PUT"])
 def actualizar_evento(event_id):
@@ -231,7 +228,8 @@ def actualizar_evento(event_id):
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
 
 @horario_bp.route("/api/programacion/<int:event_id>", methods=["DELETE"])
 def borrar_evento(event_id):
@@ -243,7 +241,7 @@ def borrar_evento(event_id):
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
     return jsonify({"ok": True})
 
 @horario_bp.route("/api/tareas")
@@ -252,7 +250,6 @@ def obtener_tareas():
     cur = conn.cursor()
     cur.execute("SELECT id, texto, fecha, hecha FROM tareas ORDER BY id DESC")
     rows = cur.fetchall()
-    conn.close()
     return jsonify([{"id":r["id"], "texto":r["texto"], "fecha":r["fecha"], "completada":bool(r["hecha"])} for r in rows])
 
 @horario_bp.route("/api/tareas", methods=["POST"])
@@ -266,7 +263,6 @@ def crear_tarea():
     cur.execute("INSERT INTO tareas (texto, fecha, hecha) VALUES (?, ?, 0)", (d["texto"], d.get("fecha")))
     new_id = cur.lastrowid
     conn.commit()
-    conn.close()
     return jsonify({"ok": True, "id": new_id})
 
 @horario_bp.route("/api/tareas/<int:id>", methods=["PUT"])
@@ -287,7 +283,6 @@ def actualizar_tarea(id):
         cur.execute("UPDATE tareas SET texto = ?, fecha = ?, hecha = ? WHERE id = ?", (texto, fecha, hecha, id))
     
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})
 
 @horario_bp.route("/api/tareas/<int:id>", methods=["DELETE"])
@@ -296,7 +291,6 @@ def borrar_tarea(id):
     cur = conn.cursor()
     cur.execute("DELETE FROM tareas WHERE id = ?", (id,))
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})
 
 @horario_bp.route("/api/tareas/bulk_delete_completed", methods=["POST"])
@@ -306,7 +300,6 @@ def borrar_tareas_completadas():
     cur.execute("DELETE FROM tareas WHERE hecha = 1")
     deleted = cur.rowcount
     conn.commit()
-    conn.close()
     return jsonify({"ok": True, "deleted": deleted})
 
 @horario_bp.route("/api/observaciones", methods=["POST"])
@@ -333,7 +326,6 @@ def guardar_observacion():
         else:
             cur.execute("DELETE FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id IS NULL", (alumno_id, fecha))
         conn.commit()
-        conn.close()
         return jsonify({"ok": True, "deleted": True})
 
     if area_id:
@@ -352,7 +344,6 @@ def guardar_observacion():
         """, (alumno_id, fecha, texto, area_id))
 
     conn.commit()
-    conn.close()
 
     return jsonify({"ok": True})
 
@@ -399,7 +390,6 @@ def obtener_observaciones_dia():
             "padre_email": row["padre_email"] or ""
         })
     
-    conn.close()
     return jsonify(data)
 
 @horario_bp.route("/api/observaciones/<int:alumno_id>")
@@ -415,7 +405,6 @@ def ver_observaciones(alumno_id):
     """, (alumno_id,))
 
     datos = cur.fetchall()
-    conn.close()
 
     return jsonify([
         {"id": r["id"], "fecha": r["fecha"], "texto": r["texto"]}
@@ -434,12 +423,10 @@ def editar_observacion(obs_id):
     if not texto.strip():
         cur.execute("DELETE FROM observaciones WHERE id = ?", (obs_id,))
         conn.commit()
-        conn.close()
         return jsonify({"ok": True, "deleted": True})
         
     cur.execute("UPDATE observaciones SET texto = ? WHERE id = ?", (texto, obs_id))
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})
 
 @horario_bp.route("/api/observaciones/<int:obs_id>", methods=["DELETE"])
@@ -448,5 +435,4 @@ def borrar_observacion(obs_id):
     cur = conn.cursor()
     cur.execute("DELETE FROM observaciones WHERE id = ?", (obs_id,))
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})

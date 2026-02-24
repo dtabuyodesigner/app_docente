@@ -14,7 +14,6 @@ def borrar_evaluacion():
     cur = conn.cursor()
     cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?", (alumno_id, sda_id, trimestre))
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})
 
 @evaluacion_bp.route("/api/evaluacion", methods=["POST"])
@@ -48,7 +47,6 @@ def guardar_evaluacion():
     ))
 
     conn.commit()
-    conn.close()
 
     return jsonify({"ok": True})
 
@@ -70,7 +68,6 @@ def obtener_evaluacion():
     """, (area_id, sda_id, trimestre))
 
     datos = cur.fetchall()
-    conn.close()
 
     return jsonify([
         {
@@ -88,7 +85,6 @@ def evaluacion_areas():
 
     cur.execute("SELECT id, nombre FROM areas ORDER BY nombre")
     datos = cur.fetchall()
-    conn.close()
 
     return jsonify([
         {"id": a["id"], "nombre": a["nombre"]}
@@ -108,7 +104,6 @@ def evaluacion_sda(area_id):
     """, (area_id,))
 
     datos = cur.fetchall()
-    conn.close()
 
     return jsonify([
         {"id": s["id"], "nombre": s["nombre"]}
@@ -129,7 +124,6 @@ def evaluacion_criterios(sda_id):
     """, (sda_id,))
 
     datos = cur.fetchall()
-    conn.close()
 
     return jsonify([
         {"id": c["id"], "codigo": c["codigo"], "descripcion": c["descripcion"]}
@@ -154,7 +148,6 @@ def evaluacion_alumno():
     """, (alumno_id, sda_id, trimestre))
 
     datos = cur.fetchall()
-    conn.close()
 
     return jsonify({
         str(c["criterio_id"]): c["nivel"]
@@ -179,7 +172,6 @@ def media_sda():
     """, (alumno_id, sda_id, trimestre))
 
     media = cur.fetchone()[0]
-    conn.close()
 
     return jsonify({
         "media": media if media is not None else 0
@@ -203,7 +195,6 @@ def media_area():
     """, (alumno_id, area_id, trimestre))
 
     media = cur.fetchone()[0]
-    conn.close()
 
     return jsonify({
         "media": media if media is not None else 0
@@ -228,7 +219,6 @@ def resumen_areas_alumno():
     """, (alumno_id, trimestre))
 
     rows = cur.fetchall()
-    conn.close()
     
     return jsonify([
          {"area": row["nombre"], "media": row["media"]}
@@ -255,7 +245,6 @@ def resumen_sda_todos():
     """, (alumno_id, trimestre))
     
     rows = cur.fetchall()
-    conn.close()
     
     return jsonify([
         {"area": r["area"], "sda": r["sda"], "media": r["media"]}
@@ -268,7 +257,6 @@ def obtener_rubrica(criterio_id):
     cur = conn.cursor()
     cur.execute("SELECT nivel, descriptor FROM rubricas WHERE criterio_id = ? ORDER BY nivel", (criterio_id,))
     rows = cur.fetchall()
-    conn.close()
     
     return jsonify({str(r["nivel"]): r["descriptor"] for r in rows})
 
@@ -297,7 +285,8 @@ def guardar_rubrica():
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
 
 @evaluacion_bp.route("/api/rubricas/<int:criterio_id>", methods=["DELETE"])
 def borrar_rubrica_criterio(criterio_id):
@@ -305,7 +294,6 @@ def borrar_rubrica_criterio(criterio_id):
     cur = conn.cursor()
     cur.execute("DELETE FROM rubricas WHERE criterio_id = ?", (criterio_id,))
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})
 
 @evaluacion_bp.route("/api/curricular/full")
@@ -339,7 +327,6 @@ def curricular_full():
             
         area["sdas"] = sdas
         
-    conn.close()
     return jsonify(areas)
 
 @evaluacion_bp.route("/api/importar_sda", methods=["POST"])
@@ -399,7 +386,8 @@ def importar_sda():
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
 
 @evaluacion_bp.route("/api/importar_actividades", methods=["POST"])
 def importar_actividades():
@@ -442,4 +430,4 @@ def importar_actividades():
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass

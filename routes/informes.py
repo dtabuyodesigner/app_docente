@@ -103,7 +103,6 @@ def informe_pdf_individual():
     """, (alumno_id, start_date, end_date))
     faltas_detalle = cur.fetchall()
     
-    conn.close()
     
     # Generate PDF
     buffer = BytesIO()
@@ -256,7 +255,6 @@ def informe_preview_diario(alumno_id):
     cur.execute("SELECT nombre FROM alumnos WHERE id = ?", (alumno_id,))
     row_alumno = cur.fetchone()
     if not row_alumno:
-        conn.close()
         return jsonify({"ok": False, "error": "Alumno no encontrado"}), 404
         
     nombre_alumno = row_alumno["nombre"]
@@ -270,7 +268,6 @@ def informe_preview_diario(alumno_id):
         ORDER BY o.fecha DESC, o.id DESC
     """, (alumno_id,))
     rows = cur.fetchall()
-    conn.close()
     
     # 3. Group by date
     grouped = {}
@@ -329,7 +326,6 @@ def informe_pdf_diario(alumno_id):
     """, (alumno_id,))
     obs = cur.fetchall()
     
-    conn.close()
     
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
@@ -369,7 +365,6 @@ def informe_reunion_pdf(rid):
         WHERE r.id = ?
     """, (rid, ))
     r = cur.fetchone()
-    conn.close()
     
     if not r:
         return "Reunión no encontrada", 404
@@ -518,12 +513,10 @@ def grupo_obs():
                 conclusion = excluded.conclusion
         """, (trimestre, obs, prop, conc))
         conn.commit()
-        conn.close()
         return jsonify({"ok": True})
     else:
         cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ?", (trimestre,))
         row = cur.fetchone()
-        conn.close()
         if row:
             return jsonify({
                 "observaciones": row["observaciones"],
@@ -595,7 +588,6 @@ def grupo_data():
         else:
             distribucion[num] += 1
             
-    conn.close()
     
     def pct(n):
         return round(n * 100.0 / total_alumnos, 1) if total_alumnos > 0 else 0
@@ -648,7 +640,6 @@ def asistencia_detalle():
         ORDER BY asi.fecha DESC
     """, (estado, start_date, end_date))
     rows = cur.fetchall()
-    conn.close()
     
     return jsonify([{"nombre": r["nombre"], "fecha": r["fecha"]} for r in rows])
 
@@ -672,7 +663,6 @@ def observacion_individual():
         """, (alumno_id, trimestre, texto))
         
         conn.commit()
-        conn.close()
         return jsonify({"ok": True})
     else:
         alumno_id = request.args.get("alumno_id")
@@ -682,7 +672,6 @@ def observacion_individual():
         cur = conn.cursor()
         cur.execute("SELECT texto FROM informe_individual WHERE alumno_id = ? AND trimestre = ?", (alumno_id, trimestre))
         row = cur.fetchone()
-        conn.close()
         
         return jsonify({"texto": row["texto"] if row else ""})
 
@@ -714,7 +703,6 @@ def asistencia_alumno_stats():
     """, (alumno_id, start_date, end_date))
     
     stats = dict(cur.fetchall())
-    conn.close()
     
     return jsonify({
         "retrasos": stats.get("retraso", 0),
@@ -808,7 +796,6 @@ def informe_pdf_todos():
     cur.execute("SELECT id, nombre FROM alumnos ORDER BY nombre")
     alumnos = cur.fetchall()
     
-    conn.close()
     
     # --- GENERAR PDF ---
     buffer = BytesIO()
@@ -919,7 +906,6 @@ def informe_pdf_todos():
         cur.execute("SELECT texto FROM informe_individual WHERE alumno_id = ? AND trimestre = ?", (al['id'], trimestre))
         obs_row = cur.fetchone()
         obs_text = obs_row["texto"] if obs_row else ""
-        conn.close()
         
         # Tabla Asistencia
         elements.append(Paragraph("Resumen de Asistencia", styles['Heading3']))
@@ -1140,7 +1126,6 @@ def excel_grupo():
     }
     df_asist = pd.DataFrame(asist_highlights)
     
-    conn.close()
     
     # --- GENERAR GRÁFICAS ---
     
@@ -1311,7 +1296,6 @@ def pdf_grupo():
         u_max = max(temp_retrasos, key=temp_retrasos.get)
         max_retrasos = {"nombre": u_max, "num": temp_retrasos[u_max]}
     
-    conn.close()
     
     # --- GENERAR GRÁFICAS ---
     import matplotlib
@@ -1428,7 +1412,6 @@ def rubrica_pdf_sda(sda_id):
     cur.execute("SELECT nombre FROM sda WHERE id = ?", (sda_id,))
     row = cur.fetchone()
     if not row:
-        conn.close()
         return "SDA no encontrada", 404
     sda_name = row["nombre"]
     
@@ -1475,7 +1458,6 @@ def rubrica_pdf_sda(sda_id):
             
         elements.append(Spacer(1, 15))
         
-    conn.close()
     doc.build(elements)
     buffer.seek(0)
     

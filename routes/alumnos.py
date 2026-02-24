@@ -30,7 +30,6 @@ def obtener_alumnos():
         for r in cur.fetchall()
     ]
 
-    conn.close()
     return jsonify(alumnos)
 
 @alumnos_bp.route("/api/alumnos/nuevo", methods=["POST"])
@@ -76,7 +75,8 @@ def nuevo_alumno():
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
 
 @alumnos_bp.route("/api/alumnos/<int:alumno_id>", methods=["PUT"])
 def editar_alumno_info(alumno_id):
@@ -101,7 +101,8 @@ def editar_alumno_info(alumno_id):
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
 
     return jsonify({"ok": True})
 
@@ -110,13 +111,7 @@ def borrar_alumno(alumno_id):
     conn = get_db()
     cur = conn.cursor()
     try:
-        # Backup logic omitted for brevity in refactor plan, can be re-added if critical
-        # Assuming cascade delete or manual delete as in original
-        cur.execute("DELETE FROM asistencia WHERE alumno_id = ?", (alumno_id,))
-        cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ?", (alumno_id,))
-        cur.execute("DELETE FROM ficha_alumno WHERE alumno_id = ?", (alumno_id,))
-        cur.execute("DELETE FROM observaciones WHERE alumno_id = ?", (alumno_id,))
-        cur.execute("DELETE FROM informe_observaciones WHERE alumno_id = ?", (alumno_id,))
+        # La base de datos se encarga de borrar de asistencia, evaluaciones, ficha_alumno, etc. gracias a ON DELETE CASCADE
         cur.execute("DELETE FROM alumnos WHERE id = ?", (alumno_id,))
         
         conn.commit()
@@ -124,7 +119,8 @@ def borrar_alumno(alumno_id):
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
 
     return jsonify({"ok": True})
 
@@ -148,7 +144,6 @@ def subir_foto_alumno(alumno_id):
         cur = conn.cursor()
         cur.execute("UPDATE alumnos SET foto = ? WHERE id = ?", (filename, alumno_id))
         conn.commit()
-        conn.close()
 
         return jsonify({"ok": True, "foto": filename})
     
@@ -170,7 +165,6 @@ def obtener_ficha_alumno(alumno_id):
     """, (alumno_id,))
 
     f = cur.fetchone()
-    conn.close()
 
     if f:
         return jsonify({
@@ -214,7 +208,6 @@ def guardar_ficha_alumno():
     ))
 
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})
 
 @alumnos_bp.route("/api/alumnos/progreso/<int:alumno_id>")
@@ -230,7 +223,6 @@ def progreso_alumno(alumno_id):
         ORDER BY e.trimestre ASC, ar.nombre ASC
     """, (alumno_id,))
     rows = cur.fetchall()
-    conn.close()
     
     result = {1: [], 2: [], 3: []}
     for row in rows:
@@ -253,7 +245,6 @@ def exportar_alumnos_json():
         LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
     """)
     rows = cur.fetchall()
-    conn.close()
     
     data = [dict(r) for r in rows]
     
@@ -280,7 +271,6 @@ def exportar_alumnos_csv():
         LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
     """)
     rows = cur.fetchall()
-    conn.close()
     
     # Generate CSV
     si = io.StringIO()

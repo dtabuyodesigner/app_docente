@@ -30,7 +30,8 @@ def api_reuniones():
             conn.rollback()
             return jsonify({"ok": False, "error": str(e)}), 500
         finally:
-            conn.close()
+            pass
+            pass
             
     else:
         # GET
@@ -41,7 +42,6 @@ def api_reuniones():
         if rid:
             cur.execute("SELECT * FROM reuniones WHERE id = ?", (rid,))
             r = cur.fetchone()
-            conn.close()
             if r:
                 return jsonify(dict(r))
             return jsonify({"ok": False, "error": "Not found"}), 404
@@ -49,7 +49,6 @@ def api_reuniones():
         elif alumno_id:
             cur.execute("SELECT * FROM reuniones WHERE alumno_id = ? ORDER BY fecha DESC", (alumno_id,))
             rows = cur.fetchall()
-            conn.close()
             return jsonify([dict(r) for r in rows])
         else:
             # List all (filtered by type if provided)
@@ -68,7 +67,6 @@ def api_reuniones():
             
             cur.execute(sql, params)
             rows = cur.fetchall()
-            conn.close()
             return jsonify([dict(r) for r in rows])
             
 @reuniones_bp.route("/api/reuniones/<int:rid>", methods=["PUT"])
@@ -89,7 +87,8 @@ def editar_reunion(rid):
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
+        pass
 
 @reuniones_bp.route("/api/reuniones/<int:rid>", methods=["DELETE"])
 def borrar_reunion(rid):
@@ -102,7 +101,7 @@ def borrar_reunion(rid):
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     finally:
-        conn.close()
+        pass
     return jsonify({"ok": True})
 
 
@@ -130,12 +129,11 @@ def api_ciclos():
             conn.rollback()
             return jsonify({"ok": False, "error": str(e)}), 500
         finally:
-            conn.close()
+            pass
     else:
         # GET
         cur.execute("SELECT * FROM config_ciclo ORDER BY nombre")
         rows = cur.fetchall()
-        conn.close()
         return jsonify([dict(r) for r in rows])
 
 
@@ -158,7 +156,7 @@ def api_ciclo(cid):
             conn.rollback()
             return jsonify({"ok": False, "error": str(e)}), 500
         finally:
-            conn.close()
+            pass
     else:
         # DELETE
         try:
@@ -169,4 +167,4 @@ def api_ciclo(cid):
             conn.rollback()
             return jsonify({"ok": False, "error": str(e)}), 500
         finally:
-            conn.close()
+            pass

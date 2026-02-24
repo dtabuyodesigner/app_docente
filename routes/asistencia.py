@@ -32,7 +32,6 @@ def asistencia_hoy():
     """, (fecha,))
 
     datos = cur.fetchall()
-    conn.close()
 
     resultado = []
     for row in datos:
@@ -103,7 +102,6 @@ def guardar_asistencia():
     """, (alumno_id, fecha, new_estado, new_comedor, tipo_ausencia, horas_ausencia))
 
     conn.commit()
-    conn.close()
 
     return jsonify({"ok": True})
 
@@ -126,7 +124,6 @@ def asistencia_mes():
     """, (mes,))
 
     datos = cur.fetchall()
-    conn.close()
 
     resumen = {}
     for row in datos:
@@ -177,7 +174,6 @@ def resumen_asistencia():
     """, (fecha,))
 
     filas = cur.fetchall()
-    conn.close()
 
     presentes = 0
     retrasos = 0
@@ -238,7 +234,6 @@ def get_encargado():
         WHERE e.fecha = ?
     """, (fecha,))
     row = cur.fetchone()
-    conn.close()
     
     if row:
         return jsonify({"id": row["id"], "nombre": row["nombre"]})
@@ -263,7 +258,6 @@ def seleccionar_encargado():
     presentes = cur.fetchall()
     
     if not presentes:
-        conn.close()
         return jsonify({"error": "No hay alumnos presentes hoy"}), 400
     
     # 2. Count how many times each present student has been encargado
@@ -293,7 +287,6 @@ def seleccionar_encargado():
     """, (fecha, alumno_id))
     
     conn.commit()
-    conn.close()
     
     return jsonify({"id": alumno_id, "nombre": nombre})
 
@@ -303,7 +296,6 @@ def reiniciar_encargados():
     cur = conn.cursor()
     cur.execute("DELETE FROM encargados")
     conn.commit()
-    conn.close()
     return jsonify({"ok": True})
 
 @asistencia_bp.route("/api/asistencia/encargado/historial")
@@ -322,7 +314,6 @@ def historial_encargados():
         ORDER BY e.fecha DESC
     """)
     datos = cur.fetchall()
-    conn.close()
     
     return jsonify({
         "total_alumnos": total_alumnos,

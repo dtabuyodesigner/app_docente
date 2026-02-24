@@ -104,12 +104,9 @@ def import_calendar():
                 continue
                 
         conn.commit()
-        conn.close()
         
         return jsonify({"ok": True, "imported": imported, "count": imported})
     except Exception as e:
-        if 'conn' in locals():
-            conn.close()
         print(f"Global error in import_calendar: {e}")
         return jsonify({"ok": False, "error": str(e)}), 500
 
@@ -125,7 +122,6 @@ def sync_calendar():
     cur = conn.cursor()
     cur.execute("SELECT fecha, actividad, observaciones FROM programacion_diaria")
     local_events = cur.fetchall()
-    conn.close()
     
     pushed = 0
     try:

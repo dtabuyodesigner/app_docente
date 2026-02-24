@@ -32,17 +32,22 @@ app.register_blueprint(reuniones_bp)
 app.register_blueprint(informes_bp)
 app.register_blueprint(google_cal_bp)
 
-# Database Initialization (Optional: keep if needed for first run)
-from utils.db import get_db
+# Database Initialization and CLI commands
+from utils.db import close_db, get_db
+import click
 
-def init_db():
+app.teardown_appcontext(close_db)
+
+@app.cli.command('init-db')
+def init_db_command():
     if not os.path.exists("app_evaluar.db"):
         print("Initializing database...")
         conn = get_db()
         with open("schema.sql") as f:
             conn.executescript(f.read())
-        conn.close()
+        print("Database initialized.")
+    else:
+        print("Database already exists.")
 
 if __name__ == "__main__":
-    # init_db() # Uncomment to init db on start if needed
     app.run(debug=True, port=5000)

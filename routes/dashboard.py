@@ -25,9 +25,7 @@ def dashboard_resumen():
     asist_stats = cur.fetchone()
 
     # 2. Comedor
-    conn2 = get_db() # Helper creates new conn
-    comedor_total = calculate_comedor_total(conn2, fecha_hoy)
-    conn2.close()
+    comedor_total = calculate_comedor_total(conn, fecha_hoy)
 
     # 3. Cumpleaños
     cur.execute("""
@@ -142,7 +140,6 @@ def dashboard_resumen():
             "temas": r["temas"] or ""
         })
 
-    conn.close()
 
     return jsonify({
         "asistencia": {
@@ -174,7 +171,6 @@ def ultimas_observaciones():
         LIMIT 5
     """)
     rows = cur.fetchall()
-    conn.close()
     
     return jsonify([{
         "fecha": r["fecha"],

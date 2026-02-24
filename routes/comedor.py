@@ -68,7 +68,6 @@ def comedor_hoy():
     fecha = request.args.get("fecha", date.today().isoformat())
     conn = get_db()
     total = calculate_comedor_total(conn, fecha)
-    conn.close()
     return jsonify({"total": total})
 
 @comedor_bp.route("/api/comedor/menu")
@@ -81,7 +80,6 @@ def get_comedor_menu():
     cur = conn.cursor()
     cur.execute("SELECT imagen FROM menus_comedor WHERE mes = ?", (mes,))
     row = cur.fetchone()
-    conn.close()
     
     return jsonify({"imagen": row["imagen"] if row else None, "mes": mes})
 
@@ -111,7 +109,8 @@ def upload_comedor_menu():
             conn.rollback()
             return jsonify({"ok": False, "error": str(e)}), 500
         finally:
-            conn.close()
+            pass
+            pass
             
         return jsonify({"ok": True, "imagen": filename})
         

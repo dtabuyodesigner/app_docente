@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from utils.db import get_db
-from datetime import date
+from datetime import date, timedelta
 from routes.comedor import calculate_comedor_total
 
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -45,16 +45,25 @@ def dashboard_resumen():
     row_media = cur.fetchone()
     media_clase = row_media[0] if row_media and row_media[0] else 0
 
-    # 5. Asistencia Semanal (Últimos 7 días)
-    cur.execute("""
-        SELECT fecha, 
-               SUM(CASE WHEN estado IN ('presente', 'retraso') THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
-        FROM asistencia
-        WHERE fecha >= date('now', '-6 days')
-        GROUP BY fecha
-        ORDER BY fecha ASC
-    """)
-    asist_semanal = [{"fecha": r[0], "porcentaje": round(r[1], 1)} for r in cur.fetchall()]
+    # 5. Asistencia Semanal (Últimos 7 días omitiendo fines de semana)
+    cur.execute("SELECT COUNT(*) FROM alumnos")
+    total_a = cur.fetchone()[0] or 1
+
+    fechas = []
+    for i in range(6, -1, -1):
+        d = date.today() - timedelta(days=i)
+        if d.weekday() < 5:  # 0-4 son Lunes a Viernes
+            fechas.append(d.isoformat())
+
+    asist_semanal = []
+    for f in fechas:
+        cur.execute("""
+            SELECT COUNT(*) FROM asistencia
+            WHERE fecha = ? AND estado IN ('falta_justificada', 'falta_no_justificada')
+        """, (f,))
+        faltas = cur.fetchone()[0]
+        porcentaje = max(0, 100.0 - (faltas * 100.0 / total_a))
+        asist_semanal.append({"fecha": f, "porcentaje": round(porcentaje, 1), "faltas": faltas})
 
     # 6. Distribución de notas (Global del trimestre actual)
     cur.execute("""

@@ -507,12 +507,24 @@
             <a href="/informes">📜 Informes</a>
             <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
         </div>
+        <div
+            style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div
+                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size: 1.1rem;">📚</span>
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
+                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: #003366; cursor: pointer; outline: none;">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
 
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('tabDiario')">📅 Calendario / Diario</button>
-            <button class="tab-btn" onclick="showTab('tabCurriculo')">🎯 Ver Currículo</button>
-            <button class="tab-btn" onclick="showTab('tabImport')">📥 Importar SDA</button>
-            <button class="tab-btn" onclick="showTab('tabImportAct')">📝 Importar Actividades</button>
+            <button class="tab-btn" onclick="showTab('tabCurriculo')">🎯 Situaciones de Aprendizaje</button>
             <button class="tab-btn" onclick="showTab('tabTasks')">🗒️ Tareas</button>
         </div>
 
@@ -598,49 +610,177 @@
             </div>
         </div>
 
+        <!-- SA Modal -->
+        <div id="saModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px;">
+            <div
+                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:700px; box-shadow:0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 90vh;">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; flex-shrink: 0; margin-bottom: 20px;">
+                    <h3 id="saModalTitle" style="margin-top:0; margin-bottom:0;">Crear Situación de Aprendizaje</h3>
+                    <button onclick="closeSaModal()"
+                        style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                </div>
+
+                <div style="overflow-y: auto; padding-right: 10px; flex-grow: 1;">
+                    <input type="hidden" id="saId">
+
+                    <div class="form-row">
+                        <div>
+                            <label>Nombre de la SA:</label>
+                            <input type="text" id="saNombre" placeholder="Ej: SA1 - Descubriendo mi entorno" required>
+                        </div>
+                        <div>
+                            <label>Área:</label>
+                            <select id="saArea" required>
+                                <option value="">-- Selecciona --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Trimestre:</label>
+                            <select id="saTrimestre" required>
+                                <option value="1">1º Trimestre</option>
+                                <option value="2">2º Trimestre</option>
+                                <option value="3">3º Trimestre</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr style="border: 1px solid #eee; margin: 20px 0;">
+
+                    <h4>🧩 Competencias Específicas</h4>
+                    <div id="saCompetenciasContainer" style="margin-bottom: 15px;"></div>
+                    <button class="btn btn-info" style="font-size: 0.8rem; padding: 5px 10px;"
+                        onclick="addCompetenciaRow()">+ Añadir Competencia</button>
+
+                    <hr style="border: 1px solid #eee; margin: 20px 0;">
+
+                    <h4>📋 Criterios de Evaluación</h4>
+                    <div id="saCriteriosContainer" style="margin-bottom: 15px;"></div>
+                    <button class="btn btn-info" style="font-size: 0.8rem; padding: 5px 10px;"
+                        onclick="addCriterioRow()">+
+                        Añadir Criterio</button>
+
+                    <hr style="border: 1px solid #eee; margin: 20px 0;">
+
+                    <h4>✨ Actividades</h4>
+                    <div id="saActividadesContainer" style="margin-bottom: 15px;"></div>
+                    <button class="btn btn-info" style="font-size: 0.8rem; padding: 5px 10px;"
+                        onclick="addActividadRow()">+
+                        Añadir Actividad</button>
+
+                </div> <!-- End of scrollable area -->
+
+                <div
+                    style="display:flex; justify-content:space-between; margin-top:20px; padding-top: 20px; border-top: 1px solid #eee; flex-shrink: 0;">
+                    <button class="btn btn-danger" id="btnDeleteSa" style="display:none;" onclick="deleteSa()">🗑️
+                        Borrar</button>
+                    <div>
+                        <button class="btn" onclick="closeSaModal()"
+                            style="background:#ccc; color:#333;">Cancelar</button>
+                        <button class="btn btn-success" onclick="saveSa()">💾 Guardar SA</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Activity Modal -->
+        <div id="scheduleActivityModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px;">
+            <div
+                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <h3 style="margin:0; color:var(--primary);">🗓️ Programar Actividad en Calendario</h3>
+                    <button onclick="closeScheduleModal()"
+                        style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                </div>
+
+                <input type="hidden" id="schedSdaId">
+
+                <div style="margin-bottom:15px;">
+                    <label>Situación de Aprendizaje:</label>
+                    <input type="text" id="schedSdaName" disabled style="background:#f8f9fa;">
+                </div>
+
+                <div style="margin-bottom:15px;">
+                    <label>Actividad:</label>
+                    <input type="text" id="schedActName" disabled style="background:#f8f9fa;">
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label>Día (Fecha):</label>
+                        <input type="date" id="schedDate" required>
+                    </div>
+                    <div>
+                        <label>Sesión (Número):</label>
+                        <input type="number" id="schedSession" placeholder="Ej: 1" min="1" required>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:15px;">
+                    <label>Observaciones (opcional):</label>
+                    <textarea id="schedObs" style="height:60px;" placeholder="Detalles de la sesión..."></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; margin-top:20px; gap: 10px;">
+                    <button class="btn" onclick="closeScheduleModal()"
+                        style="background:#ccc; color:#333;">Cancelar</button>
+                    <button class="btn btn-success" onclick="saveScheduleActivity()">💾 Guardar Programación</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sessions Modal -->
+        <div id="sessionsModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center; padding: 20px;">
+            <div
+                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:700px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-shrink: 0;">
+                    <h3 style="margin:0; color:var(--primary);" id="sessionsModalTitle">🗓️ Sesiones de Actividad</h3>
+                    <button onclick="closeSessionsModal()"
+                        style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                </div>
+
+                <input type="hidden" id="sessionsActId">
+
+                <div style="margin-bottom:15px; flex-shrink: 0;">
+                    <label>Actividad:</label>
+                    <input type="text" id="sessionsActName" disabled style="background:#f8f9fa; font-weight: bold;">
+                </div>
+
+                <div style="overflow-y: auto; flex-grow: 1; padding-right: 10px;" id="sessionsListContainer">
+                    <p style="text-align: center; color: #666;">Cargando sesiones...</p>
+                </div>
+
+                <div style="margin-top: 15px; flex-shrink: 0;">
+                    <button class="btn btn-info" style="font-size: 0.8rem; padding: 5px 10px;"
+                        onclick="addSessionRow()">+ Añadir Sesión</button>
+                </div>
+
+                <div
+                    style="display:flex; justify-content:flex-end; margin-top:20px; gap: 10px; flex-shrink: 0; padding-top: 20px; border-top: 1px solid #eee;">
+                    <button class="btn" onclick="closeSessionsModal()"
+                        style="background:#ccc; color:#333;">Cancelar</button>
+                    <button class="btn btn-success" onclick="saveSessions()">💾 Guardar Sesiones</button>
+                </div>
+            </div>
+        </div>
+
+
         <!-- SECCIÓN: VER CURRÍCULO -->
         <div id="tabCurriculo" class="section">
-            <h2>🎯 Situaciones de Aprendizaje y Actividades</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">🎯 Situaciones de Aprendizaje y Actividades</h2>
+                <button class="btn btn-success" onclick="openSaModal()">➕ Nueva SA (Manual)</button>
+            </div>
             <div id="curriculoList">
                 <p style="text-align:center; color:#999;">Cargando currículo...</p>
             </div>
         </div>
 
-        <!-- SECCIÓN: IMPORTAR SDA -->
-        <div id="tabImport" class="section">
-            <h2>📥 Importación Masiva de SDA (CSV)</h2>
-            <div class="template-links">
-                <a href="/static/plantilla_sda.csv" download>📄 Descargar Plantilla SDA</a>
-            </div>
-            <div class="info-box">
-                <strong>Instrucciones:</strong> Pega los datos de tus SDAs en formato CSV (punto y coma).<br>
-                <code>Área;Nombre de la SDA;Trimestre;Código Criterio;Descripción del Criterio</code>
-            </div>
-            <textarea id="csvData"
-                placeholder="Ejemplo: Conocimiento del Medio;SDA 3: El cuerpo;2;CM1.1;Identifica partes..."></textarea>
-            <div style="margin-top:15px;">
-                <button class="btn btn-success" onclick="importSDA()">🚀 Comenzar Importación</button>
-            </div>
-            <div id="statusImport" class="status-msg"></div>
-        </div>
-
-        <!-- SECCIÓN: IMPORTAR ACTIVIDADES -->
-        <div id="tabImportAct" class="section">
-            <h2>📝 Importación Masiva de Actividades (CSV)</h2>
-            <div class="template-links">
-                <a href="/static/plantilla_actividades.csv" download>📄 Descargar Plantilla Actividades</a>
-            </div>
-            <div class="info-box">
-                <strong>Instrucciones:</strong> Vincula actividades a tus SDAs ya existentes.<br>
-                <code>Nombre SDA;Nombre Actividad;Sesiones;Descripción</code>
-            </div>
-            <textarea id="csvActData"
-                placeholder="Ejemplo: SDA 3 – El libro de los animales;Animales domésticos;2;Analizar tipos..."></textarea>
-            <div style="margin-top:15px;">
-                <button class="btn btn-info" onclick="importActividades()">🚀 Importar Actividades</button>
-            </div>
-            <div id="statusImportAct" class="status-msg"></div>
-        </div>
+        <!-- Removed -->
 
         <!-- SECCIÓN: TAREAS -->
         <div id="tabTasks" class="section">
@@ -655,7 +795,8 @@
                             <input type="date" id="newTaskDate" style="width: auto;" title="Fecha límite (opcional)">
                             <button class="btn btn-success" onclick="addTarea()">➕ Añadir</button>
                             <button class="btn btn-danger" onclick="deleteCompletedTasks()"
-                                style="margin-left: auto;">🗑️ Borrar Completadas</button>
+                                style="margin-left: auto;">🗑️
+                                Borrar Completadas</button>
                         </div>
                     </div>
                 </div>
@@ -826,28 +967,72 @@
                         area.sdas.forEach(sda => {
                             const sdaDiv = document.createElement('div');
                             sdaDiv.className = 'sda-item';
-                            sdaDiv.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
-                                <strong>[Trimestre ${sda.trimestre}] ${sda.nombre}</strong>
-                                <!-- ID Hidden -->
-                            </div>`;
+
+                            const headerDiv = document.createElement('div');
+                            headerDiv.style.display = 'flex';
+                            headerDiv.style.justifyContent = 'space-between';
+                            headerDiv.style.alignItems = 'center';
+                            headerDiv.innerHTML = `<strong>[Trimestre ${sda.trimestre}] ${sda.nombre}</strong>`;
+                            sdaDiv.appendChild(headerDiv);
 
                             // Actividades
                             if (sda.actividades && sda.actividades.length > 0) {
-                                const actHtml = sda.actividades.map(a => `<span class="activity-badge" title="${a.descripcion || ''}">${a.nombre} (${a.sesiones})</span>`).join("");
-                                sdaDiv.innerHTML += `<div style="margin-top:10px;">📋 Actividades: ${actHtml}</div>`;
+                                const actCont = document.createElement('div');
+                                actCont.style.marginTop = '10px';
+                                actCont.innerHTML = `📋 Actividades: `;
+                                sda.actividades.forEach(a => {
+                                    const span = document.createElement('span');
+                                    span.className = 'activity-badge';
+                                    span.style.cursor = 'pointer';
+                                    span.title = (a.descripcion || '') + ' \n(Click para ver/editar sesiones)';
+                                    span.innerText = `${a.nombre} (${a.sesiones} sesiones)`;
+                                    span.onclick = () => openSessionsModal(a);
+                                    actCont.appendChild(span);
+                                    actCont.appendChild(document.createTextNode(' '));
+                                });
+                                sdaDiv.appendChild(actCont);
                             }
+
+                            // Botón Editar SA (safe DOM insertion)
+                            const btnCont = document.createElement('div');
+                            btnCont.style.marginTop = '10px';
+                            const btnEdit = document.createElement('button');
+                            btnEdit.className = 'btn btn-info';
+                            btnEdit.style.fontSize = '0.8rem';
+                            btnEdit.style.padding = '5px 10px';
+                            btnEdit.innerText = '✏️ Editar SA';
+                            btnEdit.onclick = function () {
+                                openSaModal(sda);
+                            };
+                            btnCont.appendChild(btnEdit);
+                            sdaDiv.appendChild(btnCont);
+
+                            // Competencias Específicas
+                            const compList = document.createElement('div');
+                            compList.className = 'criteria-list';
+                            compList.style.marginTop = '15px';
+                            if (sda.competencias && sda.competencias.length > 0) {
+                                compList.innerHTML = '<strong>🧩 Competencias Específicas:</strong>';
+                                sda.competencias.forEach(c => {
+                                    compList.innerHTML += `<div class="criteria-item" style="margin-left:10px;"><strong>${c.codigo}:</strong> ${c.descripcion}</div>`;
+                                });
+                            }
+                            sdaDiv.appendChild(compList);
 
                             // Criterios
                             const critList = document.createElement('div');
                             critList.className = 'criteria-list';
+                            critList.style.marginTop = '10px';
                             if (sda.criterios && sda.criterios.length > 0) {
+                                critList.innerHTML = '<strong>📋 Criterios de Evaluación:</strong>';
                                 sda.criterios.forEach(c => {
-                                    critList.innerHTML += `<div class="criteria-item"><strong>${c.codigo}:</strong> ${c.descripcion}</div>`;
+                                    critList.innerHTML += `<div class="criteria-item" style="margin-left:10px;"><strong>${c.codigo}:</strong> ${c.descripcion}</div>`;
                                 });
                             } else {
-                                critList.innerHTML = `<div style="color:#999; font-style:italic;">No hay criterios vinculados. Probablemente importados sin link SDA-Criterio.</div>`;
+                                critList.innerHTML = `<div style="color:#999; font-style:italic;">No hay criterios vinculados.</div>`;
                             }
                             sdaDiv.appendChild(critList);
+
                             areaDiv.appendChild(sdaDiv);
                         });
                         list.appendChild(areaDiv);
@@ -855,6 +1040,234 @@
                 })
                 .catch(err => {
                     list.innerHTML = `<p style="text-align:center; color:red;">Error al cargar: ${err}</p>`;
+                });
+        }
+
+        // --- SA CRUD LOGIC ---
+        function openSaModal(sdaObj = null) {
+            const modal = document.getElementById('saModal');
+            const saAreaSelect = document.getElementById('saArea');
+            const btnDelete = document.getElementById('btnDeleteSa');
+            const title = document.getElementById('saModalTitle');
+
+            // Populate areas dropdown if empty
+            if (saAreaSelect.options.length <= 1) {
+                fetch('/api/evaluacion/areas')
+                    .then(r => r.json())
+                    .then(areas => {
+                        saAreaSelect.innerHTML = '<option value="">-- Selecciona --</option>';
+                        areas.forEach(a => {
+                            saAreaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                        });
+                        // Set area if editing after loading
+                        if (sdaObj && sdaObj.area_id) saAreaSelect.value = sdaObj.area_id;
+                    });
+            }
+
+            document.getElementById('saCriteriosContainer').innerHTML = '';
+            document.getElementById('saCompetenciasContainer').innerHTML = '';
+            document.getElementById('saActividadesContainer').innerHTML = '';
+
+            if (sdaObj) {
+                title.innerText = 'Editar Situación de Aprendizaje';
+                btnDelete.style.display = 'block';
+                document.getElementById('saId').value = sdaObj.id;
+                document.getElementById('saNombre').value = sdaObj.nombre;
+
+                // Tratar de encontrar y setear el area a partir del fullCurriculo si no viene en sdaObj
+                if (!sdaObj.area_id) {
+                    for (let area of fullCurriculo) {
+                        if (area.sdas.some(s => s.id === sdaObj.id)) {
+                            saAreaSelect.value = area.id;
+                            break;
+                        }
+                    }
+                } else {
+                    saAreaSelect.value = sdaObj.area_id;
+                }
+
+                document.getElementById('saTrimestre').value = sdaObj.trimestre || 1;
+
+                if (sdaObj.competencias && sdaObj.competencias.length > 0) {
+                    sdaObj.competencias.forEach(c => addCompetenciaRow(c.codigo, c.descripcion));
+                } else {
+                    addCompetenciaRow();
+                }
+
+                if (sdaObj.criterios && sdaObj.criterios.length > 0) {
+                    sdaObj.criterios.forEach(c => addCriterioRow(c.codigo, c.descripcion));
+                } else {
+                    addCriterioRow();
+                }
+
+                if (sdaObj.actividades && sdaObj.actividades.length > 0) {
+                    sdaObj.actividades.forEach(a => addActividadRow(a.nombre, a.sesiones, a.descripcion, a.id || ''));
+                } else {
+                    addActividadRow();
+                }
+            } else {
+                title.innerText = 'Crear Situación de Aprendizaje';
+                btnDelete.style.display = 'none';
+                document.getElementById('saId').value = '';
+                document.getElementById('saNombre').value = '';
+                saAreaSelect.value = '';
+                document.getElementById('saTrimestre').value = '1';
+                addCompetenciaRow();
+                addCriterioRow();
+                addActividadRow();
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeSaModal() {
+            document.getElementById('saModal').style.display = 'none';
+        }
+
+        function addCriterioRow(codigo = '', desc = '') {
+            const container = document.getElementById('saCriteriosContainer');
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.gap = '10px';
+            div.style.marginBottom = '10px';
+            div.className = 'criterio-row';
+
+            div.innerHTML = `
+                <input type="text" class="crit-codigo" placeholder="Código (Ej: MAT.1.1)" style="flex: 1;" value="${(codigo || '').replace(/"/g, '&quot;')}">
+                <input type="text" class="crit-desc" placeholder="Descripción del criterio..." style="flex: 3;" value="${(desc || '').replace(/"/g, '&quot;')}">
+                <button class="btn btn-danger" onclick="this.parentElement.remove()" style="padding: 5px 10px;">X</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addCompetenciaRow(codigo = '', desc = '') {
+            const container = document.getElementById('saCompetenciasContainer');
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.gap = '10px';
+            div.style.marginBottom = '10px';
+            div.className = 'competencia-row';
+
+            div.innerHTML = `
+                <input type="text" class="comp-codigo" placeholder="Cód. (Ej: CE.1)" style="flex: 1;" value="${(codigo || '').replace(/"/g, '&quot;')}">
+                <input type="text" class="comp-desc" placeholder="Descripción de la competencia..." style="flex: 3;" value="${(desc || '').replace(/"/g, '&quot;')}">
+                <button class="btn btn-danger" onclick="this.parentElement.remove()" style="padding: 5px 10px;">X</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addActividadRow(nombre = '', sesiones = 1, desc = '', id = '') {
+            const container = document.getElementById('saActividadesContainer');
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.gap = '10px';
+            div.style.marginBottom = '10px';
+            div.className = 'actividad-row';
+
+            div.innerHTML = `
+                <input type="hidden" class="act-id" value="${id}">
+                <input type="text" class="act-nombre" placeholder="Nombre (Ej: Act 1)" style="flex: 2;" value="${(nombre || '').replace(/"/g, '&quot;')}">
+                <input type="text" class="act-desc" placeholder="Descripción breve..." style="flex: 3;" value="${(desc || '').replace(/"/g, '&quot;')}">
+                <input type="number" class="act-sesiones" placeholder="Sesiones" style="flex: 1; width: 60px;" value="${sesiones}" min="1">
+                <button class="btn btn-danger" onclick="this.parentElement.remove()" style="padding: 5px 10px;">X</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function saveSa() {
+            const id = document.getElementById('saId').value;
+            const nombre = document.getElementById('saNombre').value;
+            const area_id = document.getElementById('saArea').value;
+            const trimestre = document.getElementById('saTrimestre').value;
+
+            if (!nombre || !area_id) {
+                showToast("Debes introducir al menos el nombre y el área.", "error");
+                return;
+            }
+
+            // Gather criterios
+            const criterios = [];
+            document.querySelectorAll('.criterio-row').forEach(row => {
+                const codigo = row.querySelector('.crit-codigo').value.trim();
+                const desc = row.querySelector('.crit-desc').value.trim();
+                if (codigo) criterios.push({ codigo, descripcion: desc });
+            });
+
+            // Gather competencias
+            const competencias = [];
+            document.querySelectorAll('.competencia-row').forEach(row => {
+                const codigo = row.querySelector('.comp-codigo').value.trim();
+                const desc = row.querySelector('.comp-desc').value.trim();
+                if (codigo) competencias.push({ codigo, descripcion: desc });
+            });
+
+            // Gather actividades
+            const actividades = [];
+            document.querySelectorAll('.actividad-row').forEach(row => {
+                const act_id = row.querySelector('.act-id').value;
+                const act_nombre = row.querySelector('.act-nombre').value.trim();
+                const desc = row.querySelector('.act-desc').value.trim();
+                const sesiones = parseInt(row.querySelector('.act-sesiones').value) || 1;
+                if (act_nombre) actividades.push({ id: act_id, nombre: act_nombre, descripcion: desc, sesiones });
+            });
+
+            const payload = { nombre, area_id, trimestre, criterios, competencias, actividades };
+
+            const url = id ? '/api/curricular/sa/' + id : '/api/curricular/sa';
+            const method = id ? 'PUT' : 'POST';
+
+            toggleLoading(true, 'Guardando...');
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(res => {
+                    toggleLoading(false);
+                    if (res.ok) {
+                        showToast("SA guardada correctamente", "success");
+                        closeSaModal();
+                        loadCurriculo();
+                        // Update selects just in case
+                        fetch('/api/curricular/full')
+                            .then(r => r.json())
+                            .then(areas => {
+                                fullCurriculo = areas;
+                                updateActivitySelect(); // If event modal is open
+                            });
+                    } else {
+                        showToast(res.error || "Error al guardar", "error");
+                    }
+                })
+                .catch(err => {
+                    toggleLoading(false);
+                    showToast("Error de red: " + err, "error");
+                });
+        }
+
+        function deleteSa() {
+            const id = document.getElementById('saId').value;
+            if (!id || !confirm("¿Seguro que deseas eliminar esta Situación de Aprendizaje por completo? Se borrarán sus actividades vinculadas.")) return;
+
+            toggleLoading(true, 'Borrando...');
+            fetch('/api/curricular/sa/' + id, {
+                method: 'DELETE'
+            })
+                .then(r => r.json())
+                .then(res => {
+                    toggleLoading(false);
+                    if (res.ok) {
+                        showToast("SA eliminada correctamente", "success");
+                        closeSaModal();
+                        loadCurriculo();
+                    } else {
+                        showToast(res.error || "Error al borrar", "error");
+                    }
+                })
+                .catch(err => {
+                    toggleLoading(false);
+                    showToast("Error de red: " + err, "error");
                 });
         }
 
@@ -1045,17 +1458,46 @@
                 document.getElementById('eventObs').value = event.extendedProps.observaciones || "";
                 document.getElementById('eventSda').value = event.extendedProps.sda_id || "";
 
-                // Set type/color
                 const type = event.extendedProps.tipo || 'clase';
-                const btn = document.querySelector(`.btn-type[data-type="${type}"]`);
-                if (btn) selectType(btn);
+
+                if (type === 'sesion_actividad') {
+                    document.getElementById('modalTitle').innerText = 'Sesión de Actividad';
+                    document.getElementById('eventActivity').value = `[Solo lectura] ${event.title}`;
+                    document.getElementById('eventActivity').disabled = true;
+                    document.getElementById('eventObs').disabled = true;
+                    document.getElementById('eventSda').disabled = true;
+                    document.getElementById('eventDate').disabled = true;
+
+                    const btn = document.querySelector(`.btn-type[data-type="clase"]`);
+                    if (btn) selectType(btn);
+
+                    document.querySelectorAll('.btn-type').forEach(b => b.classList.add('disabled-btn'));
+                    document.getElementById('btnDelete').style.display = 'none';
+                    document.querySelector('.btn-success').style.display = 'none';
+                } else {
+                    document.getElementById('eventActivity').disabled = false;
+                    document.getElementById('eventObs').disabled = false;
+                    document.getElementById('eventSda').disabled = false;
+                    document.getElementById('eventDate').disabled = false;
+                    document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
+                    document.querySelector('.btn-success').style.display = 'inline-block';
+
+                    const btn = document.querySelector(`.btn-type[data-type="${type}"]`);
+                    if (btn) selectType(btn);
+                }
 
             } else {
                 document.getElementById('eventId').value = "";
                 document.getElementById('eventDate').value = dateStr;
                 document.getElementById('eventActivity').value = "";
+                document.getElementById('eventActivity').disabled = false;
                 document.getElementById('eventObs').value = "";
+                document.getElementById('eventObs').disabled = false;
                 document.getElementById('eventSda').value = "";
+                document.getElementById('eventSda').disabled = false;
+                document.getElementById('eventDate').disabled = false;
+                document.querySelector('.btn-success').style.display = 'inline-block';
+                document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
                 selectType(document.querySelector('.btn-type[data-type="clase"]'));
             }
 
@@ -1145,6 +1587,47 @@
         }
 
         function updateEventDate(event) {
+            const isSession = event.extendedProps.tipo === 'sesion_actividad';
+
+            if (isSession) {
+                // If it's a generated session event, the ID is like "ses_15"
+                const originalId = event.id.replace('ses_', '');
+                const actId = event.extendedProps.actividad_id;
+
+                // Fetch current sessions to update just one date
+                fetch(`/api/actividades/${actId}/sesiones`)
+                    .then(r => r.json())
+                    .then(sesiones => {
+                        const updatedSesiones = sesiones.map(s => {
+                            if (s.id == originalId) {
+                                s.fecha = event.startStr;
+                            }
+                            return s;
+                        });
+
+                        return fetch(`/api/actividades/${actId}/sesiones`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sesiones: updatedSesiones })
+                        });
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.ok) {
+                            showToast('Sesión movida correctamente', 'success', 2000);
+                        } else {
+                            showToast('Error al mover sesión', 'error');
+                            calendar.refetchEvents();
+                        }
+                    })
+                    .catch(err => {
+                        showToast('Error de conexión', 'error');
+                        calendar.refetchEvents();
+                        console.error(err);
+                    });
+                return;
+            }
+
             const data = {
                 fecha: event.startStr,
                 actividad: event.title,
@@ -1343,6 +1826,83 @@
             });
         }
 
+        // --- SCHEDULE ACTIVITY LOGIC ---
+        function openScheduleModal(sda, act) {
+            document.getElementById('schedSdaId').value = sda.id;
+            document.getElementById('schedSdaName').value = sda.nombre;
+            document.getElementById('schedActName').value = act.nombre;
+
+            // Set today's date by default
+            const today = new Date();
+            // Need to shift to local time manually or slice ISO
+            const offset = today.getTimezoneOffset()
+            const localDate = new Date(today.getTime() - (offset * 60 * 1000))
+            document.getElementById('schedDate').value = localDate.toISOString().split('T')[0];
+
+            document.getElementById('schedSession').value = 1;
+            document.getElementById('schedObs').value = act.descripcion || '';
+
+            document.getElementById('scheduleActivityModal').style.display = 'flex';
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('scheduleActivityModal').style.display = 'none';
+        }
+
+        function saveScheduleActivity() {
+            const dateStr = document.getElementById('schedDate').value;
+            const sessionNum = document.getElementById('schedSession').value;
+            if (!dateStr || !sessionNum) {
+                showToast("Debes introducir la fecha y la sesión.", "error");
+                return;
+            }
+
+            const sdaId = document.getElementById('schedSdaId').value;
+            const sdaName = document.getElementById('schedSdaName').value;
+            const actName = document.getElementById('schedActName').value;
+            const obsText = document.getElementById('schedObs').value;
+
+            // Format activity text
+            const actText = `[${sdaName}] ${actName} (Sesión ${sessionNum})`;
+
+            const payload = {
+                fecha: dateStr,
+                tipo: 'general',
+                actividad: actText,
+                observaciones: obsText,
+                color: '#28a745', // Green for scheduled activities
+                sda_id: parseInt(sdaId)
+            };
+
+            toggleLoading(true, 'Guardando...');
+            fetch('/api/programacion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(res => {
+                    toggleLoading(false);
+                    if (res.ok) {
+                        showToast("Actividad programada correctamente", "success");
+                        closeScheduleModal();
+                        // Refresh calendar to show the new event
+                        if (typeof calendar !== 'undefined' && calendar) {
+                            calendar.refetchEvents();
+                        }
+                        if (confirm("Actividad añadida al calendario. ¿Deseas ir al Diario/Calendario para verla?")) {
+                            showTab('tabDiario');
+                        }
+                    } else {
+                        showToast(res.error || "Error al programar", "error");
+                    }
+                })
+                .catch(err => {
+                    toggleLoading(false);
+                    showToast("Error de red: " + err, "error");
+                });
+        }
+
         function deleteCompletedTasks() {
             if (!confirm("¿Borrar todas las tareas completadas?")) return;
             fetch('/api/tareas/bulk_delete_completed', { method: 'POST' })
@@ -1350,6 +1910,109 @@
                 .then(res => {
                     showToast(`${res.deleted} tarea(s) eliminada(s)`, 'success');
                     loadTareas();
+                });
+        }
+
+        // --- SESSIONS LOGIC ---
+        function openSessionsModal(act) {
+            document.getElementById('sessionsActId').value = act.id;
+            document.getElementById('sessionsActName').value = act.nombre;
+            const container = document.getElementById('sessionsListContainer');
+            container.innerHTML = '<p style="text-align: center; color: #666;">Cargando sesiones...</p>';
+
+            document.getElementById('sessionsModal').style.display = 'flex';
+
+            fetch(`/api/actividades/${act.id}/sesiones`)
+                .then(r => r.json())
+                .then(sesiones => {
+                    container.innerHTML = '';
+                    if (sesiones.length === 0) {
+                        // Generate empty rows based on act.sesiones
+                        for (let i = 1; i <= act.sesiones; i++) {
+                            addSessionRow(i, '', '', '');
+                        }
+                    } else {
+                        sesiones.forEach(s => {
+                            addSessionRow(s.numero_sesion, s.descripcion || '', s.fecha || '', s.id);
+                        });
+                    }
+                })
+                .catch(err => {
+                    container.innerHTML = `<p style="color:red">Error al cargar sesiones: ${err}</p>`;
+                });
+        }
+
+        function closeSessionsModal() {
+            document.getElementById('sessionsModal').style.display = 'none';
+        }
+
+        function addSessionRow(numero = 1, desc = '', fecha = '', id = '') {
+            const container = document.getElementById('sessionsListContainer');
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.gap = '10px';
+            div.style.marginBottom = '10px';
+            div.className = 'session-row';
+            div.style.alignItems = 'center';
+            div.style.background = '#f8f9fa';
+            div.style.padding = '10px';
+            div.style.borderRadius = '8px';
+            div.style.border = '1px solid #ddd';
+
+            div.innerHTML = `
+                <input type="hidden" class="ses-id" value="${id}">
+                <div style="flex: 0 0 60px;">
+                    <label style="font-size: 0.8rem; display:block; margin-bottom: 2px;">Sesión</label>
+                    <input type="number" class="ses-num" value="${numero}" min="1" style="width: 100%; padding: 8px;">
+                </div>
+                <div style="flex: 2;">
+                    <label style="font-size: 0.8rem; display:block; margin-bottom: 2px;">Descripción / Nombre</label>
+                    <input type="text" class="ses-desc" placeholder="Descripción de la sesión..." value="${desc.replace(/"/g, '&quot;')}" style="width: 100%; padding: 8px;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 0.8rem; display:block; margin-bottom: 2px;">Fecha (Opcional)</label>
+                    <input type="date" class="ses-fecha" value="${fecha}" style="width: 100%; padding: 8px;">
+                </div>
+                <div style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                    <button class="btn btn-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 8px 12px; height: 38px;">X</button>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function saveSessions() {
+            const actId = document.getElementById('sessionsActId').value;
+            const sesiones = [];
+
+            document.querySelectorAll('.session-row').forEach(row => {
+                const s_id = row.querySelector('.ses-id').value;
+                const num = parseInt(row.querySelector('.ses-num').value) || 1;
+                const desc = row.querySelector('.ses-desc').value.trim();
+                const fecha = row.querySelector('.ses-fecha').value;
+
+                sesiones.push({ id: s_id, numero_sesion: num, descripcion: desc, fecha: fecha });
+            });
+
+            toggleLoading(true, 'Guardando sesiones...');
+            fetch(`/api/actividades/${actId}/sesiones`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sesiones: sesiones })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    toggleLoading(false);
+                    if (res.ok) {
+                        showToast('Sesiones guardadas', 'success');
+                        closeSessionsModal();
+                    } else {
+                        showToast('Error: ' + res.error, 'error');
+                    }
+                })
+                .catch(err => {
+                    toggleLoading(false);
+                    showToast('Error de conexión', 'error');
+                    console.error(err);
                 });
         }
 
@@ -1364,6 +2027,8 @@
             <div id="loadingText">Cargando...</div>
         </div>
     </div>
+
+    <script src="/static/js/global_groups.js"></script>
 </body>
 
 </html>

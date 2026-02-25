@@ -14,6 +14,8 @@ def dashboard_resumen():
     conn = get_db()
     cur = conn.cursor()
 
+    grupo_id = session.get('active_group_id')
+    
     # 1. Asistencia
     cur.execute("""
         SELECT 
@@ -21,32 +23,33 @@ def dashboard_resumen():
             SUM(CASE WHEN asist.estado IN ('falta_justificada', 'falta_no_justificada') THEN 1 ELSE 0 END) as faltas
         FROM alumnos a
         LEFT JOIN asistencia asist ON asist.alumno_id = a.id AND asist.fecha = ?
-    """, (fecha_hoy,))
+        WHERE a.grupo_id = ?
+    """, (fecha_hoy, grupo_id))
     asist_stats = cur.fetchone()
 
     # 2. Comedor
-    comedor_total = calculate_comedor_total(conn, fecha_hoy)
+    comedor_total = calculate_comedor_total(conn, fecha_hoy, grupo_id)
 
     # 3. Cumpleaños
     cur.execute("""
         SELECT a.nombre 
         FROM ficha_alumno f
         JOIN alumnos a ON a.id = f.alumno_id
-        WHERE strftime('%m-%d', f.fecha_nacimiento) = ?
-    """, (hoy_mm_dd,))
+        WHERE strftime('%m-%d', f.fecha_nacimiento) = ? AND a.grupo_id = ?
+    """, (hoy_mm_dd, grupo_id))
     cumples = [r["nombre"] for r in cur.fetchall()]
 
     # 4. Media Clase (último trimestre con datos)
-    cur.execute("SELECT MAX(trimestre) FROM evaluaciones")
+    cur.execute("SELECT MAX(e.trimestre) FROM evaluaciones e JOIN alumnos a ON a.id=e.alumno_id WHERE a.grupo_id=?", (grupo_id,))
     row_tri = cur.fetchone()
     ultimo_tri = row_tri[0] if row_tri and row_tri[0] else 1
     
-    cur.execute("SELECT AVG(nota) FROM evaluaciones WHERE trimestre = ?", (ultimo_tri,))
+    cur.execute("SELECT AVG(e.nota) FROM evaluaciones e JOIN alumnos a ON a.id=e.alumno_id WHERE e.trimestre = ? AND a.grupo_id=?", (ultimo_tri, grupo_id))
     row_media = cur.fetchone()
     media_clase = row_media[0] if row_media and row_media[0] else 0
 
     # 5. Asistencia Semanal (Últimos 7 días omitiendo fines de semana)
-    cur.execute("SELECT COUNT(*) FROM alumnos")
+    cur.execute("SELECT COUNT(*) FROM alumnos WHERE grupo_id=?", (grupo_id,))
     total_a = cur.fetchone()[0] or 1
 
     fechas = []
@@ -62,7 +65,8 @@ def dashboard_resumen():
             FROM asistencia ast
             JOIN alumnos a ON a.id = ast.alumno_id
             WHERE ast.fecha = ? AND ast.estado IN ('falta_justificada', 'falta_no_justificada')
-        """, (f,))
+              AND a.grupo_id = ?
+        """, (f, grupo_id))
         nombres_faltan = [r[0] for r in cur.fetchall()]
         faltas = len(nombres_faltan)
         
@@ -85,10 +89,11 @@ def dashboard_resumen():
             END as rango,
             COUNT(*)
         FROM (
-            SELECT alumno_id, AVG(nota) as nota
-            FROM evaluaciones 
-            WHERE trimestre = ?
-            GROUP BY alumno_id
+            SELECT e.alumno_id, AVG(e.nota) as nota
+            FROM evaluaciones e
+            JOIN alumnos a ON a.id = e.alumno_id
+            WHERE e.trimestre = ? AND a.grupo_id = ?
+            GROUP BY e.alumno_id
         )
         GROUP BY 
             CASE 
@@ -97,7 +102,7 @@ def dashboard_resumen():
                 WHEN nota < 9 THEN 'Notable'
                 ELSE 'Sobresaliente'
             END
-    """, (ultimo_tri,))
+    """, (ultimo_tri, grupo_id))
     distribucion = {r[0]: r[1] for r in cur.fetchall()}
 
     # 7. Alertas
@@ -111,9 +116,10 @@ def dashboard_resumen():
         JOIN alumnos a ON a.id = ast.alumno_id
         WHERE strftime('%Y-%m', ast.fecha) = ? 
           AND ast.estado IN ('falta_justificada', 'falta_no_justificada')
+          AND a.grupo_id = ?
         GROUP BY a.id, a.nombre
         HAVING COUNT(*) >= 3
-    """, (mes_actual,))
+    """, (mes_actual, grupo_id))
     for row in cur.fetchall():
         alertas.append(f"⚠️ {row['nombre']} tiene {row['count']} faltas este mes.")
 
@@ -122,10 +128,10 @@ def dashboard_resumen():
         SELECT a.nombre, AVG(e.nota) as media
         FROM evaluaciones e
         JOIN alumnos a ON a.id = e.alumno_id
-        WHERE e.trimestre = ?
+        WHERE e.trimestre = ? AND a.grupo_id = ?
         GROUP BY a.id, a.nombre
         HAVING AVG(e.nota) < 5
-    """, (ultimo_tri,))
+    """, (ultimo_tri, grupo_id))
     for row in cur.fetchall():
         alertas.append(f"📉 {row['nombre']} tiene media suspensa ({round(row['media'], 1)}).")
 
@@ -146,9 +152,10 @@ def dashboard_resumen():
         JOIN alumnos a ON a.id = r.alumno_id
         WHERE r.tipo = 'PADRES' 
           AND r.fecha <= ?
+          AND a.grupo_id = ?
         ORDER BY r.fecha DESC
         LIMIT 5
-    """, (fecha_hoy,))
+    """, (fecha_hoy, grupo_id))
     
     ultimas_reuniones = []
     for r in cur.fetchall():
@@ -180,15 +187,17 @@ def dashboard_resumen():
 def ultimas_observaciones():
     conn = get_db()
     cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
     # Get last 5 observations
     cur.execute("""
         SELECT o.fecha, a.nombre as alumno, ar.nombre as area, o.texto
         FROM observaciones o
         JOIN alumnos a ON a.id = o.alumno_id
         LEFT JOIN areas ar ON ar.id = o.area_id
+        WHERE a.grupo_id = ?
         ORDER BY o.fecha DESC, o.id DESC
         LIMIT 5
-    """)
+    """, (grupo_id,))
     rows = cur.fetchall()
     
     return jsonify([{

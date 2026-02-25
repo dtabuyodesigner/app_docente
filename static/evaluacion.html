@@ -140,8 +140,41 @@
             <a href="/informes">📜 Informes</a>
             <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
         </div>
-        <div style="margin-bottom: 15px;"><label>Alumno: <select id="alumno"></select></label><label>Área: <select
-                    id="area"></select></label><label>SDA: <select id="sda"></select></label></div>
+
+        <div
+            style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="margin:0;">📊 Evaluación</h2>
+                <div
+                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size: 1.1rem;">📚</span>
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
+                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: var(--primary); cursor: pointer; outline: none;">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div
+            style="margin-bottom: 15px; display: grid; grid-template-columns: auto auto auto minmax(0, 1fr); gap: 15px; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 5px; margin: 0; white-space: nowrap;">Alumno: <select
+                    id="alumno"
+                    style="margin: 0; max-width: 250px; text-overflow: ellipsis; white-space: nowrap;"></select></label>
+            <label style="display: flex; align-items: center; gap: 5px; margin: 0; white-space: nowrap;">Área: <select
+                    id="area"
+                    style="margin: 0; max-width: 250px; text-overflow: ellipsis; white-space: nowrap;"></select></label>
+            <label style="display: flex; align-items: center; gap: 5px; margin: 0; white-space: nowrap;">Trimestre:
+                <select id="trimestre" style="margin: 0;">
+                    <option value="1">1º Trimestre</option>
+                    <option value="2" selected>2º Trimestre</option>
+                    <option value="3">3º Trimestre</option>
+                </select>
+            </label>
+            <label
+                style="display: flex; align-items: center; gap: 5px; margin: 0; white-space: nowrap; overflow: hidden;">SDA:
+                <select id="sda"
+                    style="margin: 0; width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"></select></label>
+        </div>
         <div style="margin-bottom: 15px; display: flex; gap: 10px;">
             <button onclick="rellenarTodos(3)" style="background:#007bff; color: white;">⚡ Rellenar Visible a 3</button>
             <button onclick="limpiarTodos()" style="background:#dc3545; color:white; border-color:#dc3545;">🗑️ Limpiar
@@ -168,9 +201,11 @@
             let alumnoSelect = document.getElementById("alumno");
             let areaSelect = document.getElementById("area");
             let sdaSelect = document.getElementById("sda");
+            let trimestreSelect = document.getElementById("trimestre");
+
+            function getTrimestre() { return trimestreSelect.value; }
             let thead = document.getElementById("thead");
             let tbody = document.getElementById("tbody");
-            const trimestre = 2;
 
             fetch("/api/alumnos").then(r => r.json()).then(datos => {
                 alumnoSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Alumno --</option>';
@@ -186,13 +221,40 @@
 
             areaSelect.addEventListener("change", cargarSDA);
             sdaSelect.addEventListener("change", () => cargarCriterios());
-            alumnoSelect.addEventListener("change", () => { cargarNotasExistentes(); cargarResumenAlumno(); });
+            trimestreSelect.addEventListener("change", () => {
+                cargarSDA();
+                if (alumnoSelect.value && sdaSelect.value) cargarNotasExistentes();
+                if (alumnoSelect.value) cargarResumenAlumno();
+            });
+            alumnoSelect.addEventListener("change", () => {
+                // Reset area to the first real area (index 1) if available
+                if (areaSelect.options.length > 1) {
+                    areaSelect.selectedIndex = 1;
+                    cargarSDA();
+                } else {
+                    areaSelect.selectedIndex = 0;
+                    sdaSelect.innerHTML = "";
+                    thead.innerHTML = "";
+                    tbody.innerHTML = "";
+                }
+                cargarNotasExistentes();
+                cargarResumenAlumno();
+            });
 
             function cargarSDA() {
                 if (!areaSelect.value) return;
-                fetch(`/api/evaluacion/sda/${areaSelect.value}`).then(r => r.json()).then(datos => {
+                fetch(`/api/evaluacion/sda/${areaSelect.value}?trimestre=${getTrimestre()}`).then(r => r.json()).then(datos => {
                     sdaSelect.innerHTML = "";
-                    datos.forEach(s => { sdaSelect.innerHTML += `<option value="${s.id}">${s.nombre}</option>`; });
+                    if (datos.length === 0) {
+                        sdaSelect.innerHTML = '<option value="" disabled selected>No hay SDAs</option>';
+                        thead.innerHTML = "";
+                        tbody.innerHTML = "";
+                        return;
+                    }
+
+                    datos.forEach(s => { sdaSelect.innerHTML += `<option value="${s.id}" title="${s.nombre}">${s.nombre}</option>`; });
+                    // Always ensure the first option is actually requested and criteria loaded
+                    sdaSelect.selectedIndex = 0;
                     cargarCriterios();
                 });
             }
@@ -226,7 +288,7 @@
             function cargarNotasExistentes() {
                 if (!alumnoSelect.value || !sdaSelect.value) return;
                 document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
-                fetch(`/api/evaluacion/alumno?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${trimestre}`)
+                fetch(`/api/evaluacion/alumno?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${getTrimestre()}`)
                     .then(r => r.json()).then(notas => {
                         for (const [criterioId, nivel] of Object.entries(notas)) {
                             let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
@@ -243,13 +305,13 @@
             }
 
             function cargarMedia() {
-                fetch(`/api/evaluacion/media?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${trimestre}`)
+                fetch(`/api/evaluacion/media?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${getTrimestre()}`)
                     .then(r => r.json()).then(d => {
                         const el = document.getElementById("mediaSDA");
                         el.innerText = "📊 Media de la situación: " + (d.media ? d.media : "—");
                         el.style.color = d.media ? getColorNota(d.media) : "#333";
                     });
-                fetch(`/api/evaluacion/media_area?alumno_id=${alumnoSelect.value}&area_id=${areaSelect.value}&trimestre=${trimestre}`)
+                fetch(`/api/evaluacion/media_area?alumno_id=${alumnoSelect.value}&area_id=${areaSelect.value}&trimestre=${getTrimestre()}`)
                     .then(r => r.json()).then(d => {
                         const el = document.getElementById("mediaArea");
                         el.innerText = "📈 Media del Área: " + (d.media ? d.media : "—");
@@ -259,7 +321,7 @@
 
             function cargarResumenAlumno() {
                 if (!alumnoSelect.value) return;
-                fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoSelect.value}&trimestre=${trimestre}`)
+                fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoSelect.value}&trimestre=${getTrimestre()}`)
                     .then(r => r.json()).then(datos => {
                         let html = `<table style="width: auto; margin: 0;">`;
                         if (datos.length === 0) html = "<em>No hay calificaciones registradas para este trimestre.</em>";
@@ -290,7 +352,7 @@
                     return;
                 }
                 if (!confirm("¿Borrar todas las notas de este alumno en esta SDA?")) return;
-                fetch(`/api/evaluacion?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${trimestre}`, { method: 'DELETE' })
+                fetch(`/api/evaluacion?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${getTrimestre()}`, { method: 'DELETE' })
                     .then(r => r.json()).then(d => {
                         if (d.ok) {
                             cargarNotasExistentes();
@@ -317,7 +379,7 @@
                         area_id: areaSelect.value,
                         sda_id: sdaSelect.value,
                         criterio_id: criterio_id,
-                        trimestre: trimestre,
+                        trimestre: getTrimestre(),
                         nivel: nivel
                     })
                 }).then(r => r.json()).then(data => {
@@ -327,6 +389,7 @@
             }
         </script>
     </div>
+    <script src="/static/js/global_groups.js"></script>
 </body>
 
 </html>

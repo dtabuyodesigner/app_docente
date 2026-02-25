@@ -48,7 +48,7 @@ def require_auth():
     if request.path.startswith('/static/') or request.path in ['/login', '/logout'] or request.path.endswith('.js') or request.path.endswith('.css') or request.endpoint == 'static':
         return
         
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or 'username' not in session:
         if request.path.startswith('/api/'):
             return {"ok": False, "error": "No autorizado"}, 401
         return redirect(url_for('main.login_page'))

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from utils.db import get_db
 from datetime import date
 
@@ -53,13 +53,14 @@ def api_reuniones():
             return jsonify([dict(r) for r in rows])
         else:
             # List all (filtered by type if provided)
+            grupo_id = session.get('active_group_id')
             sql = """
                 SELECT r.*, a.nombre as alumno_nombre
                 FROM reuniones r
                 LEFT JOIN alumnos a ON r.alumno_id = a.id
-                WHERE 1=1
+                WHERE (r.tipo = 'CICLO' OR a.grupo_id = ?)
             """
-            params = []
+            params = [grupo_id]
             if tipo:
                 sql += " AND r.tipo = ?"
                 params.append(tipo)

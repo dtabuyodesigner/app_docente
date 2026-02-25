@@ -58,18 +58,16 @@ Permite la generación de informes PDF detallados y exportaciones a Excel.
 ### ✅ Gestión de Tareas
 Sistema completo de tareas pendientes para el docente.
 - **CRUD Completo**: Crear, leer, actualizar y eliminar tareas
-- **Base de Datos**: Tabla `tareas` con campos: `id`, `texto`, `fecha`, `hecha`
+- **Base de Datos**: Tabla `gestor_tareas` con campos: `id`, `titulo`, `descripcion`, `prioridad`, `fecha_limite`, `estado`
 - **Endpoints**:
-  - `GET /api/tareas`: Listar todas las tareas
-  - `POST /api/tareas`: Crear nueva tarea
-  - `PUT /api/tareas/<id>`: Toggle completada o edición completa (soporta both modes)
-  - `DELETE /api/tareas/<id>`: Borrar tarea individual
-  - `POST /api/tareas/bulk_delete_completed`: Borrar todas las completadas
+  - `GET /api/gestor_tareas`: Listar todas las tareas (soporta filtro por `estado`)
+  - `POST /api/gestor_tareas`: Crear nueva tarea
+  - `PUT /api/gestor_tareas/<id>`: Actualizar tarea o cambiar estado
+  - `DELETE /api/gestor_tareas/<id>`: Borrar tarea individual
 - **Frontend Features**:
-  - Indicador visual de vencimiento (borde rojo, ⚠️ icon)
-  - Alerta automática al cargar si hay tareas vencidas
-  - Edición inline con prompts para texto y fecha
-  - Sistema de notificaciones toast
+  - Clasificación por prioridad (Alta 🔴, Media 🟡, Baja 🟢)
+  - Filtros por estado (Todas, Pendientes, Completadas)
+  - Notificaciones de guardado y confirmación de borrado
 
 ### 📅 Programación y Google Calendar
 Gestión de la agenda docente con sincronización bidireccional.
@@ -87,6 +85,16 @@ Permite gestionar dos horarios distintos de forma independiente.
 - **Profesor**: Horario personal del docente.
 - **Implementación**: Almacenamiento de imágenes con prefijos específicos en el servidor.
 
+### 🔐 Gestión de Usuarios (Multi-usuario)
+Sistema de autenticación y control de accesos.
+- **Roles**: 
+  - `admin`: Acceso total, incluyendo gestión de otros usuarios.
+  - `profesor`: Acceso a las herramientas docentes.
+- **Seguridad**:
+  - Contraseñas hasheadas con `werkzeug.security`.
+  - Protección de rutas vía `before_request` en `app.py`.
+- **Panel de Control**: Disponible en `/usuarios` para administradores.
+
 ---
 
 ## 4. Esquema de Base de Datos (Tablas Principales)
@@ -97,11 +105,18 @@ Permite gestionar dos horarios distintos de forma independiente.
 - **`reuniones`**: Actas de reuniones, diferenciadas por el campo `tipo`.
 - **`informe_individual` / `informe_grupo`**: Observaciones específicas para los informes trimestrales.
 - **`horario`**: Almacena las rutas de las imágenes de los horarios.
-- **`tareas`**: Gestión de tareas del docente
+- **`gestor_tareas`**: Gestión de tareas del docente
   - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
-  - `texto`: TEXT NOT NULL (descripción de la tarea)
-  - `fecha`: TEXT (fecha límite en formato YYYY-MM-DD, opcional)
-  - `hecha`: INTEGER DEFAULT 0 (0 = pendiente, 1 = completada)
+  - `titulo`: TEXT NOT NULL
+  - `descripcion`: TEXT
+  - `estado`: TEXT DEFAULT 'pendiente'
+  - `prioridad`: TEXT DEFAULT 'media'
+  - `fecha_limite`: DATE
+- **`usuarios`**: Datos de acceso y roles
+  - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
+  - `username`: TEXT UNIQUE
+  - `password_hash`: TEXT
+  - `role`: TEXT (admin, profesor)
 
 ---
 

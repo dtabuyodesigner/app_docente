@@ -493,7 +493,17 @@
         </div>
 
         <div class="header">
-            <h2>📋 Pasar lista</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="margin:0;">📋 Pasar lista</h2>
+                <div
+                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size: 1.1rem;">📚</span>
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
+                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: var(--primary); cursor: pointer; outline: none;">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
+            </div>
             <div class="controls">
                 <label for="fecha">📅 <strong>Fecha:</strong></label>
                 <input type="date" id="fecha">
@@ -662,7 +672,7 @@
                     </div>
                 `;
 
-                if (student.estado.startsWith("falta") && student.tipo_ausencia === "horas" && student.horas_ausencia) {
+                if ((student.estado.startsWith("falta") || student.estado === "retraso") && student.tipo_ausencia === "horas" && student.horas_ausencia) {
                     const hours = JSON.parse(student.horas_ausencia);
                     card.innerHTML += `<div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">🕒 Horas: ${hours.join(", ")}</div>`;
                 }
@@ -688,7 +698,7 @@
                     </div>
                 `;
 
-                if (student.estado.startsWith("falta")) {
+                if (student.estado.startsWith("falta") || student.estado === "retraso") {
                     card.innerHTML += `
                         <div style="margin-bottom: 15px; text-align: center;">
                             <a href="#" onclick="openHourModal(${student.id}); return false;" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">
@@ -731,13 +741,21 @@
             };
 
             // Auto-dining logic: 
-            // 1. If returning to class (presente/retraso) and is a habitual diner
-            if ((status === 'presente' || status === 'retraso')) {
+            // 1. If returning to class (presente)
+            if (status === 'presente') {
                 if (student && student.no_comedor === 0) payload.comedor = 1;
                 payload.tipo_ausencia = 'dia';
                 payload.horas_ausencia = null;
             }
-            // 2. If it's a partial absence, we don't automatically set comedor=0
+            // 2. If it's a retraso, preserve partial absence logic but keep dining by default if habitual
+            else if (status === 'retraso') {
+                if (student && student.no_comedor === 0) {
+                    payload.comedor = 1;
+                } else {
+                    payload.comedor = student ? student.comedor : 0;
+                }
+            }
+            // 3. If it's a partial absence, we don't automatically set comedor=0
             else if (status.startsWith('falta')) {
                 if (payload.tipo_ausencia === 'dia') {
                     payload.comedor = 0;
@@ -1129,6 +1147,7 @@
 
         loadAttendance();
     </script>
+    <script src="/static/js/global_groups.js"></script>
 </body>
 
 </html>

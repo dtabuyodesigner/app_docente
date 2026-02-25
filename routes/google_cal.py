@@ -63,7 +63,17 @@ def import_calendar():
         if not os.path.exists(TOKEN_FILE):
             return jsonify({"ok": False, "error": "No autorizado"}), 401
             
+        from google.auth.transport.requests import Request
         creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+        
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            with open(TOKEN_FILE, 'w') as token:
+                token.write(creds.to_json())
+
+        if not creds or not creds.valid:
+            return jsonify({"ok": False, "error": "Credenciales inválidas, vuelve a conectar Google Calendar"}), 401
+
         service = build('calendar', 'v3', credentials=creds)
         
         now = datetime.utcnow()
@@ -112,19 +122,29 @@ def import_calendar():
 
 @google_cal_bp.route("/api/calendar/sync", methods=['POST'])
 def sync_calendar():
-    if not os.path.exists(TOKEN_FILE):
-        return jsonify({"ok": False, "error": "No autorizado"}), 401
-        
-    creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-    service = build('calendar', 'v3', credentials=creds)
-    
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT fecha, actividad, observaciones FROM programacion_diaria")
-    local_events = cur.fetchall()
-    
-    pushed = 0
     try:
+        if not os.path.exists(TOKEN_FILE):
+            return jsonify({"ok": False, "error": "No autorizado"}), 401
+            
+        from google.auth.transport.requests import Request
+        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            with open(TOKEN_FILE, 'w') as token:
+                token.write(creds.to_json())
+
+        if not creds or not creds.valid:
+            return jsonify({"ok": False, "error": "Credenciales inválidas, vuelve a conectar Google Calendar"}), 401
+            
+        service = build('calendar', 'v3', credentials=creds)
+        
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT fecha, actividad, observaciones FROM programacion_diaria")
+        local_events = cur.fetchall()
+        
+        pushed = 0
         for le in local_events:
             if not le['fecha'] or not le['actividad']:
                 continue

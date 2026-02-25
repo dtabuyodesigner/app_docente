@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from utils.db import get_db
 from datetime import date
 import json
@@ -13,6 +13,7 @@ def asistencia_hoy():
 
     day_of_week = str(date.fromisoformat(fecha).weekday())
 
+    grupo_id = session.get('active_group_id')
     cur.execute("""
         SELECT 
             a.id,
@@ -28,8 +29,9 @@ def asistencia_hoy():
         LEFT JOIN asistencia asist
             ON asist.alumno_id = a.id
            AND asist.fecha = ?
+        WHERE a.grupo_id = ?
         ORDER BY a.nombre
-    """, (fecha,))
+    """, (fecha, grupo_id))
 
     datos = cur.fetchall()
 
@@ -111,6 +113,7 @@ def asistencia_mes():
     conn = get_db()
     cur = conn.cursor()
 
+    grupo_id = session.get('active_group_id')
     cur.execute("""
         SELECT 
             a.nombre,
@@ -120,8 +123,9 @@ def asistencia_mes():
         JOIN asistencia asist ON asist.alumno_id = a.id
         WHERE strftime('%Y-%m', asist.fecha) = ?
           AND asist.estado IN ('retraso', 'falta_justificada', 'falta_no_justificada')
+          AND a.grupo_id = ?
         ORDER BY a.nombre, asist.fecha
-    """, (mes,))
+    """, (mes, grupo_id))
 
     datos = cur.fetchall()
 
@@ -161,6 +165,7 @@ def resumen_asistencia():
     conn = get_db()
     cur = conn.cursor()
 
+    grupo_id = session.get('active_group_id')
     cur.execute("""
         SELECT 
             a.nombre,
@@ -171,7 +176,8 @@ def resumen_asistencia():
         LEFT JOIN asistencia asist
             ON asist.alumno_id = a.id
            AND asist.fecha = ?
-    """, (fecha,))
+        WHERE a.grupo_id = ?
+    """, (fecha, grupo_id))
 
     filas = cur.fetchall()
 
@@ -227,12 +233,13 @@ def get_encargado():
     fecha = request.args.get("fecha", date.today().isoformat())
     conn = get_db()
     cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
     cur.execute("""
         SELECT a.id, a.nombre 
         FROM encargados e
         JOIN alumnos a ON e.alumno_id = a.id
-        WHERE e.fecha = ?
-    """, (fecha,))
+        WHERE e.fecha = ? AND a.grupo_id = ?
+    """, (fecha, grupo_id))
     row = cur.fetchone()
     
     if row:
@@ -248,13 +255,15 @@ def seleccionar_encargado():
     conn = get_db()
     cur = conn.cursor()
     
+    grupo_id = session.get('active_group_id')
     # 1. Get present students for this day
     cur.execute("""
         SELECT a.id, a.nombre
         FROM alumnos a
         LEFT JOIN asistencia asist ON asist.alumno_id = a.id AND asist.fecha = ?
         WHERE COALESCE(asist.estado, 'presente') IN ('presente', 'retraso')
-    """, (fecha,))
+          AND a.grupo_id = ?
+    """, (fecha, grupo_id))
     presentes = cur.fetchall()
     
     if not presentes:
@@ -262,10 +271,12 @@ def seleccionar_encargado():
     
     # 2. Count how many times each present student has been encargado
     cur.execute("""
-        SELECT alumno_id, COUNT(*) as veces
-        FROM encargados
-        GROUP BY alumno_id
-    """)
+        SELECT e.alumno_id, COUNT(*) as veces
+        FROM encargados e
+        JOIN alumnos a ON e.alumno_id = a.id
+        WHERE a.grupo_id = ?
+        GROUP BY e.alumno_id
+    """, (grupo_id,))
     conteos = {row["alumno_id"]: row["veces"] for row in cur.fetchall()}
     
     # 3. Find the minimum count among present students
@@ -303,16 +314,18 @@ def historial_encargados():
     conn = get_db()
     cur = conn.cursor()
     
+    grupo_id = session.get('active_group_id')
     # Get total active students
-    cur.execute("SELECT COUNT(*) as total FROM alumnos")
+    cur.execute("SELECT COUNT(*) as total FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     total_alumnos = cur.fetchone()["total"]
     
     cur.execute("""
         SELECT e.fecha, a.nombre 
         FROM encargados e
         JOIN alumnos a ON e.alumno_id = a.id
+        WHERE a.grupo_id = ?
         ORDER BY e.fecha DESC
-    """)
+    """, (grupo_id,))
     datos = cur.fetchall()
     
     return jsonify({

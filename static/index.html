@@ -399,9 +399,19 @@
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h1 style="margin: 0;">📘 Panel de Control</h1>
-            <a href="/logout"
-                style="background: #dc3545; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;">Cerrar
-                Sesión</a>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div
+                    style="background: var(--light); padding: 8px 15px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 8px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size: 1.2rem;">📚</span>
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
+                        style="border: none; background: transparent; font-weight: 600; font-size: 0.95rem; color: var(--primary); cursor: pointer; outline: none; padding-right: 5px;">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
+                <a href="/logout"
+                    style="background: #dc3545; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;">Cerrar
+                    Sesión</a>
+            </div>
         </div>
 
         <div id="birthdayAlert" class="birthday-card">
@@ -463,6 +473,11 @@
                 id="adminNavBtn">
                 <span class="nav-icon">👤</span>
                 <span class="nav-text" style="color: #c62828;">Usuarios</span>
+            </a>
+            <a href="#" onclick="abrirAjustesGrupos(); return false;" class="nav-btn"
+                style="background: #f3e5f5; border: 1px solid #e1bee7;">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text" style="color: #6a1b9a;">Ajustes Grupos</span>
             </a>
         </div>
 
@@ -579,6 +594,123 @@
             </div>
         </div>
 
+        <!-- Ajustes Grupos Modal -->
+        <div class="modal-overlay" id="ajustesGruposModal">
+            <div class="modal" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3 style="color: var(--primary); margin: 0;">⚙️ Ajustes de Grupos</h3>
+                    <button class="modal-close"
+                        onclick="document.getElementById('ajustesGruposModal').style.display='none'">&times;</button>
+                </div>
+                <div style="margin-top: 20px; text-align: left;">
+
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top:0;">Mis Grupos</h4>
+                        <div id="ajustesGruposList">
+                            <p style="color: #666; font-style: italic;">Cargando grupos...</p>
+                        </div>
+                    </div>
+
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                        <h4 style="margin-top: 0; color:var(--primary);">➕ Crear Nuevo Grupo</h4>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display:block; font-weight:600; margin-bottom:5px;">Etapa y Curso:</label>
+                            <select id="newGroupStage"
+                                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                                <optgroup label="Educación Infantil">
+                                    <option value="infantil_3">Infantil 3 años</option>
+                                    <option value="infantil_4">Infantil 4 años</option>
+                                    <option value="infantil_5">Infantil 5 años</option>
+                                </optgroup>
+                                <optgroup label="Educación Primaria">
+                                    <option value="primaria_1">1º de Primaria</option>
+                                    <option value="primaria_2">2º de Primaria</option>
+                                    <option value="primaria_3">3º de Primaria</option>
+                                    <option value="primaria_4">4º de Primaria</option>
+                                    <option value="primaria_5">5º de Primaria</option>
+                                    <option value="primaria_6">6º de Primaria</option>
+                                </optgroup>
+                                <optgroup label="Colegios Unitarios">
+                                    <option value="unitario_infantil">Unitario - Solo Infantil (3 a 5 años)</option>
+                                    <option value="unitario_primaria">Unitario - Solo Primaria (1º a 6º)</option>
+                                    <option value="unitario_mixto">Unitario - Mixto (Infantil y Primaria)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 25px;">
+                            <label style="display:block; font-weight:600; margin-bottom:5px;">Línea (Letra):</label>
+                            <select id="newGroupLine"
+                                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                                <option value="">Ninguna (Línea Única)</option>
+                                <option value="A">Línea A</option>
+                                <option value="B">Línea B</option>
+                                <option value="C">Línea C</option>
+                                <option value="D">Línea D</option>
+                            </select>
+                        </div>
+                        <button onclick="createNewGroup()"
+                            style="width:100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                            Guardar Grupo
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Renombrar Grupo Modal -->
+        <div class="modal-overlay" id="renombrarGrupoModal" style="z-index: 1010;">
+            <div class="modal" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3 style="color: var(--primary); margin: 0;">✏️ Renombrar Grupo</h3>
+                    <button class="modal-close"
+                        onclick="document.getElementById('renombrarGrupoModal').style.display='none'">&times;</button>
+                </div>
+                <div style="margin-top: 20px; text-align: left;">
+                    <input type="hidden" id="renameGroupId">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Etapa y Curso:</label>
+                        <select id="renameGroupStage"
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                            <optgroup label="Educación Infantil">
+                                <option value="infantil_3">Infantil 3 años</option>
+                                <option value="infantil_4">Infantil 4 años</option>
+                                <option value="infantil_5">Infantil 5 años</option>
+                            </optgroup>
+                            <optgroup label="Educación Primaria">
+                                <option value="primaria_1">1º de Primaria</option>
+                                <option value="primaria_2">2º de Primaria</option>
+                                <option value="primaria_3">3º de Primaria</option>
+                                <option value="primaria_4">4º de Primaria</option>
+                                <option value="primaria_5">5º de Primaria</option>
+                                <option value="primaria_6">6º de Primaria</option>
+                            </optgroup>
+                            <optgroup label="Colegios Unitarios">
+                                <option value="unitario_infantil">Unitario - Solo Infantil (3 a 5 años)</option>
+                                <option value="unitario_primaria">Unitario - Solo Primaria (1º a 6º)</option>
+                                <option value="unitario_mixto">Unitario - Mixto (Infantil y Primaria)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 25px;">
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Línea (Letra):</label>
+                        <select id="renameGroupLine"
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                            <option value="">Ninguna (Línea Única)</option>
+                            <option value="A">Línea A</option>
+                            <option value="B">Línea B</option>
+                            <option value="C">Línea C</option>
+                            <option value="D">Línea D</option>
+                        </select>
+                    </div>
+                    <button onclick="ejecutarRenombrarGrupo()"
+                        style="width:100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                        Actualizar Nombre
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -591,6 +723,9 @@
                 const response = await fetch('/api/dashboard/resumen');
                 if (!response.ok) return;
                 const data = await response.json();
+
+                // Load Global Groups Selector Data Manually since we might want it visible even on first run
+                await loadGroupSelectorData();
 
                 // 1. Basic Stats
                 document.getElementById('totalComedor').innerText = data.comedor;
@@ -752,6 +887,115 @@
             }
         }
 
+        async function loadGroupSelectorData() {
+            try {
+                const res = await fetch('/api/grupos');
+                const groups = await res.json();
+                const globalSelect = document.getElementById('globalGroupSelect');
+                if (!globalSelect) return;
+
+                let html = '';
+                groups.forEach(g => {
+                    html += `<option value="${g.id}">${g.nombre}</option>`;
+                });
+
+                if (html === '') {
+                    html = '<option value="">(Sin grupos)</option>';
+                }
+                globalSelect.innerHTML = html;
+
+                // Read active group
+                const actRes = await fetch('/api/grupo_activo');
+                const actData = await actRes.json();
+                if (actData.id) {
+                    globalSelect.value = actData.id;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function changeActiveGroup(groupId) {
+            if (!groupId) return;
+            try {
+                await fetch('/api/grupo_activo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ grupo_id: groupId })
+                });
+                // Recargar el dashboard entero con datos del nuevo grupo
+                window.location.reload();
+            } catch (e) {
+                console.error("Error setting active group", e);
+            }
+        }
+
+        async function createNewGroup() {
+            const etapa = document.getElementById('newGroupStage').value;
+            const linea = document.getElementById('newGroupLine').value;
+
+            try {
+                const res = await fetch('/api/grupos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ etapa_curso: etapa, linea: linea })
+                });
+
+                const data = await res.json();
+                if (data.ok) {
+                    alert("¡Grupo '" + data.nombre + "' creado correctamente!");
+                    // Refresh both lists immediately without full reloading yet
+                    renderAjustesGruposList();
+                    await loadGroupSelectorData();
+
+                    // Reset the form
+                    document.getElementById('newGroupStage').selectedIndex = 0;
+                    document.getElementById('newGroupLine').selectedIndex = 0;
+
+                    // We optionally set it as active, but we don't need to force a full reload or close the modal immediately
+                    // The user might want to add another group.
+                    await changeActiveGroup(data.id);
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                alert("Error de conexión al crear el grupo.");
+                console.error(err);
+            }
+        }
+
+        async function deleteActiveGroup() {
+            const globalSelect = document.getElementById('globalGroupSelect');
+            const groupId = globalSelect.value;
+            const groupName = globalSelect.options[globalSelect.selectedIndex].text;
+
+            if (!groupId) {
+                alert("No hay ningún grupo seleccionado para eliminar.");
+                return;
+            }
+
+            if (!confirm("¿Estás 100% seguro de que quieres eliminar el grupo '" + groupName + "'? ¡Esta acción borrará el grupo para siempre! (Solo se puede borrar si no contiene alumnos)")) {
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/grupos/' + groupId, {
+                    method: 'DELETE'
+                });
+
+                const data = await res.json();
+                if (data.ok) {
+                    alert("🗑️ Grupo eliminado con éxito.");
+                    window.location.reload();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                alert("Error de conexión al eliminar el grupo.");
+                console.error(err);
+            }
+        }
+
         function renderAttendanceChart(data) {
             const ctx = document.getElementById('attendanceChart').getContext('2d');
             const labels = data.map(d => {
@@ -836,7 +1080,55 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', loadDashboard);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGlobalGroups();
+            loadDashboard();
+        });
+
+        // --- GLOBAL GROUP SELECTOR LOGIC ---
+        async function loadGlobalGroups() {
+            try {
+                // Fetch active group
+                const activeRes = await fetch('/api/grupo_activo');
+                const activeData = await activeRes.json();
+
+                // Fetch all groups
+                const groupsRes = await fetch('/api/grupos');
+                const groups = await groupsRes.json();
+
+                const select = document.getElementById('globalGroupSelect');
+                if (groups.length === 0) {
+                    select.innerHTML = '<option value="">Sin grupos asignados</option>';
+                    select.disabled = true;
+                    return;
+                }
+
+                select.innerHTML = groups.map(g => `<option value="${g.id}">${g.nombre} ${g.curso ? '(' + g.curso + ')' : ''}</option>`).join('');
+
+                if (activeData.id) {
+                    select.value = activeData.id;
+                }
+            } catch (e) {
+                console.error("Error loading groups:", e);
+            }
+        }
+
+        async function changeActiveGroup(groupId) {
+            if (!groupId) return;
+            try {
+                const res = await fetch('/api/grupo_activo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ grupo_id: groupId })
+                });
+                if (res.ok) {
+                    // Reload dashboard to reflect new group data
+                    window.location.reload();
+                }
+            } catch (e) {
+                console.error("Error changing group:", e);
+            }
+        }
 
         // --- HISTORY MODAL LOGIC ---
         const historyModal = document.getElementById("historyModal");
@@ -922,6 +1214,104 @@
         historyModal.addEventListener("click", (e) => {
             if (e.target === historyModal) closeHistory();
         });
+
+        // --- AJUSTES GRUPOS LOGIC ---
+        const ajustesGruposModal = document.getElementById('ajustesGruposModal');
+
+        async function abrirAjustesGrupos() {
+            ajustesGruposModal.style.display = 'flex';
+            await renderAjustesGruposList();
+        }
+
+        async function renderAjustesGruposList() {
+            const listContainer = document.getElementById('ajustesGruposList');
+            listContainer.innerHTML = '<p style="color: #666; font-style: italic;">Cargando grupos...</p>';
+            try {
+                const response = await fetch('/api/grupos');
+                const groups = await response.json();
+
+                if (!groups || groups.length === 0) {
+                    listContainer.innerHTML = '<p style="color: #666;">No hay grupos creados todavía.</p>';
+                    return;
+                }
+
+                let html = '<ul style="list-style: none; padding: 0; margin: 0;">';
+                groups.forEach(g => {
+                    let btnRenombrar = `<button onclick="renombrarGrupoDesdeAjustes(${g.id}, '${g.nombre}')" title="Renombrar Grupo" style="background: none; border: none; cursor: pointer; color: #007bff; font-size: 1.1rem; padding: 5px; margin-right: 5px;">✏️</button>`;
+                    let btnBorrar = `<button onclick="borrarGrupoDesdeAjustes(${g.id}, '${g.nombre}')" title="Borrar Grupo" style="background: none; border: none; cursor: pointer; color: #dc3545; font-size: 1.1rem; padding: 5px;">🗑️</button>`;
+                    html += `
+                        <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+                            <div>
+                                <span style="font-weight: 500; color: #333;">${g.nombre}</span>
+                                <span style="font-size: 0.85rem; color: #666; margin-left: 8px;">(${g.num_alumnos} alumnos)</span>
+                            </div>
+                            <div>
+                                ${btnRenombrar}
+                                ${btnBorrar}
+                            </div>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+                listContainer.innerHTML = html;
+            } catch (e) {
+                listContainer.innerHTML = '<p style="color: red;">Error al cargar grupos.</p>';
+            }
+        }
+
+        function borrarGrupoDesdeAjustes(id, nombre) {
+            if (!confirm(`¿Estás SEGURO de que quieres borrar el grupo "${nombre}"?\n\nSi tiene alumnos, asegúrate de transferirlos primero.`)) return;
+
+            fetch(`/api/grupos/${id}`, { method: 'DELETE' })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        renderAjustesGruposList(); // Refresh modal list
+                        loadGroupSelectorData(); // Refresh global selector
+                    } else {
+                        alert("No se puede borrar el grupo. Asegúrate de transferir a sus alumnos antes.\n\nError interno: " + res.error);
+                    }
+                })
+                .catch(e => alert("Error de conexión al borrar grupo."));
+        }
+
+        async function renombrarGrupoDesdeAjustes(id, nombreAntiguo) {
+            document.getElementById('renameGroupId').value = id;
+            document.getElementById('renombrarGrupoModal').style.display = 'flex';
+        }
+
+        async function ejecutarRenombrarGrupo() {
+            const id = document.getElementById('renameGroupId').value;
+            const stageSelect = document.getElementById("renameGroupStage");
+            const lineSelect = document.getElementById("renameGroupLine");
+
+            const stageText = stageSelect.options[stageSelect.selectedIndex].text;
+            const lineText = lineSelect.options[lineSelect.selectedIndex].text;
+
+            let finalName = stageText;
+            if (lineSelect.value !== "") {
+                finalName += " - " + lineText;
+            }
+
+            try {
+                const res = await fetch(`/api/grupos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre: finalName, curso: stageSelect.value })
+                });
+
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('renombrarGrupoModal').style.display = 'none';
+                    renderAjustesGruposList(); // Refresh modal list
+                    loadGroupSelectorData(); // Refresh global selector topbar
+                } else {
+                    alert("Error al renombrar el grupo: " + data.error);
+                }
+            } catch (e) {
+                alert("Error de red al renombrar grupo: " + e.message);
+            }
+        }
     </script>
 </body>
 

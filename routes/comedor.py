@@ -1,11 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from utils.db import get_db
 import os
 from datetime import date, datetime
 
 comedor_bp = Blueprint('comedor', __name__)
 
-def calculate_comedor_total(conn, fecha_iso):
+def calculate_comedor_total(conn, fecha_iso, grupo_id=None):
     cur = conn.cursor()
     # Get day of week (0=Mon, 6=Sun)
     dt = datetime.fromisoformat(fecha_iso)
@@ -23,7 +23,8 @@ def calculate_comedor_total(conn, fecha_iso):
             asist.horas_ausencia
         FROM alumnos a
         LEFT JOIN asistencia asist ON asist.alumno_id = a.id AND asist.fecha = ?
-    """, (fecha_iso,))
+        WHERE (? IS NULL OR a.grupo_id = ?)
+    """, (fecha_iso, grupo_id, grupo_id))
     
     rows = cur.fetchall()
     total = 0
@@ -67,7 +68,8 @@ def calculate_comedor_total(conn, fecha_iso):
 def comedor_hoy():
     fecha = request.args.get("fecha", date.today().isoformat())
     conn = get_db()
-    total = calculate_comedor_total(conn, fecha)
+    grupo_id = session.get('active_group_id')
+    total = calculate_comedor_total(conn, fecha, grupo_id)
     return jsonify({"total": total})
 
 @comedor_bp.route("/api/comedor/menu")

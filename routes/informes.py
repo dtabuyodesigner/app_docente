@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file, session
 from utils.db import get_db, nivel_a_nota
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -531,11 +531,13 @@ def grupo_data():
     conn = get_db()
     cur = conn.cursor()
     
+    grupo_id = session.get('active_group_id')
+    
     # 1. GENERALES
-    cur.execute("SELECT COUNT(*) FROM alumnos")
+    cur.execute("SELECT COUNT(*) FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     total_alumnos = cur.fetchone()[0]
     
-    cur.execute("SELECT COUNT(*), AVG(nota) FROM evaluaciones WHERE trimestre = ?", (trimestre,))
+    cur.execute("SELECT COUNT(*), AVG(e.nota) FROM evaluaciones e JOIN alumnos a ON e.alumno_id = a.id WHERE e.trimestre = ? AND a.grupo_id = ?", (trimestre, grupo_id))
     row_evals = cur.fetchone()
     total_evals = row_evals[0]
     media_general = round(row_evals[1] or 0, 2)
@@ -558,25 +560,27 @@ def grupo_data():
         end_date = f"{year}-06-30"
         
     cur.execute("""
-        SELECT estado, COUNT(*)
-        FROM asistencia
-        WHERE fecha BETWEEN ? AND ?
-        GROUP BY estado
-    """, (start_date, end_date))
+        SELECT asi.estado, COUNT(*)
+        FROM asistencia asi
+        JOIN alumnos a ON a.id = asi.alumno_id
+        WHERE asi.fecha BETWEEN ? AND ? AND a.grupo_id = ?
+        GROUP BY asi.estado
+    """, (start_date, end_date, grupo_id))
     
     asist_stats = dict(cur.fetchall())
     
     # 3. PROMOCION (Alumnos con 0, 1, 2, +2 suspensos)
     cur.execute("""
-        SELECT alumno_id, COUNT(*)
-        FROM evaluaciones
-        WHERE trimestre = ? AND nota < 5
-        GROUP BY alumno_id
-    """, (trimestre,))
+        SELECT e.alumno_id, COUNT(*)
+        FROM evaluaciones e
+        JOIN alumnos a ON a.id = e.alumno_id
+        WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
+        GROUP BY e.alumno_id
+    """, (trimestre, grupo_id))
     suspensos_map = dict(cur.fetchall()) # {alumno_id: num_suspensos}
     
     # Rellenar con 0 los que no tienen suspensos
-    cur.execute("SELECT id FROM alumnos")
+    cur.execute("SELECT id FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     all_ids = [r[0] for r in cur.fetchall()]
     
     distribucion = {0: 0, 1: 0, 2: 0, 3: 0} # 3 representa >2
@@ -630,15 +634,16 @@ def asistencia_detalle():
         start_date = f"{year}-04-01"
         end_date = f"{year}-06-30"
 
+    grupo_id = session.get('active_group_id')
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
         SELECT a.nombre, asi.fecha
         FROM asistencia asi
         JOIN alumnos a ON asi.alumno_id = a.id
-        WHERE asi.estado = ? AND asi.fecha BETWEEN ? AND ?
+        WHERE asi.estado = ? AND asi.fecha BETWEEN ? AND ? AND a.grupo_id = ?
         ORDER BY asi.fecha DESC
-    """, (estado, start_date, end_date))
+    """, (estado, start_date, end_date, grupo_id))
     rows = cur.fetchall()
     
     return jsonify([{"nombre": r["nombre"], "fecha": r["fecha"]} for r in rows])
@@ -724,14 +729,16 @@ def informe_pdf_todos():
     cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ?", (trimestre,))
     row_grupo = cur.fetchone()
     
+    grupo_id = session.get('active_group_id')
+    
     # Promoción (Suspensos)
     cur.execute("""
         SELECT a.nombre, COUNT(*) as num_suspensos
         FROM evaluaciones e
         JOIN alumnos a ON a.id = e.alumno_id
-        WHERE e.trimestre = ? AND e.nota < 5
+        WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
         GROUP BY a.id, a.nombre
-    """, (trimestre,))
+    """, (trimestre, grupo_id))
     suspensos_data = cur.fetchall()
     
     susp_map = {0: 0, 1: 0, 2: 0, 3: 0} # 0, 1, 2, +2
@@ -743,7 +750,7 @@ def informe_pdf_todos():
             susp_map[n] += 1
             
     # Total alumnos (para los que tienen 0 suspensos)
-    cur.execute("SELECT count(*) FROM alumnos")
+    cur.execute("SELECT count(*) FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     total_alumnos = cur.fetchone()[0]
     alumnos_con_suspensos = sum(susp_map.values()) - susp_map[0] # remove 0 if it was counted
     susp_map[0] = total_alumnos - len(suspensos_data)
@@ -762,13 +769,13 @@ def informe_pdf_todos():
         start_date = f"{year}-04-01"; end_date = f"{year}-06-30"
 
     cur.execute("""
-        SELECT a.nombre, estado, COUNT(*) as c
+        SELECT a.nombre, asi.estado, COUNT(*) as c
         FROM asistencia asi
         JOIN alumnos a ON a.id = asi.alumno_id
-        WHERE asi.fecha BETWEEN ? AND ?
-        GROUP BY a.id, a.nombre, estado
+        WHERE asi.fecha BETWEEN ? AND ? AND a.grupo_id = ?
+        GROUP BY a.id, a.nombre, asi.estado
         ORDER BY c DESC
-    """, (start_date, end_date))
+    """, (start_date, end_date, grupo_id))
     asist_rows = cur.fetchall()
     
     max_faltas = {"nombre": "Nadie", "num": 0}
@@ -793,7 +800,7 @@ def informe_pdf_todos():
         max_retrasos = {"nombre": u_max, "num": temp_retrasos[u_max]}
 
     # Alumnos list
-    cur.execute("SELECT id, nombre FROM alumnos ORDER BY nombre")
+    cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ? ORDER BY nombre", (grupo_id,))
     alumnos = cur.fetchall()
     
     
@@ -1014,16 +1021,18 @@ def excel_grupo():
     conn = get_db()
     cur = conn.cursor()
     
+    grupo_id = session.get('active_group_id')
+    
     # 1. Notas por Alumno y Área
     query = """
     SELECT al.nombre as Alumno, ar.nombre as Area, ROUND(AVG(e.nota), 2) as Nota
     FROM evaluaciones e
     JOIN alumnos al ON e.alumno_id = al.id
     JOIN areas ar ON e.area_id = ar.id
-    WHERE e.trimestre = ?
+    WHERE e.trimestre = ? AND al.grupo_id = ?
     GROUP BY al.nombre, ar.nombre
     """
-    df_notas = pd.read_sql_query(query, conn, params=(trimestre,))
+    df_notas = pd.read_sql_query(query, conn, params=(trimestre, grupo_id))
     
     # 2. Valoración del Grupo
     cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ?", (trimestre,))
@@ -1044,9 +1053,9 @@ def excel_grupo():
         SELECT a.nombre, COUNT(*) as Num_Suspensos
         FROM evaluaciones e
         JOIN alumnos a ON a.id = e.alumno_id
-        WHERE e.trimestre = ? AND e.nota < 5
+        WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
         GROUP BY a.id, a.nombre
-    """, (trimestre,))
+    """, (trimestre, grupo_id))
     susp_data = cur.fetchall()
     
     # Calcular estadísticas de promoción
@@ -1058,7 +1067,7 @@ def excel_grupo():
         else:
             susp_map[n] += 1
     
-    cur.execute("SELECT count(*) FROM alumnos")
+    cur.execute("SELECT count(*) FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     total_alumnos = cur.fetchone()[0]
     susp_map[0] = total_alumnos - len(susp_data)
     
@@ -1092,10 +1101,10 @@ def excel_grupo():
         SELECT a.nombre, estado, COUNT(*) as c
         FROM asistencia asi
         JOIN alumnos a ON a.id = asi.alumno_id
-        WHERE asi.fecha BETWEEN ? AND ?
+        WHERE asi.fecha BETWEEN ? AND ? AND a.grupo_id = ?
         GROUP BY a.id, a.nombre, estado
         ORDER BY c DESC
-    """, (start_date, end_date))
+    """, (start_date, end_date, grupo_id))
     asist_rows = cur.fetchall()
     
     max_faltas = {"nombre": "Nadie", "num": 0}
@@ -1232,14 +1241,16 @@ def pdf_grupo():
     cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ?", (trimestre,))
     row_grupo = cur.fetchone()
     
+    grupo_id = session.get('active_group_id')
+    
     # Promoción (Suspensos)
     cur.execute("""
         SELECT a.nombre, COUNT(*) as num_suspensos
         FROM evaluaciones e
         JOIN alumnos a ON a.id = e.alumno_id
-        WHERE e.trimestre = ? AND e.nota < 5
+        WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
         GROUP BY a.id, a.nombre
-    """, (trimestre,))
+    """, (trimestre, grupo_id))
     suspensos_data = cur.fetchall()
     
     susp_map = {0: 0, 1: 0, 2: 0, 3: 0} # 0, 1, 2, +2
@@ -1251,7 +1262,7 @@ def pdf_grupo():
             susp_map[n] += 1
             
     # Total alumnos (para los que tienen 0 suspensos)
-    cur.execute("SELECT count(*) FROM alumnos")
+    cur.execute("SELECT count(*) FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     total_alumnos = cur.fetchone()[0]
     susp_map[0] = total_alumnos - len(suspensos_data)
 
@@ -1269,10 +1280,10 @@ def pdf_grupo():
         SELECT a.nombre, estado, COUNT(*) as c
         FROM asistencia asi
         JOIN alumnos a ON a.id = asi.alumno_id
-        WHERE asi.fecha BETWEEN ? AND ?
+        WHERE asi.fecha BETWEEN ? AND ? AND a.grupo_id = ?
         GROUP BY a.id, a.nombre, estado
         ORDER BY c DESC
-    """, (start_date, end_date))
+    """, (start_date, end_date, grupo_id))
     asist_rows = cur.fetchall()
     
     max_faltas = {"nombre": "Nadie", "num": 0}

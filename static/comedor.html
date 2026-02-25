@@ -131,6 +131,17 @@
             <a href="/informes">📜 Informes</a>
             <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
         </div>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size: 1.1rem;">📚</span>
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)" style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: #003366; cursor: pointer; outline: none;">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
 
         <div class="card">
             <h2>🍽️ Menú del Comedor</h2>
@@ -222,6 +233,8 @@
         }
     </script>
 
+
+    <script src="/static/js/global_groups.js"></script>
 </body>
 
 </html>

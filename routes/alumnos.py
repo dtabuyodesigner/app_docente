@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file, session
 from utils.db import get_db
 import os
 import io
@@ -40,11 +40,16 @@ def obtener_alumnos():
     conn = get_db()
     cur = conn.cursor()
 
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify([])
+
     cur.execute("""
         SELECT id, nombre, no_comedor, comedor_dias, foto
         FROM alumnos
+        WHERE grupo_id = ? AND deleted_at IS NULL
         ORDER BY nombre
-    """)
+    """, (grupo_id,))
 
     alumnos = [
         {
@@ -85,12 +90,16 @@ def nuevo_alumno():
     if err:
         return jsonify({"ok": False, "error": err}), 400
 
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({"ok": False, "error": "No hay grupo seleccionado"}), 400
+
     conn = get_db()
     cur = conn.cursor()
     try:
         cur.execute("BEGIN")
-        cur.execute("INSERT INTO alumnos (nombre, no_comedor, comedor_dias) VALUES (?, ?, ?)", 
-                    (nombre, no_comedor, comedor_dias))
+        cur.execute("INSERT INTO alumnos (nombre, no_comedor, comedor_dias, grupo_id) VALUES (?, ?, ?, ?)", 
+                    (nombre, no_comedor, comedor_dias, grupo_id))
         alumno_id = cur.lastrowid
         
         cur.execute("""
@@ -141,8 +150,8 @@ def borrar_alumno(alumno_id):
     cur = conn.cursor()
     try:
         cur.execute("BEGIN")
-        # La base de datos se encarga de borrar de asistencia, evaluaciones, ficha_alumno, etc. gracias a ON DELETE CASCADE
-        cur.execute("DELETE FROM alumnos WHERE id = ?", (alumno_id,))
+        # Soft delete: sólo marcamos como borrado
+        cur.execute("UPDATE alumnos SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", (alumno_id,))
         
         conn.commit()
     except Exception as e:
@@ -150,7 +159,7 @@ def borrar_alumno(alumno_id):
         print("Error en borrar_alumno:", str(e))
         return jsonify({"ok": False, "error": "Error interno al borrar el alumno."}), 500
 
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "mensaje": "Alumno archivado correctamente."})
 
 @alumnos_bp.route("/api/alumnos/foto/<int:alumno_id>", methods=["POST"])
 def subir_foto_alumno(alumno_id):
@@ -272,17 +281,43 @@ def progreso_alumno(alumno_id):
     
     return jsonify(result)
 
+@alumnos_bp.route("/api/alumnos/<int:alumno_id>/transferir", methods=["PUT"])
+def transferir_alumno(alumno_id):
+    data = request.json
+    nuevo_grupo_id = data.get("nuevo_grupo_id")
+    if not nuevo_grupo_id:
+        return jsonify({"ok": False, "error": "Falta el nuevo grupo ID"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        # Prevent transferring to a group not owned by the active professor
+        if 'profesor_id' in session:
+            cur.execute("SELECT id FROM grupos WHERE id = ? AND profesor_id = ?", (nuevo_grupo_id, session['profesor_id']))
+            if not cur.fetchone():
+                return jsonify({"ok": False, "error": "El nuevo grupo no te pertenece o no existe."}), 403
+
+        cur.execute("UPDATE alumnos SET grupo_id = ? WHERE id = ?", (nuevo_grupo_id, alumno_id))
+        conn.commit()
+        return jsonify({"ok": True, "mensaje": "Alumno transferido con éxito."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @alumnos_bp.route("/api/alumnos/exportar/json")
 def exportar_alumnos_json():
     conn = get_db()
     cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
+    
     cur.execute("""
         SELECT a.id, a.nombre, a.no_comedor, a.comedor_dias, 
                f.fecha_nacimiento, f.direccion, f.madre_nombre, f.madre_telefono, f.madre_email,
                f.padre_nombre, f.padre_telefono, f.padre_email, f.observaciones_generales
         FROM alumnos a
         LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
-    """)
+        WHERE a.grupo_id = ?
+    """, (grupo_id,))
     rows = cur.fetchall()
     
     data = [dict(r) for r in rows]
@@ -302,13 +337,15 @@ def exportar_alumnos_json():
 def exportar_alumnos_csv():
     conn = get_db()
     cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
     cur.execute("""
         SELECT a.id, a.nombre, a.no_comedor, a.comedor_dias, 
                f.fecha_nacimiento, f.direccion, f.madre_nombre, f.madre_telefono, f.madre_email,
                f.padre_nombre, f.padre_telefono, f.padre_email, f.observaciones_generales
         FROM alumnos a
         LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
-    """)
+        WHERE a.grupo_id = ?
+    """, (grupo_id,))
     rows = cur.fetchall()
     
     # Generate CSV

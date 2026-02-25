@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from utils.db import get_db
 import json
 import os
@@ -160,6 +160,7 @@ def obtener_programacion():
     conn = get_db()
     cur = conn.cursor()
 
+    # 1. Fetch from programacion_diaria
     sql = """
         SELECT id, fecha, actividad, tipo, observaciones, color, sda_id
         FROM programacion_diaria
@@ -190,6 +191,47 @@ def obtener_programacion():
                 "sda_id": r["sda_id"]
             }
         })
+        
+    # 2. Fetch from sesiones_actividad
+    sql_sesiones = """
+        SELECT sa.id, sa.fecha, sa.descripcion, sa.numero_sesion, sa.actividad_id, act.nombre as act_nombre, sda.nombre as sda_nombre, sda.id as sda_id
+        FROM sesiones_actividad sa
+        JOIN actividades_sda act ON sa.actividad_id = act.id
+        JOIN sda ON act.sda_id = sda.id
+        WHERE sa.fecha IS NOT NULL
+    """
+    params_ses = []
+
+    if start:
+        sql_sesiones += " AND sa.fecha >= ?"
+        params_ses.append(start)
+    if end:
+        sql_sesiones += " AND sa.fecha <= ?"
+        params_ses.append(end)
+
+    cur.execute(sql_sesiones, params_ses)
+    rows_sesiones = cur.fetchall()
+    
+    for r in rows_sesiones:
+        title = f"[{r['sda_nombre']}] {r['act_nombre']} - Sesión {r['numero_sesion']}"
+        if r['descripcion']:
+            title += f": {r['descripcion']}"
+            
+        events.append({
+            "id": f"ses_{r['id']}", # Prefix to distinguish from normal events
+            "title": title,
+            "start": r["fecha"],
+            "color": "#17a2b8", # Different color (info blue) for automatic sessions
+            "extendedProps": {
+                "tipo": "sesion_actividad",
+                "observaciones": r["descripcion"] or "",
+                "sda_id": r["sda_id"],
+                "actividad_id": r["actividad_id"],
+                "sesion_id": r["id"],
+                "numero_sesion": r["numero_sesion"]
+            }
+        })
+        
     return jsonify(events)
 
 
@@ -356,6 +398,8 @@ def obtener_observaciones_dia():
     conn = get_db()
     cur = conn.cursor()
     
+    grupo_id = session.get('active_group_id')
+    
     if area_id:
         cur.execute("""
             SELECT a.id, a.nombre, a.foto, o.texto, asi.estado, 
@@ -364,8 +408,9 @@ def obtener_observaciones_dia():
             LEFT JOIN observaciones o ON o.alumno_id = a.id AND o.fecha = ? AND o.area_id = ?
             LEFT JOIN asistencia asi ON asi.alumno_id = a.id AND asi.fecha = ?
             LEFT JOIN ficha_alumno f ON f.alumno_id = a.id
+            WHERE a.grupo_id = ?
             ORDER BY a.nombre
-        """, (fecha, area_id, fecha))
+        """, (fecha, area_id, fecha, grupo_id))
     else:
         cur.execute("""
             SELECT a.id, a.nombre, a.foto, o.texto, asi.estado, 
@@ -374,8 +419,9 @@ def obtener_observaciones_dia():
             LEFT JOIN observaciones o ON o.alumno_id = a.id AND o.fecha = ? AND o.area_id IS NULL
             LEFT JOIN asistencia asi ON asi.alumno_id = a.id AND asi.fecha = ?
             LEFT JOIN ficha_alumno f ON f.alumno_id = a.id
+            WHERE a.grupo_id = ?
             ORDER BY a.nombre
-        """, (fecha, fecha))
+        """, (fecha, fecha, grupo_id))
     
     data = []
     for row in cur.fetchall():

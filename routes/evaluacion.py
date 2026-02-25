@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from utils.db import get_db, nivel_a_nota
 
 evaluacion_bp = Blueprint('evaluacion', __name__)
@@ -71,13 +71,16 @@ def obtener_evaluacion():
     conn = get_db()
     cur = conn.cursor()
 
+    grupo_id = session.get('active_group_id')
     cur.execute("""
-        SELECT alumno_id, criterio_id, nivel
-        FROM evaluaciones
-        WHERE area_id = ?
-          AND sda_id = ?
-          AND trimestre = ?
-    """, (area_id, sda_id, trimestre))
+        SELECT e.alumno_id, e.criterio_id, e.nivel
+        FROM evaluaciones e
+        JOIN alumnos a ON e.alumno_id = a.id
+        WHERE e.area_id = ?
+          AND e.sda_id = ?
+          AND e.trimestre = ?
+          AND a.grupo_id = ?
+    """, (area_id, sda_id, trimestre, grupo_id))
 
     datos = cur.fetchall()
 
@@ -105,20 +108,29 @@ def evaluacion_areas():
 
 @evaluacion_bp.route("/api/evaluacion/sda/<int:area_id>")
 def evaluacion_sda(area_id):
+    trimestre = request.args.get("trimestre")
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT id, nombre
-        FROM sda
-        WHERE area_id = ?
-        ORDER BY id
-    """, (area_id,))
+    if trimestre:
+        cur.execute("""
+            SELECT id, nombre, trimestre
+            FROM sda
+            WHERE area_id = ? AND (trimestre = ? OR trimestre IS NULL)
+            ORDER BY id
+        """, (area_id, trimestre))
+    else:
+        cur.execute("""
+            SELECT id, nombre, trimestre
+            FROM sda
+            WHERE area_id = ?
+            ORDER BY id
+        """, (area_id,))
 
     datos = cur.fetchall()
 
     return jsonify([
-        {"id": s["id"], "nombre": s["nombre"]}
+        {"id": s["id"], "nombre": f"[T{s['trimestre']}] {s['nombre']}" if s['trimestre'] else s['nombre']}
         for s in datos
     ])
 
@@ -341,9 +353,214 @@ def curricular_full():
             """, (sda["id"],))
             sda["criterios"] = [dict(crit) for crit in cur.fetchall()]
             
+            # Get competencies for this SDA
+            cur.execute("""
+                SELECT c.codigo, c.descripcion
+                FROM competencias_especificas c
+                JOIN sda_competencias sc ON sc.competencia_id = c.id
+                WHERE sc.sda_id = ?
+                ORDER BY c.id
+            """, (sda["id"],))
+            sda["competencias"] = [dict(comp) for comp in cur.fetchall()]
+            
         area["sdas"] = sdas
         
     return jsonify(areas)
+
+@evaluacion_bp.route("/api/curricular/sa", methods=["POST"])
+def crear_sa():
+    d = request.json
+    nombre = d.get("nombre", "").strip()
+    area_id = d.get("area_id")
+    trimestre = d.get("trimestre")
+    criterios = d.get("criterios", [])
+    competencias = d.get("competencias", [])
+    actividades = d.get("actividades", [])
+    
+    if not nombre or not area_id or not trimestre:
+        return jsonify({"ok": False, "error": "Faltan datos obligatorios (nombre, área, trimestre)."}), 400
+        
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("BEGIN")
+        
+        # 1. Crear SA
+        cur.execute("INSERT INTO sda (nombre, area_id, trimestre) VALUES (?, ?, ?)", (nombre, area_id, trimestre))
+        sda_id = cur.lastrowid
+        
+        # 2. Gestionar Criterios
+        for c in criterios:
+            codigo = c.get("codigo", "").strip()
+            desc = c.get("descripcion", "").strip()
+            if not codigo: continue
+            
+            # Buscar si el criterio ya existe para esa área
+            cur.execute("SELECT id FROM criterios WHERE codigo = ? AND area_id = ?", (codigo, area_id))
+            row = cur.fetchone()
+            if row:
+                crit_id = row["id"]
+                # Opcional: actualizar descripción si ha cambiado?
+                # cur.execute("UPDATE criterios SET descripcion = ? WHERE id = ?", (desc, crit_id))
+            else:
+                cur.execute("INSERT INTO criterios (codigo, descripcion, area_id) VALUES (?, ?, ?)", (codigo, desc, area_id))
+                crit_id = cur.lastrowid
+                
+            # Vincular a la SA
+            cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, crit_id))
+            
+        # 2b. Gestionar Competencias
+        for c in competencias:
+            codigo = c.get("codigo", "").strip()
+            desc = c.get("descripcion", "").strip()
+            if not codigo: continue
+            
+            cur.execute("SELECT id FROM competencias_especificas WHERE codigo = ? AND area_id = ?", (codigo, area_id))
+            row = cur.fetchone()
+            if row:
+                comp_id = row["id"]
+            else:
+                cur.execute("INSERT INTO competencias_especificas (codigo, descripcion, area_id) VALUES (?, ?, ?)", (codigo, desc, area_id))
+                comp_id = cur.lastrowid
+                
+            cur.execute("INSERT OR IGNORE INTO sda_competencias (sda_id, competencia_id) VALUES (?, ?)", (sda_id, comp_id))
+            
+        # 3. Gestionar Actividades
+        for a in actividades:
+            a_nom = a.get("nombre", "").strip()
+            a_desc = a.get("descripcion", "").strip()
+            a_ses = int(a.get("sesiones", 1))
+            if not a_nom: continue
+            
+            cur.execute("INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion) VALUES (?, ?, ?, ?)", (sda_id, a_nom, a_ses, a_desc))
+            
+        conn.commit()
+        return jsonify({"ok": True, "sda_id": sda_id})
+    except Exception as e:
+        conn.rollback()
+        print("Error en crear_sa:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al crear SA."}), 500
+
+@evaluacion_bp.route("/api/curricular/sa/<int:sda_id>", methods=["PUT"])
+def actualizar_sa(sda_id):
+    d = request.json
+    nombre = d.get("nombre", "").strip()
+    area_id = d.get("area_id")
+    trimestre = d.get("trimestre")
+    criterios = d.get("criterios", [])
+    competencias = d.get("competencias", [])
+    actividades = d.get("actividades", [])
+    
+    if not nombre or not area_id or not trimestre:
+        return jsonify({"ok": False, "error": "Faltan datos obligatorios."}), 400
+        
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("BEGIN")
+        
+        # 1. Update SA
+        cur.execute("UPDATE sda SET nombre = ?, area_id = ?, trimestre = ? WHERE id = ?", (nombre, area_id, trimestre, sda_id))
+        
+        # 2. Reset and recreate Criteria links
+        cur.execute("DELETE FROM sda_criterios WHERE sda_id = ?", (sda_id,))
+        for c in criterios:
+            codigo = c.get("codigo", "").strip()
+            desc = c.get("descripcion", "").strip()
+            if not codigo: continue
+            
+            cur.execute("SELECT id FROM criterios WHERE codigo = ? AND area_id = ?", (codigo, area_id))
+            row = cur.fetchone()
+            if row:
+                crit_id = row["id"]
+                cur.execute("UPDATE criterios SET descripcion = ? WHERE id = ?", (desc, crit_id))
+            else:
+                cur.execute("INSERT INTO criterios (codigo, descripcion, area_id) VALUES (?, ?, ?)", (codigo, desc, area_id))
+                crit_id = cur.lastrowid
+                
+            cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, crit_id))
+            
+        # 2b. Reset and recreate Competencies links
+        cur.execute("DELETE FROM sda_competencias WHERE sda_id = ?", (sda_id,))
+        for c in competencias:
+            codigo = c.get("codigo", "").strip()
+            desc = c.get("descripcion", "").strip()
+            if not codigo: continue
+            
+            cur.execute("SELECT id FROM competencias_especificas WHERE codigo = ? AND area_id = ?", (codigo, area_id))
+            row = cur.fetchone()
+            if row:
+                comp_id = row["id"]
+                cur.execute("UPDATE competencias_especificas SET descripcion = ? WHERE id = ?", (desc, comp_id))
+            else:
+                cur.execute("INSERT INTO competencias_especificas (codigo, descripcion, area_id) VALUES (?, ?, ?)", (codigo, desc, area_id))
+                comp_id = cur.lastrowid
+                
+            cur.execute("INSERT OR IGNORE INTO sda_competencias (sda_id, competencia_id) VALUES (?, ?)", (sda_id, comp_id))
+            
+        # 3. Update Activities (Preserving IDs to keep sessions)
+        actividad_ids_to_keep = []
+        for a in actividades:
+            a_id = a.get("id")
+            if a_id and str(a_id).isdigit():
+                actividad_ids_to_keep.append(int(a_id))
+                
+        if actividad_ids_to_keep:
+            placeholders = ','.join('?' for _ in actividad_ids_to_keep)
+            params = [sda_id] + actividad_ids_to_keep
+            cur.execute(f"DELETE FROM actividades_sda WHERE sda_id = ? AND id NOT IN ({placeholders})", params)
+        else:
+            cur.execute("DELETE FROM actividades_sda WHERE sda_id = ?", (sda_id,))
+            
+        for a in actividades:
+            a_id = a.get("id")
+            a_nom = a.get("nombre", "").strip()
+            a_desc = a.get("descripcion", "").strip()
+            a_ses = int(a.get("sesiones", 1))
+            if not a_nom: continue
+            
+            if a_id and str(a_id).isdigit():
+                cur.execute("UPDATE actividades_sda SET nombre = ?, sesiones = ?, descripcion = ? WHERE id = ?", (a_nom, a_ses, a_desc, int(a_id)))
+            else:
+                cur.execute("INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion) VALUES (?, ?, ?, ?)", (sda_id, a_nom, a_ses, a_desc))
+            
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        print("Error en actualizar_sa:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al actualizar SA."}), 500
+
+@evaluacion_bp.route("/api/curricular/sa/<int:sda_id>", methods=["DELETE"])
+def borrar_sa(sda_id):
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("BEGIN")
+        
+        # Check if SA exists
+        cur.execute("SELECT id FROM sda WHERE id = ?", (sda_id,))
+        if not cur.fetchone():
+            return jsonify({"ok": False, "error": "SA no encontrada."}), 404
+            
+        # Unlink or delete dependencies
+        cur.execute("DELETE FROM sda_criterios WHERE sda_id = ?", (sda_id,))
+        cur.execute("DELETE FROM sda_competencias WHERE sda_id = ?", (sda_id,))
+        cur.execute("DELETE FROM actividades_sda WHERE sda_id = ?", (sda_id,))
+        cur.execute("DELETE FROM evaluaciones WHERE sda_id = ?", (sda_id,))
+        cur.execute("UPDATE programacion_diaria SET sda_id = NULL WHERE sda_id = ?", (sda_id,))
+        
+        # Delete SA
+        cur.execute("DELETE FROM sda WHERE id = ?", (sda_id,))
+        
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        print("Error en borrar_sa:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al borrar SA."}), 500
 
 @evaluacion_bp.route("/api/importar_sda", methods=["POST"])
 def importar_sda():
@@ -492,3 +709,45 @@ def importar_actividades():
         conn.rollback()
         print("Error en importar_actividades:", str(e))
         return jsonify({"ok": False, "error": "Error interno al importar actividades."}), 500
+
+@evaluacion_bp.route("/api/actividades/<int:actividad_id>/sesiones", methods=["GET"])
+def obtener_sesiones_actividad(actividad_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, numero_sesion, descripcion, fecha FROM sesiones_actividad WHERE actividad_id = ? ORDER BY numero_sesion", (actividad_id,))
+    datos = [dict(row) for row in cur.fetchall()]
+    return jsonify(datos)
+
+@evaluacion_bp.route("/api/actividades/<int:actividad_id>/sesiones", methods=["POST"])
+def guardar_sesiones_actividad(actividad_id):
+    d = request.json
+    sesiones = d.get("sesiones", [])
+    
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("BEGIN")
+        keep_ids = [int(s["id"]) for s in sesiones if s.get("id")]
+        if keep_ids:
+            placeholders = ','.join('?' for _ in keep_ids)
+            cur.execute(f"DELETE FROM sesiones_actividad WHERE actividad_id = ? AND id NOT IN ({placeholders})", [actividad_id] + keep_ids)
+        else:
+            cur.execute("DELETE FROM sesiones_actividad WHERE actividad_id = ?", (actividad_id,))
+
+        for s in sesiones:
+            s_id = s.get("id")
+            num = s.get("numero_sesion")
+            desc = s.get("descripcion")
+            fecha = s.get("fecha")
+            
+            if s_id:
+                cur.execute("UPDATE sesiones_actividad SET numero_sesion=?, descripcion=?, fecha=? WHERE id=?", (num, desc, fecha, s_id))
+            else:
+                cur.execute("INSERT INTO sesiones_actividad (actividad_id, numero_sesion, descripcion, fecha) VALUES (?, ?, ?, ?)", (actividad_id, num, desc, fecha))
+                
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        print("Error guardar_sesiones_actividad:", str(e))
+        return jsonify({"ok": False, "error": str(e)}), 500

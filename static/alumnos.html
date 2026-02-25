@@ -164,6 +164,31 @@
             cursor: pointer;
         }
 
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
         /* Mobile tweaks */
         @media (max-width: 768px) {
             .contenedor {
@@ -181,6 +206,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/global_groups.js"></script>
 </head>
 
 <body>
@@ -199,9 +225,20 @@
             <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
         </div>
 
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin:0;">👦 Alumnos</h2>
-            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+        <div
+            style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h2 style="margin:0;">👦 Alumnos</h2>
+                <div
+                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size: 1.1rem;">📚</span>
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
+                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: var(--primary); cursor: pointer; outline: none;">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <button class="nav-btn" onclick="mostrarModalNuevo()"
                     style="background:var(--primary); color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:600; cursor:pointer;">
                     ➕ Nuevo Alumno
@@ -233,7 +270,23 @@
 
             <!-- LISTADO -->
             <div class="lista">
-                <h3>Listado</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h3 style="margin:0;">Listado</h3>
+                    <div style="display:flex; gap:5px;">
+                        <button id="btnBatchTransfer" onclick="batchTransfer()"
+                            style="display:none; padding:4px 8px; font-size:12px; background:var(--info); color:white; border:none; border-radius:4px;"
+                            title="Transferir Seleccionados">🔄 Transferir</button>
+                        <button id="btnBatchDelete" onclick="batchDelete()"
+                            style="display:none; padding:4px 8px; font-size:12px; background:var(--danger); color:white; border:none; border-radius:4px;"
+                            title="Eliminar Seleccionados">🗑️ Eliminar</button>
+                    </div>
+                </div>
+                <div style="margin-bottom: 10px; padding: 0 12px; display:flex; align-items:center;">
+                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"
+                        style="margin-right:10px; width:auto; margin-bottom:0; transform: scale(1.2); cursor:pointer;">
+                    <label for="selectAllCheckbox"
+                        style="font-size:0.9rem; color:#666; cursor:pointer; margin-bottom:0;">Seleccionar todos</label>
+                </div>
                 <div id="listaAlumnos"></div>
             </div>
 
@@ -460,6 +513,31 @@
             </div>
         </div>
 
+        <!-- Modal Transferir Alumno -->
+        <div class="modal-overlay" id="transferModal">
+            <div class="modal" style="max-width: 400px;">
+                <h3 style="margin-top:0; color:var(--primary);">🔄 Transferir Alumno</h3>
+                <p>Mover a <strong id="transferNombreAlumno"></strong> al grupo:</p>
+                <input type="hidden" id="transferAlumnoId">
+
+                <select id="transferGroupSelect"
+                    style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; margin-bottom: 20px;">
+                    <option value="">Cargando grupos...</option>
+                </select>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="document.getElementById('transferModal').style.display='none'"
+                        style="background: #eef2f7; color: #333; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        Cancelar
+                    </button>
+                    <button onclick="ejecutarTransferencia()"
+                        style="background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        Transferir
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <script>
             let alumnoActual = null;
 
@@ -491,6 +569,18 @@
                             divInfo.style.flexGrow = "1";
                             divInfo.onclick = () => seleccionarAlumno(a.id, a.nombre, div); // Mover el click aquí
 
+                            // Checkbox
+                            const cb = document.createElement("input");
+                            cb.type = "checkbox";
+                            cb.className = "alumno-checkbox";
+                            cb.value = a.id;
+                            cb.dataset.nombre = a.nombre;
+                            cb.style.transform = "scale(1.2)";
+                            cb.onclick = (e) => {
+                                e.stopPropagation();
+                                updateBatchButtons();
+                            };
+
                             // Foto
                             const img = document.createElement("img");
                             img.style.width = "40px";
@@ -508,6 +598,7 @@
                             const spanNombre = document.createElement("span");
                             spanNombre.innerText = a.nombre;
 
+                            divInfo.appendChild(cb);
                             divInfo.appendChild(img);
                             divInfo.appendChild(spanNombre);
 
@@ -555,8 +646,22 @@
                                 borrarAlumno(a.id, a.nombre);
                             };
 
+                            // Botón Transferir
+                            const btnTransfer = document.createElement("button");
+                            btnTransfer.innerHTML = "🔄";
+                            btnTransfer.title = "Transferir a otro grupo";
+                            btnTransfer.style.padding = "2px 6px";
+                            btnTransfer.style.background = "none";
+                            btnTransfer.style.border = "none";
+                            btnTransfer.style.fontSize = "1.1em";
+                            btnTransfer.onclick = (e) => {
+                                e.stopPropagation();
+                                abrirModalTransferir(a.id, a.nombre);
+                            };
+
                             divAcciones.appendChild(btnView);
                             divAcciones.appendChild(btnEdit);
+                            divAcciones.appendChild(btnTransfer);
                             divAcciones.appendChild(btnDel);
 
                             content.appendChild(divInfo); // Cambio: info completa (foto+nombre)
@@ -821,6 +926,38 @@
                 document.body.style.overflow = "";
             }
 
+            async function deleteActiveGroup() {
+                const globalSelect = document.getElementById('globalGroupSelect');
+                const groupId = globalSelect.value;
+                const groupName = globalSelect.options[globalSelect.selectedIndex].text;
+
+                if (!groupId) {
+                    alert("No hay ningún grupo seleccionado para eliminar.");
+                    return;
+                }
+
+                if (!confirm("¿Estás 100% seguro de que quieres eliminar el grupo '" + groupName + "'? ¡Esta acción borrará el grupo para siempre! (Solo se puede borrar si no contiene alumnos)")) {
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/grupos/' + groupId, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await res.json();
+                    if (data.ok) {
+                        alert("🗑️ Grupo eliminado con éxito.");
+                        window.location.href = "/";
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                } catch (err) {
+                    alert("Error de conexión al eliminar el grupo.");
+                    console.error(err);
+                }
+            }
+
             function guardarAlumnoModal() {
                 const nombre = modalNombre.value.trim();
 
@@ -933,6 +1070,97 @@
                     });
             }
 
+            async function abrirModalTransferir(id, nombre) {
+                document.getElementById('transferAlumnoId').value = id;
+                document.getElementById('transferNombreAlumno').innerText = nombre;
+
+                // Fetch groups
+                try {
+                    const res = await fetch('/api/grupos');
+                    const groups = await res.json();
+                    const select = document.getElementById('transferGroupSelect');
+
+                    const activeGroupId = document.getElementById('globalGroupSelect').value;
+
+                    if (groups.length <= 1) {
+                        alert("No tienes otros grupos a los que transferir este alumno (solo existe 1 grupo actualmente).");
+                        return;
+                    }
+
+                    const filtered = groups.filter(g => g.id.toString() !== activeGroupId.toString());
+                    if (filtered.length === 0) {
+                        alert("No hay otros grupos disponibles (el alumno ya está en el único grupo que existe).");
+                        return;
+                    }
+
+                    select.innerHTML = filtered.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+
+                    document.getElementById('transferModal').style.display = 'flex';
+                } catch (e) {
+                    alert("Error cargando la lista de grupos: " + e.message);
+                    console.error("Error cargando grupos", e);
+                }
+            }
+
+            async function ejecutarTransferencia() {
+                const alumnoId = document.getElementById('transferAlumnoId').value;
+                const nuevoGrupoId = document.getElementById('transferGroupSelect').value;
+
+                if (!nuevoGrupoId || !alumnoId) return;
+
+                const ids = alumnoId.split(',');
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (let id of ids) {
+                    try {
+                        const res = await fetch(`/api/alumnos/${id}/transferir`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ nuevo_grupo_id: nuevoGrupoId })
+                        });
+
+                        const text = await res.text();
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch (e) {
+                            console.error("Error del servidor (no JSON): " + text.slice(0, 100));
+                            errorCount++;
+                            continue;
+                        }
+
+                        if (data.ok) {
+                            successCount++;
+                        } else {
+                            console.error("Error del servidor: " + (data.error || "Desconocido"));
+                            errorCount++;
+                        }
+                    } catch (e) {
+                        console.error("Excepción de red al transferir alumno: " + e.message);
+                        errorCount++;
+                    }
+                }
+
+                document.getElementById('transferModal').style.display = 'none';
+
+                if (ids.length > 1) {
+                    alert(`Transferencia completada.\n✅ Transferidos: ${successCount}\n❌ Errores: ${errorCount}`);
+                } else if (errorCount > 0) {
+                    alert('Error al transferir al alumno. Revisa la consola para más detalles.');
+                }
+
+                // Limpieza de UI
+                const chkAll = document.getElementById('selectAllCheckbox');
+                if (chkAll) chkAll.checked = false;
+                if (typeof updateBatchButtons === 'function') updateBatchButtons();
+
+                cargarAlumnos();
+                limpiarFichaUI();
+                document.getElementById("nombreAlumno").innerText = "Selecciona un alumno";
+                alumnoActual = null;
+            }
+
             function limpiarFichaUI() {
                 document.getElementById("fecha_nacimiento").value = "";
                 document.getElementById("direccion").value = "";
@@ -981,6 +1209,69 @@
                 }
 
                 input.value = ""; // Limpiar el input
+            }
+
+            // --- BATCH ACTIONS LOGIC ---
+            function toggleSelectAll(el) {
+                const checkboxes = document.querySelectorAll('.alumno-checkbox');
+                checkboxes.forEach(cb => cb.checked = el.checked);
+                updateBatchButtons();
+            }
+
+            function updateBatchButtons() {
+                const checked = document.querySelectorAll('.alumno-checkbox:checked');
+                const btnT = document.getElementById('btnBatchTransfer');
+                const btnD = document.getElementById('btnBatchDelete');
+
+                if (checked.length > 0) {
+                    btnT.style.display = 'inline-block';
+                    btnD.style.display = 'inline-block';
+                } else {
+                    btnT.style.display = 'none';
+                    btnD.style.display = 'none';
+                    document.getElementById('selectAllCheckbox').checked = false;
+                }
+            }
+
+            async function batchDelete() {
+                const checked = Array.from(document.querySelectorAll('.alumno-checkbox:checked'));
+                if (checked.length === 0) return;
+
+                if (!confirm(`¿Estás SEGURO de que quieres borrar a los ${checked.length} alumnos seleccionados?\n\nEsta acción los archivará.`)) return;
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                for (const cb of checked) {
+                    try {
+                        const res = await fetch(`/api/alumnos/${cb.value}`, { method: "DELETE" });
+                        const dat = await res.json();
+                        if (dat.ok) successCount++;
+                        else errorCount++;
+                    } catch (e) {
+                        errorCount++;
+                    }
+                }
+
+                alert(`Proceso completado.\n✅ Borrados: ${successCount}\n❌ Errores: ${errorCount}`);
+                document.getElementById('selectAllCheckbox').checked = false;
+                updateBatchButtons();
+                cargarAlumnos();
+                if (alumnoActual && checked.some(c => c.value == alumnoActual)) {
+                    alumnoActual = null;
+                    document.getElementById("nombreAlumno").innerText = "Selecciona un alumno";
+                    limpiarFichaUI();
+                }
+            }
+
+            async function batchTransfer() {
+                const checked = Array.from(document.querySelectorAll('.alumno-checkbox:checked'));
+                if (checked.length === 0) return;
+
+                // We reuse the transfer modal, but pass multiple IDs
+                const ids = checked.map(c => c.value).join(',');
+                const label = `los ${checked.length} alumnos seleccionados`;
+                abrirModalTransferir(ids, label);
             }
 
         </script>

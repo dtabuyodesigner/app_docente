@@ -1,3 +1,16 @@
+CREATE TABLE profesores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER,
+    nombre TEXT NOT NULL,
+    FOREIGN KEY(usuario_id) REFERENCES usuarios(id)
+);
+CREATE TABLE grupos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    curso TEXT,
+    profesor_id INTEGER,
+    FOREIGN KEY(profesor_id) REFERENCES profesores(id)
+);
 CREATE TABLE areas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL
@@ -28,8 +41,12 @@ CREATE TABLE alumnos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
     no_comedor INTEGER DEFAULT 0,
-    observacion_habitual TEXT
-, comedor_dias TEXT, foto TEXT);
+    observacion_habitual TEXT,
+    comedor_dias TEXT,
+    foto TEXT,
+    grupo_id INTEGER,
+    FOREIGN KEY(grupo_id) REFERENCES grupos(id)
+);
 CREATE TABLE informe_grupo (
     trimestre INTEGER PRIMARY KEY,
     observaciones TEXT,
@@ -37,12 +54,6 @@ CREATE TABLE informe_grupo (
 , conclusion TEXT);
 CREATE TABLE programacion_diaria (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha DATE NOT NULL, sda_id INTEGER, actividad TEXT NOT NULL, observaciones TEXT, tipo TEXT DEFAULT 'clase', color TEXT DEFAULT '#3788d8', FOREIGN KEY(sda_id) REFERENCES sda(id));
 CREATE TABLE actividades_sda (id INTEGER PRIMARY KEY AUTOINCREMENT, sda_id INTEGER, nombre TEXT NOT NULL, sesiones INTEGER DEFAULT 1, descripcion TEXT, FOREIGN KEY(sda_id) REFERENCES sda(id));
-CREATE TABLE tareas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                texto TEXT NOT NULL,
-                fecha TEXT,
-                hecha INTEGER DEFAULT 0
-            );
 CREATE TABLE rubricas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     criterio_id INTEGER NOT NULL,
@@ -171,4 +182,18 @@ CREATE TABLE IF NOT EXISTS "usuarios" (
             password_hash TEXT NOT NULL,
             role TEXT DEFAULT 'profesor',
             fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+CREATE TABLE IF NOT EXISTS "competencias_especificas" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL,
+            descripcion TEXT NOT NULL,
+            area_id INTEGER NOT NULL,
+            FOREIGN KEY (area_id) REFERENCES areas(id)
+        );
+CREATE TABLE IF NOT EXISTS "sda_competencias" (
+            sda_id INTEGER NOT NULL,
+            competencia_id INTEGER NOT NULL,
+            PRIMARY KEY (sda_id, competencia_id),
+            FOREIGN KEY (sda_id) REFERENCES sda(id),
+            FOREIGN KEY (competencia_id) REFERENCES competencias_especificas(id)
         );

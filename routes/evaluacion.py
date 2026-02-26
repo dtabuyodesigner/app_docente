@@ -154,6 +154,62 @@ def evaluacion_criterios(sda_id):
         for c in datos
     ])
 
+@evaluacion_bp.route("/api/evaluacion/area/<int:area_id>/criterios_completos")
+def evaluacion_criterios_completos(area_id):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, codigo, descripcion
+        FROM criterios
+        WHERE area_id = ?
+        ORDER BY id
+    """, (area_id,))
+
+    datos = cur.fetchall()
+
+    return jsonify([
+        {"id": c["id"], "codigo": c["codigo"], "descripcion": c["descripcion"]}
+        for c in datos
+    ])
+
+@evaluacion_bp.route("/api/evaluacion/criterio_extra", methods=["POST"])
+def añadir_criterio_extra():
+    d = request.json
+    area_id = d.get("area_id")
+    trimestre = d.get("trimestre")
+    criterio_id = d.get("criterio_id")
+    
+    if not area_id or not trimestre or not criterio_id:
+        return jsonify({"ok": False, "error": "Faltan datos"}), 400
+        
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute("BEGIN")
+        # 1. Buscar si ya existe la SDA de "Criterios Adicionales" para esta área y trimestre
+        nombre_sda_extra = "Criterios Adicionales"
+        cur.execute("SELECT id FROM sda WHERE nombre = ? AND area_id = ? AND trimestre = ?", (nombre_sda_extra, area_id, trimestre))
+        row = cur.fetchone()
+        
+        if row:
+            sda_id = row["id"]
+        else:
+            # Crear la SDA
+            cur.execute("INSERT INTO sda (nombre, area_id, trimestre) VALUES (?, ?, ?)", (nombre_sda_extra, area_id, trimestre))
+            sda_id = cur.lastrowid
+            
+        # 2. Vincular el criterio a esta SDA si no lo está ya
+        cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, criterio_id))
+        
+        conn.commit()
+        return jsonify({"ok": True, "sda_id": sda_id})
+    except Exception as e:
+        conn.rollback()
+        print("Error en añadir_criterio_extra:", str(e))
+        return jsonify({"ok": False, "error": "Error interno al añadir el criterio"}), 500
+
 @evaluacion_bp.route("/api/evaluacion/alumno")
 def evaluacion_alumno():
     alumno_id = request.args.get("alumno_id")
@@ -341,7 +397,11 @@ def curricular_full():
         for sda in sdas:
             # Get activities for this SDA
             cur.execute("SELECT id, nombre, sesiones, descripcion FROM actividades_sda WHERE sda_id = ? ORDER BY id", (sda["id"],))
-            sda["actividades"] = [dict(act) for act in cur.fetchall()]
+            actividades = [dict(act) for act in cur.fetchall()]
+            for act in actividades:
+                cur.execute("SELECT numero_sesion, fecha, descripcion FROM sesiones_actividad WHERE actividad_id = ? ORDER BY numero_sesion", (act["id"],))
+                act["sesiones_detalle"] = [dict(s) for s in cur.fetchall()]
+            sda["actividades"] = actividades
             
             # Get criteria for this SDA
             cur.execute("""
@@ -523,6 +583,13 @@ def actualizar_sa(sda_id):
             
             if a_id and str(a_id).isdigit():
                 cur.execute("UPDATE actividades_sda SET nombre = ?, sesiones = ?, descripcion = ? WHERE id = ?", (a_nom, a_ses, a_desc, int(a_id)))
+                # Update any sessions that still have empty descriptions to inherit the new activity description
+                if a_desc:
+                    cur.execute("""
+                        UPDATE sesiones_actividad 
+                        SET descripcion = ? 
+                        WHERE actividad_id = ? AND (descripcion = '' OR descripcion IS NULL)
+                    """, (a_desc, int(a_id)))
             else:
                 cur.execute("INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion) VALUES (?, ?, ?, ?)", (sda_id, a_nom, a_ses, a_desc))
             

@@ -6,6 +6,7 @@ import csv
 import json
 import re
 from datetime import datetime, date
+from utils.security import sanitize_input
 
 # Validation helpers
 def _validar_email(email):
@@ -67,21 +68,21 @@ def obtener_alumnos():
 @alumnos_bp.route("/api/alumnos/nuevo", methods=["POST"])
 def nuevo_alumno():
     d = request.json
-    nombre = d.get("nombre")
+    nombre = sanitize_input(d.get("nombre"))
     no_comedor = int(d.get("no_comedor", 0))
     comedor_dias = d.get("comedor_dias")
 
     # Campos de la ficha
     f_nac = d.get("fecha_nacimiento")
-    direccion = d.get("direccion")
-    m_nom = d.get("madre_nombre")
-    m_tel = d.get("madre_telefono")
-    m_email = d.get("madre_email")
-    p_nom = d.get("padre_nombre")
-    p_tel = d.get("padre_telefono")
-    p_email = d.get("padre_email")
-    obs = d.get("observaciones_generales")
-    autorizados = d.get("personas_autorizadas")
+    direccion = sanitize_input(d.get("direccion"))
+    m_nom = sanitize_input(d.get("madre_nombre"))
+    m_tel = sanitize_input(d.get("madre_telefono"))
+    m_email = sanitize_input(d.get("madre_email"))
+    p_nom = sanitize_input(d.get("padre_nombre"))
+    p_tel = sanitize_input(d.get("padre_telefono"))
+    p_email = sanitize_input(d.get("padre_email"))
+    obs = sanitize_input(d.get("observaciones_generales"))
+    autorizados = sanitize_input(d.get("personas_autorizadas"))
 
     if not nombre:
         return jsonify({"ok": False, "error": "El nombre es obligatorio"}), 400
@@ -120,7 +121,7 @@ def nuevo_alumno():
 @alumnos_bp.route("/api/alumnos/<int:alumno_id>", methods=["PUT"])
 def editar_alumno_info(alumno_id):
     d = request.json
-    nombre = d.get("nombre")
+    nombre = sanitize_input(d.get("nombre"))
     no_comedor = int(d.get("no_comedor", 0))
     comedor_dias = d.get("comedor_dias")
 
@@ -240,15 +241,15 @@ def guardar_ficha_alumno():
         """, (
             d["alumno_id"],
             d.get("fecha_nacimiento", ""),
-            d.get("direccion", ""),
-            d.get("madre_nombre", ""),
-            d.get("madre_telefono", ""),
-            d.get("madre_email", ""),
-            d.get("padre_nombre", ""),
-            d.get("padre_telefono", ""),
-            d.get("padre_email", ""),
-            d.get("observaciones_generales", ""),
-            d.get("personas_autorizadas", "")
+            sanitize_input(d.get("direccion", "")),
+            sanitize_input(d.get("madre_nombre", "")),
+            sanitize_input(d.get("madre_telefono", "")),
+            sanitize_input(d.get("madre_email", "")),
+            sanitize_input(d.get("padre_nombre", "")),
+            sanitize_input(d.get("padre_telefono", "")),
+            sanitize_input(d.get("padre_email", "")),
+            sanitize_input(d.get("observaciones_generales", "")),
+            sanitize_input(d.get("personas_autorizadas", ""))
         ))
 
         conn.commit()

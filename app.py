@@ -9,6 +9,9 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-key-change-in-prod")
 
+from utils.db import init_db_if_not_exists
+init_db_if_not_exists()
+
 # Register Blueprints
 from routes.main import main_bp
 from routes.alumnos import alumnos_bp
@@ -22,6 +25,8 @@ from routes.informes import informes_bp
 from routes.google_cal import google_cal_bp
 from routes.tareas import tareas_bp
 from routes.usuarios import usuarios_bp
+from routes.programacion_docs import programacion_docs_bp
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
@@ -35,12 +40,20 @@ app.register_blueprint(informes_bp)
 app.register_blueprint(google_cal_bp)
 app.register_blueprint(tareas_bp)
 app.register_blueprint(usuarios_bp)
+app.register_blueprint(programacion_docs_bp)
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db
 import click
 
 app.teardown_appcontext(close_db)
+
+csrf = CSRFProtect()
+csrf.init_app(app)
+
+@app.route('/api/csrf-token', methods=['GET'])
+def get_csrf_token():
+    return {"ok": True, "csrf_token": generate_csrf()}
 
 @app.before_request
 def require_auth():

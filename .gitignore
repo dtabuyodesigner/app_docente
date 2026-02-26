@@ -18,3 +18,8 @@ static/uploads/
 # Environment
 .env
 server.log
+
+# Build files
+build/
+dist/
+*.spec

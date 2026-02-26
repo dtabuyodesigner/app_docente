@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from utils.db import get_db
+from utils.security import sanitize_input
 
 tareas_bp = Blueprint('tareas', __name__)
 
@@ -34,11 +35,11 @@ def get_tareas():
 @tareas_bp.route("/api/gestor_tareas", methods=["POST"])
 def new_tarea():
     d = request.get_json(silent=True) or {}
-    titulo = d.get("titulo", "").strip()
+    titulo = sanitize_input(d.get("titulo", "")).strip()
     if not titulo:
         return jsonify({"ok": False, "error": "El título de la tarea es obligatorio."}), 400
         
-    descripcion = d.get("descripcion", "")
+    descripcion = sanitize_input(d.get("descripcion", ""))
     prioridad = d.get("prioridad", "media")
     fecha_limite = d.get("fecha_limite") or None
     
@@ -65,11 +66,10 @@ def update_tarea(id):
     cur = conn.cursor()
     try:
         cur.execute("BEGIN")
-        # Support full update or just status toggle
         if "estado" in d and len(d) == 1:
             cur.execute("UPDATE gestor_tareas SET estado = ? WHERE id = ?", (d["estado"], id))
         else:
-            titulo = d.get("titulo", "").strip()
+            titulo = sanitize_input(d.get("titulo", "")).strip()
             if not titulo:
                 return jsonify({"ok": False, "error": "El título no puede estar vacío."}), 400
                 
@@ -77,7 +77,7 @@ def update_tarea(id):
                 UPDATE gestor_tareas 
                 SET titulo = ?, descripcion = ?, prioridad = ?, fecha_limite = ?, estado = ?
                 WHERE id = ?
-            """, (titulo, d.get("descripcion", ""), d.get("prioridad", "media"), d.get("fecha_limite") or None, d.get("estado", "pendiente"), id))
+            """, (titulo, sanitize_input(d.get("descripcion", "")), d.get("prioridad", "media"), d.get("fecha_limite") or None, d.get("estado", "pendiente"), id))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:

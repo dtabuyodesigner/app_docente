@@ -2,8 +2,10 @@ from flask import Blueprint, send_from_directory, request, jsonify, session, red
 from werkzeug.security import check_password_hash
 from utils.db import get_db
 import os
+from utils.security import get_security_logger
 
 main_bp = Blueprint('main', __name__)
+security_logger = get_security_logger()
 
 @main_bp.route("/")
 def inicio():
@@ -61,6 +63,9 @@ def tareas_page():
 def login_page():
     return send_from_directory("static", "login.html")
 
+# We exempt login so that users whose session expired don't get 400 Bad Request
+# However, for a fully secure app we should supply a CSRF token to the login page as well.
+# For simplicity in this Phase 1, we will exempt it.
 @main_bp.route("/login", methods=["POST"])
 def do_login():
     data = request.get_json(silent=True) or {}
@@ -90,6 +95,8 @@ def do_login():
         session['username'] = user["username"]
         session['role'] = user["role"]
         
+        security_logger.info(f"Successful login for user '{username}'. IP: {request.remote_addr}")
+        
         # Load default active group
         cur.execute("SELECT id FROM profesores WHERE usuario_id = ?", (user["id"],))
         prof = cur.fetchone()
@@ -101,6 +108,7 @@ def do_login():
 
         return jsonify({"ok": True})
         
+    security_logger.warning(f"Failed login attempt for username '{username}'. IP: {request.remote_addr}")
     return jsonify({"ok": False, "error": "Credenciales incorrectas"}), 401
 
 @main_bp.route("/api/grupos", methods=["GET"])
@@ -253,6 +261,7 @@ def delete_grupo(grupo_id):
             session.pop('active_group_id', None)
             
         conn.commit()
+        security_logger.info(f"User '{session.get('username')}' deleted group ID {grupo_id}. IP: {request.remote_addr}")
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
@@ -270,6 +279,7 @@ def manage_grupo_activo():
             return jsonify({"ok": False, "error": "Falta grupo_id"}), 400
             
         session['active_group_id'] = grupo_id
+        security_logger.info(f"User '{session.get('username')}' changed active group to {grupo_id}. IP: {request.remote_addr}")
         return jsonify({"ok": True, "active_group_id": grupo_id})
     else:
         # GET

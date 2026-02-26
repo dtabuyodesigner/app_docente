@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify, session, send_from_directory
 from utils.db import get_db
 from werkzeug.security import generate_password_hash
+from utils.security import get_security_logger
 
 usuarios_bp = Blueprint('usuarios', __name__)
+security_logger = get_security_logger()
 
 @usuarios_bp.route("/usuarios")
 def view_usuarios():
@@ -46,6 +48,7 @@ def post_usuario():
         pwd_hash = generate_password_hash(password)
         cur.execute("INSERT INTO usuarios (username, password_hash, role) VALUES (?, ?, ?)", (username, pwd_hash, role))
         conn.commit()
+        security_logger.info(f"Admin '{session.get('username')}' created new user '{username}' with role '{role}'. IP: {request.remote_addr}")
         return jsonify({"ok": True, "id": cur.lastrowid})
     except Exception as e:
         conn.rollback()
@@ -61,6 +64,13 @@ def delete_usuario(id):
          
     conn = get_db()
     cur = conn.cursor()
+    
+    # Get username for logging
+    cur.execute("SELECT username FROM usuarios WHERE id = ?", (id,))
+    usr = cur.fetchone()
+    usr_name = usr["username"] if usr else str(id)
+    
     cur.execute("DELETE FROM usuarios WHERE id = ?", (id,))
     conn.commit()
+    security_logger.info(f"Admin '{session.get('username')}' deleted user '{usr_name}'. IP: {request.remote_addr}")
     return jsonify({"ok": True})

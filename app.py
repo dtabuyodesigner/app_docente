@@ -14,6 +14,10 @@ app.secret_key = os.getenv("SECRET_KEY", "dev-key-change-in-prod")
 from utils.db import init_db_if_not_exists
 init_db_if_not_exists()
 
+# Tareas de blindaje técnico (Integridad y Backup)
+from utils.backup import run_startup_tasks
+run_startup_tasks()
+
 # Register Blueprints
 from routes.main import main_bp
 from routes.alumnos import alumnos_bp
@@ -29,6 +33,8 @@ from routes.tareas import tareas_bp
 from routes.usuarios import usuarios_bp
 from routes.programacion_docs import programacion_docs_bp
 from routes.lectura import lectura_bp
+from routes.admin import admin_bp
+from routes.material import material_bp
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
@@ -45,6 +51,8 @@ app.register_blueprint(tareas_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(programacion_docs_bp)
 app.register_blueprint(lectura_bp, url_prefix='/api')
+app.register_blueprint(admin_bp)
+app.register_blueprint(material_bp)
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db
@@ -59,19 +67,7 @@ csrf.init_app(app)
 def get_csrf_token():
     return {"ok": True, "csrf_token": generate_csrf()}
 
-@app.route('/api/admin/backup', methods=['GET'])
-def descargar_backup():
-    """Genera una copia de seguridad de la BD y la descarga."""
-    if not session.get('logged_in'):
-        return {"ok": False, "error": "No autorizado"}, 401
-    from utils.db import DB_PATH
-    if not os.path.exists(DB_PATH):
-        return {"ok": False, "error": "Base de datos no encontrada"}, 404
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_name = f"app_evaluar_backup_{ts}.db"
-    backup_path = os.path.join("/tmp", backup_name)
-    shutil.copy2(DB_PATH, backup_path)
-    return send_file(backup_path, as_attachment=True, download_name=backup_name)
+# Nota: El endpoint /api/admin/backup se ha movido a routes/admin.py
 
 @app.route('/service-worker.js')
 def serve_sw():

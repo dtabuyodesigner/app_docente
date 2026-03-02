@@ -197,3 +197,29 @@ CREATE TABLE IF NOT EXISTS "sda_competencias" (
             FOREIGN KEY (sda_id) REFERENCES sda(id),
             FOREIGN KEY (competencia_id) REFERENCES competencias_especificas(id)
         );
+CREATE TABLE IF NOT EXISTS "material_alumnado" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            grupo_id INTEGER NOT NULL,
+            categoria TEXT NOT NULL, -- 'AYUDA' or 'TODO'
+            unidades INTEGER DEFAULT 1,
+            material TEXT NOT NULL,
+            FOREIGN KEY(grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
+        );
+CREATE TABLE IF NOT EXISTS "material_info" (
+            grupo_id INTEGER PRIMARY KEY,
+            centro TEXT,
+            curso_escolar TEXT,
+            nivel_curso TEXT,
+            observaciones TEXT,
+            FOREIGN KEY(grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
+        );
+CREATE TABLE IF NOT EXISTS "material_entregado" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alumno_id INTEGER NOT NULL,
+            material_id INTEGER NOT NULL,
+            entregado INTEGER DEFAULT 0, -- 0: No, 1: Sí
+            fecha_entrega DATETIME,
+            FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+            FOREIGN KEY(material_id) REFERENCES material_alumnado(id) ON DELETE CASCADE,
+            UNIQUE(alumno_id, material_id)
+        );

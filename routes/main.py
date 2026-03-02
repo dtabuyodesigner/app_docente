@@ -67,6 +67,10 @@ def login_page():
 def biblioteca_page():
     return send_from_directory("static", "biblioteca.html")
 
+@main_bp.route("/material")
+def material_page():
+    return send_from_directory("static", "material.html")
+
 @main_bp.route("/prestamos")
 def prestamos_page():
     return redirect("/biblioteca#prestamos")

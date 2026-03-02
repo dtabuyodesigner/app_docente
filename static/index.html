@@ -757,7 +757,7 @@
 
                 // Alertas de libros vencidos
                 try {
-                    const resLib = await fetch('/api/lectura/alertas_retrasos');
+                    const resLib = await fetch('/api/alertas/retrasos');
                     if (resLib.ok) {
                         const libData = await resLib.json();
                         if (libData && libData.length > 0) {

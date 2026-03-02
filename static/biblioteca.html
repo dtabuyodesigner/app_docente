@@ -1475,7 +1475,7 @@
             document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
             // Inicializa el selector desde la BD
             try {
-                const cfg = await (await fetch('/api/lectura/config')).json();
+                const cfg = await (await fetch('/api/config')).json();
                 _plazoGlobal = cfg.max_dias_prestamo || 7;
                 const sel = document.getElementById('plazo-dias');
                 if (sel) sel.value = _plazoGlobal;
@@ -1522,7 +1522,7 @@
         }
 
         async function _loadActivos() {
-            const cfg0 = await (await fetch('/api/lectura/config')).json();
+            const cfg0 = await (await fetch('/api/config')).json();
             const plazoActivos = cfg0.max_dias_prestamo || 7;
             const data = await (await fetch('/api/prestamos/activos')).json();
             const cont = document.getElementById('pst-tab-activos');
@@ -1541,9 +1541,9 @@
         }
 
         async function _loadRetrasos() {
-            const cfg = await (await fetch('/api/lectura/config')).json();
+            const cfg = await (await fetch('/api/config')).json();
             const plazo = cfg.max_dias_prestamo || 7;
-            const data = await (await fetch(`/api/lectura/alertas_retrasos?dias=${plazo}`)).json();
+            const data = await (await fetch(`/api/alertas/retrasos?dias=${plazo}`)).json();
             const cont = document.getElementById('pst-tab-retrasos');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos! Todos dentro del plazo.</p></div>'; return; }
             cont.innerHTML = `<div class="alert alert-danger">⚠️ ${data.length} libro(s) llevan más de ${plazo} días prestados</div>
@@ -1680,9 +1680,9 @@
                 document.getElementById('pst-total').textContent = d.total_prestamos;
             } catch (e) { }
             try {
-                const cfg = await (await fetch('/api/lectura/config')).json();
+                const cfg = await (await fetch('/api/config')).json();
                 _plazoGlobal = cfg.max_dias_prestamo || 7;
-                const r = await (await fetch(`/api/lectura/alertas_retrasos?dias=${_plazoGlobal}`)).json();
+                const r = await (await fetch(`/api/alertas/retrasos?dias=${_plazoGlobal}`)).json();
                 document.getElementById('pst-retrasos').textContent = r.length;
                 const lbl = document.getElementById('pst-retrasos-label');
                 if (lbl) lbl.textContent = `+${_plazoGlobal} días`;
@@ -1691,7 +1691,7 @@
         }
 
         function guardarPlazo(dias) {
-            fetch('/api/lectura/config', {
+            fetch('/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ max_dias_prestamo: parseInt(dias) })

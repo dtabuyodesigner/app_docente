@@ -1056,7 +1056,9 @@
                             -</p><small
                             style="color:#888;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;">Con
                             Retraso
-                            (+14 días)</small>
+                            <small id="pst-retrasos-label"
+                                style="color:#888;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;">+7
+                                días</small></small>
                     </div>
                 </div>
                 <div
@@ -1072,6 +1074,24 @@
                             Histórico</small>
                     </div>
                 </div>
+            </div>
+
+            <!-- Config plazo -->
+            <div
+                style="background:#f8f9fa;border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;border:1px solid #e0e0e0;flex-wrap:wrap;">
+                <span>⏱️</span>
+                <label style="font-weight:600;color:#003366;margin:0;">Plazo máximo:</label>
+                <select id="plazo-dias" onchange="guardarPlazo(this.value)"
+                    style="padding:4px 10px;border-radius:6px;border:1px solid #ccc;font-weight:600;color:#003366;cursor:pointer;">
+                    <option value="5">5 días</option>
+                    <option value="7" selected>7 días (1 semana)</option>
+                    <option value="10">10 días</option>
+                    <option value="14">14 días (2 semanas)</option>
+                    <option value="21">21 días (3 semanas)</option>
+                    <option value="30">30 días (1 mes)</option>
+                </select>
+                <span style="font-size:.82rem;color:#666;">Los préstamos que superen este plazo aparecen como
+                    retraso.</span>
             </div>
 
             <!-- PILL SUB-TABS -->
@@ -1176,6 +1196,7 @@
     <script src="/static/js/api.js"></script>
     <script>
         let allBooks = [], selectedGbBook = null, csvSelectedFile = null;
+        let _plazoGlobal = 7; // plazo por defecto, se actualiza desde la BD al cargar préstamos
 
         function showTab(id, btn) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1452,6 +1473,13 @@
             _prestamosLoaded = true;
             document.getElementById('p-fecha').value = new Date().toISOString().split('T')[0];
             document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
+            // Inicializa el selector desde la BD
+            try {
+                const cfg = await (await fetch('/api/lectura/config')).json();
+                _plazoGlobal = cfg.max_dias_prestamo || 7;
+                const sel = document.getElementById('plazo-dias');
+                if (sel) sel.value = _plazoGlobal;
+            } catch (e) { }
             await Promise.all([_loadAlumnosPrest(), _loadLibrosPrest(), _loadActivos(), _loadRetrasos(), _loadHistorial()]);
             _updateStatsPrest();
         }
@@ -1494,13 +1522,15 @@
         }
 
         async function _loadActivos() {
+            const cfg0 = await (await fetch('/api/lectura/config')).json();
+            const plazoActivos = cfg0.max_dias_prestamo || 7;
             const data = await (await fetch('/api/prestamos/activos')).json();
             const cont = document.getElementById('pst-tab-activos');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No hay préstamos activos.</p></div>'; return; }
             cont.innerHTML = `<table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Fecha</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
                 ${data.map(p => `<tr>
                     <td>${p.alumno_nombre}</td><td>${p.libro_titulo}</td><td>${p.fecha_prestamo}</td>
-                    <td><span class="avail-badge ${p.dias_transcurridos > 14 ? 'avail-none' : 'avail-ok'}">${p.dias_transcurridos}d</span></td>
+                    <td><span class="avail-badge ${p.dias_transcurridos > plazoActivos ? 'avail-none' : 'avail-ok'}">${p.dias_transcurridos}d</span></td>
                     <td style="display:flex;gap:5px;flex-wrap:wrap;">
                         <button class="btn btn-outline btn-sm" onclick="openDevolucion(${p.id},'${p.alumno_nombre.replace(/'/g, "\\'")}','${p.libro_titulo.replace(/'/g, "\\'")}','${p.fecha_prestamo}')">📥 Devolver</button>
                         <button class="btn btn-sm" style="background:#fff3cd;color:#856404;border:1px solid #ffc107;" onclick="openEditPrest(${p.id})">✏️</button>
@@ -1511,10 +1541,12 @@
         }
 
         async function _loadRetrasos() {
-            const data = await (await fetch('/api/alertas/retrasos')).json();
+            const cfg = await (await fetch('/api/lectura/config')).json();
+            const plazo = cfg.max_dias_prestamo || 7;
+            const data = await (await fetch(`/api/lectura/alertas_retrasos?dias=${plazo}`)).json();
             const cont = document.getElementById('pst-tab-retrasos');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos! Todos dentro del plazo.</p></div>'; return; }
-            cont.innerHTML = `<div class="alert alert-danger">⚠️ ${data.length} libro(s) llevan más de 14 días prestados</div>
+            cont.innerHTML = `<div class="alert alert-danger">⚠️ ${data.length} libro(s) llevan más de ${plazo} días prestados</div>
                 <table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Desde</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
                 ${data.map(p => `<tr>
                     <td>${p.nombre}</td><td>${p.titulo}</td><td>${p.fecha_prestamo}</td>
@@ -1544,7 +1576,7 @@
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Sin registros.</p></div>'; return; }
             cont.innerHTML = `<table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Préstamo</th><th>Devolución</th><th>Días</th><th>Estado</th><th></th></tr></thead><tbody>
                 ${data.map(p => {
-                const cls = p.estado === 'devuelto' ? 'avail-ok' : (p.dias_lectura > 14 ? 'avail-none' : 'avail-low');
+                const cls = p.estado === 'devuelto' ? 'avail-ok' : (p.dias_lectura > _plazoGlobal ? 'avail-none' : 'avail-low');
                 return `<tr><td>${p.alumno_nombre}</td><td>${p.libro_titulo}</td><td>${p.fecha_prestamo}</td>
                         <td>${p.fecha_devolucion || '—'}</td><td>${p.dias_lectura}d</td>
                         <td><span class="avail-badge ${cls}">${p.estado === 'devuelto' ? 'Devuelto' : 'Activo'}</span></td>
@@ -1648,9 +1680,28 @@
                 document.getElementById('pst-total').textContent = d.total_prestamos;
             } catch (e) { }
             try {
-                const r = await (await fetch('/api/alertas/retrasos')).json();
+                const cfg = await (await fetch('/api/lectura/config')).json();
+                _plazoGlobal = cfg.max_dias_prestamo || 7;
+                const r = await (await fetch(`/api/lectura/alertas_retrasos?dias=${_plazoGlobal}`)).json();
                 document.getElementById('pst-retrasos').textContent = r.length;
+                const lbl = document.getElementById('pst-retrasos-label');
+                if (lbl) lbl.textContent = `+${_plazoGlobal} días`;
+                document.getElementById('pst-retrasos').style.color = r.length > 0 ? '#c62828' : '#2e7d32';
             } catch (e) { }
+        }
+
+        function guardarPlazo(dias) {
+            fetch('/api/lectura/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ max_dias_prestamo: parseInt(dias) })
+            }).then(() => {
+                _plazoGlobal = parseInt(dias);
+                const lbl = document.getElementById('pst-retrasos-label');
+                if (lbl) lbl.textContent = `+${dias} días`;
+                _prestamosLoaded = false;
+                initPrestamos();
+            });
         }
 
         async function registrarPrestamo() {

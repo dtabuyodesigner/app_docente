@@ -666,8 +666,12 @@
                 }
 
                 card.className = `card ${statusClass}`;
+                const fotoSrc = student.foto
+                    ? `/static/uploads/${student.foto}`
+                    : `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/><text x='50' y='67' font-size='48' text-anchor='middle' fill='white'>👤</text></svg>`;
                 card.innerHTML = `
-                    <div class="card-header">
+                    <div class="card-header" style="display:flex; align-items:center; gap:10px;">
+                        <img src="${fotoSrc}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.6);flex-shrink:0;" onerror="this.src='data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27 fill=%27%23ccc%27><circle cx=%2750%27 cy=%2750%27 r=%2750%27/></svg>'">
                         <div class="card-name">${student.nombre}</div>
                         <span class="status-badge">${statusLabel}</span>
                     </div>
@@ -1149,7 +1153,7 @@
         loadAttendance();
     </script>
     <script src="/static/js/global_groups.js"></script>
-<script src="/static/js/api.js"></script>
+    <script src="/static/js/api.js"></script>
 </body>
 
 </html>

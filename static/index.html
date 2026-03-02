@@ -410,7 +410,8 @@
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
-                <a href="/api/admin/backup" title="Descarga una copia de seguridad de la base de datos"
+                <a href="/api/admin/backup" onclick="localStorage.setItem('ultimo_backup_ts', Date.now())"
+                    title="Descarga una copia de seguridad de la base de datos"
                     style="background: #17a2b8; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;">
                     💾 Backup
                 </a>
@@ -750,16 +751,41 @@
                     document.getElementById('birthdayList').innerText = data.cumples.join(', ');
                 }
 
-                // 3. Alerts
+                // 3. Alertas (faltas + notas + libros vencidos + backup)
                 const alertsContainer = document.getElementById('alertsList');
-                if (data.alertas && data.alertas.length > 0) {
-                    document.getElementById('totalAlerts').innerText = data.alertas.length;
+                let todasAlertas = data.alertas ? [...data.alertas] : [];
+
+                // Alertas de libros vencidos
+                try {
+                    const resLib = await fetch('/api/lectura/alertas_retrasos');
+                    if (resLib.ok) {
+                        const libData = await resLib.json();
+                        if (libData && libData.length > 0) {
+                            libData.forEach(a =>
+                                todasAlertas.push(`📚 <strong>${a.nombre}</strong> lleva <strong>${a.dias} días</strong> con "<em>${a.titulo}</em>"`)
+                            );
+                        }
+                    }
+                } catch (e) { /* sin conectividad con biblioteca */ }
+
+                // Aviso de backup: si el último backup tiene más de 7 días (comprobamos el botón)
+                const backupKey = 'ultimo_backup_ts';
+                const lastBackup = localStorage.getItem(backupKey);
+                if (lastBackup) {
+                    const dias = Math.floor((Date.now() - parseInt(lastBackup)) / 86400000);
+                    if (dias >= 7) todasAlertas.push(`💾 Han pasado <strong>${dias} días</strong> desde el último backup. <a href="/api/admin/backup" style="color:#003366;font-weight:bold;">Hacer backup ahora</a>`);
+                } else {
+                    todasAlertas.push('💾 No hay registros de backup. <a href="/api/admin/backup" style="color:#003366;font-weight:bold;">Hacer backup ahora</a>');
+                }
+
+                if (todasAlertas.length > 0) {
+                    document.getElementById('totalAlerts').innerText = todasAlertas.length;
                     document.getElementById('totalAlerts').style.color = '#dc3545';
-                    alertsContainer.innerHTML = data.alertas.map(alert => `
-                        <div class="alert-item ${alert.includes('⚠️') ? 'danger' : ''}">
+                    alertsContainer.innerHTML = todasAlertas.map(alert =>
+                        `<div class="alert-item ${(alert.includes('⚠️') || alert.includes('📉')) ? 'danger' : ''}">
                             ${alert}
-                        </div>
-                    `).join('');
+                        </div>`
+                    ).join('');
                 } else {
                     document.getElementById('totalAlerts').innerText = "0";
                     document.getElementById('totalAlerts').style.color = "var(--success)";

@@ -456,13 +456,60 @@ def ranking_lectura():
 
 
 # ====================================================
+# CONFIGURACIÓN DE PRÉSTAMOS
+# ====================================================
+
+def _ensure_config_table(conn):
+    """Crea la tabla configuracion si no existe (migración automática)."""
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS configuracion (
+            clave TEXT PRIMARY KEY,
+            valor TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+
+@lectura_bp.route("/config", methods=["GET"])
+def get_config():
+    conn = get_db()
+    _ensure_config_table(conn)
+    cur = conn.cursor()
+    cur.execute("SELECT valor FROM configuracion WHERE clave = 'max_dias_prestamo'")
+    row = cur.fetchone()
+    return jsonify({"max_dias_prestamo": int(row["valor"]) if row else 7})
+
+@lectura_bp.route("/config", methods=["POST"])
+def post_config():
+    data = request.get_json(silent=True) or {}
+    dias = int(data.get("max_dias_prestamo", 7))
+    if not (1 <= dias <= 90):
+        return jsonify({"ok": False, "error": "El plazo debe estar entre 1 y 90 días"}), 400
+    conn = get_db()
+    _ensure_config_table(conn)
+    conn.execute("""
+        INSERT INTO configuracion (clave, valor) VALUES ('max_dias_prestamo', ?)
+        ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor
+    """, (str(dias),))
+    conn.commit()
+    return jsonify({"ok": True, "max_dias_prestamo": dias})
+
+
+# ====================================================
 # ALERTAS DE RETRASO
 # ====================================================
 
 @lectura_bp.route("/alertas/retrasos", methods=["GET"])
 def alertas_retrasos():
-    dias_limite = int(request.args.get('dias', 7))
     conn = get_db()
+    # Si el caller pasa ?dias= lo usamos; si no, leemos de la BD (default 7)
+    if 'dias' in request.args:
+        dias_limite = int(request.args['dias'])
+    else:
+        _ensure_config_table(conn)
+        cur2 = conn.cursor()
+        cur2.execute("SELECT valor FROM configuracion WHERE clave = 'max_dias_prestamo'")
+        row = cur2.fetchone()
+        dias_limite = int(row["valor"]) if row else 7
     cur = conn.cursor()
     cur.execute("""
         SELECT pl.id, a.nombre, l.titulo, pl.fecha_prestamo,
@@ -475,6 +522,7 @@ def alertas_retrasos():
         ORDER BY dias DESC
     """, (dias_limite,))
     return jsonify([dict(row) for row in cur.fetchall()])
+
 
 
 # ====================================================

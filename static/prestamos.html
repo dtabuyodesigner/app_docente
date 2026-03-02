@@ -610,7 +610,9 @@
         }
 
         async function loadRetrasos() {
-            const plazo = parseInt(localStorage.getItem('prestamo_dias') || '7');
+            // Lee el plazo de la BD (default 7)
+            const cfg = await (await fetch('/api/lectura/config')).json();
+            const plazo = cfg.max_dias_prestamo || 7;
             const data = await (await fetch(`/api/lectura/alertas_retrasos?dias=${plazo}`)).json();
             const cont = document.getElementById('retrasosContainer');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos! Todos los libros están dentro del plazo.</p></div>'; return; }
@@ -664,7 +666,8 @@
                 document.getElementById('st-total').textContent = d.total_prestamos;
             } catch (e) { }
             try {
-                const plazo = parseInt(localStorage.getItem('prestamo_dias') || '7');
+                const cfg2 = await (await fetch('/api/lectura/config')).json();
+                const plazo = cfg2.max_dias_prestamo || 7;
                 const r = await (await fetch(`/api/lectura/alertas_retrasos?dias=${plazo}`)).json();
                 document.getElementById('st-retrasos').textContent = r.length;
                 document.getElementById('st-retrasos-label').textContent = `Con Retraso (+${plazo} días)`;
@@ -714,16 +717,22 @@
         function closeModal() { document.getElementById('devolucionModal').style.display = 'none'; }
 
         function guardarPlazo(dias) {
-            localStorage.setItem('prestamo_dias', dias);
-            // Actualiza el stat card label y recarga datos
-            document.getElementById('st-retrasos-label').textContent = `Con Retraso (+${dias} días)`;
-            loadRetrasos();
-            updateStats();
+            // Guarda en la BD
+            fetch('/api/lectura/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ max_dias_prestamo: parseInt(dias) })
+            }).then(() => {
+                document.getElementById('st-retrasos-label').textContent = `Con Retraso (+${dias} días)`;
+                loadRetrasos();
+                updateStats();
+            });
         }
 
-        // Inicializa el selector desde localStorage
-        const plazoGuardado = localStorage.getItem('prestamo_dias') || '7';
-        document.getElementById('plazo-dias').value = plazoGuardado;
+        // Inicializa el selector desde la BD
+        fetch('/api/lectura/config').then(r => r.json()).then(cfg => {
+            document.getElementById('plazo-dias').value = cfg.max_dias_prestamo || 7;
+        });
 
         loadAll();
     </script>

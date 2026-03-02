@@ -334,6 +334,17 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
         }
 
+        .book-card-agotado {
+            border-color: #f44336 !important;
+            background: #fff5f5 !important;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, .15);
+            opacity: 0.9;
+        }
+
+        .book-card-agotado .book-title {
+            color: #c62828;
+        }
+
         .book-cover {
             width: 100%;
             height: 130px;
@@ -1328,34 +1339,36 @@
                 return;
             }
             container.innerHTML = books.map(b => {
-                const cls = b.cantidad_disponible === 0 ? 'avail-none' : (b.cantidad_disponible <= 1 ? 'avail-low' : 'avail-ok');
+                const agotado = b.cantidad_disponible === 0;
+                const cls = agotado ? 'avail-none' : (b.cantidad_disponible <= 1 ? 'avail-low' : 'avail-ok');
+                const cardCls = agotado ? 'book-card book-card-agotado' : 'book-card';
                 const cover = b.portada
                     ? `<div class="book-cover"><img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.textContent='📖'"></div>`
                     : `<div class="book-cover">📖</div>`;
 
                 if (currentView === 'list') {
-                    return `<div class="book-card">
+                    return `<div class="${cardCls}">
                         ${cover}
                         <div class="book-info">
                             <div class="book-title">${b.titulo}</div>
                             <div class="book-author">${b.autor || 'Autor desconocido'}</div>
-                            <div class="book-meta">${[b.nivel_lectura, b.genero, b.año_publicacion].filter(Boolean).join(' · ')} &nbsp;<span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total}</span></div>
+                            <div class="book-meta">${[b.nivel_lectura, b.genero, b.año_publicacion].filter(Boolean).join(' · ')} &nbsp;<span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total}${agotado ? ' — Sin existencias' : ''}</span></div>
                         </div>
                         <div class="book-actions">
                             <button class="btn btn-outline btn-sm" onclick="openEdit(${b.id})">✏️</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\'")}')">🗑️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')">🗑️</button>
                         </div>
                     </div>`;
                 } else {
-                    return `<div class="book-card">
+                    return `<div class="${cardCls}">
                         ${cover}
                         <div class="book-title">${b.titulo}</div>
                         <div class="book-author">${b.autor || 'Autor desconocido'}</div>
                         <div class="book-meta">${[b.nivel_lectura, b.genero, b.año_publicacion].filter(Boolean).join(' · ')}</div>
-                        <span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total} disponibles</span>
+                        <span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total}${agotado ? ' — Sin existencias' : ' disponibles'}</span>
                         <div class="book-actions">
                             <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEdit(${b.id})">✏️ Editar</button>
-                            <button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\'")}')">🗑️</button>
+                            <button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')">🗑️</button>
                         </div>
                     </div>`;
                 }

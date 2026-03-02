@@ -63,6 +63,14 @@ def tareas_page():
 def login_page():
     return send_from_directory("static", "login.html")
 
+@main_bp.route("/biblioteca")
+def biblioteca_page():
+    return send_from_directory("static", "biblioteca.html")
+
+@main_bp.route("/prestamos")
+def prestamos_page():
+    return redirect("/biblioteca#prestamos")
+
 # We exempt login so that users whose session expired don't get 400 Bad Request
 # However, for a fully secure app we should supply a CSRF token to the login page as well.
 # For simplicity in this Phase 1, we will exempt it.

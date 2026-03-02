@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#003366">
     <style>
         :root {
             --primary: #003366;
@@ -408,6 +410,10 @@
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
+                <a href="/api/admin/backup" title="Descarga una copia de seguridad de la base de datos"
+                    style="background: #17a2b8; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;">
+                    💾 Backup
+                </a>
                 <a href="/logout"
                     style="background: #dc3545; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;">Cerrar
                     Sesión</a>
@@ -467,6 +473,10 @@
             <a href="/tareas" class="nav-btn">
                 <span class="nav-icon">✅</span>
                 <span class="nav-text">Tareas</span>
+            </a>
+            <a href="/biblioteca" class="nav-btn">
+                <span class="nav-icon">📚</span>
+                <span class="nav-text">Biblioteca</span>
             </a>
 
             <a href="/usuarios" class="nav-btn" style="background: #ffebee; border: 1px solid #ffcdd2;"
@@ -1313,7 +1323,14 @@
             }
         }
     </script>
-<script src="/static/js/api.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+                .then(reg => console.log('[PWA] Service Worker registrado, scope:', reg.scope))
+                .catch(e => console.warn('[PWA] Error al registrar SW:', e));
+        }
+    </script>
 </body>
 
 </html>

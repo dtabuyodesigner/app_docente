@@ -23,3 +23,5 @@ server.log
 build/
 dist/
 *.spec
+APP_EVALUAR.zip
+*.zip

@@ -1,5 +1,7 @@
-from flask import Flask, request, redirect, url_for, session
+from flask import Flask, request, redirect, url_for, session, send_file
 import os
+import shutil
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -26,6 +28,7 @@ from routes.google_cal import google_cal_bp
 from routes.tareas import tareas_bp
 from routes.usuarios import usuarios_bp
 from routes.programacion_docs import programacion_docs_bp
+from routes.lectura import lectura_bp
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
@@ -41,6 +44,7 @@ app.register_blueprint(google_cal_bp)
 app.register_blueprint(tareas_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(programacion_docs_bp)
+app.register_blueprint(lectura_bp, url_prefix='/api')
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db
@@ -55,10 +59,44 @@ csrf.init_app(app)
 def get_csrf_token():
     return {"ok": True, "csrf_token": generate_csrf()}
 
+@app.route('/api/admin/backup', methods=['GET'])
+def descargar_backup():
+    """Genera una copia de seguridad de la BD y la descarga."""
+    if not session.get('logged_in'):
+        return {"ok": False, "error": "No autorizado"}, 401
+    from utils.db import DB_PATH
+    if not os.path.exists(DB_PATH):
+        return {"ok": False, "error": "Base de datos no encontrada"}, 404
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_name = f"app_evaluar_backup_{ts}.db"
+    backup_path = os.path.join("/tmp", backup_name)
+    shutil.copy2(DB_PATH, backup_path)
+    return send_file(backup_path, as_attachment=True, download_name=backup_name)
+
+@app.route('/service-worker.js')
+def serve_sw():
+    """Sirve el Service Worker desde la raíz para que su scope sea '/'."""
+    response = send_file(
+        os.path.join(app.root_path, 'static', 'service-worker.js'),
+        mimetype='application/javascript'
+    )
+    response.headers['Service-Worker-Allowed'] = '/'
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
+
+@app.route('/manifest.json')
+def serve_manifest():
+    """Sirve el manifest PWA desde la raíz."""
+    return send_file(
+        os.path.join(app.root_path, 'static', 'manifest.json'),
+        mimetype='application/manifest+json'
+    )
+
+
 @app.before_request
 def require_auth():
     # Allow static files and the login/logout routes
-    if request.path.startswith('/static/') or request.path in ['/login', '/logout'] or request.path.endswith('.js') or request.path.endswith('.css') or request.endpoint == 'static':
+    if (request.path.startswith('/static/') or request.path in ['/login', '/logout', '/api/csrf-token', '/service-worker.js', '/manifest.json'] or request.path.endswith('.js') or request.path.endswith('.css') or request.endpoint == 'static'):
         return
         
     if not session.get('logged_in') or 'username' not in session:

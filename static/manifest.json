@@ -1,0 +1,27 @@
+{
+    "name": "Cuaderno del Tutor",
+    "short_name": "Cuaderno",
+    "description": "Gestión docente integral: alumnos, evaluación, biblioteca y más.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f0f4f8",
+    "theme_color": "#003366",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/static/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "categories": [
+        "education",
+        "productivity"
+    ],
+    "lang": "es"
+}

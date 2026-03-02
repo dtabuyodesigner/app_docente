@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>📋 Préstamos - Cuaderno del Tutor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #003366;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            color: #343a40;
+        }
+
+        .nav {
+            background: #003366;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            background: var(--light);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .back-link:hover {
+            background: #e9ecef;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #eef2f7;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 22px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 9px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #888;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            font-size: .9rem;
+            transition: all .2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: .8rem;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: .9rem;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .9rem;
+            transition: all .2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #002244;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b02a37;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: .8rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+        }
+
+        .table th,
+        .table td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table th {
+            background: var(--light);
+            font-weight: 700;
+            color: var(--primary);
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .table tr:hover {
+            background: #fafafa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .badge-danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .days-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: .8rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .days-ok {
+            background: var(--success);
+        }
+
+        .days-late {
+            background: var(--danger);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: .9rem;
+            margin-bottom: 12px;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            border: 1px solid #eef2f7;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-card small {
+            color: #666;
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 9px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: .9rem;
+            margin-bottom: 14px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .2);
+        }
+
+        .modal h2 {
+            margin: 0 0 20px;
+            color: var(--primary);
+        }
+
+        @media(max-width:600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav">
+        <a href="/">🏠 Inicio</a>
+        <a href="/alumnos">👥 Alumnos</a>
+        <a href="/asistencia">📋 Pasar lista</a>
+        <a href="/comedor">🍽️ Comedor</a>
+        <a href="/diario">📓 Diario</a>
+        <a href="/programacion">📅 Calendario</a>
+        <a href="/horario">⏰ Horario</a>
+        <a href="/evaluacion">📊 Evaluación</a>
+        <a href="/rubricas">📝 Rúbricas</a>
+        <a href="/informes">📜 Informes</a>
+        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+        <a href="/biblioteca">📚 Biblioteca</a>
+    </nav>
+    <div class="container">
+        <div class="page-header">
+            <h1>📋 Préstamos de Libros</h1>
+            <div style="display:flex;gap:10px;">
+                <a href="/biblioteca" class="back-link" style="background:#e8f5e9;border-color:#c8e6c9;">📚
+                    Biblioteca</a>
+                <a href="/" class="back-link">🏠 Inicio</a>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <p id="st-activos">-</p><small>Préstamos Activos</small>
+            </div>
+            <div class="stat-card">
+                <p id="st-retrasos">-</p><small>Con Retraso (+14 días)</small>
+            </div>
+            <div class="stat-card">
+                <p id="st-total">-</p><small>Total Histórico</small>
+            </div>
+        </div>
+
+        <!-- New Loan -->
+        <div class="card">
+            <div class="card-title">📚 Registrar Nuevo Préstamo</div>
+            <div id="loanAlert"></div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Alumno</label>
+                    <select id="sel-alumno">
+                        <option value="">-- Selecciona un alumno --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Libro (disponibles)</label>
+                    <select id="sel-libro">
+                        <option value="">-- Selecciona un libro --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" id="sel-fecha">
+                </div>
+            </div>
+            <button class="btn btn-success" onclick="registrarPrestamo()">✅ Registrar Préstamo</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('tab-activos',this)">📖 Préstamos Activos</button>
+            <button class="tab-btn" onclick="showTab('tab-retrasos',this)">⚠️ Con Retraso</button>
+            <button class="tab-btn" onclick="showTab('tab-historial',this)">📜 Historial</button>
+        </div>
+
+        <!-- Tab Activos -->
+        <div id="tab-activos" class="tab-panel active">
+            <div id="activosContainer">
+                <div class="empty-state">
+                    <div class="icon">⏳</div>
+                    <p>Cargando...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Retrasos -->
+        <div id="tab-retrasos" class="tab-panel">
+            <div id="retrasosContainer">
+                <div class="empty-state">
+                    <div class="icon">⏳</div>
+                    <p>Cargando...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Historial -->
+        <div id="tab-historial" class="tab-panel">
+            <input class="search-input" id="searchHistorial" placeholder="🔍 Buscar en historial..."
+                oninput="filterHistorial()">
+            <div id="historialContainer">
+                <div class="empty-state">
+                    <div class="icon">⏳</div>
+                    <p>Cargando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Devolucion Modal -->
+    <div class="modal-overlay" id="devolucionModal" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <h2>📥 Registrar Devolución</h2>
+            <input type="hidden" id="dev-id">
+            <div id="devInfo"
+                style="background:#f0f4f8;padding:12px;border-radius:8px;margin-bottom:14px;font-size:.9rem;"></div>
+            <div class="form-group" style="margin-bottom:12px;">
+                <label>Fecha de Devolución</label>
+                <input type="date" id="dev-fecha">
+            </div>
+            <div class="form-group" style="margin-bottom:18px;">
+                <label>Observaciones (opcional)</label>
+                <input type="text" id="dev-obs" placeholder="Ej: Libro en buen estado">
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-success" style="flex:1" onclick="confirmarDevolucion()">✅ Confirmar</button>
+                <button class="btn" style="background:#ddd;color:#555;flex:1" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        let todosHistorial = [];
+
+        function showTab(id, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Init date to today
+        document.getElementById('sel-fecha').value = new Date().toISOString().split('T')[0];
+        document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
+
+        async function loadAll() {
+            await Promise.all([loadAlumnos(), loadLibros(), loadActivos(), loadRetrasos(), loadHistorial()]);
+            updateStats();
+        }
+
+        async function loadAlumnos() {
+            const r = await fetch('/api/alumnos');
+            if (!r.ok) return;
+            const alumnos = await r.json();
+            const sel = document.getElementById('sel-alumno');
+            sel.innerHTML = '<option value="">-- Selecciona un alumno --</option>';
+            (alumnos.alumnos || alumnos).forEach(a => {
+                sel.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+            });
+        }
+
+        async function loadLibros() {
+            const libros = await (await fetch('/api/libros')).json();
+            const sel = document.getElementById('sel-libro');
+            sel.innerHTML = '<option value="">-- Selecciona un libro --</option>';
+            libros.filter(l => l.cantidad_disponible > 0).forEach(l => {
+                sel.innerHTML += `<option value="${l.id}">${l.titulo} (${l.cantidad_disponible} disp.)</option>`;
+            });
+        }
+
+        async function loadActivos() {
+            const data = await (await fetch('/api/prestamos/activos')).json();
+            const cont = document.getElementById('activosContainer');
+            if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No hay préstamos activos.</p></div>'; return; }
+            cont.innerHTML = `<table class="table"><thead><tr>
+        <th>Alumno</th><th>Libro</th><th>Fecha Préstamo</th><th>Días</th><th>Acción</th>
+    </tr></thead><tbody>${data.map(p => `<tr>
+        <td>${p.alumno_nombre}</td>
+        <td>${p.libro_titulo}</td>
+        <td>${p.fecha_prestamo}</td>
+        <td><span class="days-badge ${p.dias_transcurridos > 14 ? 'days-late' : 'days-ok'}">${p.dias_transcurridos}d</span></td>
+        <td><button class="btn btn-primary btn-sm" onclick="openDevolucion(${p.id},'${p.alumno_nombre.replace(/'/g, "\\'")}','${p.libro_titulo.replace(/'/g, "\\'")}','${p.fecha_prestamo}')">📥 Devolver</button></td>
+    </tr>`).join('')}</tbody></table>`;
+        }
+
+        async function loadRetrasos() {
+            const data = await (await fetch('/api/alertas/retrasos')).json();
+            const cont = document.getElementById('retrasosContainer');
+            if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos! Todos los libros están dentro del plazo.</p></div>'; return; }
+            cont.innerHTML = `<div style="margin-bottom:12px;padding:12px;background:#ffebee;border-radius:8px;color:#c62828;font-weight:600;">⚠️ ${data.length} libro(s) llevan más de 14 días prestados</div>
+    <table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Desde</th><th>Días</th><th>Acción</th></tr></thead>
+    <tbody>${data.map(p => `<tr>
+        <td>${p.nombre}</td>
+        <td>${p.titulo}</td>
+        <td>${p.fecha_prestamo}</td>
+        <td><span class="days-badge days-late">${p.dias}d</span></td>
+        <td><button class="btn btn-danger btn-sm" onclick="openDevolucion(${p.id},'${p.nombre.replace(/'/g, "\\'")}','${p.titulo.replace(/'/g, "\\'")}','${p.fecha_prestamo}')">📥 Devolver</button></td>
+    </tr>`).join('')}</tbody></table>`;
+        }
+
+        async function loadHistorial() {
+            todosHistorial = await (await fetch('/api/prestamos/historial')).json();
+            renderHistorial(todosHistorial);
+        }
+
+        function filterHistorial() {
+            const q = document.getElementById('searchHistorial').value.toLowerCase();
+            renderHistorial(todosHistorial.filter(p =>
+                (p.alumno_nombre || '').toLowerCase().includes(q) ||
+                (p.libro_titulo || '').toLowerCase().includes(q)
+            ));
+        }
+
+        function renderHistorial(data) {
+            const cont = document.getElementById('historialContainer');
+            if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Sin registros.</p></div>'; return; }
+            cont.innerHTML = `<table class="table"><thead><tr>
+        <th>Alumno</th><th>Libro</th><th>Préstamo</th><th>Devolución</th><th>Días</th><th>Estado</th>
+    </tr></thead><tbody>${data.map(p => {
+                const estadoBadge = p.estado === 'devuelto' ? 'badge-success' : (p.dias_lectura > 14 ? 'badge-danger' : 'badge-warning');
+                const estadoLabel = p.estado === 'devuelto' ? 'Devuelto' : 'Activo';
+                return `<tr>
+            <td>${p.alumno_nombre}</td>
+            <td>${p.libro_titulo}</td>
+            <td>${p.fecha_prestamo}</td>
+            <td>${p.fecha_devolucion || '—'}</td>
+            <td>${p.dias_lectura}d</td>
+            <td><span class="badge ${estadoBadge}">${estadoLabel}</span></td>
+        </tr>`;
+            }).join('')}</tbody></table>`;
+        }
+
+        async function updateStats() {
+            try {
+                const d = await (await fetch('/api/estadisticas/lectura')).json();
+                document.getElementById('st-activos').textContent = d.prestamos_activos;
+                document.getElementById('st-total').textContent = d.total_prestamos;
+            } catch (e) { }
+            try {
+                const r = await (await fetch('/api/alertas/retrasos')).json();
+                document.getElementById('st-retrasos').textContent = r.length;
+                if (r.length > 0) document.getElementById('st-retrasos').style.color = 'var(--danger)';
+            } catch (e) { }
+        }
+
+        async function registrarPrestamo() {
+            const alumno_id = document.getElementById('sel-alumno').value;
+            const libro_id = document.getElementById('sel-libro').value;
+            const fecha_prestamo = document.getElementById('sel-fecha').value;
+            const alertEl = document.getElementById('loanAlert');
+            if (!alumno_id || !libro_id) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Selecciona un alumno y un libro</div>'; return; }
+            const d = await (await fetch('/api/prestamos', { method: 'POST', body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo }) })).json();
+            if (d.ok) {
+                alertEl.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`;
+                setTimeout(() => alertEl.innerHTML = '', 3000);
+                // Actualizar todo inmediatamente tras el préstamo
+                await Promise.all([loadLibros(), loadActivos(), loadRetrasos(), loadHistorial()]);
+                await updateStats();
+            } else {
+                alertEl.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+            }
+        }
+
+        function openDevolucion(id, alumno, libro, fechaPrestamo) {
+            document.getElementById('dev-id').value = id;
+            document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('dev-obs').value = '';
+            document.getElementById('devInfo').innerHTML = `<strong>${alumno}</strong><br>📖 <em>${libro}</em><br><small>Prestado: ${fechaPrestamo}</small>`;
+            document.getElementById('devolucionModal').style.display = 'flex';
+        }
+
+        async function confirmarDevolucion() {
+            const id = document.getElementById('dev-id').value;
+            const body = { fecha_devolucion: document.getElementById('dev-fecha').value, observaciones: document.getElementById('dev-obs').value };
+            const d = await (await fetch(`/api/prestamos/${id}/devolver`, { method: 'POST', body: JSON.stringify(body) })).json();
+            if (d.ok) {
+                closeModal();
+                // Actualizar todo inmediatamente tras la devolución
+                await Promise.all([loadLibros(), loadActivos(), loadRetrasos(), loadHistorial()]);
+                await updateStats();
+            } else alert(`Error: ${d.error}`);
+        }
+
+        function closeModal() { document.getElementById('devolucionModal').style.display = 'none'; }
+
+        loadAll();
+    </script>
+</body>
+
+</html>

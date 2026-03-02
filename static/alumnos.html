@@ -223,6 +223,7 @@
             <a href="/rubricas">📝 Rúbricas</a>
             <a href="/informes">📜 Informes</a>
             <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+            <a href="/biblioteca">📚 Biblioteca</a>
         </div>
 
         <div
@@ -303,6 +304,9 @@
                     <button onclick="changeProfileTab('progreso')" id="btnTabProgreso"
                         style="background:none; border:none; padding:8px 15px; cursor:pointer; font-weight:bold; color: #666;">📈
                         Progreso Académico</button>
+                    <button onclick="changeProfileTab('prestamos')" id="btnTabPrestamos"
+                        style="background:none; border:none; padding:8px 15px; cursor:pointer; font-weight:bold; color: #666;">📖
+                        Préstamos</button>
                 </div>
 
                 <!-- CONTENIDO: DATOS -->
@@ -402,6 +406,14 @@
                         <em>* Los gráficos muestran la media de cada asignatura basada en las calificaciones
                             registradas.</em>
                     </p>
+                </div>
+
+                <!-- CONTENIDO: PRÉSTAMOS -->
+                <div id="sectionPrestamos" style="display:none; padding: 20px 0;">
+                    <div id="prestamosAlumnoContainer">
+                        <p style="color:#999; font-style:italic;">Selecciona un alumno para ver su historial de
+                            préstamos.</p>
+                    </div>
                 </div>
             </div>
 
@@ -676,6 +688,41 @@
             // Inicio
             cargarAlumnos();
 
+            /* ===== HISTORIAL PRÉSTAMOS ===== */
+            async function cargarPrestamosAlumno(alumnoId) {
+                const cont = document.getElementById('prestamosAlumnoContainer');
+                cont.innerHTML = '<p style="color:#999">Cargando...</p>';
+                try {
+                    const data = await (await fetch(`/api/prestamos/alumno/${alumnoId}`)).json();
+                    if (!data.length) {
+                        cont.innerHTML = '<p style="color:#999; font-style:italic;">Este alumno no tiene préstamos registrados.</p>';
+                        return;
+                    }
+                    cont.innerHTML = `
+                        <table style="width:100%; border-collapse:collapse; font-size:.9rem;">
+                            <thead><tr style="background:#f8f9fa;">
+                                <th style="padding:10px; text-align:left; color:#003366;">Libro</th>
+                                <th style="padding:10px; text-align:left; color:#003366;">Préstamo</th>
+                                <th style="padding:10px; text-align:left; color:#003366;">Devolución</th>
+                                <th style="padding:10px; text-align:left; color:#003366;">Estado</th>
+                            </tr></thead>
+                            <tbody>${data.map(p => {
+                        const badge = p.estado === 'devuelto'
+                            ? '<span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:.8rem;font-weight:700;">Devuelto</span>'
+                            : '<span style="background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-size:.8rem;font-weight:700;">Activo</span>';
+                        return `<tr style="border-bottom:1px solid #f0f0f0;">
+                                    <td style="padding:10px;font-weight:600;color:#003366">${p.libro_titulo}</td>
+                                    <td style="padding:10px;">${p.fecha_prestamo}</td>
+                                    <td style="padding:10px;">${p.fecha_devolucion || '—'}</td>
+                                    <td style="padding:10px;">${badge}</td>
+                                </tr>`;
+                    }).join('')}</tbody>
+                        </table>`;
+                } catch (e) {
+                    cont.innerHTML = '<p style="color:#dc3545;">Error al cargar préstamos.</p>';
+                }
+            }
+
             function seleccionarAlumno(id, nombre, div) {
                 alumnoActual = id;
 
@@ -711,24 +758,26 @@
             function changeProfileTab(tab) {
                 const sectionDatos = document.getElementById("sectionDatos");
                 const sectionProgreso = document.getElementById("sectionProgreso");
+                const sectionPrestamos = document.getElementById("sectionPrestamos");
                 const btnDatos = document.getElementById("btnTabDatos");
                 const btnProgreso = document.getElementById("btnTabProgreso");
+                const btnPrestamos = document.getElementById("btnTabPrestamos");
+
+                // Reset all
+                [sectionDatos, sectionProgreso, sectionPrestamos].forEach(s => s.style.display = 'none');
+                [btnDatos, btnProgreso, btnPrestamos].forEach(b => { b.style.borderBottom = '3px solid transparent'; b.style.color = '#666'; });
 
                 if (tab === 'datos') {
-                    sectionDatos.style.display = "block";
-                    sectionProgreso.style.display = "none";
-                    btnDatos.style.borderColor = "#003366";
-                    btnDatos.style.color = "#003366";
-                    btnProgreso.style.borderColor = "transparent";
-                    btnProgreso.style.color = "#666";
-                } else {
-                    sectionDatos.style.display = "none";
-                    sectionProgreso.style.display = "block";
-                    btnProgreso.style.borderColor = "#003366";
-                    btnProgreso.style.color = "#003366";
-                    btnDatos.style.borderColor = "transparent";
-                    btnDatos.style.color = "#666";
+                    sectionDatos.style.display = 'block';
+                    btnDatos.style.borderBottom = '3px solid #003366'; btnDatos.style.color = '#003366';
+                } else if (tab === 'progreso') {
+                    sectionProgreso.style.display = 'block';
+                    btnProgreso.style.borderBottom = '3px solid #003366'; btnProgreso.style.color = '#003366';
                     if (alumnoActual) renderProgressChart(alumnoActual);
+                } else if (tab === 'prestamos') {
+                    sectionPrestamos.style.display = 'block';
+                    btnPrestamos.style.borderBottom = '3px solid #003366'; btnPrestamos.style.color = '#003366';
+                    if (alumnoActual) cargarPrestamosAlumno(alumnoActual);
                 }
             }
 
@@ -1275,7 +1324,7 @@
             }
 
         </script>
-<script src="/static/js/api.js"></script>
+        <script src="/static/js/api.js"></script>
 </body>
 
 </html>

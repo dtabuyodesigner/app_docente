@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>📚 Biblioteca - Cuaderno del Tutor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #003366;
+            --success: #28a745;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #343a40;
+        }
+
+        .nav {
+            background: #003366;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            background: var(--light);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .back-link:hover {
+            background: #e9ecef;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #eef2f7;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-card small {
+            color: #666;
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 18px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #888;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            font-size: .9rem;
+            transition: all .2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-panel,
+        .cat-panel {
+            display: none;
+        }
+
+        .tab-panel.active,
+        .cat-panel.active {
+            display: block;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 14px;
+            border: 2px solid #eef2f7;
+            border-radius: 8px;
+            font-size: .95rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .9rem;
+            transition: all .2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #002244;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b02a37;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid #ddd;
+            color: #555;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: .82rem;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        /* LIST VIEW */
+        .books-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .books-list .book-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        .books-list .book-cover {
+            width: 46px;
+            height: 60px;
+            min-width: 46px;
+            margin-bottom: 0;
+            border-radius: 6px;
+            font-size: 1.4rem;
+        }
+
+        .books-list .book-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .books-list .book-title {
+            -webkit-line-clamp: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .books-list .book-meta {
+            margin-bottom: 0;
+        }
+
+        .books-list .book-actions {
+            margin-top: 0;
+            flex-shrink: 0;
+        }
+
+        .view-toggles {
+            display: flex;
+            gap: 4px;
+        }
+
+        .view-btn {
+            padding: 8px 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            transition: all .2s;
+        }
+
+        .view-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .book-card {
+            border: 1px solid #eef2f7;
+            border-radius: 12px;
+            padding: 15px;
+            transition: box-shadow .2s;
+            background: white;
+        }
+
+        .book-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 130px;
+            background: #eef2f7;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            overflow: hidden;
+        }
+
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .book-title {
+            font-weight: 700;
+            font-size: .9rem;
+            color: var(--primary);
+            margin-bottom: 3px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book-author {
+            font-size: .8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .book-meta {
+            font-size: .75rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .avail-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        .avail-ok {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .avail-low {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .avail-none {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .book-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .pst-tab-pill {
+            padding: 8px 18px;
+            border: 2px solid #e0e6ef;
+            background: white;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: .85rem;
+            color: #666;
+            transition: all .2s;
+            font-family: inherit;
+        }
+
+        .pst-tab-pill:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .pst-tab-pill.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 3px 10px rgba(0, 51, 102, .25);
+        }
+
+        .hub-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .2) !important;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .2);
+        }
+
+        .modal h2 {
+            margin: 0 0 20px;
+            color: var(--primary);
+        }
+
+        .modal-close-btn {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: #888;
+            margin-top: -5px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group.full {
+            grid-column: 1/-1;
+        }
+
+        .form-group label {
+            font-size: .8rem;
+            font-weight: 700;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 9px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: .9rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: .9rem;
+            margin-bottom: 12px;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-left: 4px solid var(--info);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+        }
+
+        .table th,
+        .table td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table th {
+            background: var(--light, #f8f9fa);
+            font-weight: 700;
+            color: var(--primary);
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        .table tr:hover {
+            background: #fafafa;
+        }
+
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            padding: 35px;
+            text-align: center;
+            transition: border-color .2s;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--primary);
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: .8rem;
+            white-space: pre;
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+            margin-bottom: 12px;
+        }
+
+        .google-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .google-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .google-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 51, 102, .1);
+        }
+
+        .google-card img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .google-card .g-no-img {
+            width: 100%;
+            height: 110px;
+            background: #eef2f7;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .google-card .g-title {
+            font-size: .82rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .google-card .g-author {
+            font-size: .72rem;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width:600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .books-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav">
+        <a href="/">🏠 Inicio</a>
+        <a href="/alumnos">👥 Alumnos</a>
+        <a href="/asistencia">📋 Pasar lista</a>
+        <a href="/comedor">🍽️ Comedor</a>
+        <a href="/diario">📓 Diario</a>
+        <a href="/programacion">📅 Calendario</a>
+        <a href="/horario">⏰ Horario</a>
+        <a href="/evaluacion">📊 Evaluación</a>
+        <a href="/rubricas">📝 Rúbricas</a>
+        <a href="/informes">📜 Informes</a>
+        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+        <a href="/biblioteca" class="active">📚 Biblioteca</a>
+    </nav>
+    <div class="container">
+        <div class="page-header">
+            <h1>📚 Biblioteca</h1>
+        </div>
+
+        <div class="tabs" id="mainTabs">
+            <button class="tab-btn active" onclick="showTab('tab-resumen',this)">📊 Resumen</button>
+            <button class="tab-btn" id="btnTabCatalogo" onclick="showTab('tab-libros',this)">📖 Catálogo</button>
+            <button class="tab-btn" id="btnTabPrestamos" onclick="showTab('tab-prestamos',this);initPrestamos()">📋
+                Préstamos</button>
+        </div>
+
+        <!-- Tab Resumen (hub) -->
+        <div id="tab-resumen" class="tab-panel active">
+            <!-- Stats row -->
+            <div class="stats-row" style="margin-bottom:24px;">
+                <div class="stat-card">
+                    <p id="st-libros">-</p><small>Libros en Catálogo</small>
+                </div>
+                <div class="stat-card">
+                    <p id="st-prestamos">-</p><small>Total Préstamos</small>
+                </div>
+                <div class="stat-card">
+                    <p id="st-activos">-</p><small>Préstamos Activos</small>
+                </div>
+                <div class="stat-card">
+                    <p id="st-top" style="font-size:.9rem;padding-top:8px;">-</p><small>Libro Más Leído</small>
+                </div>
+            </div>
+            <!-- Two big hub cards -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div onclick="document.getElementById('btnTabCatalogo').click()"
+                    style="background:linear-gradient(135deg,#003366,#0055a5);color:white;border-radius:18px;padding:36px 28px;cursor:pointer;text-align:center;transition:transform .2s,box-shadow .2s;box-shadow:0 6px 20px rgba(0,51,102,.25);">
+                    <div style="font-size:3rem;margin-bottom:12px;">📖</div>
+                    <div style="font-size:1.4rem;font-weight:800;margin-bottom:6px;">Catálogo</div>
+                    <div style="opacity:.8;font-size:.9rem;">Gestiona el fondo de libros</div>
+                </div>
+                <div onclick="document.getElementById('btnTabPrestamos').click()"
+                    style="background:linear-gradient(135deg,#1a6b3a,#28a745);color:white;border-radius:18px;padding:36px 28px;cursor:pointer;text-align:center;transition:transform .2s,box-shadow .2s;box-shadow:0 6px 20px rgba(40,167,69,.25);">
+                    <div style="font-size:3rem;margin-bottom:12px;">📋</div>
+                    <div style="font-size:1.4rem;font-weight:800;margin-bottom:6px;">Préstamos</div>
+                </div>
+            </div>
+
+            <!-- New Stats Content: Chart & History Selector -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:30px;">
+                <!-- Vertical Bar Chart -->
+                <div
+                    style="background:white;padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
+                    <h3
+                        style="margin-top:0;color:var(--primary);font-size:1.1rem;display:flex;align-items:center;gap:8px;">
+                        📊 Ranking de Lectura</h3>
+                    <div style="height:300px;position:relative;">
+                        <canvas id="rankingChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- History by Student -->
+                <div
+                    style="background:white;padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
+                    <h3
+                        style="margin-top:0;color:var(--primary);font-size:1.1rem;display:flex;align-items:center;gap:8px;">
+                        📜 Historial por Alumno</h3>
+                    <p style="font-size:.9rem;color:#666;margin-bottom:20px;">Selecciona un alumno para ver todos los
+                        libros que ha leído.</p>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <select id="h-alumno"
+                            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:1rem;background:#f9fafb;">
+                            <option value="">-- Selecciona un alumno --</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;padding:12px;border-radius:10px;"
+                        onclick="showHistorialAlumno()">🔍 Ver Historial Detallado</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Catálogo -->
+        <div id="tab-libros" class="tab-panel">
+            <!-- Catálogo pill sub-nav -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center;">
+                <button class="pst-tab-pill active" id="catBtn-libros" onclick="showCatTab('cat-libros',this)">📖
+                    Catálogo</button>
+                <button class="pst-tab-pill" id="catBtn-nuevo" onclick="showCatTab('cat-nuevo',this)">➕ Añadir
+                    libro</button>
+                <button class="pst-tab-pill" id="catBtn-csv" onclick="showCatTab('cat-csv',this)">📂 Importar
+                    CSV</button>
+                <button class="pst-tab-pill" id="catBtn-google" onclick="showCatTab('cat-google',this)">🔍 Google
+                    Books</button>
+            </div>
+
+            <!-- sub-panel: Listado -->
+            <div id="cat-libros" class="cat-panel active">
+                <div class="toolbar">
+                    <input id="searchInput" class="search-input" placeholder="🔍 Buscar por título o autor..."
+                        oninput="filterBooks()">
+                    <select id="filterNivel" class="btn btn-outline" onchange="filterBooks()">
+                        <option value="">Todos los niveles</option>
+                        <option>Infantil</option>
+                        <option>Primaria</option>
+                        <option>Secundaria</option>
+                    </select>
+                    <div class="view-toggles">
+                        <button class="view-btn active" id="btnGrid" onclick="setView('grid')"
+                            title="Vista iconos">⊞</button>
+                        <button class="view-btn" id="btnList" onclick="setView('list')" title="Vista lista">≡</button>
+                    </div>
+                </div>
+                <div class="books-grid" id="booksGrid">
+                    <div class="empty-state" style="grid-column:1/-1">
+                        <div class="icon">⏳</div>
+                        <p>Cargando...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- sub-panel: Añadir -->
+            <div id="cat-nuevo" class="cat-panel">
+                <h3 style="color:var(--primary);margin-top:0;">➕ Añadir libro manualmente</h3>
+                <div id="formAlert"></div>
+                <form id="bookForm" onsubmit="submitBook(event)">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Título *</label><input id="f-titulo" required
+                                placeholder="El nombre del libro"></div>
+                        <div class="form-group"><label>Autor *</label><input id="f-autor" required
+                                placeholder="Nombre del autor"></div>
+                        <div class="form-group"><label>ISBN</label><input id="f-isbn" placeholder="978-XXXXXXXXX"></div>
+                        <div class="form-group"><label>Editorial</label><input id="f-editorial"></div>
+                        <div class="form-group"><label>Año de Publicación</label><input id="f-año" type="number"
+                                min="1000" max="2099" placeholder="Ej: 2023"></div>
+                        <div class="form-group"><label>Nº de copias</label><input id="f-cantidad" type="number" min="1"
+                                value="1"></div>
+                        <div class="form-group"><label>Nivel</label>
+                            <select id="f-nivel">
+                                <option value="">Sin especificar</option>
+                                <option>Infantil</option>
+                                <option>Primaria</option>
+                                <option>Secundaria</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Género</label>
+                            <select id="f-genero">
+                                <option value="">Sin especificar</option>
+                                <option>Ficción</option>
+                                <option>No ficción</option>
+                                <option>Poesía</option>
+                                <option>Ciencia</option>
+                                <option>Historia</option>
+                                <option>Cómic</option>
+                            </select>
+                        </div>
+                        <div class="form-group full"><label>Descripción</label><textarea id="f-desc"
+                                placeholder="Breve descripción..."></textarea></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">💾 Guardar</button>
+                        <button type="button" class="btn btn-outline"
+                            onclick="document.getElementById('bookForm').reset();document.getElementById('f-cantidad').value=1;">✖
+                            Limpiar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- sub-panel: CSV -->
+            <div id="cat-csv" class="cat-panel">
+                <h3 style="color:var(--primary);margin-top:0;">📂 Importar desde CSV / Excel</h3>
+                <div class="alert alert-info">Solo <code>titulo</code> es obligatorio. Columnas disponibles:
+                    <code>titulo, autor, isbn, editorial, año_publicacion, nivel_lectura, genero, cantidad_total</code>
+                </div>
+                <div><strong>Ejemplo CSV mínimo:</strong></div>
+                <div class="code-block">titulo<br>El Quijote<br>Harry Potter</div>
+                <div style="margin-bottom:18px;"><a href="/api/libros/descargar-plantilla"
+                        class="btn btn-outline btn-sm">⬇️
+                        Descargar plantilla de ejemplo</a></div>
+                <label for="csvFile" id="dropZone" class="drop-zone"
+                    ondragover="event.preventDefault();this.classList.add('dragover')"
+                    ondragleave="this.classList.remove('dragover')" ondrop="onDrop(event)">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">📁</div>
+                    <p style="margin:5px 0;font-weight:600;">Haz clic o arrastra tu archivo aquí</p>
+                    <p style="margin:0;font-size:.85rem;color:#888;">CSV, XLS, XLSX</p>
+                    <input type="file" id="csvFile" name="csvFile" accept=".csv,.xlsx,.xls" style="display:none"
+                        onchange="onFileSelected(this.files[0])">
+                </label>
+                <div id="fileInfo"
+                    style="display:none;margin:10px 0;padding:12px;background:#e8f5e9;border-radius:8px;">📄
+                    <span id="fileName"></span>
+                    <button
+                        onclick="csvSelectedFile=null;document.getElementById('fileInfo').style.display='none';document.getElementById('csvBtn').style.display='none';document.getElementById('csvFile').value='';"
+                        style="float:right;background:none;border:none;cursor:pointer;color:#888;">✕</button>
+                </div>
+                <div id="csvAlert" style="margin-top:12px;"></div>
+                <button class="btn btn-success" onclick="importCSV()" id="csvBtn"
+                    style="margin-top:12px;display:none">📤
+                    Importar Libros</button>
+            </div>
+
+            <!-- sub-panel: Google -->
+            <div id="cat-google" class="cat-panel">
+                <h3 style="color:var(--primary);margin-top:0;">🔍 Buscar en Google Books</h3>
+                <div class="alert alert-info">Busca por título. Si tienes clave API, añade
+                    <code>GOOGLE_BOOKS_API_KEY=tu_clave</code> en el archivo <code>.env</code>.
+                </div>
+                <div class="toolbar">
+                    <input id="gbSearchInput" class="search-input" placeholder="Escribe el título..."
+                        onkeydown="if(event.key==='Enter')searchGoogleBooks()">
+                    <button class="btn btn-primary" onclick="searchGoogleBooks()">🔍 Buscar</button>
+                </div>
+                <div id="gbAlert"></div>
+                <div id="gbResults" class="google-results"></div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal-overlay" id="editModal" onclick="if(event.target===this)closeModal('editModal')">
+            <div class="modal">
+                <h2>✏️ Editar Libro <button class="modal-close-btn" onclick="closeModal('editModal')">✕</button></h2>
+                <div id="editAlert"></div>
+                <form id="editForm" onsubmit="submitEdit(event)">
+                    <input type="hidden" id="e-id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Título *</label><input id="e-titulo" required></div>
+                        <div class="form-group"><label>Autor *</label><input id="e-autor" required></div>
+                        <div class="form-group"><label>ISBN</label><input id="e-isbn"></div>
+                        <div class="form-group"><label>Editorial</label><input id="e-editorial"></div>
+                        <div class="form-group"><label>Año</label><input id="e-año" type="number"></div>
+                        <div class="form-group"><label>Nº de copias</label><input id="e-cantidad" type="number" min="1">
+                        </div>
+                        <div class="form-group"><label>Nivel</label>
+                            <select id="e-nivel">
+                                <option value="">Sin especificar</option>
+                                <option>Infantil</option>
+                                <option>Primaria</option>
+                                <option>Secundaria</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Género</label>
+                            <select id="e-genero">
+                                <option value="">Sin especificar</option>
+                                <option>Ficción</option>
+                                <option>No ficción</option>
+                                <option>Poesía</option>
+                                <option>Ciencia</option>
+                                <option>Historia</option>
+                                <option>Cómic</option>
+                            </select>
+                        </div>
+                        <div class="form-group full"><label>Descripción</label><textarea id="e-desc"></textarea></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                        <button type="button" class="btn btn-outline"
+                            onclick="closeModal('editModal')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Google Import Modal -->
+        <div class="modal-overlay" id="gbImportModal" onclick="if(event.target===this)closeModal('gbImportModal')">
+            <div class="modal" style="max-width:380px;">
+                <h2>📥 Importar Libro <button class="modal-close-btn" onclick="closeModal('gbImportModal')">✕</button>
+                </h2>
+                <div id="gbImportInfo" style="margin-bottom:15px;background:#f0f4f8;padding:12px;border-radius:8px;">
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label>Nivel de Lectura</label>
+                    <select id="gb-nivel">
+                        <option value="">Sin especificar</option>
+                        <option>Infantil</option>
+                        <option>Primaria</option>
+                        <option>Secundaria</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label>Género</label>
+                    <select id="gb-genero">
+                        <option value="">Sin especificar</option>
+                        <option>Ficción</option>
+                        <option>No ficción</option>
+                        <option>Poesía</option>
+                        <option>Ciencia</option>
+                        <option>Historia</option>
+                        <option>Cómic</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label>Número de Copias</label>
+                    <input id="gb-cantidad" type="number" min="1" value="1">
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-success" onclick="confirmGbImport()">✅ Importar</button>
+                    <button class="btn btn-outline" onclick="closeModal('gbImportModal')">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Préstamos -->
+        <div id="tab-prestamos" class="tab-panel">
+
+            <!-- Alert zone -->
+            <div id="prest-alert" style="margin-bottom:12px;"></div>
+
+            <!-- NEW LOAN CARD -->
+            <div
+                style="background:linear-gradient(135deg,#003366 0%,#0055a5 100%);border-radius:16px;padding:24px 28px;margin-bottom:22px;color:white;">
+                <div
+                    style="font-size:1.1rem;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+                    📚 Registrar Nuevo Préstamo
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 180px;gap:14px;align-items:end;">
+                    <div>
+                        <label
+                            style="display:block;font-size:.78rem;font-weight:700;margin-bottom:6px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;">Alumno</label>
+                        <select id="p-alumno"
+                            style="width:100%;padding:10px 14px;border:none;border-radius:10px;font-size:.9rem;font-family:inherit;background:rgba(255,255,255,0.95);color:#003366;font-weight:600;cursor:pointer;">
+                            <option value="">-- Selecciona un alumno --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            style="display:block;font-size:.78rem;font-weight:700;margin-bottom:6px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;">Libro
+                            disponible</label>
+                        <select id="p-libro"
+                            style="width:100%;padding:10px 14px;border:none;border-radius:10px;font-size:.9rem;font-family:inherit;background:rgba(255,255,255,0.95);color:#003366;font-weight:600;cursor:pointer;">
+                            <option value="">-- Selecciona un libro --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            style="display:block;font-size:.78rem;font-weight:700;margin-bottom:6px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;">Fecha</label>
+                        <input type="date" id="p-fecha"
+                            style="width:100%;padding:10px 14px;border:none;border-radius:10px;font-size:.9rem;font-family:inherit;box-sizing:border-box;">
+                    </div>
+                </div>
+                <button onclick="registrarPrestamo()"
+                    style="margin-top:18px;background:white;color:#003366;font-weight:800;font-size:.95rem;padding:11px 28px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,.15);">
+                    ✅ Registrar Préstamo
+                </button>
+            </div>
+
+            <!-- STATS ROW -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;">
+                <div
+                    style="background:white;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+                    <div
+                        style="width:44px;height:44px;background:#e8f5e9;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+                        📖</div>
+                    <div>
+                        <p id="pst-activos"
+                            style="margin:0;font-size:1.8rem;font-weight:800;color:#003366;line-height:1;">-
+                        </p><small
+                            style="color:#888;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;">Préstamos
+                            Activos</small>
+                    </div>
+                </div>
+                <div
+                    style="background:white;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+                    <div
+                        style="width:44px;height:44px;background:#ffebee;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+                        ⚠️</div>
+                    <div>
+                        <p id="pst-retrasos"
+                            style="margin:0;font-size:1.8rem;font-weight:800;color:#c62828;line-height:1;">
+                            -</p><small
+                            style="color:#888;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;">Con
+                            Retraso
+                            (+14 días)</small>
+                    </div>
+                </div>
+                <div
+                    style="background:white;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+                    <div
+                        style="width:44px;height:44px;background:#e3f2fd;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
+                        📜</div>
+                    <div>
+                        <p id="pst-total"
+                            style="margin:0;font-size:1.8rem;font-weight:800;color:#003366;line-height:1;">-
+                        </p><small
+                            style="color:#888;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;">Total
+                            Histórico</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PILL SUB-TABS -->
+            <div style="display:flex;gap:8px;margin-bottom:18px;">
+                <button class="pst-tab-pill active" onclick="showSubTab('pst-tab-activos',this)">📖 Activos</button>
+                <button class="pst-tab-pill" onclick="showSubTab('pst-tab-retrasos',this)">⚠️ Con Retraso</button>
+                <button class="pst-tab-pill" onclick="showSubTab('pst-tab-historial',this)">📜 Historial</button>
+            </div>
+
+            <div id="pst-tab-activos" class="tab-panel active">
+                <div class="empty-state">
+                    <div class="icon">⏳</div>
+                    <p>Cargando...</p>
+                </div>
+            </div>
+            <div id="pst-tab-retrasos" class="tab-panel">
+                <div class="empty-state">
+                    <div class="icon">⏳</div>
+                    <p>Cargando...</p>
+                </div>
+            </div>
+            <div id="pst-tab-historial" class="tab-panel">
+                <input class="search-input" id="p-search-hist" placeholder="🔍 Buscar alumno o libro..."
+                    oninput="filtrarHistorial()" style="margin-bottom:14px;max-width:340px;">
+                <div id="pst-historial-cont">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Cargando...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /container -->
+
+    <!-- Devolucion Modal -->
+    <div class="modal-overlay" id="devModal" onclick="if(event.target===this)closeDevModal()" style="display:none;">
+        <div class="modal">
+            <h2>📥 Registrar Devolución</h2>
+            <input type="hidden" id="dev-id">
+            <div id="dev-info"
+                style="background:#f0f4f8;padding:12px;border-radius:8px;margin-bottom:14px;font-size:.9rem;"></div>
+            <div class="form-group" style="margin-bottom:12px;">
+                <label>Fecha de Devolución</label>
+                <input type="date" id="dev-fecha">
+            </div>
+            <div class="form-group" style="margin-bottom:18px;">
+                <label>Observaciones (opcional)</label>
+                <input type="text" id="dev-obs" placeholder="Ej: Libro en buen estado">
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-success" style="flex:1" onclick="confirmarDevolucion()">✅ Confirmar</button>
+                <button class="btn" style="background:#ddd;color:#555;flex:1"
+                    onclick="closeDevModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial Alumno Modal -->
+    <div class="modal-overlay" id="historialAlumnoModal"
+        onclick="if(event.target===this)closeModal('historialAlumnoModal')" style="display:none;">
+        <div class="modal" style="max-width:700px;">
+            <h2 id="hist-alumno-titulo">📜 Historial de Lectura</h2>
+            <div id="hist-alumno-cont" style="max-height:400px;overflow-y:auto;margin-bottom:20px;">
+                <!-- Table will be injected here -->
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-outline" onclick="closeModal('historialAlumnoModal')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="editPrestModal" onclick="if(event.target===this)closeEditPrest()"
+        style="display:none;">
+        <div class="modal" style="max-width:480px;">
+            <h2 style="margin-bottom:18px;">✏️ Editar Préstamo</h2>
+            <input type="hidden" id="ep-id">
+            <div class="form-group" style="margin-bottom:12px;">
+                <label>Alumno</label>
+                <select id="ep-alumno"></select>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+                <label>Libro</label>
+                <select id="ep-libro"></select>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+                <label>Fecha del Préstamo</label>
+                <input type="date" id="ep-fecha">
+            </div>
+            <div class="form-group" style="margin-bottom:18px;">
+                <label>Observaciones</label>
+                <input type="text" id="ep-obs" placeholder="Notas opcionales">
+            </div>
+            <div id="ep-alert" style="margin-bottom:10px;"></div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-primary" style="flex:1" onclick="guardarEditPrest()">💾 Guardar</button>
+                <button class="btn" style="background:#ddd;color:#555;flex:1"
+                    onclick="closeEditPrest()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        let allBooks = [], selectedGbBook = null, csvSelectedFile = null;
+
+        function showTab(id, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('#mainTabs .tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function showCatTab(id, btn) {
+            document.querySelectorAll('.cat-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('#tab-libros .pst-tab-pill').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        let rankingChartInstance = null;
+        function loadRankingChart() {
+            fetch('/api/ranking/lectura')
+                .then(r => r.json())
+                .then(data => {
+                    const ctx = document.getElementById('rankingChart').getContext('2d');
+                    if (rankingChartInstance) rankingChartInstance.destroy();
+
+                    const labels = data.map(i => i.nombre);
+                    const values = data.map(i => i.total_lecturas);
+
+                    rankingChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Libros leídos',
+                                data: values,
+                                backgroundColor: 'rgba(0, 51, 102, 0.7)',
+                                borderColor: 'rgba(0, 51, 102, 1)',
+                                borderWidth: 1,
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { beginAtZero: true, ticks: { stepSize: 1, color: '#666' } },
+                                y: { ticks: { color: '#003366', font: { weight: 'bold' } } }
+                            }
+                        }
+                    });
+                });
+        }
+
+        function showHistorialAlumno() {
+            const aid = document.getElementById('h-alumno').value;
+            if (!aid) { alert("Selecciona un alumno"); return; }
+
+            const alumnoNombre = document.getElementById('h-alumno').options[document.getElementById('h-alumno').selectedIndex].text;
+            document.getElementById('hist-alumno-titulo').innerText = `📜 Historial de ${alumnoNombre}`;
+
+            fetch(`/api/alumnos/${aid}/prestamos`)
+                .then(r => r.json())
+                .then(data => {
+                    let html = `<table class="table">
+                        <thead><tr><th>Libro</th><th>Fecha</th><th>Días</th><th>Estado</th></tr></thead>
+                        <tbody>`;
+                    if (data.length === 0) {
+                        html += `<tr><td colspan="4" style="text-align:center;">No hay préstamos registrados</td></tr>`;
+                    } else {
+                        data.forEach(p => {
+                            const statusCls = p.estado === 'activo' ? 'badge-primary' : 'badge-success';
+                            const reactivateBtn = p.estado === 'devuelto' ? `<button class="btn btn-sm" onclick="reactivarPrestamo(${p.id})" title="Reactivar préstamo" style="padding:2px 5px; margin-left:5px; background:white; border:1px solid #ccc;">↺</button>` : '';
+                            html += `<tr>
+                                <td><strong>${p.libro_titulo}</strong><br><small style="color:#666">${p.libro_autor}</small></td>
+                                <td>${p.fecha_prestamo}</td>
+                                <td>${p.dias_lectura || 0}</td>
+                                <td><span class="badge ${statusCls}">${p.estado}</span>${reactivateBtn}</td>
+                            </tr>`;
+                        });
+                    }
+                    html += `</tbody></table>`;
+                    document.getElementById('hist-alumno-cont').innerHTML = html;
+                    document.getElementById('historialAlumnoModal').style.display = 'flex';
+                });
+        }
+
+        async function loadStats() {
+            try {
+                const d = await (await fetch('/api/estadisticas/lectura')).json();
+                document.getElementById('st-libros').textContent = d.total_libros;
+                document.getElementById('st-prestamos').textContent = d.total_prestamos;
+                document.getElementById('st-activos').textContent = d.prestamos_activos;
+                document.getElementById('st-top').textContent = d.libro_popular ? d.libro_popular.titulo : '-';
+            } catch (e) { }
+        }
+
+        async function loadBooks() {
+            const r = await fetch('/api/libros');
+            allBooks = await r.json();
+            renderBooks(allBooks);
+        }
+
+        function filterBooks() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const nivel = document.getElementById('filterNivel').value;
+            renderBooks(allBooks.filter(b =>
+                (!q || (b.titulo || '').toLowerCase().includes(q) || (b.autor || '').toLowerCase().includes(q)) &&
+                (!nivel || b.nivel_lectura === nivel)
+            ));
+        }
+
+        let currentView = localStorage.getItem('bibliotecaView') || 'grid';
+
+        function setView(v) {
+            currentView = v;
+            localStorage.setItem('bibliotecaView', v);
+            document.getElementById('btnGrid').classList.toggle('active', v === 'grid');
+            document.getElementById('btnList').classList.toggle('active', v === 'list');
+            const grid = document.getElementById('booksGrid');
+            grid.className = v === 'list' ? 'books-list' : 'books-grid';
+            filterBooks();
+        }
+
+        function renderBooks(books) {
+            const container = document.getElementById('booksGrid');
+            container.className = currentView === 'list' ? 'books-list' : 'books-grid';
+            if (!books.length) {
+                container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>No se encontraron libros.</p></div>`;
+                return;
+            }
+            container.innerHTML = books.map(b => {
+                const cls = b.cantidad_disponible === 0 ? 'avail-none' : (b.cantidad_disponible <= 1 ? 'avail-low' : 'avail-ok');
+                const cover = b.portada
+                    ? `<div class="book-cover"><img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.textContent='📖'"></div>`
+                    : `<div class="book-cover">📖</div>`;
+
+                if (currentView === 'list') {
+                    return `<div class="book-card">
+                        ${cover}
+                        <div class="book-info">
+                            <div class="book-title">${b.titulo}</div>
+                            <div class="book-author">${b.autor || 'Autor desconocido'}</div>
+                            <div class="book-meta">${[b.nivel_lectura, b.genero, b.año_publicacion].filter(Boolean).join(' · ')} &nbsp;<span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total}</span></div>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-outline btn-sm" onclick="openEdit(${b.id})">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\'")}')">🗑️</button>
+                        </div>
+                    </div>`;
+                } else {
+                    return `<div class="book-card">
+                        ${cover}
+                        <div class="book-title">${b.titulo}</div>
+                        <div class="book-author">${b.autor || 'Autor desconocido'}</div>
+                        <div class="book-meta">${[b.nivel_lectura, b.genero, b.año_publicacion].filter(Boolean).join(' · ')}</div>
+                        <span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total} disponibles</span>
+                        <div class="book-actions">
+                            <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEdit(${b.id})">✏️ Editar</button>
+                            <button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\'")}')">🗑️</button>
+                        </div>
+                    </div>`;
+                }
+            }).join('');
+        }
+
+        async function submitBook(e) {
+            e.preventDefault();
+            const body = { titulo: document.getElementById('f-titulo').value, autor: document.getElementById('f-autor').value, isbn: document.getElementById('f-isbn').value, editorial: document.getElementById('f-editorial').value, año_publicacion: document.getElementById('f-año').value || null, cantidad_total: parseInt(document.getElementById('f-cantidad').value) || 1, nivel_lectura: document.getElementById('f-nivel').value, genero: document.getElementById('f-genero').value, descripcion: document.getElementById('f-desc').value };
+            const d = await (await fetch('/api/libros', { method: 'POST', body: JSON.stringify(body) })).json();
+            const el = document.getElementById('formAlert');
+            if (d.ok) { el.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`; document.getElementById('bookForm').reset(); document.getElementById('f-cantidad').value = 1; loadBooks(); loadStats(); setTimeout(() => el.innerHTML = '', 3000); }
+            else el.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+        }
+
+        function openEdit(id) {
+            const b = allBooks.find(x => x.id === id); if (!b) return;
+            ['id', 'titulo', 'autor', 'isbn', 'editorial'].forEach(f => document.getElementById('e-' + f).value = b[f] || '');
+            document.getElementById('e-año').value = b.año_publicacion || '';
+            document.getElementById('e-cantidad').value = b.cantidad_total;
+            document.getElementById('e-nivel').value = b.nivel_lectura || '';
+            document.getElementById('e-genero').value = b.genero || '';
+            document.getElementById('e-desc').value = b.descripcion || '';
+            document.getElementById('editAlert').innerHTML = '';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        async function submitEdit(e) {
+            e.preventDefault();
+            const id = document.getElementById('e-id').value;
+            const body = { titulo: document.getElementById('e-titulo').value, autor: document.getElementById('e-autor').value, isbn: document.getElementById('e-isbn').value, editorial: document.getElementById('e-editorial').value, año_publicacion: document.getElementById('e-año').value || null, cantidad_total: parseInt(document.getElementById('e-cantidad').value) || 1, nivel_lectura: document.getElementById('e-nivel').value, genero: document.getElementById('e-genero').value, descripcion: document.getElementById('e-desc').value };
+            const d = await (await fetch(`/api/libros/${id}`, { method: 'PUT', body: JSON.stringify(body) })).json();
+            if (d.ok) { closeModal('editModal'); loadBooks(); loadStats(); }
+            else document.getElementById('editAlert').innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+        }
+
+        async function deleteBook(id, titulo) {
+            if (!confirm(`¿Eliminar "${titulo}"?`)) return;
+            const d = await (await fetch(`/api/libros/${id}`, { method: 'DELETE' })).json();
+            if (d.ok) { loadBooks(); loadStats(); } else alert(`Error: ${d.error}`);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            if (id === 'historialAlumnoModal') {
+                const sel = document.getElementById('h-alumno');
+                if (sel) sel.value = '';
+            }
+        }
+
+        // CSV
+        function onDrop(e) { e.preventDefault(); e.currentTarget.classList.remove('dragover'); if (e.dataTransfer.files.length) onFileSelected(e.dataTransfer.files[0]); }
+        function onFileSelected(file) { csvSelectedFile = file; document.getElementById('fileName').textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`; document.getElementById('fileInfo').style.display = 'block'; document.getElementById('csvBtn').style.display = 'inline-block'; document.getElementById('csvAlert').innerHTML = ''; }
+
+        async function importCSV() {
+            if (!csvSelectedFile) return;
+            const fd = new FormData(); fd.append('file', csvSelectedFile);
+            const btn = document.getElementById('csvBtn'); btn.textContent = '⏳ Importando...'; btn.disabled = true;
+            try {
+                const d = await (await fetch('/api/libros/importar/csv', { method: 'POST', body: fd })).json();
+                let html = d.ok ? `<div class="alert alert-success">✅ ${d.mensaje} (${d.libros_importados}/${d.total_filas})</div>` : `<div class="alert alert-danger">❌ ${d.error}</div>`;
+                if (d.ok && d.errores) html += `<div class="alert" style="background:#fff8e1;border-left:4px solid orange;color:#7a5c00;">⚠️ Errores: ${d.errores.join('<br>')}</div>`;
+                document.getElementById('csvAlert').innerHTML = html;
+                if (d.ok) { csvSelectedFile = null; document.getElementById('fileInfo').style.display = 'none'; document.getElementById('csvFile').value = ''; document.getElementById('csvBtn').style.display = 'none'; loadBooks(); loadStats(); }
+            } finally { btn.textContent = '📤 Importar Libros'; btn.disabled = false; }
+        }
+
+        // Google Books
+        async function searchGoogleBooks() {
+            const titulo = document.getElementById('gbSearchInput').value.trim(); if (!titulo) return;
+            document.getElementById('gbResults').innerHTML = '<div style="text-align:center;padding:30px;color:#888;">⏳ Buscando...</div>';
+            document.getElementById('gbAlert').innerHTML = '';
+            const d = await (await fetch(`/api/libros/buscar-google?titulo=${encodeURIComponent(titulo)}`)).json();
+            if (!d.ok) { document.getElementById('gbAlert').innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`; document.getElementById('gbResults').innerHTML = ''; return; }
+            if (!d.resultados.length) { document.getElementById('gbResults').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Sin resultados.</p></div>'; return; }
+            window._gbResults = d.resultados;
+            document.getElementById('gbResults').innerHTML = d.resultados.map((b, i) => `
+        <div class="google-card" onclick="openGbImport(${i})">
+            ${b.portada ? `<img src="${b.portada}" alt="${b.titulo}">` : `<div class="g-no-img">📖</div>`}
+            <div class="g-title">${b.titulo}</div>
+            <div class="g-author">${b.autor || ''}</div>
+            <div style="font-size:.7rem;color:#999;margin-top:3px;">${[b.editorial, b.año_publicacion].filter(Boolean).join(' · ')}</div>
+        </div>`).join('');
+        }
+
+        function openGbImport(i) {
+            selectedGbBook = window._gbResults[i];
+            document.getElementById('gbImportInfo').innerHTML = `<strong>${selectedGbBook.titulo}</strong><br><span style="color:#666;font-size:.85rem;">${selectedGbBook.autor || ''}</span>${selectedGbBook.editorial ? `<br><span style="color:#999;font-size:.8rem;">${selectedGbBook.editorial}</span>` : ''}`;
+            document.getElementById('gb-cantidad').value = 1;
+            document.getElementById('gb-nivel').value = '';
+            document.getElementById('gb-genero').value = '';
+            document.getElementById('gbImportModal').style.display = 'flex';
+        }
+
+        async function confirmGbImport() {
+            if (!selectedGbBook) return;
+            const body = { ...selectedGbBook, cantidad_total: parseInt(document.getElementById('gb-cantidad').value) || 1, nivel_lectura: document.getElementById('gb-nivel').value, genero: document.getElementById('gb-genero').value };
+            const d = await (await fetch('/api/libros/importar-google', { method: 'POST', body: JSON.stringify(body) })).json();
+            if (d.ok) { closeModal('gbImportModal'); document.getElementById('gbAlert').innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`; loadBooks(); loadStats(); }
+            else alert(`Error: ${d.error}`);
+        }
+
+        // ── PRÉSTAMOS TAB ──────────────────────────────────────────
+        let _prestamosLoaded = false, _todosHistorial = [];
+
+        function showSubTab(id, btn) {
+            document.querySelectorAll('#tab-prestamos .tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.pst-tab-pill').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        async function initPrestamos() {
+            if (_prestamosLoaded) return;
+            _prestamosLoaded = true;
+            document.getElementById('p-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
+            await Promise.all([_loadAlumnosPrest(), _loadLibrosPrest(), _loadActivos(), _loadRetrasos(), _loadHistorial()]);
+            _updateStatsPrest();
+        }
+
+        async function _loadAlumnosPrest() {
+            const r = await fetch('/api/alumnos');
+            if (!r.ok) return;
+            const d = await r.json();
+            const sel = document.getElementById('p-alumno');
+            sel.innerHTML = '<option value="">-- Selecciona un alumno --</option>';
+            (d.alumnos || d).forEach(a => sel.innerHTML += `<option value="${a.id}">${a.nombre}</option>`);
+        }
+
+        async function _loadLibrosPrest() {
+            const libros = await (await fetch('/api/libros')).json();
+            const sel = document.getElementById('p-libro');
+            sel.innerHTML = '<option value="">-- Selecciona un libro --</option>';
+            libros.filter(l => l.cantidad_disponible > 0).forEach(l =>
+                sel.innerHTML += `<option value="${l.id}">${l.titulo} (${l.cantidad_disponible} disp.)</option>`);
+        }
+
+        async function _loadStudentsHub() {
+            try {
+                const response = await fetch('/api/alumnos');
+                const data = await response.json();
+                const alumnosList = data.alumnos || data;
+
+                const pSel = document.getElementById('p-alumno');
+                const hSel = document.getElementById('h-alumno');
+                const epSel = document.getElementById('ep-alumno');
+
+                const opts = '<option value="">-- Selecciona un alumno --</option>' +
+                    alumnosList.sort((a, b) => a.nombre.localeCompare(b.nombre))
+                        .map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+
+                if (pSel) pSel.innerHTML = opts;
+                if (hSel) hSel.innerHTML = opts;
+                if (epSel) epSel.innerHTML = opts;
+            } catch (e) { console.error("Error loading students:", e); }
+        }
+
+        async function _loadActivos() {
+            const data = await (await fetch('/api/prestamos/activos')).json();
+            const cont = document.getElementById('pst-tab-activos');
+            if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No hay préstamos activos.</p></div>'; return; }
+            cont.innerHTML = `<table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Fecha</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
+                ${data.map(p => `<tr>
+                    <td>${p.alumno_nombre}</td><td>${p.libro_titulo}</td><td>${p.fecha_prestamo}</td>
+                    <td><span class="avail-badge ${p.dias_transcurridos > 14 ? 'avail-none' : 'avail-ok'}">${p.dias_transcurridos}d</span></td>
+                    <td style="display:flex;gap:5px;flex-wrap:wrap;">
+                        <button class="btn btn-outline btn-sm" onclick="openDevolucion(${p.id},'${p.alumno_nombre.replace(/'/g, "\\'")}','${p.libro_titulo.replace(/'/g, "\\'")}','${p.fecha_prestamo}')">📥 Devolver</button>
+                        <button class="btn btn-sm" style="background:#fff3cd;color:#856404;border:1px solid #ffc107;" onclick="openEditPrest(${p.id})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarPrestamo(${p.id})">🗑️</button>
+                    </td>
+                </tr>`).join('')}
+            </tbody></table>`;
+        }
+
+        async function _loadRetrasos() {
+            const data = await (await fetch('/api/alertas/retrasos')).json();
+            const cont = document.getElementById('pst-tab-retrasos');
+            if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos! Todos dentro del plazo.</p></div>'; return; }
+            cont.innerHTML = `<div class="alert alert-danger">⚠️ ${data.length} libro(s) llevan más de 14 días prestados</div>
+                <table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Desde</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
+                ${data.map(p => `<tr>
+                    <td>${p.nombre}</td><td>${p.titulo}</td><td>${p.fecha_prestamo}</td>
+                    <td><span class="avail-badge avail-none">${p.dias}d</span></td>
+                    <td style="display:flex;gap:5px;flex-wrap:wrap;">
+                        <button class="btn btn-danger btn-sm" onclick="openDevolucion(${p.id},'${p.nombre.replace(/'/g, "\\'")}','${p.titulo.replace(/'/g, "\\'")}','${p.fecha_prestamo}')">📥 Devolver</button>
+                        <button class="btn btn-sm" style="background:#fff3cd;color:#856404;border:1px solid #ffc107;" onclick="openEditPrest(${p.id})">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarPrestamo(${p.id})">🗑️</button>
+                    </td>
+                </tr>`).join('')}
+            </tbody></table>`;
+        }
+
+        async function _loadHistorial() {
+            _todosHistorial = await (await fetch('/api/prestamos/historial')).json();
+            _renderHistorial(_todosHistorial);
+        }
+
+        function filtrarHistorial() {
+            const q = document.getElementById('p-search-hist').value.toLowerCase();
+            _renderHistorial(_todosHistorial.filter(p =>
+                (p.alumno_nombre || '').toLowerCase().includes(q) || (p.libro_titulo || '').toLowerCase().includes(q)));
+        }
+
+        function _renderHistorial(data) {
+            const cont = document.getElementById('pst-historial-cont');
+            if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Sin registros.</p></div>'; return; }
+            cont.innerHTML = `<table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Préstamo</th><th>Devolución</th><th>Días</th><th>Estado</th><th></th></tr></thead><tbody>
+                ${data.map(p => {
+                const cls = p.estado === 'devuelto' ? 'avail-ok' : (p.dias_lectura > 14 ? 'avail-none' : 'avail-low');
+                return `<tr><td>${p.alumno_nombre}</td><td>${p.libro_titulo}</td><td>${p.fecha_prestamo}</td>
+                        <td>${p.fecha_devolucion || '—'}</td><td>${p.dias_lectura}d</td>
+                        <td><span class="avail-badge ${cls}">${p.estado === 'devuelto' ? 'Devuelto' : 'Activo'}</span></td>
+                        <td style="display:flex;gap:4px;">
+                            ${p.estado === 'devuelto' ? `<button class="btn btn-sm" style="background:white;border:1px solid #ccc;padding:4px 8px;" onclick="reactivarPrestamo(${p.id})" title="Reactivar">↺</button>` : ''}
+                            <button class="btn btn-sm" style="background:#fff3cd;color:#856404;border:1px solid #ffc107;padding:4px 8px;" onclick="openEditPrest(${p.id})">✏️</button>
+                            <button class="btn btn-danger btn-sm" style="padding:4px 8px;" onclick="eliminarPrestamo(${p.id})">🗑️</button>
+                        </td></tr>`;
+            }).join('')}
+            </tbody></table>`;
+        }
+
+        // ── EDIT / DELETE PRESTAMO ─────────────────────────────────
+        async function openEditPrest(id) {
+            const r = await (await fetch(`/api/prestamos/${id}`)).json();
+            if (!r.ok) { alert(r.error); return; }
+            const p = r.prestamo;
+            document.getElementById('ep-id').value = id;
+            document.getElementById('ep-fecha').value = p.fecha_prestamo;
+            document.getElementById('ep-obs').value = p.observaciones || '';
+            document.getElementById('ep-alert').innerHTML = '';
+
+            // Populate alumno select
+            const selA = document.getElementById('ep-alumno');
+            selA.innerHTML = '';
+            const alumnos = await (await fetch('/api/alumnos')).json();
+            (alumnos.alumnos || alumnos).forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a.id; opt.textContent = a.nombre;
+                if (a.id === p.alumno_id) opt.selected = true;
+                selA.appendChild(opt);
+            });
+
+            // Populate libro select (all books, mark current)
+            const selL = document.getElementById('ep-libro');
+            selL.innerHTML = '';
+            const libros = await (await fetch('/api/libros')).json();
+            libros.forEach(l => {
+                if (l.cantidad_disponible > 0 || l.id === p.libro_id) {
+                    const opt = document.createElement('option');
+                    opt.value = l.id;
+                    opt.textContent = l.id === p.libro_id
+                        ? `${l.titulo} (actual)`
+                        : `${l.titulo} (${l.cantidad_disponible} disp.)`;
+                    if (l.id === p.libro_id) opt.selected = true;
+                    selL.appendChild(opt);
+                }
+            });
+
+            document.getElementById('editPrestModal').style.display = 'flex';
+        }
+
+        async function guardarEditPrest() {
+            const id = document.getElementById('ep-id').value;
+            const body = {
+                alumno_id: parseInt(document.getElementById('ep-alumno').value),
+                libro_id: parseInt(document.getElementById('ep-libro').value),
+                fecha_prestamo: document.getElementById('ep-fecha').value,
+                observaciones: document.getElementById('ep-obs').value
+            };
+            const d = await (await fetch(`/api/prestamos/${id}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })).json();
+            if (d.ok) {
+                closeEditPrest();
+                _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats();
+            } else {
+                document.getElementById('ep-alert').innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+            }
+        }
+
+        function closeEditPrest() { document.getElementById('editPrestModal').style.display = 'none'; }
+
+        async function eliminarPrestamo(id) {
+            if (!confirm('¿Eliminar este préstamo? Si estaba activo, el libro volverá a estar disponible.')) return;
+            const d = await (await fetch(`/api/prestamos/${id}`, { method: 'DELETE' })).json();
+            if (d.ok) { _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats(); }
+            else alert(`Error: ${d.error}`);
+        }
+
+        async function reactivarPrestamo(id) {
+            if (!confirm('¿Reactivar este préstamo? Se marcará como activo y se descontará 1 unidad del libro disponible.')) return;
+            const d = await (await fetch(`/api/prestamos/${id}/reactivar`, { method: 'POST' })).json();
+            if (d.ok) {
+                _prestamosLoaded = false;
+                initPrestamos();
+                loadBooks();
+                loadStats();
+                const hSel = document.getElementById('h-alumno');
+                if (hSel && hSel.value) showHistorialAlumno();
+            } else {
+                alert(`Error: ${d.error}`);
+            }
+        }
+
+        async function _updateStatsPrest() {
+            try {
+                const d = await (await fetch('/api/estadisticas/lectura')).json();
+                document.getElementById('pst-activos').textContent = d.prestamos_activos;
+                document.getElementById('pst-total').textContent = d.total_prestamos;
+            } catch (e) { }
+            try {
+                const r = await (await fetch('/api/alertas/retrasos')).json();
+                document.getElementById('pst-retrasos').textContent = r.length;
+            } catch (e) { }
+        }
+
+        async function registrarPrestamo() {
+            const alumno_id = document.getElementById('p-alumno').value;
+            const libro_id = document.getElementById('p-libro').value;
+            const fecha_prestamo = document.getElementById('p-fecha').value;
+            const alertEl = document.getElementById('prest-alert');
+            if (!alumno_id || !libro_id) {
+                alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Selecciona un alumno y un libro</div>';
+                return;
+            }
+            const d = await (await fetch('/api/prestamos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
+            })).json();
+            if (d.ok) {
+                alertEl.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`;
+                setTimeout(() => alertEl.innerHTML = '', 3000);
+                _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats();
+            } else {
+                alertEl.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+            }
+        }
+
+        function openDevolucion(id, alumno, libro, fechaPrestamo) {
+            document.getElementById('dev-id').value = id;
+            document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('dev-obs').value = '';
+            document.getElementById('dev-info').innerHTML = `<strong>${alumno}</strong><br>📖 <em>${libro}</em><br><small>Prestado: ${fechaPrestamo}</small>`;
+            document.getElementById('devModal').style.display = 'flex';
+        }
+
+        async function confirmarDevolucion() {
+            const id = document.getElementById('dev-id').value;
+            const body = { fecha_devolucion: document.getElementById('dev-fecha').value, observaciones: document.getElementById('dev-obs').value };
+            const d = await (await fetch(`/api/prestamos/${id}/devolver`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+            })).json();
+            if (d.ok) { closeDevModal(); _prestamosLoaded = false; initPrestamos(); loadStats(); }
+            else alert(`Error: ${d.error}`);
+        }
+
+        function closeDevModal() { document.getElementById('devModal').style.display = 'none'; }
+
+        // Jump to tab based on URL hash
+        if (window.location.hash === '#prestamos') {
+            document.getElementById('btnTabPrestamos').click();
+        } else if (window.location.hash === '#catalogo') {
+            document.getElementById('btnTabCatalogo').click();
+        }
+
+        // Init view from localStorage + load data
+        if (currentView === 'list') {
+            document.getElementById('btnGrid').classList.remove('active');
+            document.getElementById('btnList').classList.add('active');
+        }
+        // Initialize data
+        loadBooks();
+        loadStats();
+        loadRankingChart();
+        _loadStudentsHub();
+    </script>
+</body>
+
+</html>

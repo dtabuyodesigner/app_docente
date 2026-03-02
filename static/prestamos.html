@@ -595,6 +595,8 @@
         }
 
         async function loadActivos() {
+            const cfg0 = await (await fetch('/api/lectura/config')).json();
+            const plazoActivos = cfg0.max_dias_prestamo || 7;
             const data = await (await fetch('/api/prestamos/activos')).json();
             const cont = document.getElementById('activosContainer');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No hay préstamos activos.</p></div>'; return; }
@@ -604,7 +606,7 @@
         <td>${p.alumno_nombre}</td>
         <td>${p.libro_titulo}</td>
         <td>${p.fecha_prestamo}</td>
-        <td><span class="days-badge ${p.dias_transcurridos > 14 ? 'days-late' : 'days-ok'}">${p.dias_transcurridos}d</span></td>
+        <td><span class="days-badge ${p.dias_transcurridos > plazoActivos ? 'days-late' : 'days-ok'}">${p.dias_transcurridos}d</span></td>
         <td><button class="btn btn-primary btn-sm" onclick="openDevolucion(${p.id},'${p.alumno_nombre.replace(/'/g, "\\'")}','${p.libro_titulo.replace(/'/g, "\\'")}','${p.fecha_prestamo}')">📥 Devolver</button></td>
     </tr>`).join('')}</tbody></table>`;
         }
@@ -616,7 +618,7 @@
             const data = await (await fetch(`/api/lectura/alertas_retrasos?dias=${plazo}`)).json();
             const cont = document.getElementById('retrasosContainer');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos! Todos los libros están dentro del plazo.</p></div>'; return; }
-            cont.innerHTML = `<div style="margin-bottom:12px;padding:12px;background:#ffebee;border-radius:8px;color:#c62828;font-weight:600;">⚠️ ${data.length} libro(s) llevan más de 14 días prestados</div>
+            cont.innerHTML = `<div style="margin-bottom:12px;padding:12px;background:#ffebee;border-radius:8px;color:#c62828;font-weight:600;">⚠️ ${data.length} libro(s) llevan más de ${plazo} días prestados</div>
     <table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Desde</th><th>Días</th><th>Acción</th></tr></thead>
     <tbody>${data.map(p => `<tr>
         <td>${p.nombre}</td>

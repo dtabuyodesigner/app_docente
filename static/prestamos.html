@@ -441,12 +441,30 @@
             <div class="stat-card">
                 <p id="st-activos">-</p><small>Préstamos Activos</small>
             </div>
-            <div class="stat-card">
-                <p id="st-retrasos">-</p><small>Con Retraso (+14 días)</small>
+            <div class="stat-card" style="border-color:var(--danger)">
+                <p id="st-retrasos">-</p><small id="st-retrasos-label">Con Retraso (+7 días)</small>
             </div>
             <div class="stat-card">
                 <p id="st-total">-</p><small>Total Histórico</small>
             </div>
+        </div>
+
+        <!-- Config plazo -->
+        <div
+            style="background:#f8f9fa; border-radius:10px; padding:12px 18px; display:flex; align-items:center; gap:14px; margin-bottom:18px; border:1px solid #e0e0e0;">
+            <span style="font-size:1rem;">⏱️</span>
+            <label style="font-weight:600; color:#003366; margin:0;">Plazo máximo de préstamo:</label>
+            <select id="plazo-dias" onchange="guardarPlazo(this.value)"
+                style="padding:5px 10px; border-radius:6px; border:1px solid #ccc; font-weight:600; color:#003366; cursor:pointer;">
+                <option value="5">5 días</option>
+                <option value="7" selected>7 días (1 semana)</option>
+                <option value="10">10 días</option>
+                <option value="14">14 días (2 semanas)</option>
+                <option value="21">21 días (3 semanas)</option>
+                <option value="30">30 días (1 mes)</option>
+            </select>
+            <span style="font-size:0.85rem; color:#666;">Los préstamos que superen este plazo aparecen como
+                retraso.</span>
         </div>
 
         <!-- New Loan -->
@@ -592,7 +610,8 @@
         }
 
         async function loadRetrasos() {
-            const data = await (await fetch('/api/alertas/retrasos')).json();
+            const plazo = parseInt(localStorage.getItem('prestamo_dias') || '7');
+            const data = await (await fetch(`/api/lectura/alertas_retrasos?dias=${plazo}`)).json();
             const cont = document.getElementById('retrasosContainer');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos! Todos los libros están dentro del plazo.</p></div>'; return; }
             cont.innerHTML = `<div style="margin-bottom:12px;padding:12px;background:#ffebee;border-radius:8px;color:#c62828;font-weight:600;">⚠️ ${data.length} libro(s) llevan más de 14 días prestados</div>
@@ -645,9 +664,12 @@
                 document.getElementById('st-total').textContent = d.total_prestamos;
             } catch (e) { }
             try {
-                const r = await (await fetch('/api/alertas/retrasos')).json();
+                const plazo = parseInt(localStorage.getItem('prestamo_dias') || '7');
+                const r = await (await fetch(`/api/lectura/alertas_retrasos?dias=${plazo}`)).json();
                 document.getElementById('st-retrasos').textContent = r.length;
+                document.getElementById('st-retrasos-label').textContent = `Con Retraso (+${plazo} días)`;
                 if (r.length > 0) document.getElementById('st-retrasos').style.color = 'var(--danger)';
+                else document.getElementById('st-retrasos').style.color = 'var(--success)';
             } catch (e) { }
         }
 
@@ -690,6 +712,18 @@
         }
 
         function closeModal() { document.getElementById('devolucionModal').style.display = 'none'; }
+
+        function guardarPlazo(dias) {
+            localStorage.setItem('prestamo_dias', dias);
+            // Actualiza el stat card label y recarga datos
+            document.getElementById('st-retrasos-label').textContent = `Con Retraso (+${dias} días)`;
+            loadRetrasos();
+            updateStats();
+        }
+
+        // Inicializa el selector desde localStorage
+        const plazoGuardado = localStorage.getItem('prestamo_dias') || '7';
+        document.getElementById('plazo-dias').value = plazoGuardado;
 
         loadAll();
     </script>

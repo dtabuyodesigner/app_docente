@@ -461,6 +461,7 @@ def ranking_lectura():
 
 @lectura_bp.route("/alertas/retrasos", methods=["GET"])
 def alertas_retrasos():
+    dias_limite = int(request.args.get('dias', 7))
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
@@ -470,9 +471,9 @@ def alertas_retrasos():
         JOIN alumnos a ON pl.alumno_id = a.id
         JOIN libros l ON pl.libro_id = l.id
         WHERE pl.estado = 'activo'
-        AND (julianday(date('now')) - julianday(pl.fecha_prestamo)) > 14
+        AND (julianday(date('now')) - julianday(pl.fecha_prestamo)) > ?
         ORDER BY dias DESC
-    """)
+    """, (dias_limite,))
     return jsonify([dict(row) for row in cur.fetchall()])
 
 

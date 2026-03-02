@@ -757,7 +757,10 @@
 
                 // Alertas de libros vencidos
                 try {
-                    const resLib = await fetch('/api/alertas/retrasos');
+                    const cfgRes = await fetch('/api/config');
+                    const cfg = await cfgRes.json();
+                    const plazo = cfg.max_dias_prestamo || 7;
+                    const resLib = await fetch(`/api/alertas/retrasos?dias=${plazo}`);
                     if (resLib.ok) {
                         const libData = await resLib.json();
                         if (libData && libData.length > 0) {
@@ -766,7 +769,7 @@
                             );
                         }
                     }
-                } catch (e) { /* sin conectividad con biblioteca */ }
+                } catch (e) { /* sin conectividad con biblioteca o config */ }
 
                 // Aviso de backup: si el último backup tiene más de 7 días (comprobamos el botón)
                 const backupKey = 'ultimo_backup_ts';

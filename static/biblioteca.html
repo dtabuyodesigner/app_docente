@@ -803,6 +803,17 @@
                         <option>Primaria</option>
                         <option>Secundaria</option>
                     </select>
+                    <select id="filterStock" class="btn btn-outline" onchange="filterBooks()">
+                        <option value="todos">Todos los libros</option>
+                        <option value="disponibles">Solo disponibles</option>
+                        <option value="agotados">Solo sin existencias</option>
+                    </select>
+                    <select id="sortBooks" class="btn btn-outline" onchange="filterBooks()">
+                        <option value="titulo">Sort: Título</option>
+                        <option value="autor">Sort: Autor</option>
+                        <option value="stock_desc">Stock: Mayor primero</option>
+                        <option value="stock_asc">Stock: Menor primero</option>
+                    </select>
                     <div class="view-toggles">
                         <button class="view-btn active" id="btnGrid" onclick="setView('grid')"
                             title="Vista iconos">⊞</button>
@@ -1307,16 +1318,35 @@
         async function loadBooks() {
             const r = await fetch('/api/libros');
             allBooks = await r.json();
-            renderBooks(allBooks);
+            filterBooks();
         }
 
         function filterBooks() {
             const q = document.getElementById('searchInput').value.toLowerCase();
             const nivel = document.getElementById('filterNivel').value;
-            renderBooks(allBooks.filter(b =>
-                (!q || (b.titulo || '').toLowerCase().includes(q) || (b.autor || '').toLowerCase().includes(q)) &&
-                (!nivel || b.nivel_lectura === nivel)
-            ));
+            const stockFilter = document.getElementById('filterStock').value;
+            const sortBy = document.getElementById('sortBooks').value;
+
+            let filtered = allBooks.filter(b => {
+                const matchSearch = (!q || (b.titulo || '').toLowerCase().includes(q) || (b.autor || '').toLowerCase().includes(q));
+                const matchNivel = (!nivel || b.nivel_lectura === nivel);
+                const matchStock = (stockFilter === 'todos') ||
+                    (stockFilter === 'disponibles' && b.cantidad_disponible > 0) ||
+                    (stockFilter === 'agotados' && b.cantidad_disponible === 0);
+                return matchSearch && matchNivel && matchStock;
+            });
+
+            if (sortBy === 'titulo') {
+                filtered.sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
+            } else if (sortBy === 'autor') {
+                filtered.sort((a, b) => (a.autor || '').localeCompare(b.autor || ''));
+            } else if (sortBy === 'stock_desc') {
+                filtered.sort((a, b) => b.cantidad_disponible - a.cantidad_disponible);
+            } else if (sortBy === 'stock_asc') {
+                filtered.sort((a, b) => a.cantidad_disponible - b.cantidad_disponible);
+            }
+
+            renderBooks(filtered);
         }
 
         let currentView = localStorage.getItem('bibliotecaView') || 'grid';

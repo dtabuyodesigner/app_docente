@@ -124,7 +124,71 @@
             border-color: #007bff;
         }
 
-        /* Rubric Tooltip Style */
+        /* ── Modo Infantil: botones NI/EP/C ──────────────────── */
+        .btn-nivel[data-label="NI"].selected {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-nivel[data-label="EP"].selected {
+            background: #ffc107;
+            border-color: #ffc107;
+            color: #333;
+        }
+
+        .btn-nivel[data-label="C"].selected {
+            background: #28a745;
+            border-color: #28a745;
+        }
+
+        /* Badge de modo */
+        .modo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e8f4fd;
+            border: 1px solid #b8d9f5;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #0056a0;
+        }
+
+        .modo-badge.infantil {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        /* Toggle tipo grupo */
+        .tipo-toggle {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tipo-toggle button {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            border: 2px solid transparent;
+        }
+
+        .tipo-toggle button.activo-primaria {
+            background: #003366;
+            color: white;
+            border-color: #003366;
+        }
+
+        .tipo-toggle button.activo-infantil {
+            background: #ffc107;
+            color: #333;
+            border-color: #ffc107;
+        }
+
+        /* Rubric Tooltip */
         .rubric-tooltip {
             position: relative;
             display: inline-block;
@@ -189,66 +253,93 @@
         </div>
 
         <div
-            style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:15px;">
                 <h2 style="margin:0;">📊 Evaluación</h2>
                 <div
-                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <span style="font-size: 1.1rem;">📚</span>
+                    style="background:white; padding:6px 12px; border-radius:8px; border:1px solid #ddd; display:flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size:1.1rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: var(--primary); cursor: pointer; outline: none;">
+                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary); cursor:pointer; outline:none;">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
+                <!-- Indicador y toggle de modo de evaluación -->
+                <div id="modoBadge" class="modo-badge" title="Haz clic para cambiar el modo de evaluación"
+                    style="cursor:pointer;" onclick="toggleModo()">
+                    <span id="modoIcon">🎓</span>
+                    <span id="modoLabel">Primaria</span>
+                </div>
             </div>
         </div>
-        <div
-            style="margin-bottom: 15px; display: grid; grid-template-columns: auto auto auto minmax(0, 1fr); gap: 15px; align-items: center;">
-            <label style="display: flex; align-items: center; gap: 5px; margin: 0; white-space: nowrap;">Alumno: <select
-                    id="alumno"
-                    style="margin: 0; max-width: 250px; text-overflow: ellipsis; white-space: nowrap;"></select></label>
-            <label style="display: flex; align-items: center; gap: 5px; margin: 0; white-space: nowrap;">Área: <select
-                    id="area"
-                    style="margin: 0; max-width: 250px; text-overflow: ellipsis; white-space: nowrap;"></select></label>
-            <label style="display: flex; align-items: center; gap: 5px; margin: 0; white-space: nowrap;">Trimestre:
-                <select id="trimestre" style="margin: 0;">
+
+        <!-- ── Filtros: modo Primaria ───────────────────────────────── -->
+        <div id="filtrosPrimaria"
+            style="margin-bottom:15px; display:grid; grid-template-columns: auto auto auto minmax(0,1fr); gap:15px; align-items:center;">
+            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
+                <select id="alumno"
+                    style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Área:
+                <select id="area" style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Trimestre:
+                <select id="trimestre" style="margin:0;">
                     <option value="1">1º Trimestre</option>
                     <option value="2" selected>2º Trimestre</option>
                     <option value="3">3º Trimestre</option>
                 </select>
             </label>
-            <label
-                style="display: flex; align-items: center; gap: 5px; margin: 0; white-space: nowrap; overflow: hidden;">SDA:
+            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;overflow:hidden;">SDA:
                 <select id="sda"
-                    style="margin: 0; width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"></select></label>
+                    style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;"></select>
+            </label>
         </div>
-        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-            <button onclick="rellenarTodos(3)" style="background:#007bff; color: white;">⚡ Rellenar Visible a 3</button>
+
+        <!-- ── Filtros: modo Infantil ───────────────────────────────── -->
+        <div id="filtrosInfantil"
+            style="display:none; margin-bottom:15px; display:none; grid-template-columns: auto auto auto; gap:15px; align-items:center;">
+            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
+                <select id="alumnoInf" style="margin:0;max-width:250px;"></select>
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Área:
+                <select id="areaInf" style="margin:0;max-width:250px;"></select>
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Trimestre:
+                <select id="trimestreInf" style="margin:0;">
+                    <option value="1">1º Trimestre</option>
+                    <option value="2" selected>2º Trimestre</option>
+                    <option value="3">3º Trimestre</option>
+                </select>
+            </label>
+        </div>
+
+        <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button onclick="rellenarTodos(3)" style="background:#007bff; color:white;">⚡ Rellenar Visible a 3</button>
             <button onclick="limpiarTodos()" style="background:#dc3545; color:white; border-color:#dc3545;">🗑️ Limpiar
                 Visible</button>
-            <button onclick="abrirModalExtra()"
+            <button id="btnCriterioExtra" onclick="abrirModalExtra()"
                 style="background:#28a745; color:white; border-color:#28a745; font-weight:bold;">➕ Criterio
                 Extra</button>
         </div>
+
         <table>
             <thead id="thead"></thead>
             <tbody id="tbody"></tbody>
         </table>
-        <div id="mediaSDA"
-            style="margin-top: 15px; text-align: right; font-size: 18px; font-weight: bold; color: #333;">📊 Media de la
-            situación: — </div>
-        <div id="mediaArea"
-            style="margin-top: 5px; text-align: right; font-size: 18px; font-weight: bold; color: #28a745;">📈 Media del
-            Área: — </div>
-        <div style="margin-top: 30px; border-top: 2px solid #ddd; padding-top: 15px;">
+        <div id="mediaSDA" style="margin-top:15px; text-align:right; font-size:18px; font-weight:bold; color:#333;">📊
+            Media: —</div>
+        <div id="mediaArea" style="margin-top:5px; text-align:right; font-size:18px; font-weight:bold; color:#28a745;">
+            📈 Media del Área: —</div>
+        <div style="margin-top:30px; border-top:2px solid #ddd; padding-top:15px;">
             <h3>📋 Resumen por Alumno</h3>
             <div id="resumenAlumno"
-                style="background: #fff; padding: 15px; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                style="background:#fff; padding:15px; border:1px solid #ccc; border-radius:5px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
                 <em>Selecciona un alumno para ver su media en cada área.</em>
             </div>
         </div>
 
-        <!-- Modal Criterio Extra -->
+        <!-- Modal Criterio Extra (solo Primaria) -->
         <div id="modalExtra"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
             <div
@@ -265,29 +356,138 @@
             </div>
         </div>
 
-        <script>
-            let alumnoSelect = document.getElementById("alumno");
-            let areaSelect = document.getElementById("area");
-            let sdaSelect = document.getElementById("sda");
-            let trimestreSelect = document.getElementById("trimestre");
+        <!-- Modal cambio de modo -->
+        <div id="modalModo"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div
+                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:440px; box-shadow:0 10px 30px rgba(0,0,0,0.2); text-align:center;">
+                <h3 style="margin-top:0;">⚙️ Modo de Evaluación</h3>
+                <p style="color:#666; font-size:0.9rem; margin-bottom:24px;">Elige cómo evalúa este grupo. El cambio se
+                    guarda automáticamente.</p>
+                <div style="display:flex; gap:15px; justify-content:center; margin-bottom:24px;">
+                    <button id="btnModoPrimaria" onclick="setModo('primaria')"
+                        style="padding:16px 24px; border-radius:12px; font-size:1rem; font-weight:700; border:2px solid #003366; background:#003366; color:white; cursor:pointer; flex:1;">
+                        🎓 Primaria<br><small style="font-weight:400; font-size:0.78rem; opacity:0.85;">Escala 1-4
+                            numérica</small>
+                    </button>
+                    <button id="btnModoInfantil" onclick="setModo('infantil')"
+                        style="padding:16px 24px; border-radius:12px; font-size:1rem; font-weight:700; border:2px solid #ccc; background:#f8f9fa; color:#333; cursor:pointer; flex:1;">
+                        🧸 Infantil<br><small style="font-weight:400; font-size:0.78rem; opacity:0.85;">NI / EP /
+                            C</small>
+                    </button>
+                </div>
+                <button onclick="cerrarModalModo()"
+                    style="background:#ccc; color:#333; padding:8px 20px; border-radius:8px;">Cerrar</button>
+            </div>
+        </div>
 
-            let trimmingSelect = document.getElementById("trimestre");
+        <script>
+            // ── Variables globales ──────────────────────────────────────────────────
+            let modoActual = 'primaria'; // 'primaria' | 'infantil'
             let rubricasSDA = {};
 
-            function getTrimestre() { return trimestreSelect.value; }
-            let thead = document.getElementById("thead");
-            let tbody = document.getElementById("tbody");
+            const alumnoSelect = document.getElementById("alumno");
+            const areaSelect = document.getElementById("area");
+            const sdaSelect = document.getElementById("sda");
+            const trimestreSelect = document.getElementById("trimestre");
 
+            const alumnoInfSelect = document.getElementById("alumnoInf");
+            const areaInfSelect = document.getElementById("areaInf");
+            const trimestreInfSelect = document.getElementById("trimestreInf");
+
+            const thead = document.getElementById("thead");
+            const tbody = document.getElementById("tbody");
+
+            // ── Etiquetas NI/EP/C ──────────────────────────────────────────────────
+            function nivelLabel(n) {
+                if (n === 1) return "NI";
+                if (n <= 3) return "EP";
+                return "C";
+            }
+            function nivelColor(n) {
+                if (n === 1) return "#dc3545";
+                if (n <= 3) return "#e0a800";
+                return "#28a745";
+            }
+            function notaToNivel(nota) {
+                // nota 2.5→NI, 5→EP, 7.5→EP, 10→C
+                if (nota <= 2.5) return "NI";
+                if (nota <= 7.5) return "EP";
+                return "C";
+            }
+            function nivelColorMixed(nota) {
+                const lab = notaToNivel(nota);
+                if (lab === "NI") return "#dc3545";
+                if (lab === "EP") return "#e0a800";
+                return "#28a745";
+            }
+
+            function getTrimestre() {
+                return modoActual === 'infantil' ? trimestreInfSelect.value : trimestreSelect.value;
+            }
+
+            // ── Modo de evaluación ─────────────────────────────────────────────────
+            async function cargarModo() {
+                const r = await fetch('/api/evaluacion/tipo_grupo');
+                const d = await r.json();
+                aplicarModo(d.tipo || 'primaria', false);
+            }
+
+            function aplicarModo(tipo, guardar = true) {
+                modoActual = tipo;
+                const esPrim = tipo === 'primaria';
+
+                document.getElementById('filtrosPrimaria').style.display = esPrim ? 'grid' : 'none';
+                document.getElementById('filtrosInfantil').style.display = esPrim ? 'none' : 'grid';
+                document.getElementById('btnCriterioExtra').style.display = esPrim ? '' : 'none';
+
+                const badge = document.getElementById('modoBadge');
+                badge.className = 'modo-badge' + (esPrim ? '' : ' infantil');
+                document.getElementById('modoIcon').textContent = esPrim ? '🎓' : '🧸';
+                document.getElementById('modoLabel').textContent = esPrim ? 'Primaria' : 'Infantil (NI/EP/C)';
+
+                // Actualizar botones del modal
+                document.getElementById('btnModoPrimaria').style.cssText =
+                    esPrim ? 'padding:16px 24px;border-radius:12px;font-size:1rem;font-weight:700;border:2px solid #003366;background:#003366;color:white;cursor:pointer;flex:1;'
+                        : 'padding:16px 24px;border-radius:12px;font-size:1rem;font-weight:700;border:2px solid #ccc;background:#f8f9fa;color:#333;cursor:pointer;flex:1;';
+                document.getElementById('btnModoInfantil').style.cssText =
+                    !esPrim ? 'padding:16px 24px;border-radius:12px;font-size:1rem;font-weight:700;border:2px solid #ffc107;background:#ffc107;color:#333;cursor:pointer;flex:1;'
+                        : 'padding:16px 24px;border-radius:12px;font-size:1rem;font-weight:700;border:2px solid #ccc;background:#f8f9fa;color:#333;cursor:pointer;flex:1;';
+
+                // Limpiar tabla
+                thead.innerHTML = "";
+                tbody.innerHTML = "";
+                document.getElementById('mediaSDA').innerText = "📊 Media: —";
+                document.getElementById('mediaArea').innerText = "📈 Media del Área: —";
+                document.getElementById('resumenAlumno').innerHTML = "<em>Selecciona un alumno para ver su resumen.</em>";
+
+                if (!esPrim) {
+                    cargarAlumnosInfantil();
+                    cargarAreasInfantil();
+                }
+
+                if (guardar) {
+                    fetch('/api/evaluacion/tipo_grupo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tipo })
+                    });
+                }
+            }
+
+            function toggleModo() { document.getElementById('modalModo').style.display = 'flex'; }
+            function cerrarModalModo() { document.getElementById('modalModo').style.display = 'none'; }
+            function setModo(tipo) { aplicarModo(tipo, true); cerrarModalModo(); }
+
+            // ── Carga inicial (Primaria) ────────────────────────────────────────────
             fetch("/api/alumnos").then(r => r.json()).then(datos => {
                 alumnoSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Alumno --</option>';
                 datos.forEach(a => { alumnoSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
-                // checkAndLoad(); // Don't auto-load first item
             });
 
             fetch("/api/evaluacion/areas").then(r => r.json()).then(datos => {
                 areaSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Área --</option>';
                 datos.forEach(a => { areaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
-                // cargarSDA(); // Don't auto-load first item
             });
 
             areaSelect.addEventListener("change", cargarSDA);
@@ -298,7 +498,6 @@
                 if (alumnoSelect.value) cargarResumenAlumno();
             });
             alumnoSelect.addEventListener("change", () => {
-                // Reset area to the first real area (index 1) if available
                 if (areaSelect.options.length > 1) {
                     areaSelect.selectedIndex = 1;
                     cargarSDA();
@@ -322,60 +521,63 @@
                         tbody.innerHTML = "";
                         return;
                     }
-
                     datos.forEach(s => { sdaSelect.innerHTML += `<option value="${s.id}" title="${s.nombre}">${s.nombre}</option>`; });
-                    // Always ensure the first option is actually requested and criteria loaded
                     sdaSelect.selectedIndex = 0;
                     cargarCriterios();
                 });
             }
 
-            function checkAndLoad() {
-                if (alumnoSelect.value && sdaSelect.value) cargarCriterios();
-                if (alumnoSelect.value) cargarResumenAlumno();
-            }
-
             async function cargarCriterios() {
                 if (!sdaSelect.value) { tbody.innerHTML = ""; return; }
-
-                // Fetch rubrics for this SDA
                 const resRub = await fetch(`/api/evaluacion/criterios/${sdaSelect.value}`);
                 const criterios = await resRub.json();
-
-                // Clear previous rubrics
                 rubricasSDA = {};
-
-                // Fetch descriptors for each criterion
                 const rubCalls = criterios.map(c =>
-                    fetch(`/api/rubricas/${c.id}`).then(r => r.json()).then(data => {
-                        rubricasSDA[c.id] = data;
-                    })
+                    fetch(`/api/rubricas/${c.id}`).then(r => r.json()).then(data => { rubricasSDA[c.id] = data; })
                 );
                 await Promise.all(rubCalls);
+                renderTabla(criterios, false);
+                cargarNotasExistentes();
+            }
 
-                thead.innerHTML = `<tr><th style="width: 150px;">Código</th><th>Descripción</th><th style="width: 280px;">Nivel</th></tr>`;
+            function renderTabla(criterios, modoInf) {
+                thead.innerHTML = `<tr><th style="width:150px;">Código</th><th>Descripción</th><th style="width:${modoInf ? 220 : 280}px;">Nivel</th></tr>`;
                 tbody.innerHTML = "";
                 criterios.forEach(c => {
                     const tr = document.createElement("tr");
                     tr.id = `row-${c.id}`;
-                    tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align: left;">${c.descripcion}</td>
-                    <td>
-                        ${[1, 2, 3, 4].map(n => `
-                            <div class="rubric-tooltip">
-                                <button onclick="guardar(${c.id}, ${n})" id="btn-${c.id}-${n}">${n}</button>
-                                <span class="tooltiptext">${rubricasSDA[c.id] && rubricasSDA[c.id][n] ? rubricasSDA[c.id][n] : `Nivel ${n}`}</span>
-                            </div>
-                        `).join('')}
-                    </td>`;
+                    if (modoInf) {
+                        // Botones NI / EP / EP / C (4 internos, 3 etiquetas)
+                        tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
+                    <td>${[1, 2, 3, 4].map(n => {
+                            const label = nivelLabel(n);
+                            return `<button class="btn-nivel" data-label="${label}" data-criterio="${c.id}" data-nivel="${n}"
+                            onclick="guardar(${c.id},${n})" id="btn-${c.id}-${n}"
+                            style="font-weight:700; min-width:42px;">${label}</button>`;
+                        }).join('')}</td>`;
+                    } else {
+                        tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
+                    <td>${[1, 2, 3, 4].map(n => `
+                        <div class="rubric-tooltip">
+                            <button onclick="guardar(${c.id},${n})" id="btn-${c.id}-${n}">${n}</button>
+                            <span class="tooltiptext">${rubricasSDA[c.id] && rubricasSDA[c.id][n] ? rubricasSDA[c.id][n] : `Nivel ${n}`}</span>
+                        </div>`).join('')}</td>`;
+                    }
                     tbody.appendChild(tr);
                 });
-                cargarNotasExistentes();
             }
 
             function cargarNotasExistentes() {
-                if (!alumnoSelect.value || !sdaSelect.value) return;
+                const alumId = modoActual === 'infantil' ? alumnoInfSelect.value : alumnoSelect.value;
+                const sdaId = modoActual === 'infantil' ? null : sdaSelect.value;
+                if (!alumId) return;
+                if (modoActual === 'primaria' && !sdaId) return;
+
                 document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
-                fetch(`/api/evaluacion/alumno?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${getTrimestre()}`)
+                const params = modoActual === 'infantil'
+                    ? `alumno_id=${alumId}&sda_id=null&trimestre=${getTrimestre()}&area_id=${areaInfSelect.value}`
+                    : `alumno_id=${alumId}&sda_id=${sdaId}&trimestre=${getTrimestre()}`;
+                fetch(`/api/evaluacion/alumno?${params}`)
                     .then(r => r.json()).then(notas => {
                         for (const [criterioId, nivel] of Object.entries(notas)) {
                             let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
@@ -392,29 +594,55 @@
             }
 
             function cargarMedia() {
-                fetch(`/api/evaluacion/media?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${getTrimestre()}`)
+                const alumId = modoActual === 'infantil' ? alumnoInfSelect.value : alumnoSelect.value;
+                const areaId = modoActual === 'infantil' ? areaInfSelect.value : areaSelect.value;
+                const sdaId = modoActual === 'infantil' ? null : sdaSelect.value;
+                if (!alumId) return;
+
+                const sdaParam = sdaId ? `sda_id=${sdaId}` : 'sda_id=null';
+                fetch(`/api/evaluacion/media?alumno_id=${alumId}&${sdaParam}&trimestre=${getTrimestre()}&area_id=${areaId}`)
                     .then(r => r.json()).then(d => {
                         const el = document.getElementById("mediaSDA");
-                        el.innerText = "📊 Media de la situación: " + (d.media ? d.media : "—");
-                        el.style.color = d.media ? getColorNota(d.media) : "#333";
+                        if (modoActual === 'infantil') {
+                            const lab = d.media ? notaToNivel(d.media) : "—";
+                            el.innerText = "📊 Resultado: " + lab;
+                            el.style.color = d.media ? nivelColorMixed(d.media) : "#333";
+                        } else {
+                            el.innerText = "📊 Media de la situación: " + (d.media ? d.media : "—");
+                            el.style.color = d.media ? getColorNota(d.media) : "#333";
+                        }
                     });
-                fetch(`/api/evaluacion/media_area?alumno_id=${alumnoSelect.value}&area_id=${areaSelect.value}&trimestre=${getTrimestre()}`)
+                fetch(`/api/evaluacion/media_area?alumno_id=${alumId}&area_id=${areaId}&trimestre=${getTrimestre()}`)
                     .then(r => r.json()).then(d => {
                         const el = document.getElementById("mediaArea");
-                        el.innerText = "📈 Media del Área: " + (d.media ? d.media : "—");
-                        el.style.color = d.media ? getColorNota(d.media) : "#333";
+                        if (modoActual === 'infantil') {
+                            const lab = d.media ? notaToNivel(d.media) : "—";
+                            el.innerText = "📈 Resultado del Área: " + lab;
+                            el.style.color = d.media ? nivelColorMixed(d.media) : "#28a745";
+                        } else {
+                            el.innerText = "📈 Media del Área: " + (d.media ? d.media : "—");
+                            el.style.color = d.media ? getColorNota(d.media) : "#28a745";
+                        }
                     });
             }
 
             function cargarResumenAlumno() {
-                if (!alumnoSelect.value) return;
-                fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoSelect.value}&trimestre=${getTrimestre()}`)
+                const alumId = modoActual === 'infantil' ? alumnoInfSelect.value : alumnoSelect.value;
+                if (!alumId) return;
+                fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumId}&trimestre=${getTrimestre()}`)
                     .then(r => r.json()).then(datos => {
-                        let html = `<table style="width: auto; margin: 0;">`;
-                        if (datos.length === 0) html = "<em>No hay calificaciones registradas para este trimestre.</em>";
+                        let html = `<table style="width:auto; margin:0;">`;
+                        if (!datos.length) html = "<em>No hay calificaciones registradas para este trimestre.</em>";
                         else {
                             datos.forEach(d => {
-                                html += `<tr><td style="text-align: left; border: none; padding: 4px 10px;"><strong>${d.area}:</strong></td><td style="text-align: left; border: none; padding: 4px 10px; color: ${getColorNota(d.media)}; font-weight: bold;">${d.media}</td></tr>`;
+                                if (modoActual === 'infantil') {
+                                    const lab = notaToNivel(d.media);
+                                    html += `<tr><td style="text-align:left;border:none;padding:4px 10px;"><strong>${d.area}:</strong></td>
+                                    <td style="text-align:left;border:none;padding:4px 10px;color:${nivelColorMixed(d.media)};font-weight:bold;">${lab}</td></tr>`;
+                                } else {
+                                    html += `<tr><td style="text-align:left;border:none;padding:4px 10px;"><strong>${d.area}:</strong></td>
+                                    <td style="text-align:left;border:none;padding:4px 10px;color:${getColorNota(d.media)};font-weight:bold;">${d.media}</td></tr>`;
+                                }
                             });
                             html += `</table>`;
                         }
@@ -422,34 +650,48 @@
                     });
             }
 
-            window.rellenarTodos = function (nivel) {
-                if (!alumnoSelect.value) {
-                    alert("Por favor, selecciona un alumno primero.");
-                    return;
-                }
-                if (!confirm("¿Asignar nota " + nivel + " a todos los criterios visibles?")) return;
-                document.getElementById("tbody").querySelectorAll("tr").forEach(tr => {
-                    guardar(tr.id.replace("row-", ""), nivel);
+            // ── Modo Infantil: carga directa de criterios ──────────────────────────
+            function cargarAlumnosInfantil() {
+                fetch("/api/alumnos").then(r => r.json()).then(datos => {
+                    alumnoInfSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Alumno --</option>';
+                    datos.forEach(a => { alumnoInfSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
                 });
             }
 
-            window.limpiarTodos = function () {
-                if (!alumnoSelect.value) {
-                    alert("Por favor, selecciona un alumno primero.");
-                    return;
-                }
-                if (!confirm("¿Borrar todas las notas de este alumno en esta SDA?")) return;
-                fetch(`/api/evaluacion?alumno_id=${alumnoSelect.value}&sda_id=${sdaSelect.value}&trimestre=${getTrimestre()}`, { method: 'DELETE' })
-                    .then(r => r.json()).then(d => {
-                        if (d.ok) {
-                            cargarNotasExistentes();
-                            document.querySelectorAll("button.selected").forEach(b => b.classList.remove("selected"));
-                            cargarMedia();
-                            cargarResumenAlumno();
-                        } else alert("Error: " + d.error);
-                    });
+            function cargarAreasInfantil() {
+                fetch("/api/evaluacion/areas").then(r => r.json()).then(datos => {
+                    areaInfSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Área --</option>';
+                    datos.forEach(a => { areaInfSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
+                });
             }
 
+            async function cargarCriteriosDirectos() {
+                if (!areaInfSelect.value) return;
+                const r = await fetch(`/api/evaluacion/criterios_directos/${areaInfSelect.value}`);
+                const criterios = await r.json();
+                if (!criterios.length) {
+                    thead.innerHTML = ""; tbody.innerHTML = "";
+                    tbody.innerHTML = `<tr><td colspan="3" style="color:#666;padding:20px;text-align:center;">No hay criterios configurados para esta área.</td></tr>`;
+                    return;
+                }
+                renderTabla(criterios, true);
+                cargarNotasExistentes();
+            }
+
+            areaInfSelect.addEventListener("change", cargarCriteriosDirectos);
+            alumnoInfSelect.addEventListener("change", () => {
+                if (areaInfSelect.options.length > 1) {
+                    areaInfSelect.selectedIndex = 1;
+                    cargarCriteriosDirectos();
+                }
+                cargarResumenAlumno();
+            });
+            trimestreInfSelect.addEventListener("change", () => {
+                if (alumnoInfSelect.value && areaInfSelect.value) cargarNotasExistentes();
+                if (alumnoInfSelect.value) cargarResumenAlumno();
+            });
+
+            // ── guardar nota ───────────────────────────────────────────────────────
             window.guardar = function (criterio_id, nivel) {
                 for (let i = 1; i <= 4; i++) {
                     let b = document.getElementById(`btn-${criterio_id}-${i}`);
@@ -458,13 +700,19 @@
                 let b = document.getElementById(`btn-${criterio_id}-${nivel}`);
                 if (b) b.classList.add("selected");
 
+                const alumId = modoActual === 'infantil' ? alumnoInfSelect.value : alumnoSelect.value;
+                const areaId = modoActual === 'infantil' ? areaInfSelect.value : areaSelect.value;
+                const sdaId = modoActual === 'infantil' ? null : (sdaSelect.value || null);
+
+                if (!alumId) { alert("Selecciona un alumno primero."); return; }
+
                 fetch("/api/evaluacion", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        alumno_id: alumnoSelect.value,
-                        area_id: areaSelect.value,
-                        sda_id: sdaSelect.value,
+                        alumno_id: alumId,
+                        area_id: areaId,
+                        sda_id: sdaId,
                         criterio_id: criterio_id,
                         trimestre: getTrimestre(),
                         nivel: nivel
@@ -473,34 +721,52 @@
                     if (data.ok) { cargarMedia(); cargarResumenAlumno(); }
                     else alert("Error al guardar");
                 });
-            }
+            };
 
+            // ── Rellenar / Limpiar ─────────────────────────────────────────────────
+            window.rellenarTodos = function (nivel) {
+                const alumId = modoActual === 'infantil' ? alumnoInfSelect.value : alumnoSelect.value;
+                if (!alumId) { alert("Por favor, selecciona un alumno primero."); return; }
+                if (!confirm("¿Asignar nota " + nivel + " a todos los criterios visibles?")) return;
+                document.getElementById("tbody").querySelectorAll("tr").forEach(tr => {
+                    guardar(tr.id.replace("row-", ""), nivel);
+                });
+            };
+
+            window.limpiarTodos = function () {
+                const alumId = modoActual === 'infantil' ? alumnoInfSelect.value : alumnoSelect.value;
+                const sdaId = modoActual === 'infantil' ? null : sdaSelect.value;
+                if (!alumId) { alert("Por favor, selecciona un alumno primero."); return; }
+                if (!confirm("¿Borrar todas las notas de este alumno en esta selección?")) return;
+                const params = sdaId
+                    ? `alumno_id=${alumId}&sda_id=${sdaId}&trimestre=${getTrimestre()}`
+                    : `alumno_id=${alumId}&sda_id=null&trimestre=${getTrimestre()}&area_id=${areaInfSelect.value}`;
+                fetch(`/api/evaluacion?${params}`, { method: 'DELETE' })
+                    .then(r => r.json()).then(d => {
+                        if (d.ok) {
+                            cargarNotasExistentes();
+                            document.querySelectorAll("button.selected").forEach(b => b.classList.remove("selected"));
+                            cargarMedia();
+                            cargarResumenAlumno();
+                        } else alert("Error: " + d.error);
+                    });
+            };
+
+            // ── Modal Criterio Extra (solo Primaria) ───────────────────────────────
             window.abrirModalExtra = function () {
-                if (!areaSelect.value) {
-                    alert("Selecciona un Área primero."); return;
-                }
-
+                if (!areaSelect.value) { alert("Selecciona un Área primero."); return; }
                 document.getElementById('modalExtra').style.display = 'flex';
                 let lista = document.getElementById('listaCriteriosExtra');
-                lista.innerHTML = '<div style="text-align:center; padding:20px;">Cargando criterios...</div>';
-
+                lista.innerHTML = '<div style="text-align:center;padding:20px;">Cargando criterios...</div>';
                 fetch(`/api/evaluacion/area/${areaSelect.value}/criterios_completos`).then(r => r.json()).then(criterios => {
                     lista.innerHTML = '';
                     if (!criterios.length) {
-                        lista.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No hay criterios configurados en esta área.</div>';
+                        lista.innerHTML = '<div style="text-align:center;padding:20px;color:#666;">No hay criterios configurados en esta área.</div>';
                         return;
                     }
                     criterios.forEach(c => {
                         let btn = document.createElement('button');
-                        btn.style.display = 'block';
-                        btn.style.width = '100%';
-                        btn.style.textAlign = 'left';
-                        btn.style.padding = '12px';
-                        btn.style.marginBottom = '8px';
-                        btn.style.border = '1px solid #ddd';
-                        btn.style.borderRadius = '8px';
-                        btn.style.background = '#f8f9fa';
-                        btn.style.cursor = 'pointer';
+                        btn.style.cssText = 'display:block;width:100%;text-align:left;padding:12px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px;background:#f8f9fa;cursor:pointer;';
                         btn.innerHTML = `<strong style="color:var(--primary);">${c.codigo}</strong>: ${c.descripcion}`;
                         btn.onclick = () => vincularCriterioExtra(c.id);
                         btn.onmouseover = () => btn.style.background = '#e2e6ea';
@@ -510,26 +776,17 @@
                 });
             };
 
-            window.cerrarModalExtra = function () {
-                document.getElementById('modalExtra').style.display = 'none';
-            };
+            window.cerrarModalExtra = function () { document.getElementById('modalExtra').style.display = 'none'; };
 
             window.vincularCriterioExtra = function (criterio_id) {
-                if (!alumnoSelect.value) {
-                    alert("Selecciona un alumno primero."); return;
-                }
+                if (!alumnoSelect.value) { alert("Selecciona un alumno primero."); return; }
                 fetch('/api/evaluacion/criterio_extra', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        area_id: areaSelect.value,
-                        trimestre: getTrimestre(),
-                        criterio_id: criterio_id
-                    })
+                    body: JSON.stringify({ area_id: areaSelect.value, trimestre: getTrimestre(), criterio_id })
                 }).then(r => r.json()).then(data => {
                     if (data.ok) {
                         cerrarModalExtra();
-                        // Recargar la lista de SDAs para que aparezca "Criterios Adicionales" y se auto-seleccione
                         fetch(`/api/evaluacion/sda/${areaSelect.value}?trimestre=${getTrimestre()}`).then(r => r.json()).then(datos => {
                             sdaSelect.innerHTML = "";
                             let foundIndex = 0;
@@ -539,31 +796,25 @@
                             });
                             sdaSelect.selectedIndex = foundIndex;
                             cargarCriterios();
-
-                            // Mostrar mensaje temporal
                             let toast = document.createElement("div");
-                            toast.innerText = "Criterio extra añadido y seleccionado ✅";
-                            toast.style.position = "fixed";
-                            toast.style.bottom = "20px";
-                            toast.style.right = "20px";
-                            toast.style.background = "var(--success)";
-                            toast.style.color = "white";
-                            toast.style.padding = "10px 20px";
-                            toast.style.borderRadius = "8px";
-                            toast.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
-                            toast.style.zIndex = "9999";
+                            toast.innerText = "Criterio extra añadido ✅";
+                            toast.style.cssText = "position:fixed;bottom:20px;right:20px;background:var(--success);color:white;padding:10px 20px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:9999;";
                             document.body.appendChild(toast);
                             setTimeout(() => toast.remove(), 3000);
                         });
-                    } else {
-                        alert("Error: " + data.error);
-                    }
+                    } else alert("Error: " + data.error);
                 });
             };
+
+            // ── Arranque: cargar modo tras cargar grupo activo ──────────────────────
         </script>
     </div>
     <script src="/static/js/global_groups.js"></script>
     <script src="/static/js/api.js"></script>
+    <script>
+        // Cargar el modo de evaluación del grupo activo al arrancar
+        document.addEventListener('DOMContentLoaded', () => { cargarModo(); });
+    </script>
 </body>
 
 </html>

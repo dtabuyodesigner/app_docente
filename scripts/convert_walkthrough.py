@@ -59,6 +59,6 @@ def convert_md_to_docx(md_path, docx_path):
     print(f"Documento guardado en: {docx_path}")
 
 if __name__ == "__main__":
-    md_file = "/home/danito73/.gemini/antigravity/brain/78698270-6d67-4207-961f-2d1bd1320fbb/walkthrough.md"
-    docx_file = "/home/danito73/Documentos/APP_EVALUAR/walkthrough_blindaje_tecnico.docx"
+    md_file = "/home/danito73/.gemini/antigravity/brain/7fde250b-fd88-4b53-90bc-6e4887853e20/walkthrough.md"
+    docx_file = "/home/danito73/Documentos/APP_EVALUAR/Walkthrough_Navegacion_Material_v3.docx"
     convert_md_to_docx(md_file, docx_file)

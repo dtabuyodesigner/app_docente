@@ -6,15 +6,22 @@ evaluacion_bp = Blueprint('evaluacion', __name__)
 @evaluacion_bp.route("/api/evaluacion", methods=["DELETE"])
 def borrar_evaluacion():
     alumno_id = request.args.get("alumno_id")
-    sda_id = request.args.get("sda_id")
+    sda_id    = request.args.get("sda_id")   # puede ser 'null' o ausente
     trimestre = request.args.get("trimestre")
-    if not (alumno_id and sda_id and trimestre):
+    area_id   = request.args.get("area_id")   # necesario si sda_id es null
+    if not (alumno_id and trimestre):
         return jsonify({"ok": False, "error": "Faltan parametros"}), 400
 
     conn = get_db()
     cur = conn.cursor()
     try:
-        cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?", (alumno_id, sda_id, trimestre))
+        if sda_id and sda_id != 'null':
+            cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?",
+                        (alumno_id, sda_id, trimestre))
+        else:
+            # Modo Infantil: borrar evaluaciones sin sda_id del área indicada
+            cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id IS NULL AND trimestre = ? AND area_id = ?",
+                        (alumno_id, trimestre, area_id))
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -109,29 +116,83 @@ def evaluacion_areas():
 @evaluacion_bp.route("/api/evaluacion/sda/<int:area_id>")
 def evaluacion_sda(area_id):
     trimestre = request.args.get("trimestre")
+    grupo_id = session.get('active_group_id')
     conn = get_db()
     cur = conn.cursor()
 
+    # Mostrar SA del grupo activo + SA sin grupo asignado (heredadas / compartidas)
     if trimestre:
         cur.execute("""
             SELECT id, nombre, trimestre
             FROM sda
-            WHERE area_id = ? AND (trimestre = ? OR trimestre IS NULL)
+            WHERE area_id = ?
+              AND (trimestre = ? OR trimestre IS NULL)
+              AND (grupo_id = ? OR grupo_id IS NULL)
             ORDER BY id
-        """, (area_id, trimestre))
+        """, (area_id, trimestre, grupo_id))
     else:
         cur.execute("""
             SELECT id, nombre, trimestre
             FROM sda
             WHERE area_id = ?
+              AND (grupo_id = ? OR grupo_id IS NULL)
             ORDER BY id
-        """, (area_id,))
+        """, (area_id, grupo_id))
 
     datos = cur.fetchall()
 
     return jsonify([
         {"id": s["id"], "nombre": f"[T{s['trimestre']}] {s['nombre']}" if s['trimestre'] else s['nombre']}
         for s in datos
+    ])
+
+
+@evaluacion_bp.route("/api/evaluacion/tipo_grupo")
+def tipo_grupo_activo():
+    """Devuelve el tipo_evaluacion del grupo activo para que el frontend adapte la UI."""
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({"tipo": "primaria"})
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT tipo_evaluacion FROM grupos WHERE id = ?", (grupo_id,))
+    row = cur.fetchone()
+    tipo = row["tipo_evaluacion"] if row and row["tipo_evaluacion"] else "primaria"
+    return jsonify({"tipo": tipo})
+
+
+@evaluacion_bp.route("/api/evaluacion/tipo_grupo", methods=["POST"])
+def set_tipo_grupo_activo():
+    """Cambia el tipo_evaluacion del grupo activo (primaria / infantil)."""
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({"ok": False, "error": "No hay grupo activo"}), 400
+    d = request.get_json(silent=True) or {}
+    tipo = d.get("tipo", "primaria")
+    if tipo not in ("primaria", "infantil"):
+        return jsonify({"ok": False, "error": "Tipo no válido"}), 400
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE grupos SET tipo_evaluacion = ? WHERE id = ?", (tipo, grupo_id))
+    conn.commit()
+    return jsonify({"ok": True, "tipo": tipo})
+
+
+@evaluacion_bp.route("/api/evaluacion/criterios_directos/<int:area_id>")
+def criterios_directos(area_id):
+    """Devuelve todos los criterios de un área para evaluación directa sin SA (modo Infantil)."""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, codigo, descripcion
+        FROM criterios
+        WHERE area_id = ?
+        ORDER BY codigo, id
+    """, (area_id,))
+    datos = cur.fetchall()
+    return jsonify([
+        {"id": c["id"], "codigo": c["codigo"], "descripcion": c["descripcion"]}
+        for c in datos
     ])
 
 @evaluacion_bp.route("/api/evaluacion/criterios/<int:sda_id>")
@@ -213,49 +274,59 @@ def añadir_criterio_extra():
 @evaluacion_bp.route("/api/evaluacion/alumno")
 def evaluacion_alumno():
     alumno_id = request.args.get("alumno_id")
-    sda_id = request.args.get("sda_id")
+    sda_id    = request.args.get("sda_id")   # puede ser 'null'
     trimestre = request.args.get("trimestre")
+    area_id   = request.args.get("area_id")  # necesario en modo Infantil
 
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT criterio_id, nivel
-        FROM evaluaciones
-        WHERE alumno_id = ?
-          AND sda_id = ?
-          AND trimestre = ?
-    """, (alumno_id, sda_id, trimestre))
+    if sda_id and sda_id != 'null':
+        cur.execute("""
+            SELECT criterio_id, nivel
+            FROM evaluaciones
+            WHERE alumno_id = ?
+              AND sda_id = ?
+              AND trimestre = ?
+        """, (alumno_id, sda_id, trimestre))
+    else:
+        cur.execute("""
+            SELECT criterio_id, nivel
+            FROM evaluaciones
+            WHERE alumno_id = ?
+              AND sda_id IS NULL
+              AND trimestre = ?
+              AND area_id = ?
+        """, (alumno_id, trimestre, area_id))
 
     datos = cur.fetchall()
-
-    return jsonify({
-        str(c["criterio_id"]): c["nivel"]
-        for c in datos
-    })
+    return jsonify({str(c["criterio_id"]): c["nivel"] for c in datos})
 
 @evaluacion_bp.route("/api/evaluacion/media")
 def media_sda():
     alumno_id = request.args.get("alumno_id")
-    sda_id = request.args.get("sda_id")
+    sda_id    = request.args.get("sda_id")   # puede ser 'null'
     trimestre = request.args.get("trimestre")
+    area_id   = request.args.get("area_id")  # necesario en modo Infantil
 
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT ROUND(AVG(nota), 2)
-        FROM evaluaciones
-        WHERE alumno_id = ?
-          AND sda_id = ?
-          AND trimestre = ?
-    """, (alumno_id, sda_id, trimestre))
+    if sda_id and sda_id != 'null':
+        cur.execute("""
+            SELECT ROUND(AVG(nota), 2)
+            FROM evaluaciones
+            WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
+        """, (alumno_id, sda_id, trimestre))
+    else:
+        cur.execute("""
+            SELECT ROUND(AVG(nota), 2)
+            FROM evaluaciones
+            WHERE alumno_id = ? AND sda_id IS NULL AND trimestre = ? AND area_id = ?
+        """, (alumno_id, trimestre, area_id))
 
     media = cur.fetchone()[0]
-
-    return jsonify({
-        "media": media if media is not None else 0
-    })
+    return jsonify({"media": media if media is not None else 0})
 
 @evaluacion_bp.route("/api/evaluacion/media_area")
 def media_area():
@@ -442,12 +513,13 @@ def crear_sa():
         
     conn = get_db()
     cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
     
     try:
         cur.execute("BEGIN")
         
-        # 1. Crear SA
-        cur.execute("INSERT INTO sda (nombre, area_id, trimestre) VALUES (?, ?, ?)", (nombre, area_id, trimestre))
+        # 1. Crear SA vinculada al grupo activo
+        cur.execute("INSERT INTO sda (nombre, area_id, trimestre, grupo_id) VALUES (?, ?, ?, ?)", (nombre, area_id, trimestre, grupo_id))
         sda_id = cur.lastrowid
         
         # 2. Gestionar Criterios

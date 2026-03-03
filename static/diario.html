@@ -3,10 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Diario de Clase</title>
+    <title>Diario e Incidencias</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <style>
         :root {
             --primary: #003366;
@@ -324,7 +325,6 @@
             <a href="/">🏠 Inicio</a>
             <a href="/alumnos">👥 Alumnos</a>
             <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/comedor">🍽️ Comedor</a>
             <a href="/diario" class="active">📓 Diario</a>
             <a href="/programacion">📅 Calendario</a>
             <a href="/horario">⏰ Horario</a>
@@ -352,7 +352,7 @@
 
 
         <div class="controls">
-            <h2 style="margin:0;">📓 Diario de Clase</h2>
+            <h2 style="margin:0;">📓 Diario e Incidencias</h2>
             <div style="display: flex; gap: 15px; align-items: center;">
                 <div>
                     <select id="areaSelect"
@@ -471,8 +471,11 @@
 
                 // Textarea
                 const txt = document.createElement('textarea');
-                txt.placeholder = "Escribe una observación...";
+                txt.placeholder = areaSelect.value ? "Escribe una observación para este área..." : "Escribe una incidencia o comentario general...";
                 txt.value = s.observacion;
+                txt.style.minHeight = "80px";
+                txt.style.fontSize = "0.95rem";
+                txt.style.lineHeight = "1.5";
 
                 // Auto-expand function
                 const autoExpand = (el) => {

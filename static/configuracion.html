@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Configuración Centralizada</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .nav {
+            background: #003366;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .btn-save {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-save:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .status-msg {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 15px;
+            margin-top: 25px;
+            font-weight: 800;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+        </div>
+
+        <div class="card">
+            <h2>🔧 Configuración General</h2>
+
+            <div class="section-title">Datos del Centro y Curso</div>
+            <div class="form-group">
+                <label>Nombre del Centro:</label>
+                <input type="text" id="nombre_centro" placeholder="Ej: CEIP San José">
+            </div>
+            <div class="form-group">
+                <label>Curso Escolar:</label>
+                <input type="text" id="curso_escolar" placeholder="Ej: 2025/2026">
+            </div>
+
+            <div class="section-title">Datos del Tutor/a</div>
+            <div class="form-group">
+                <label>Nombre del Tutor/a:</label>
+                <input type="text" id="nombre_tutor" placeholder="Tu nombre">
+            </div>
+
+            <div class="section-title">Biblioteca</div>
+            <div class="form-group">
+                <label>Días máximos de préstamo:</label>
+                <input type="number" id="max_dias_prestamo" min="1" max="90">
+            </div>
+
+            <div class="section-title">Comedor</div>
+            <div class="form-group">
+                <label>Tipo de Gestión:</label>
+                <select id="tipo_comedor">
+                    <option value="directa">Gestión Directa (Catering)</option>
+                    <option value="externa">Gestión Externa (Empresa)</option>
+                </select>
+            </div>
+
+            <button class="btn-save" onclick="saveConfig()">💾 Guardar Configuración</button>
+            <div id="status" class="status-msg"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadConfig() {
+            const res = await fetch('/api/configuracion');
+            const data = await res.json();
+
+            // Fill inputs if keys exist
+            for (const [key, value] of Object.entries(data)) {
+                const el = document.getElementById(key);
+                if (el) el.value = value;
+            }
+        }
+
+        async function saveConfig() {
+            const keys = ['nombre_centro', 'curso_escolar', 'nombre_tutor', 'max_dias_prestamo', 'tipo_comedor'];
+            const data = {};
+            keys.forEach(k => {
+                const el = document.getElementById(k);
+                if (el) data[k] = el.value;
+            });
+
+            const status = document.getElementById('status');
+            status.innerText = "Guardando...";
+            status.className = "status-msg";
+            status.style.display = "block";
+
+            try {
+                const res = await fetch('/api/configuracion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const resData = await res.json();
+                if (resData.ok) {
+                    status.innerText = "✅ Configuración guardada con éxito";
+                    status.className = "status-msg status-success";
+                    setTimeout(() => { status.style.display = 'none'; }, 3000);
+                } else {
+                    status.innerText = "❌ Error: " + resData.error;
+                    status.style.color = "red";
+                }
+            } catch (e) {
+                status.innerText = "❌ Error de conexión";
+                status.style.color = "red";
+            }
+        }
+
+        window.onload = loadConfig;
+    </script>
+
+    <script src="/static/js/global_groups.js"></script>
+    <script src="/static/js/api.js"></script>
+</body>
+
+</html>

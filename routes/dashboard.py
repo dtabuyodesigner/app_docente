@@ -165,6 +165,34 @@ def dashboard_resumen():
             "temas": r["temas"] or ""
         })
 
+    # 10. Material Pendiente
+    cur.execute("""
+        SELECT COUNT(*) as count
+        FROM material_entregado me
+        JOIN alumnos a ON a.id = me.alumno_id
+        WHERE a.grupo_id = ? AND me.entregado = 0
+    """, (grupo_id,))
+    material_pendiente = cur.fetchone()["count"] or 0
+
+    # 11. Libros con Retraso
+    # Get max_dias_prestamo from config or default to 7
+    cur.execute("SELECT valor FROM config WHERE clave = 'max_dias_prestamo'") # Check config table
+    row_cfg = cur.fetchone()
+    if not row_cfg:
+        # Check configuracion table as seen in lectura.py
+        cur.execute("SELECT valor FROM configuracion WHERE clave = 'max_dias_prestamo'")
+        row_cfg = cur.fetchone()
+    
+    dias_limite = int(row_cfg["valor"]) if row_cfg else 7
+    
+    cur.execute("""
+        SELECT COUNT(*) as count
+        FROM prestamos_libros pl
+        JOIN alumnos a ON a.id = pl.alumno_id
+        WHERE a.grupo_id = ? AND pl.estado = 'activo'
+          AND (julianday(date('now')) - julianday(pl.fecha_prestamo)) > ?
+    """, (grupo_id, dias_limite))
+    libros_retrasados = cur.fetchone()["count"] or 0
 
     return jsonify({
         "asistencia": {
@@ -180,6 +208,8 @@ def dashboard_resumen():
         "alertas": alertas,
         "proximas_actividades": proximas,
         "ultimas_reuniones": ultimas_reuniones,
+        "material_pendiente": material_pendiente,
+        "libros_retrasados": libros_retrasados,
         "user_role": session.get("role", "profesor")
     })
 

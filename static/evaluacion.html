@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <style>
         :root {
             --primary: #003366;
@@ -122,6 +123,50 @@
             color: white;
             border-color: #007bff;
         }
+
+        /* Rubric Tooltip Style */
+        .rubric-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .rubric-tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            font-weight: normal;
+        }
+
+        .rubric-tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .rubric-tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -131,7 +176,6 @@
             <a href="/">🏠 Inicio</a>
             <a href="/alumnos">👥 Alumnos</a>
             <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/comedor">🍽️ Comedor</a>
             <a href="/diario">📓 Diario</a>
             <a href="/programacion">📅 Calendario</a>
             <a href="/horario">⏰ Horario</a>
@@ -227,6 +271,9 @@
             let sdaSelect = document.getElementById("sda");
             let trimestreSelect = document.getElementById("trimestre");
 
+            let trimmingSelect = document.getElementById("trimestre");
+            let rubricasSDA = {};
+
             function getTrimestre() { return trimestreSelect.value; }
             let thead = document.getElementById("thead");
             let tbody = document.getElementById("tbody");
@@ -288,25 +335,41 @@
                 if (alumnoSelect.value) cargarResumenAlumno();
             }
 
-            function cargarCriterios() {
+            async function cargarCriterios() {
                 if (!sdaSelect.value) { tbody.innerHTML = ""; return; }
-                fetch(`/api/evaluacion/criterios/${sdaSelect.value}`).then(r => r.json()).then(criterios => {
-                    thead.innerHTML = `<tr><th style="width: 150px;">Código</th><th>Descripción</th><th style="width: 200px;">Nivel</th></tr>`;
-                    tbody.innerHTML = "";
-                    criterios.forEach(c => {
-                        const tr = document.createElement("tr");
-                        tr.id = `row-${c.id}`;
-                        tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align: left;">${c.descripcion}</td>
-                        <td>
-                            <button onclick="guardar(${c.id}, 1)" id="btn-${c.id}-1">1</button>
-                            <button onclick="guardar(${c.id}, 2)" id="btn-${c.id}-2">2</button>
-                            <button onclick="guardar(${c.id}, 3)" id="btn-${c.id}-3">3</button>
-                            <button onclick="guardar(${c.id}, 4)" id="btn-${c.id}-4">4</button>
-                        </td>`;
-                        tbody.appendChild(tr);
-                    });
-                    cargarNotasExistentes();
+
+                // Fetch rubrics for this SDA
+                const resRub = await fetch(`/api/evaluacion/criterios/${sdaSelect.value}`);
+                const criterios = await resRub.json();
+
+                // Clear previous rubrics
+                rubricasSDA = {};
+
+                // Fetch descriptors for each criterion
+                const rubCalls = criterios.map(c =>
+                    fetch(`/api/rubricas/${c.id}`).then(r => r.json()).then(data => {
+                        rubricasSDA[c.id] = data;
+                    })
+                );
+                await Promise.all(rubCalls);
+
+                thead.innerHTML = `<tr><th style="width: 150px;">Código</th><th>Descripción</th><th style="width: 280px;">Nivel</th></tr>`;
+                tbody.innerHTML = "";
+                criterios.forEach(c => {
+                    const tr = document.createElement("tr");
+                    tr.id = `row-${c.id}`;
+                    tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align: left;">${c.descripcion}</td>
+                    <td>
+                        ${[1, 2, 3, 4].map(n => `
+                            <div class="rubric-tooltip">
+                                <button onclick="guardar(${c.id}, ${n})" id="btn-${c.id}-${n}">${n}</button>
+                                <span class="tooltiptext">${rubricasSDA[c.id] && rubricasSDA[c.id][n] ? rubricasSDA[c.id][n] : `Nivel ${n}`}</span>
+                            </div>
+                        `).join('')}
+                    </td>`;
+                    tbody.appendChild(tr);
                 });
+                cargarNotasExistentes();
             }
 
             function cargarNotasExistentes() {

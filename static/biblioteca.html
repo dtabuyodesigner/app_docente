@@ -691,7 +691,6 @@
         <a href="/">🏠 Inicio</a>
         <a href="/alumnos">👥 Alumnos</a>
         <a href="/asistencia">📋 Pasar lista</a>
-        <a href="/comedor">🍽️ Comedor</a>
         <a href="/diario">📓 Diario</a>
         <a href="/programacion">📅 Calendario</a>
         <a href="/horario">⏰ Horario</a>
@@ -1786,7 +1785,15 @@
             const d = await (await fetch(`/api/prestamos/${id}/devolver`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
             })).json();
-            if (d.ok) { closeDevModal(); _prestamosLoaded = false; initPrestamos(); loadStats(); }
+            if (d.ok) {
+                closeDevModal();
+                _prestamosLoaded = false;
+                initPrestamos();
+                loadBooks();
+                loadStats();
+                const hSel = document.getElementById('h-alumno');
+                if (hSel && hSel.value) showHistorialAlumno();
+            }
             else alert(`Error: ${d.error}`);
         }
 

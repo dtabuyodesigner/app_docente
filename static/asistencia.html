@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <style>
         :root {
             --primary: #003366;
@@ -482,7 +483,6 @@
             <a href="/">🏠 Inicio</a>
             <a href="/alumnos">👥 Alumnos</a>
             <a href="/asistencia" class="active">📋 Pasar lista</a>
-            <a href="/comedor">🍽️ Comedor</a>
             <a href="/diario">📓 Diario</a>
             <a href="/programacion">📅 Calendario</a>
             <a href="/horario">⏰ Horario</a>
@@ -510,6 +510,10 @@
             <div class="controls">
                 <label for="fecha">📅 <strong>Fecha:</strong></label>
                 <input type="date" id="fecha">
+                <button class="btn-status" onclick="openMenuModal()"
+                    style="background: #6f42c1; color: white; border: none; margin-left: 10px;">
+                    🍽️ Menú Comedor
+                </button>
                 <button class="btn-status" onclick="openHistory()"
                     style="margin-left: auto; background: var(--primary); color: white; border: none;">
                     📜 Historial de Faltas
@@ -561,6 +565,30 @@
                 </div>
                 <div id="encargadoHistoryContent">
                     <!-- Cycles will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="menuModal">
+            <div class="modal" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3>🍽️ Menú del Comedor</h3>
+                    <button class="modal-close" onclick="closeMenuModal()">&times;</button>
+                </div>
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <label for="mesMenu" style="font-weight: bold; margin-right: 10px;">Seleccionar Mes:</label>
+                    <input type="month" id="mesMenu"
+                        style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem;">
+                </div>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <input type="file" id="menuFile" accept="image/*" style="display:none;" onchange="uploadMenu()">
+                    <button class="btn-status" onclick="document.getElementById('menuFile').click()"
+                        style="background: var(--primary); color: white; border: none;">
+                        📤 Subir/Actualizar Menú
+                    </button>
+                </div>
+                <div id="imageContainer" style="text-align: center; max-height: 400px; overflow-y: auto;">
+                    <p>Cargando menú...</p>
                 </div>
             </div>
         </div>
@@ -998,6 +1026,87 @@
         function closeHistory() {
             historyModal.style.display = "none";
             document.body.style.overflow = "";
+        }
+
+        // Canteen Menu Logic
+        const menuModal = document.getElementById("menuModal");
+        const mesInput = document.getElementById('mesMenu');
+
+        function openMenuModal() {
+            if (!mesInput.value) {
+                const now = new Date();
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                mesInput.value = `${yyyy}-${mm}`;
+            }
+            menuModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
+            loadMenu();
+        }
+
+        function closeMenuModal() {
+            menuModal.style.display = "none";
+            document.body.style.overflow = "";
+        }
+
+        mesInput.addEventListener('change', loadMenu);
+
+        function loadMenu() {
+            const mes = mesInput.value;
+            if (!mes) return;
+
+            document.getElementById('imageContainer').innerHTML = "<p>Cargando...</p>";
+
+            fetch(`/api/comedor/menu?mes=${mes}`)
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('imageContainer');
+                    if (data.imagen) {
+                        container.innerHTML = `<img src="/static/uploads/${data.imagen}" alt="Menú Comedor" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">`;
+                    } else {
+                        container.innerHTML = `<p style="color: #888;">No hay menú subido para ${mes}.</p>`;
+                    }
+                });
+        }
+
+        function uploadMenu() {
+            const input = document.getElementById('menuFile');
+            const mes = mesInput.value;
+
+            if (input.files.length === 0) return;
+            if (!mes) return alert("Selecciona un mes primero");
+
+            if (!confirm(`¿Subir menú para el mes ${mes}?`)) {
+                input.value = "";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('foto', input.files[0]);
+            formData.append('mes', mes);
+
+            document.getElementById('imageContainer').innerHTML = "<p>Subiendo imagen...</p>";
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            fetch('/api/comedor/menu/upload', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: formData
+            })
+                .then(r => r.json())
+                .then(res => {
+                    input.value = "";
+                    if (res.ok) {
+                        loadMenu();
+                        alert("Menú actualizado correctamente");
+                    } else {
+                        alert("Error al subir menú: " + (res.error || "Desconocido"));
+                        loadMenu();
+                    }
+                });
         }
 
         monthInput.addEventListener("change", loadHistory);

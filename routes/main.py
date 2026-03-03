@@ -71,6 +71,10 @@ def biblioteca_page():
 def material_page():
     return send_from_directory("static", "material.html")
 
+@main_bp.route("/configuracion")
+def configuracion_page():
+    return send_from_directory("static", "configuracion.html")
+
 @main_bp.route("/prestamos")
 def prestamos_page():
     return redirect("/biblioteca#prestamos")
@@ -310,3 +314,151 @@ def manage_grupo_activo():
 def do_logout():
     session.clear()
     return redirect(url_for('main.login_page'))
+
+@main_bp.route("/api/perfil/seguridad", methods=["GET"])
+def get_seguridad():
+    if not session.get('logged_in'):
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+    
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT pregunta_seguridad FROM usuarios WHERE id = ?", (session.get("user_id"),))
+    usr = cur.fetchone()
+    if not usr:
+        return jsonify({"ok": False, "error": "Usuario no encontrado"}), 404
+        
+    return jsonify({"ok": True, "pregunta_seguridad": usr["pregunta_seguridad"]})
+
+@main_bp.route("/api/perfil/seguridad", methods=["POST"])
+def update_seguridad():
+    if not session.get('logged_in'):
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+        
+    data = request.json
+    pwd = data.get("password", "").strip()
+    pregunta = data.get("pregunta", "").strip()
+    respuesta = data.get("respuesta", "").strip()
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        from werkzeug.security import generate_password_hash
+        
+        updates = []
+        params = []
+        
+        if pwd:
+            updates.append("password_hash = ?")
+            params.append(generate_password_hash(pwd))
+            
+        if pregunta:
+            updates.append("pregunta_seguridad = ?")
+            params.append(pregunta)
+            
+        if respuesta:
+            updates.append("respuesta_seguridad_hash = ?")
+            params.append(generate_password_hash(respuesta))
+            
+        if not updates:
+            return jsonify({"ok": True, "message": "No hay cambios"})
+            
+        params.append(session.get("user_id"))
+        
+        query = f"UPDATE usuarios SET {', '.join(updates)} WHERE id = ?"
+        cur.execute(query, tuple(params))
+        conn.commit()
+        
+        security_logger.info(f"User '{session.get('username')}' updated their security settings. IP: {request.remote_addr}")
+        return jsonify({"ok": True})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@main_bp.route("/api/recover_password", methods=["GET"])
+def get_recovery_question():
+    username = request.args.get("username", "").strip()
+    if not username:
+        return jsonify({"ok": False, "error": "Falta el usuario"}), 400
+        
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT pregunta_seguridad FROM usuarios WHERE username = ?", (username,))
+    usr = cur.fetchone()
+    
+    if not usr:
+        # Prevent username enumeration theoretically, but here it's fine to tell them it's wrong
+        return jsonify({"ok": False, "error": "Usuario no encontrado"}), 404
+        
+    if not usr["pregunta_seguridad"]:
+        return jsonify({"ok": False, "error": "Este usuario no tiene configurada una pregunta de seguridad. Contacta con el administrador."}), 400
+        
+    return jsonify({"ok": True, "pregunta": usr["pregunta_seguridad"]})
+
+@main_bp.route("/api/recover_password", methods=["POST"])
+def do_recover_password():
+    data = request.json
+    username = data.get("username", "").strip()
+    respuesta = data.get("respuesta", "").strip()
+    new_password = data.get("new_password", "").strip()
+    
+    if not username or not respuesta or not new_password:
+        return jsonify({"ok": False, "error": "Faltan datos"}), 400
+        
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, respuesta_seguridad_hash FROM usuarios WHERE username = ?", (username,))
+    usr = cur.fetchone()
+    
+    if not usr or not usr["respuesta_seguridad_hash"]:
+        security_logger.warning(f"Failed password recovery attempt for '{username}' (no user or no security question). IP: {request.remote_addr}")
+        return jsonify({"ok": False, "error": "No se puede recuperar la contraseña para este usuario"}), 400
+        
+    from werkzeug.security import check_password_hash, generate_password_hash
+    
+    if not check_password_hash(usr["respuesta_seguridad_hash"], respuesta):
+        security_logger.warning(f"Failed password recovery attempt for '{username}' (wrong answer). IP: {request.remote_addr}")
+        return jsonify({"ok": False, "error": "La respuesta de seguridad es incorrecta"}), 400
+        
+    try:
+        new_hash = generate_password_hash(new_password)
+        cur.execute("UPDATE usuarios SET password_hash = ? WHERE id = ?", (new_hash, usr["id"]))
+        conn.commit()
+        security_logger.info(f"Password successfully recovered for '{username}'. IP: {request.remote_addr}")
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": "Error interno"}), 500
+
+@main_bp.route("/api/emergency_reset", methods=["POST"])
+def emergency_reset():
+    # Only allow from localhost
+    if request.remote_addr not in ["127.0.0.1", "::1"]:
+        security_logger.warning(f"Unauthorized emergency reset attempt from {request.remote_addr}")
+        return jsonify({"ok": False, "error": "No autorizado - Solo desde este equipo"}), 403
+        
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Look for admins
+        cur.execute("SELECT id, username FROM usuarios WHERE role = 'admin' OR username IN ('admin', 'daniel')")
+        admins = cur.fetchall()
+        
+        if not admins:
+            return jsonify({"ok": False, "error": "No hay administradores en el sistema"}), 400
+            
+        from werkzeug.security import generate_password_hash
+        hashed = generate_password_hash("1234")
+        
+        for admin in admins:
+            cur.execute("UPDATE usuarios SET password_hash = ? WHERE id = ?", (hashed, admin["id"]))
+            
+        conn.commit()
+        security_logger.warning(f"EMERGENCY RESET TRIGGERED from {request.remote_addr}")
+        
+        return jsonify({"ok": True, "mensaje": "Contraseñas reseteadas a '1234'. Podrás entrar ahora mismo."})
+    except Exception as e:
+        security_logger.error(f"Error during emergency reset: {e}")
+        return jsonify({"ok": False, "error": "Error interno del servidor"}), 500

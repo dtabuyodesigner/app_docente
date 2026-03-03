@@ -74,3 +74,34 @@ def delete_usuario(id):
     conn.commit()
     security_logger.info(f"Admin '{session.get('username')}' deleted user '{usr_name}'. IP: {request.remote_addr}")
     return jsonify({"ok": True})
+
+@usuarios_bp.route("/api/usuarios/<int:id>/reset_password", methods=["POST"])
+def admin_reset_password(id):
+    if session.get('role') != 'admin':
+        return jsonify({"ok": False, "error": "No autorizado"}), 403
+        
+    data = request.json
+    new_password = data.get("new_password", "").strip()
+    
+    if not new_password:
+        return jsonify({"ok": False, "error": "Falta la nueva contraseña"}), 400
+        
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        from werkzeug.security import generate_password_hash
+        pwd_hash = generate_password_hash(new_password)
+        cur.execute("UPDATE usuarios SET password_hash = ? WHERE id = ?", (pwd_hash, id))
+        conn.commit()
+        
+        # Log to security logger
+        cur.execute("SELECT username FROM usuarios WHERE id = ?", (id,))
+        usr = cur.fetchone()
+        usr_name = usr["username"] if usr else str(id)
+        
+        security_logger.info(f"Admin '{session.get('username')}' reset password for user '{usr_name}'. IP: {request.remote_addr}")
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": "Error interno"}), 500

@@ -92,20 +92,53 @@
 
 <body>
     <div class="login-card">
-        <h1>📘 Cuaderno del Tutor</h1>
+        <h1 id="appTitle" style="cursor: pointer; user-select: none;">📘 Cuaderno del Tutor</h1>
         <p>Introduce tu código de acceso secreto.</p>
 
         <div id="errorBox" class="error-msg"></div>
 
         <form id="loginForm">
             <div class="form-group">
+                <input type="text" id="username" placeholder="Usuario..." required autofocus>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="Contraseña..." required>
+            </div>
+            <button type="submit" class="btn-submit">Entrar</button>
+            <div style="margin-top: 15px; text-align: center;">
+                <a href="#" onclick="abrirRecuperar(); return false;"
+                    style="color: #003366; font-size: 0.9rem; text-decoration: none; font-weight: 600;">¿Olvidaste tu
+                    contraseña?</a>
+            </div>
+        </form>
+
+        <form id="recoverForm" style="display: none; padding-top: 10px;">
+            <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px;">Ingresa tu usuario para recuperar la
+                contraseña.</p>
+            <div class="form-group" id="recUserGroup">
+                <input type="text" id="recUsername" placeholder="Usuario..." required>
+                <button type="button" onclick="pedirPregunta()" class="btn-submit"
+                    style="margin-top: 15px; background: #17a2b8;">Siguiente</button>
+            </div>
+
+            <div id="recQGroups" style="display: none; text-align: left;">
+                <p id="lblPregunta"
+                    style="font-weight: bold; margin-bottom: 15px; color: #003366; font-size: 1rem; border-left: 3px solid #17a2b8; padding-left: 10px;">
+                </p>
                 <div class="form-group">
-                    <input type="text" id="username" placeholder="Usuario..." required autofocus>
+                    <input type="text" id="recRespuesta" placeholder="Tu respuesta a la pregunta..." required>
                 </div>
-                <div class="form-group">
-                    <input type="password" id="password" placeholder="Contraseña..." required>
+                <div class="form-group" style="margin-top: 15px;">
+                    <input type="password" id="recNewPwd" placeholder="Nueva Contraseña..." required>
                 </div>
-                <button type="submit" class="btn-submit">Entrar</button>
+                <button type="submit" class="btn-submit" style="background: #28a745; margin-top: 10px;">Restablecer y
+                    Entrar</button>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="#" onclick="cancelarRecuperar(); return false;"
+                    style="color: #6c757d; font-size: 0.9rem; text-decoration: none;">Volver al Login</a>
+            </div>
         </form>
     </div>
 
@@ -137,8 +170,116 @@
                 errorBox.style.display = 'block';
             }
         });
+
+        document.getElementById('recoverForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('recUsername').value.trim();
+            const respuesta = document.getElementById('recRespuesta').value.trim();
+            const new_password = document.getElementById('recNewPwd').value.trim();
+            const errorBox = document.getElementById('errorBox');
+
+            errorBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/recover_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, respuesta, new_password })
+                });
+
+                const data = await res.json();
+                if (data.ok) {
+                    alert('¡Contraseña restablecida con éxito!');
+                    // Instead of full login, just redirect to login logic or reload
+                    window.location.reload();
+                } else {
+                    errorBox.innerText = data.error || 'Respuesta incorrecta';
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                errorBox.innerText = 'Error de conexión con el servidor.';
+                errorBox.style.display = 'block';
+            }
+        });
+
+        function abrirRecuperar() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('recoverForm').style.display = 'block';
+            document.getElementById('errorBox').style.display = 'none';
+            document.getElementById('recUsername').value = document.getElementById('username').value; // pre-fill
+            document.getElementById('recUsername').focus();
+        }
+
+        function cancelarRecuperar() {
+            document.getElementById('recoverForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('errorBox').style.display = 'none';
+
+            // reset forms
+            document.getElementById('recQGroups').style.display = 'none';
+            document.getElementById('recUserGroup').style.display = 'block';
+            document.getElementById('recRespuesta').value = '';
+            document.getElementById('recNewPwd').value = '';
+        }
+
+        async function pedirPregunta() {
+            const username = document.getElementById('recUsername').value.trim();
+            const errorBox = document.getElementById('errorBox');
+            errorBox.style.display = 'none';
+
+            if (!username) {
+                errorBox.innerText = 'Por favor, introduce tu usuario.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/recover_password?username=${encodeURIComponent(username)}`);
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('recUserGroup').style.display = 'none';
+                    document.getElementById('recQGroups').style.display = 'block';
+                    document.getElementById('lblPregunta').innerText = "¿" + data.pregunta + "?";
+                    document.getElementById('recRespuesta').focus();
+                } else {
+                    errorBox.innerText = data.error || 'Usuario no válido';
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                errorBox.innerText = 'Error de conexión con el servidor.';
+                errorBox.style.display = 'block';
+            }
+        }
+
+        let titleClickCount = 0;
+        let titleClickTimer = null;
+        document.getElementById('appTitle').addEventListener('click', () => {
+            titleClickCount++;
+            if (titleClickTimer) clearTimeout(titleClickTimer);
+
+            titleClickTimer = setTimeout(() => {
+                titleClickCount = 0;
+            }, 2000);
+
+            if (titleClickCount >= 5) {
+                titleClickCount = 0;
+                if (confirm('¿Ejecutar reseteo de emergencia local? Esto pondrá las contraseñas de todos los administradores a "1234".')) {
+                    fetch('/api/emergency_reset', { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.ok) {
+                                alert('✅ ' + data.mensaje);
+                                window.location.reload();
+                            } else {
+                                alert('❌ ' + (data.error || 'Autenticación fallida'));
+                            }
+                        })
+                        .catch(err => alert('Error de red. Asegúrate de ejecutar esto en el mismo ordenador servidor.'));
+                }
+            }
+        });
     </script>
-<script src="/static/js/api.js"></script>
+    <script src="/static/js/api.js"></script>
 </body>
 
 </html>

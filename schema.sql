@@ -181,6 +181,8 @@ CREATE TABLE IF NOT EXISTS "usuarios" (
             username TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             role TEXT DEFAULT 'profesor',
+            pregunta_seguridad TEXT,
+            respuesta_seguridad_hash TEXT,
             fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 CREATE TABLE IF NOT EXISTS "competencias_especificas" (

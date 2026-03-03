@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#003366">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <style>
         :root {
             --primary: #003366;
@@ -253,12 +254,14 @@
             flex-direction: column;
             align-items: center;
             gap: 8px;
+            box-shadow: var(--shadow-sm);
         }
 
         .nav-btn:hover {
-            border-color: var(--primary);
-            background: #f8fbff;
+            border-color: var(--secondary);
+            background: var(--primary-light);
             transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
         .nav-icon {
@@ -410,6 +413,10 @@
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
+                <button onclick="abrirMiCuenta()" title="Mi Cuenta y Seguridad"
+                    style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                    🔐 Mi Cuenta
+                </button>
                 <button onclick="openBackups()" title="Gestión de copias de seguridad e integridad"
                     style="background: #17a2b8; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
                     💾 Gestión Backups
@@ -437,10 +444,6 @@
             <a href="/asistencia" class="nav-btn">
                 <span class="nav-icon">📋</span>
                 <span class="nav-text">Pasar Lista</span>
-            </a>
-            <a href="/comedor" class="nav-btn">
-                <span class="nav-icon">🍽️</span>
-                <span class="nav-text">Comedor</span>
             </a>
             <a href="/diario" class="nav-btn">
                 <span class="nav-icon">📓</span>
@@ -491,6 +494,10 @@
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-text">Ajustes Grupos</span>
             </a>
+            <a href="/configuracion" class="nav-btn" style="border-color: #ffd700;">
+                <span class="nav-icon">🔧</span>
+                <span class="nav-text">Configuración</span>
+            </a>
         </div>
 
         <div class="dashboard-grid">
@@ -514,6 +521,16 @@
             <div class="stat-card" style="border-top: 4px solid var(--warning);">
                 <h4 id="triLabel">📈 Media Clase</h4>
                 <p id="mediaClase">-</p>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #cc33ff;">
+                <h4>📦 Material Pendiente</h4>
+                <p id="statsMaterial">-</p>
+                <div style="font-size: 0.75rem; color: #666;">Alumnos con material por entregar</div>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #663300;">
+                <h4>📚 Libros con Retraso</h4>
+                <p id="statsLibros">-</p>
+                <div style="font-size: 0.75rem; color: #666;">Préstamos fuera de plazo</div>
             </div>
 
             <!-- Priority Lists Row (Moved Up) -->
@@ -546,9 +563,9 @@
 
             <!-- New Section: Last Observations (Extra content) -->
             <div class="list-container" style="grid-column: span 2; height: auto; max-height: 400px;">
-                <div class="section-header">📓 Últimas Observaciones</div>
+                <div class="section-header">📓 Incidencias y Notas Recientes</div>
                 <div id="lastObsList">
-                    <div style="color: #999; font-style: italic;">Cargando observaciones...</div>
+                    <div style="color: #999; font-style: italic;">Cargando incidencias...</div>
                 </div>
             </div>
 
@@ -778,6 +795,46 @@
             </div>
         </div>
 
+        <!-- Mi Cuenta Modal -->
+        <div class="modal-overlay" id="miCuentaModal" style="z-index: 1030;">
+            <div class="modal" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3 style="color: var(--primary); margin: 0;">🔐 Mi Cuenta</h3>
+                    <button class="modal-close"
+                        onclick="document.getElementById('miCuentaModal').style.display='none'">&times;</button>
+                </div>
+                <div style="margin-top: 20px; text-align: left;">
+                    <form id="miCuentaForm" onsubmit="guardarMiCuenta(event)">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Contraseña
+                                (Opcional):</label>
+                            <input type="password" id="miCuentaPwd" placeholder="Dejar en blanco para no cambiar..."
+                                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display:block; font-weight:600; margin-bottom:5px;">Pregunta de
+                                Seguridad:</label>
+                            <input type="text" id="miCuentaPregunta" placeholder="Ej: Nombre de mi primera mascota"
+                                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                            <small style="color: #666;">Te servirá para recuperar la contraseña si la olvidas.</small>
+                        </div>
+                        <div style="margin-bottom: 25px;">
+                            <label style="display:block; font-weight:600; margin-bottom:5px;">Respuesta de
+                                Seguridad:</label>
+                            <input type="text" id="miCuentaRespuesta" placeholder="Ej: Toby"
+                                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                            <small style="color: #666;">(Si dejas la respuesta en blanco, no se modificará la
+                                actual)</small>
+                        </div>
+                        <button type="submit"
+                            style="width:100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                            Actualizar Datos
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -797,6 +854,8 @@
 
                 // 1. Basic Stats
                 document.getElementById('totalComedor').innerText = data.comedor;
+                document.getElementById('statsMaterial').innerText = data.material_pendiente;
+                document.getElementById('statsLibros').innerText = data.libros_retrasados;
                 const totalAlumnos = data.asistencia.presentes + data.asistencia.faltas;
                 document.getElementById('statsAsistencia').innerText = `${data.asistencia.presentes}/${totalAlumnos}`;
                 document.getElementById('mediaClase').innerText = data.media_clase.toFixed(2);
@@ -1497,6 +1556,60 @@
                 }
             } catch (e) {
                 alert("Error de red al renombrar grupo: " + e.message);
+            }
+        }
+
+        // --- MI CUENTA LOGIC ---
+        async function abrirMiCuenta() {
+            try {
+                const res = await fetch('/api/perfil/seguridad');
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('miCuentaPregunta').value = data.pregunta_seguridad || '';
+                    document.getElementById('miCuentaPwd').value = '';
+                    document.getElementById('miCuentaRespuesta').value = '';
+                    document.getElementById('miCuentaModal').style.display = 'flex';
+                } else {
+                    alert("Error al obtener la información de seguridad.");
+                }
+            } catch (err) {
+                alert("Error de conexión al cargar 'Mi Cuenta'.");
+            }
+        }
+
+        async function guardarMiCuenta(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('miCuentaPwd').value.trim();
+            const pregunta = document.getElementById('miCuentaPregunta').value.trim();
+            const respuesta = document.getElementById('miCuentaRespuesta').value.trim();
+
+            try {
+                const button = e.target.querySelector('button[type="submit"]');
+                button.disabled = true;
+                button.textContent = 'Actualizando...';
+
+                const payload = { pregunta };
+                if (pwd) payload.password = pwd;
+                if (respuesta) payload.respuesta = respuesta;
+
+                const res = await fetch('/api/perfil/seguridad', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                button.disabled = false;
+                button.textContent = 'Actualizar Datos';
+
+                if (data.ok) {
+                    alert('Datos de seguridad actualizados correctamente.');
+                    document.getElementById('miCuentaModal').style.display = 'none';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert("Error de conexión al guardar los datos.");
             }
         }
     </script>

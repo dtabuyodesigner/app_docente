@@ -175,6 +175,7 @@
                         <td><span class="role-badge role-${u.role}">${u.role.toUpperCase()}</span></td>
                         <td>${new Date(u.fecha_creacion).toLocaleDateString()}</td>
                         <td>
+                            <button class="btn-primary" onclick="resetearClave(${u.id}, '${u.username}')" style="background:#ffc107; color:#000; margin-right:5px;">🔑 Resetear Clave</button>
                             <button class="btn-danger" onclick="borrarUsuario(${u.id}, '${u.username}')">Eliminar</button>
                         </td>
                     </tr>
@@ -228,8 +229,36 @@
                 alert("Error de conexión");
             }
         }
+
+        async function resetearClave(id, username) {
+            const newPassword = prompt(`Introduce la nueva contraseña para el usuario "${username}":`);
+            if (!newPassword || newPassword.trim() === '') {
+                return; // Cancelled or empty
+            }
+
+            if (!confirm(`¿Estás seguro de establecer esta nueva contraseña para "${username}"?`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/usuarios/${id}/reset_password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_password: newPassword.trim() })
+                });
+
+                const data = await res.json();
+                if (data.ok) {
+                    alert(`✅ Contraseña de "${username}" actualizada correctamente.`);
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                alert("Error de conexión al intentar resetear la contraseña.");
+            }
+        }
     </script>
-<script src="/static/js/api.js"></script>
+    <script src="/static/js/api.js"></script>
 </body>
 
 </html>

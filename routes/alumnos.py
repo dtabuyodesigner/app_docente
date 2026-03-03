@@ -390,3 +390,106 @@ def descargar_plantilla_alumnos():
         download_name="plantilla_alumnos.csv",
         mimetype='text/csv'
     )
+
+@alumnos_bp.route("/api/alumnos/importar", methods=["POST"])
+def importar_alumnos_csv():
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({"ok": False, "error": "No hay grupo activo seleccionado"}), 400
+
+    if 'file' not in request.files:
+        return jsonify({"ok": False, "error": "No se recibió ningún archivo"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"ok": False, "error": "Archivo vacío"}), 400
+
+    try:
+        raw = file.read()
+        content = None
+        for enc in ('utf-8-sig', 'utf-8', 'latin-1'):
+            try:
+                content = raw.decode(enc)
+                break
+            except UnicodeDecodeError:
+                continue
+
+        if content is None:
+            return jsonify({"ok": False, "error": "No se pudo decodificar el archivo"}), 400
+
+        reader = csv.reader(io.StringIO(content), delimiter=';')
+        rows = list(reader)
+
+        if not rows:
+            return jsonify({"ok": False, "error": "El archivo está vacío"}), 400
+
+        data_rows = rows[1:]  # Skip header
+
+        conn = get_db()
+        importados = 0
+        omitidos = 0
+        errores = []
+
+        for i, row in enumerate(data_rows, start=2):
+            if not row or all(c.strip() == '' for c in row):
+                continue
+
+            try:
+                def col(idx, default=''):
+                    return row[idx].strip() if idx < len(row) else default
+
+                nombre = sanitize_input(col(0))
+                if not nombre:
+                    omitidos += 1
+                    errores.append(f"Fila {i}: nombre vacío, omitida.")
+                    continue
+
+                no_comedor = int(col(1, '0') or '0')
+                comedor_dias = col(2) or None
+                f_nac = col(3) or None
+                direccion = sanitize_input(col(4))
+                m_nom = sanitize_input(col(5))
+                m_tel = sanitize_input(col(6))
+                m_email = sanitize_input(col(7))
+                p_nom = sanitize_input(col(8))
+                p_tel = sanitize_input(col(9))
+                p_email = sanitize_input(col(10))
+                obs = sanitize_input(col(11))
+
+                err_val = _check_validaciones(f_nac, m_tel, m_email, p_tel, p_email)
+                if err_val:
+                    omitidos += 1
+                    errores.append(f"Fila {i} ({nombre}): {err_val}")
+                    continue
+
+                cur = conn.cursor()
+                cur.execute("BEGIN")
+                cur.execute(
+                    "INSERT INTO alumnos (nombre, no_comedor, comedor_dias, grupo_id) VALUES (?, ?, ?, ?)",
+                    (nombre, no_comedor, comedor_dias, grupo_id)
+                )
+                alumno_id = cur.lastrowid
+                cur.execute("""
+                    INSERT INTO ficha_alumno (
+                        alumno_id, fecha_nacimiento, direccion, madre_nombre,
+                        madre_telefono, madre_email, padre_nombre, padre_telefono, padre_email,
+                        observaciones_generales, personas_autorizadas
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (alumno_id, f_nac, direccion, m_nom, m_tel, m_email, p_nom, p_tel, p_email, obs, ''))
+                conn.commit()
+                importados += 1
+
+            except Exception as e:
+                conn.rollback()
+                omitidos += 1
+                errores.append(f"Fila {i}: error interno — {str(e)}")
+
+        return jsonify({
+            "ok": True,
+            "importados": importados,
+            "omitidos": omitidos,
+            "errores": errores
+        })
+
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Error procesando el archivo: {str(e)}"}), 500

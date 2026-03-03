@@ -1249,7 +1249,12 @@
                     const res = await response.json();
 
                     if (res.ok) {
-                        alert(`¡Éxito! Se han importado ${res.count} alumnos.`);
+                        let msg = `✅ Importados: ${res.importados} alumno(s).`;
+                        if (res.omitidos > 0) msg += `\n⚠️ Omitidos: ${res.omitidos}.`;
+                        if (res.errores && res.errores.length > 0) {
+                            msg += `\n\nDetalles:\n` + res.errores.join('\n');
+                        }
+                        alert(msg);
                         cargarAlumnos();
                     } else {
                         alert("Error al importar: " + res.error);

@@ -1,11 +1,64 @@
 from flask import Blueprint, send_from_directory, request, jsonify, session, redirect, url_for
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from utils.db import get_db
 import os
 from utils.security import get_security_logger
 
 main_bp = Blueprint('main', __name__)
 security_logger = get_security_logger()
+
+# ─── PRIMER ARRANQUE ─────────────────────────────────────────────────────────
+
+@main_bp.route("/api/setup", methods=["GET"])
+def setup_status():
+    """Devuelve si la app ya tiene usuarios configurados."""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM usuarios")
+    count = cur.fetchone()[0]
+    return jsonify({"ok": True, "needs_setup": count == 0})
+
+@main_bp.route("/api/setup", methods=["POST"])
+def do_setup():
+    """Crea el primer usuario administrador. Solo funciona si no hay usuarios."""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM usuarios")
+    if cur.fetchone()[0] > 0:
+        return jsonify({"ok": False, "error": "Ya hay usuarios configurados. Accede con tu cuenta."}), 403
+
+    data = request.get_json(silent=True) or {}
+    username = data.get("username", "").strip()
+    password = data.get("password", "")
+    confirm  = data.get("confirm", "")
+
+    if not username or not password:
+        return jsonify({"ok": False, "error": "El usuario y la contraseña son obligatorios."}), 400
+    if len(username) < 3:
+        return jsonify({"ok": False, "error": "El usuario debe tener al menos 3 caracteres."}), 400
+    if len(password) < 6:
+        return jsonify({"ok": False, "error": "La contraseña debe tener al menos 6 caracteres."}), 400
+    if password != confirm:
+        return jsonify({"ok": False, "error": "Las contraseñas no coinciden."}), 400
+
+    try:
+        pwd_hash = generate_password_hash(password)
+        cur.execute(
+            "INSERT INTO usuarios (username, password_hash, role) VALUES (?, ?, ?)",
+            (username, pwd_hash, "admin")
+        )
+        conn.commit()
+        security_logger.info(f"Primer usuario administrador '{username}' creado durante el setup inicial.")
+
+        # Iniciar sesión automáticamente
+        session['logged_in'] = True
+        session['user_id']   = cur.lastrowid
+        session['username']  = username
+        session['role']      = 'admin'
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": "Error interno al crear el usuario."}), 500
 
 @main_bp.route("/")
 def inicio():

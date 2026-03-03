@@ -25,8 +25,9 @@
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 350px;
+            max-width: 380px;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
         .login-card h1 {
@@ -44,6 +45,16 @@
         .form-group {
             margin-bottom: 20px;
             text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group input {
@@ -78,6 +89,22 @@
             background: #002244;
         }
 
+        .btn-submit.verde {
+            background: #1a7a4a;
+        }
+
+        .btn-submit.verde:hover {
+            background: #155c38;
+        }
+
+        .btn-submit.cyan {
+            background: #17a2b8;
+        }
+
+        .btn-submit.cyan:hover {
+            background: #138496;
+        }
+
         .error-msg {
             color: #dc3545;
             background: #f8d7da;
@@ -87,16 +114,50 @@
             font-size: 0.9rem;
             display: none;
         }
+
+        /* ── Primer arranque ────────────────────────────── */
+        .setup-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #1a7a4a, #28a745);
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 14px;
+        }
+
+        .setup-hint {
+            background: #e8f5e9;
+            border-left: 4px solid #28a745;
+            border-radius: 0 8px 8px 0;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: #2e7d32;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .password-strength {
+            height: 4px;
+            border-radius: 4px;
+            margin-top: 6px;
+            background: #eee;
+            transition: background 0.3s;
+        }
     </style>
 </head>
 
 <body>
     <div class="login-card">
         <h1 id="appTitle" style="cursor: pointer; user-select: none;">📘 Cuaderno del Tutor</h1>
-        <p>Introduce tu código de acceso secreto.</p>
+        <p id="appSubtitle">Introduce tu código de acceso secreto.</p>
 
         <div id="errorBox" class="error-msg"></div>
 
+        <!-- ══ FORM: LOGIN NORMAL ══════════════════════════════════════════ -->
         <form id="loginForm">
             <div class="form-group">
                 <input type="text" id="username" placeholder="Usuario..." required autofocus>
@@ -112,13 +173,14 @@
             </div>
         </form>
 
+        <!-- ══ FORM: RECUPERAR CONTRASEÑA ═══════════════════════════════════ -->
         <form id="recoverForm" style="display: none; padding-top: 10px;">
             <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px;">Ingresa tu usuario para recuperar la
                 contraseña.</p>
             <div class="form-group" id="recUserGroup">
                 <input type="text" id="recUsername" placeholder="Usuario..." required>
-                <button type="button" onclick="pedirPregunta()" class="btn-submit"
-                    style="margin-top: 15px; background: #17a2b8;">Siguiente</button>
+                <button type="button" onclick="pedirPregunta()" class="btn-submit cyan"
+                    style="margin-top: 15px;">Siguiente</button>
             </div>
 
             <div id="recQGroups" style="display: none; text-align: left;">
@@ -131,7 +193,7 @@
                 <div class="form-group" style="margin-top: 15px;">
                     <input type="password" id="recNewPwd" placeholder="Nueva Contraseña..." required>
                 </div>
-                <button type="submit" class="btn-submit" style="background: #28a745; margin-top: 10px;">Restablecer y
+                <button type="submit" class="btn-submit verde" style="margin-top: 10px;">Restablecer y
                     Entrar</button>
             </div>
 
@@ -140,9 +202,52 @@
                     style="color: #6c757d; font-size: 0.9rem; text-decoration: none;">Volver al Login</a>
             </div>
         </form>
+
+        <!-- ══ FORM: PRIMER ARRANQUE (sin usuarios) ══════════════════════════ -->
+        <div id="setupForm" style="display: none;">
+            <div class="setup-badge">✨ Primera puesta en marcha</div>
+            <div class="setup-hint">
+                Bienvenido/a. Aún no hay ningún usuario registrado.<br>
+                Crea tu cuenta de <strong>Administrador</strong> para empezar.
+            </div>
+            <form id="setupInnerForm">
+                <div class="form-group">
+                    <label for="setupUsername">Nombre de usuario</label>
+                    <input type="text" id="setupUsername" placeholder="p.ej. maria" required autofocus minlength="3">
+                </div>
+                <div class="form-group">
+                    <label for="setupPassword">Contraseña</label>
+                    <input type="password" id="setupPassword" placeholder="Mínimo 6 caracteres" required minlength="6"
+                        oninput="updateStrength(this.value)">
+                    <div class="password-strength" id="pwdStrength"></div>
+                </div>
+                <div class="form-group">
+                    <label for="setupConfirm">Confirmar contraseña</label>
+                    <input type="password" id="setupConfirm" placeholder="Repite la contraseña" required>
+                </div>
+                <button type="submit" class="btn-submit verde">Crear cuenta y entrar →</button>
+            </form>
+        </div>
     </div>
 
     <script>
+        // ── Comprobar en el arranque si necesita setup ────────────────────────
+        (async function checkSetup() {
+            try {
+                const res = await fetch('/api/setup');
+                const data = await res.json();
+                if (data.ok && data.needs_setup) {
+                    // Ocultar login, mostrar setup
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('setupForm').style.display = 'block';
+                    document.getElementById('appSubtitle').textContent = 'Configura tu primera cuenta.';
+                }
+            } catch (e) {
+                // Si falla la petición, mostramos el login normal (fallo silencioso)
+            }
+        })();
+
+        // ── Login normal ──────────────────────────────────────────────────────
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
@@ -171,6 +276,48 @@
             }
         });
 
+        // ── Setup primer usuario ──────────────────────────────────────────────
+        document.getElementById('setupInnerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('setupUsername').value.trim();
+            const password = document.getElementById('setupPassword').value;
+            const confirm = document.getElementById('setupConfirm').value;
+            const errorBox = document.getElementById('errorBox');
+
+            errorBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, confirm })
+                });
+
+                const data = await res.json();
+                if (data.ok) {
+                    window.location.href = '/';
+                } else {
+                    errorBox.innerText = data.error || 'Error al crear el usuario';
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                errorBox.innerText = 'Error de conexión con el servidor.';
+                errorBox.style.display = 'block';
+            }
+        });
+
+        // ── Fuerza de contraseña ──────────────────────────────────────────────
+        function updateStrength(val) {
+            const bar = document.getElementById('pwdStrength');
+            if (!bar) return;
+            const len = val.length;
+            if (len === 0) { bar.style.background = '#eee'; return; }
+            if (len < 6) { bar.style.background = '#dc3545'; return; }
+            if (len < 10) { bar.style.background = '#ffc107'; return; }
+            bar.style.background = '#28a745';
+        }
+
+        // ── Recuperar contraseña ──────────────────────────────────────────────
         document.getElementById('recoverForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('recUsername').value.trim();
@@ -190,7 +337,6 @@
                 const data = await res.json();
                 if (data.ok) {
                     alert('¡Contraseña restablecida con éxito!');
-                    // Instead of full login, just redirect to login logic or reload
                     window.location.reload();
                 } else {
                     errorBox.innerText = data.error || 'Respuesta incorrecta';
@@ -206,7 +352,7 @@
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('recoverForm').style.display = 'block';
             document.getElementById('errorBox').style.display = 'none';
-            document.getElementById('recUsername').value = document.getElementById('username').value; // pre-fill
+            document.getElementById('recUsername').value = document.getElementById('username').value;
             document.getElementById('recUsername').focus();
         }
 
@@ -215,7 +361,6 @@
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('errorBox').style.display = 'none';
 
-            // reset forms
             document.getElementById('recQGroups').style.display = 'none';
             document.getElementById('recUserGroup').style.display = 'block';
             document.getElementById('recRespuesta').value = '';
@@ -251,6 +396,7 @@
             }
         }
 
+        // ── Easter egg: reseteo de emergencia ────────────────────────────────
         let titleClickCount = 0;
         let titleClickTimer = null;
         document.getElementById('appTitle').addEventListener('click', () => {

@@ -94,7 +94,7 @@ def serve_manifest():
 @app.before_request
 def require_auth():
     # Allow static files and the login/logout routes
-    if (request.path.startswith('/static/') or request.path in ['/login', '/logout', '/api/csrf-token', '/api/recover_password', '/service-worker.js', '/manifest.json'] or request.path.endswith('.js') or request.path.endswith('.css') or request.endpoint == 'static'):
+    if (request.path.startswith('/static/') or request.path in ['/login', '/logout', '/api/csrf-token', '/api/recover_password', '/api/setup', '/service-worker.js', '/manifest.json'] or request.path.endswith('.js') or request.path.endswith('.css') or request.endpoint == 'static'):
         return
         
     if not session.get('logged_in') or 'username' not in session:

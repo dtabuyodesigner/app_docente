@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Criterios</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --bg: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav {
+            background: #003366;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        select,
+        input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #333;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        td.inactive {
+            opacity: 0.5;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/programacion">📅 Calendario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/criterios.html" class="active">🎯 Criterios</a>
+            <a href="/configuracion">⚙️ Configuración</a>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="margin:0;">🎯 Gestión de Criterios de Evaluación</h2>
+        </div>
+
+        <div class="toolbar">
+            <div class="filters">
+                <div style="display:flex; flex-direction:column; gap:5px; flex:1;">
+                    <label style="font-size:0.85rem; font-weight:600; color:#555;">Filtrar por Área/Materia:</label>
+                    <select id="filterArea" onchange="cargarLista()">
+                        <option value="">Todas las Áreas</option>
+                    </select>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:5px; flex:1;">
+                    <label style="font-size:0.85rem; font-weight:600; color:#555;">Filtrar por Etapa:</label>
+                    <select id="filterEtapa" onchange="cargarLista()">
+                        <option value="">Todas las Etapas</option>
+                        <option value="Infantil">Infantil</option>
+                        <option value="Primaria">Primaria</option>
+                        <option value="Secundaria">Secundaria</option>
+                    </select>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="btn-success" onclick="abrirModalImportar()">📥 Importar CSV</button>
+                <button class="btn-primary" onclick="abrirModalNuevo()">➕ Nuevo Criterio</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Código</th>
+                    <th style="width: 45%;">Descripción</th>
+                    <th style="width: 15%;">Etapa / Área</th>
+                    <th style="width: 10%;">Estado</th>
+                    <th style="width: 15%; text-align:center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="listaCriterios">
+                <tr>
+                    <td colspan="5" style="text-align:center;">Cargando criterios...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Formulario Criterio -->
+    <div id="modalCriterio" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Nuevo Criterio</h3>
+            <form id="criterioForm" onsubmit="guardarCriterio(event)">
+                <input type="hidden" id="critId">
+                <div class="form-group">
+                    <label>Código (ej. ING-1.2)</label>
+                    <input type="text" id="critCodigo" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción completa</label>
+                    <textarea id="critDescripcion" required></textarea>
+                </div>
+                <div style="display:flex; gap:15px;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Etapa</label>
+                        <select id="critEtapa" required>
+                            <option value="Infantil">Infantil</option>
+                            <option value="Primaria">Primaria</option>
+                            <option value="Secundaria">Secundaria</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Área / Materia</label>
+                        <select id="critArea" required></select>
+                    </div>
+                </div>
+                <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" id="critActivo" checked style="width:auto;">
+                    <label for="critActivo" style="margin:0;">Activo (visible en nuevas evaluaciones)</label>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn-outline" onclick="cerrarModalCriterio()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Criterio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Importar CSV -->
+    <div id="modalImportar" class="modal">
+        <div class="modal-content">
+            <h3>📥 Importar Criterios desde CSV</h3>
+            <p style="font-size:0.9rem; color:#666;">El archivo debe contener las siguientes columnas separadas por
+                punto y coma (<code>;</code>):</p>
+            <pre
+                style="background:#f0f2f5; padding:10px; border-radius:6px; font-size:0.8rem; overflow-x:auto;">codigo;descripcion;etapa;area_id</pre>
+            <p style="font-size:0.85rem; color:#666;"><em>Nota: Si no conoces el ID del área, puedes escribir su Nombre
+                    y el sistema intentará encontrarlo.</em></p>
+            <form id="importForm" onsubmit="importarCSV(event)">
+                <div class="form-group">
+                    <label>Archivo CSV</label>
+                    <input type="file" id="csvFile" accept=".csv" required>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn-outline" onclick="cerrarModalImportar()">Cancelar</button>
+                    <button type="submit" class="btn-success">Subir e Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        let areasGlobales = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await cargarAreas();
+            cargarLista();
+        });
+
+        async function cargarAreas() {
+            try {
+                const r = await fetch('/api/evaluacion/areas');
+                areasGlobales = await r.json();
+
+                const filterArea = document.getElementById('filterArea');
+                const critArea = document.getElementById('critArea');
+
+                areasGlobales.forEach(a => {
+                    filterArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                    critArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                });
+            } catch (e) { console.error("Error al cargar áreas"); }
+        }
+
+        async function cargarLista() {
+            const area_id = document.getElementById('filterArea').value;
+            const etapa = document.getElementById('filterEtapa').value;
+
+            let url = '/api/criterios?';
+            if (area_id) url += `area_id=${area_id}&`;
+            if (etapa) url += `etapa=${etapa}`;
+
+            try {
+                const r = await fetch(url);
+                const data = await r.json();
+                const tbody = document.getElementById('listaCriterios');
+                tbody.innerHTML = '';
+
+                if (!data.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#666;">No se encontraron criterios con los filtros actuales.</td></tr>';
+                    return;
+                }
+
+                data.forEach(c => {
+                    const tr = document.createElement('tr');
+                    const badge = c.activo
+                        ? `<span class="badge badge-active">Activo</span>`
+                        : `<span class="badge badge-inactive">Desactivado</span>`;
+
+                    tr.innerHTML = `
+                    <td class="${!c.activo ? 'inactive' : ''}"><strong>${c.codigo}</strong></td>
+                    <td class="${!c.activo ? 'inactive' : ''}" style="font-size:0.9rem;">${c.descripcion}</td>
+                    <td class="${!c.activo ? 'inactive' : ''}"><small>${c.etapa || '—'} <br> ${c.area_nombre || '—'}</small></td>
+                    <td>${badge}</td>
+                    <td style="text-align:center;">
+                        <button class="btn-outline" style="padding:4px 8px; font-size:0.8rem;" onclick='abrirModalEditar(${JSON.stringify(c).replace(/'/g, "&#39;")})'>✏️ Editar</button>
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+                alert("Error cargando criterios");
+            }
+        }
+
+        // Modal Formulario
+        function abrirModalNuevo() {
+            document.getElementById('critId').value = '';
+            document.getElementById('critCodigo').value = '';
+            document.getElementById('critDescripcion').value = '';
+            if (document.getElementById('filterEtapa').value) document.getElementById('critEtapa').value = document.getElementById('filterEtapa').value;
+            if (document.getElementById('filterArea').value) document.getElementById('critArea').value = document.getElementById('filterArea').value;
+            document.getElementById('critActivo').checked = true;
+            document.getElementById('modalTitle').innerText = 'Nuevo Criterio';
+            document.getElementById('modalCriterio').style.display = 'flex';
+        }
+
+        function abrirModalEditar(c) {
+            document.getElementById('critId').value = c.id;
+            document.getElementById('critCodigo').value = c.codigo;
+            document.getElementById('critDescripcion').value = c.descripcion;
+            document.getElementById('critEtapa').value = c.etapa || 'Primaria';
+            document.getElementById('critArea').value = c.area_id;
+            document.getElementById('critActivo').checked = c.activo;
+            document.getElementById('modalTitle').innerText = 'Editar Criterio';
+            document.getElementById('modalCriterio').style.display = 'flex';
+        }
+
+        function cerrarModalCriterio() { document.getElementById('modalCriterio').style.display = 'none'; }
+
+        async function guardarCriterio(e) {
+            e.preventDefault();
+            const id = document.getElementById('critId').value;
+            const payload = {
+                codigo: document.getElementById('critCodigo').value,
+                descripcion: document.getElementById('critDescripcion').value,
+                etapa: document.getElementById('critEtapa').value,
+                area_id: document.getElementById('critArea').value,
+                activo: document.getElementById('critActivo').checked
+            };
+
+            const url = id ? `/api/criterios/${id}` : '/api/criterios';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const r = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await r.json();
+                if (data.ok) {
+                    cerrarModalCriterio();
+                    cargarLista();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) { alert("Error de conexión"); }
+        }
+
+        // Modal Importar
+        function abrirModalImportar() {
+            document.getElementById('csvFile').value = '';
+            document.getElementById('modalImportar').style.display = 'flex';
+        }
+
+        function cerrarModalImportar() { document.getElementById('modalImportar').style.display = 'none'; }
+
+        async function importarCSV(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput.files.length) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const r = await fetch('/api/criterios/import_csv', { method: 'POST', body: formData });
+                const data = await r.json();
+                if (data.ok) {
+                    alert(`¡Importación completada! Se han insertado ${data.inserted} criterios.`);
+                    cerrarModalImportar();
+                    cargarLista();
+                } else { alert("Error: " + data.error); }
+            } catch (err) { alert("Error de conexión durante la importación."); }
+        }
+    </script>
+</body>
+
+</html>

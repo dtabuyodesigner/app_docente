@@ -105,12 +105,16 @@ def evaluacion_areas():
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("SELECT id, nombre FROM areas ORDER BY nombre")
+    cur.execute("SELECT id, nombre, modo_evaluacion, tipo_escala FROM areas ORDER BY nombre")
     datos = cur.fetchall()
 
     return jsonify([
-        {"id": a["id"], "nombre": a["nombre"]}
-        for a in datos
+        {
+            "id": a["id"], 
+            "nombre": a["nombre"],
+            "modo_evaluacion": a["modo_evaluacion"],
+            "tipo_escala": a["tipo_escala"]
+        } for a in datos
     ])
 
 @evaluacion_bp.route("/api/evaluacion/sda/<int:area_id>")
@@ -186,7 +190,7 @@ def criterios_directos(area_id):
     cur.execute("""
         SELECT id, codigo, descripcion
         FROM criterios
-        WHERE area_id = ?
+        WHERE area_id = ? AND activo = 1
         ORDER BY codigo, id
     """, (area_id,))
     datos = cur.fetchall()
@@ -223,7 +227,7 @@ def evaluacion_criterios_completos(area_id):
     cur.execute("""
         SELECT id, codigo, descripcion
         FROM criterios
-        WHERE area_id = ?
+        WHERE area_id = ? AND activo = 1
         ORDER BY id
     """, (area_id,))
 

@@ -36,6 +36,7 @@ from routes.lectura import lectura_bp
 from routes.admin import admin_bp
 from routes.material import material_bp
 from routes.configuracion import configuracion_bp
+from routes.criterios_api import criterios_bp
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
@@ -55,6 +56,7 @@ app.register_blueprint(lectura_bp, url_prefix='/api')
 app.register_blueprint(admin_bp)
 app.register_blueprint(material_bp)
 app.register_blueprint(configuracion_bp)
+app.register_blueprint(criterios_bp)
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db

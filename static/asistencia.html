@@ -480,20 +480,20 @@
 <body>
     <div class="container">
         <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia" class="active">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Calendario</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a>
+        <a href="/">🏠 Inicio</a>
+        <a href="/alumnos">👥 Alumnos</a>
+        <a href="/asistencia" class="active">📋 Pasar lista</a>
+        <a href="/diario">📓 Diario</a>
+        <a href="/programacion">📅 Calendario</a>
+        <a href="/horario">⏰ Horario</a>
+        <a href="/evaluacion">📊 Evaluación</a>
+        <a href="/rubricas">📝 Rúbricas</a>
+        <a href="/informes">📜 Informes</a>
+        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+        <a href="/biblioteca">📚 Biblioteca</a>
+        <a href="/material">📦 Material</a>
+        <a href="/tareas">✅ Tareas</a>
+        <a href="/configuracion">⚙️ Configuración</a>
         </div>
 
         <div class="header">
@@ -503,7 +503,7 @@
                     style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <span style="font-size: 1.1rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: var(--primary); cursor: pointer; outline: none;">
+                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -1014,11 +1014,9 @@
         const monthInput = document.getElementById("mesHistorial");
 
         function openHistory() {
-            if (!monthInput.value) {
-                const now = new Date();
-                const m = (now.getMonth() + 1).toString().padStart(2, '0');
-                monthInput.value = `${now.getFullYear()}-${m}`;
-            }
+            const now = new Date();
+            const m = (now.getMonth() + 1).toString().padStart(2, '0');
+            monthInput.value = `${now.getFullYear()}-${m}`;
             historyModal.style.display = "flex";
             document.body.style.overflow = "hidden";
             loadHistory();
@@ -1034,12 +1032,10 @@
         const mesInput = document.getElementById('mesMenu');
 
         function openMenuModal() {
-            if (!mesInput.value) {
-                const now = new Date();
-                const yyyy = now.getFullYear();
-                const mm = String(now.getMonth() + 1).padStart(2, '0');
-                mesInput.value = `${yyyy}-${mm}`;
-            }
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            mesInput.value = `${yyyy}-${mm}`;
             menuModal.style.display = "flex";
             document.body.style.overflow = "hidden";
             loadMenu();
@@ -1123,14 +1119,42 @@
 
             try {
                 const res = await fetch(`/api/asistencia/mes?mes=${mes}`);
-                const data = await res.json();
+                const responseData = await res.json();
+
+                let data = responseData;
+                let stats = null;
+                if (!Array.isArray(responseData)) {
+                    data = responseData.alumnos || [];
+                    stats = responseData.stats;
+                }
 
                 if (data.length === 0) {
                     content.innerHTML = "<p style='text-align:center; color:#666;'>No hay registros de faltas/retrasos este mes.</p>";
                     return;
                 }
 
-                let html = `
+                let html = "";
+                if (stats && (stats.dia_mas_faltas_fecha || stats.dia_semana_mas_faltas)) {
+                    const diaFormatted = stats.dia_mas_faltas_fecha ? stats.dia_mas_faltas_fecha.split('-').reverse().join('-') : '-';
+                    html += `
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <div class="stat-card" style="flex: 1; min-width: 200px; border-color: var(--danger); background: white;">
+                            <h4 style="margin: 0 0 5px 0; color: #666; font-size: 0.9rem;">Día del mes con más faltas</h4>
+                            <p style="margin: 0; font-size: 1.2rem; font-weight: bold; color: var(--danger);">
+                                ${diaFormatted} ${stats.dia_mas_faltas_count > 0 ? `(${stats.dia_mas_faltas_count})` : ''}
+                            </p>
+                        </div>
+                        <div class="stat-card" style="flex: 1; min-width: 200px; border-color: #fd7e14; background: white;">
+                            <h4 style="margin: 0 0 5px 0; color: #666; font-size: 0.9rem;">Día de la semana con más faltas</h4>
+                            <p style="margin: 0; font-size: 1.2rem; font-weight: bold; color: #fd7e14;">
+                                ${stats.dia_semana_mas_faltas || '-'} ${stats.dia_semana_mas_faltas_count > 0 ? `(${stats.dia_semana_mas_faltas_count})` : ''}
+                            </p>
+                        </div>
+                    </div>
+                    `;
+                }
+
+                html += `
                     <table class="history-table">
                         <thead>
                             <tr>

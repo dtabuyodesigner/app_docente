@@ -409,7 +409,7 @@
                     style="background: var(--light); padding: 8px 15px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 8px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
                     <span style="font-size: 1.2rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border: none; background: transparent; font-weight: 600; font-size: 0.95rem; color: var(--primary); cursor: pointer; outline: none; padding-right: 5px;">
+                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -486,25 +486,9 @@
                 <span class="nav-text">Material</span>
             </a>
 
-            <a href="/usuarios" class="nav-btn" id="adminNavBtn">
-                <span class="nav-icon">👤</span>
-                <span class="nav-text">Usuarios</span>
-            </a>
-            <a href="#" onclick="abrirAjustesGrupos(); return false;" class="nav-btn">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-text">Ajustes Grupos</span>
-            </a>
-            <a href="/areas" class="nav-btn">
-                <span class="nav-icon">🏗️</span>
-                <span class="nav-text">Áreas</span>
-            </a>
-            <a href="/evaluacion#crit-pane" class="nav-btn">
-                <span class="nav-icon">📌</span>
-                <span class="nav-text">Criterios</span>
-            </a>
             <a href="/configuracion" class="nav-btn" style="border-color: #ffd700;">
                 <span class="nav-icon">🔧</span>
-                <span class="nav-text">Configuración</span>
+                <span class="nav-text">Configuración Avanzada</span>
             </a>
         </div>
 
@@ -1141,48 +1125,7 @@
             return d.csrf_token;
         }
 
-        async function loadGroupSelectorData() {
-            try {
-                const res = await fetch('/api/grupos');
-                const groups = await res.json();
-                const globalSelect = document.getElementById('globalGroupSelect');
-                if (!globalSelect) return;
-
-                let html = '';
-                groups.forEach(g => {
-                    html += `<option value="${g.id}">${g.nombre}</option>`;
-                });
-
-                if (html === '') {
-                    html = '<option value="">(Sin grupos)</option>';
-                }
-                globalSelect.innerHTML = html;
-
-                // Read active group
-                const actRes = await fetch('/api/grupo_activo');
-                const actData = await actRes.json();
-                if (actData.id) {
-                    globalSelect.value = actData.id;
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        async function changeActiveGroup(groupId) {
-            if (!groupId) return;
-            try {
-                await fetch('/api/grupo_activo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ grupo_id: groupId })
-                });
-                // Recargar el dashboard entero con datos del nuevo grupo
-                window.location.reload();
-            } catch (e) {
-                console.error("Error setting active group", e);
-            }
-        }
+        // loadGroupSelectorData and changeActiveGroup are now provided by /static/js/global_groups.js
 
         async function createNewGroup() {
             const etapa = document.getElementById('newGroupStage').value;
@@ -1629,6 +1572,8 @@
                 .catch(e => console.warn('[PWA] Error al registrar SW:', e));
         }
     </script>
+
+    <script src="/static/js/global_groups.js"></script>
 </body>
 
 </html>

@@ -61,27 +61,52 @@ def informe_pdf_individual():
     
     # 3. Notas
     # 3. Notas por Área
+    periodo = f"T{trimestre}"
     cur.execute("""
-        SELECT a.id, a.nombre, ROUND(AVG(e.nota), 2)
-        FROM evaluaciones e
-        JOIN areas a ON e.area_id = a.id
-        WHERE e.alumno_id = ? AND e.trimestre = ?
-        GROUP BY a.id, a.nombre
-    """, (alumno_id, trimestre))
+        SELECT a.id, a.nombre, ROUND(AVG(val.nota), 2) as media, a.tipo_escala
+        FROM (
+            SELECT area_id, nota FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT c.area_id, ec.nota 
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            WHERE ec.alumno_id = ? AND ec.periodo = ?
+        ) val
+        JOIN areas a ON val.area_id = a.id
+        GROUP BY a.id, a.nombre, a.tipo_escala
+    """, (alumno_id, trimestre, alumno_id, periodo))
     notas_area = cur.fetchall()
 
     # 4. Notas por SDA con Criterios
     cur.execute("""
         SELECT a.nombre as area, s.nombre as sda, c.codigo as criterio_codigo, 
-               c.descripcion as criterio_desc, e.nota
+               c.descripcion as criterio_desc, e.nota, a.tipo_escala
         FROM evaluaciones e
         JOIN sda s ON e.sda_id = s.id
         JOIN areas a ON e.area_id = a.id
         JOIN criterios c ON e.criterio_id = c.id
         WHERE e.alumno_id = ? AND e.trimestre = ?
-        ORDER BY a.nombre, s.nombre, c.codigo
-    """, (alumno_id, trimestre))
+        
+        UNION ALL
+        
+        SELECT a.nombre as area, 'Criterios Directos' as sda, c.codigo as criterio_codigo,
+               c.descripcion as criterio_desc, ec.nota, a.tipo_escala
+        FROM evaluacion_criterios ec
+        JOIN criterios c ON ec.criterio_id = c.id
+        JOIN areas a ON c.area_id = a.id
+        WHERE ec.alumno_id = ? AND ec.periodo = ?
+        
+        ORDER BY area, sda, criterio_codigo
+    """, (alumno_id, trimestre, alumno_id, periodo))
     notas_criterios = cur.fetchall()
+
+    def format_nota(nota, tipo_escala):
+        if nota is None:
+            return "—"
+        if tipo_escala == "INFANTIL_NI_EP_C":
+            n = round(nota)
+            return {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
+        return f"{nota:.2f}"
 
     # 5. Detalle de Faltas (Nuevo)
     # Filter by trimester dates
@@ -162,30 +187,31 @@ def informe_pdf_individual():
     # Group Criterios by Area and SDA
     # Structure: Area (avg) → SDA 1 → Criterio 1, Criterio 2... → SDA 2 → ...
     
-    area_sda_map = {}  # {area_name: {sda_name: [(criterio, nota), ...]}}
-    for area, sda, crit_cod, crit_desc, nota in notas_criterios:
+    area_sda_map = {}  # {area_name: {sda_name: [(criterio, nota, escala), ...]}}
+    for area, sda, crit_cod, crit_desc, nota, escala in notas_criterios:
         if area not in area_sda_map:
             area_sda_map[area] = {}
         if sda not in area_sda_map[area]:
             area_sda_map[area][sda] = []
-        area_sda_map[area][sda].append((f"{crit_cod}", nota))
+        area_sda_map[area][sda].append((f"{crit_cod}", nota, escala))
         
     data_notas = [["Área", "Nota Media", "Detalle SDA y Criterios"]]
-    for aid, area_nombre, nota_media in notas_area:
+    for aid, area_nombre, nota_media, tipo_escala in notas_area:
         # Build hierarchical string for this area
         sda_dict = area_sda_map.get(area_nombre, {})
         detail_lines = []
         for sda_name, criterios in sda_dict.items():
             # Calculate SDA average
             sda_avg = round(sum(c[1] for c in criterios) / len(criterios), 2) if criterios else 0
-            detail_lines.append(f"<b>{sda_name}</b>: {sda_avg}")
-            for crit_cod, nota in criterios:
-                detail_lines.append(f"  • {crit_cod}: {nota}")
+            fmt_sda_avg = format_nota(sda_avg, tipo_escala)
+            detail_lines.append(f"<b>{sda_name}</b>: {fmt_sda_avg}")
+            for crit_cod, nota, escala in criterios:
+                detail_lines.append(f"  • {crit_cod}: {format_nota(nota, escala)}")
         
         detail_str = "<br/>".join(detail_lines) if detail_lines else "Sin datos"
         data_notas.append([
             Paragraph(area_nombre, styles['Normal']), 
-            str(nota_media), 
+            str(format_nota(nota_media, tipo_escala)), 
             Paragraph(detail_str, styles['Normal'])
         ])
         
@@ -208,18 +234,32 @@ def informe_pdf_individual():
         
         areas = [row[1] for row in notas_area]
         notas = [row[2] for row in notas_area]
+        escalas = [row[3] for row in notas_area]
         
         fig, ax = plt.subplots(figsize=(8, max(3, len(areas) * 0.5)))
-        colors_bars = ['#28a745' if n >= 5 else '#dc3545' for n in notas]
+        
+        colors_bars = []
+        for n, es in zip(notas, escalas):
+            if es == "INFANTIL_NI_EP_C":
+                if n < 2:
+                    colors_bars.append('#dc3545') # NI
+                elif n < 3:
+                    colors_bars.append('#ffc107') # EP
+                else:
+                    colors_bars.append('#28a745') # C
+            else:
+                colors_bars.append('#28a745' if n >= 5 else '#dc3545')
+                
         bars = ax.barh(areas, notas, color=colors_bars)
         ax.set_xlabel('Nota Media')
         ax.set_title(f'Rendimiento por Área - {alumno}')
-        ax.set_xlim(0, 10)
+        has_num = any(es != "INFANTIL_NI_EP_C" for es in escalas)
+        ax.set_xlim(0, 10 if has_num else 3.5)
         ax.grid(axis='x', alpha=0.3)
         
         # Añadir valores en las barras
-        for i, (bar, nota) in enumerate(zip(bars, notas)):
-            ax.text(nota + 0.2, i, f'{nota:.2f}', va='center', fontweight='bold')
+        for i, (bar, nota, es) in enumerate(zip(bars, notas, escalas)):
+            ax.text(nota + 0.2, i, format_nota(nota, es), va='center', fontweight='bold')
         
         chart_buf = BytesIO()
         plt.savefig(chart_buf, format='png', bbox_inches='tight', dpi=150)
@@ -537,15 +577,74 @@ def grupo_data():
     cur.execute("SELECT COUNT(*) FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     total_alumnos = cur.fetchone()[0]
     
-    cur.execute("SELECT COUNT(*), AVG(e.nota) FROM evaluaciones e JOIN alumnos a ON e.alumno_id = a.id WHERE e.trimestre = ? AND a.grupo_id = ?", (trimestre, grupo_id))
-    row_evals = cur.fetchone()
-    total_evals = row_evals[0]
-    media_general = round(row_evals[1] or 0, 2)
+    # Comprobar si es un grupo de Infantil (basado en el tipo_escala de sus áreas)
+    cur.execute("""
+        SELECT a.tipo_escala 
+        FROM grupos g
+        JOIN areas a ON g.etapa_id = a.etapa_id
+        WHERE g.id = ? AND a.tipo_escala = 'INFANTIL_NI_EP_C'
+        LIMIT 1
+    """, (grupo_id,))
+    es_infantil = cur.fetchone() is not None
+
+    media_general = 0
+    total_evals = 0
+    suspensos_map = {} # {alumno_id: num_suspensos / num_evaluaciones_infantil}
     
-    # 2. ASISTENCIA (Estimación trimestral - Usando mes actual como proxy o query compleja)
-    # Para simplificar, cogemos TODA la asistencia (Ajustar si se requiere filtro por fechas trimestre)
-    # Asumimos fechas trimestre: 1T (Sept-Dic), 2T (Ene-Mar), 3T (Abr-Jun)
-    # Implementación simple: Filtro por fechas
+    if es_infantil:
+        # Calcular media usando evaluacion_criterios
+        periodo = f"T{trimestre}"
+        cur.execute("""
+            SELECT ec.alumno_id, ec.nota
+            FROM evaluacion_criterios ec
+            JOIN alumnos a ON ec.alumno_id = a.id
+            WHERE ec.periodo = ? AND a.grupo_id = ?
+        """, (periodo, grupo_id))
+        
+        notas_inf = cur.fetchall()
+        total_evals = len(notas_inf)
+        if total_evals > 0:
+            media_general = round(sum(row["nota"] for row in notas_inf) / total_evals, 2)
+            
+            # Promoción Infantil: calculamos la media por alumno
+            alumnos_medias = {}
+            for row in notas_inf:
+                aid = row["alumno_id"]
+                if aid not in alumnos_medias:
+                    alumnos_medias[aid] = []
+                alumnos_medias[aid].append(row["nota"])
+                
+            for aid, notas in alumnos_medias.items():
+                media_alumno = sum(notas) / len(notas)
+                if media_alumno >= 2.5:   # Conseguido
+                    suspensos_map[aid] = 'C'
+                elif media_alumno >= 1.5: # En Proceso
+                    suspensos_map[aid] = 'EP'
+                else:                     # No Iniciado
+                    suspensos_map[aid] = 'NI'
+    else:
+        # Lógica original para grupos no infantiles (evaluaciones)
+        cur.execute("""
+            SELECT COUNT(*), AVG(e.nota) 
+            FROM evaluaciones e 
+            JOIN alumnos a ON e.alumno_id = a.id 
+            WHERE e.trimestre = ? AND a.grupo_id = ?
+        """, (trimestre, grupo_id))
+        row_evals = cur.fetchone()
+        total_evals = row_evals[0]
+        media_general = round(row_evals[1] or 0, 2)
+        
+        # 3. PROMOCION (Alumnos con 0, 1, 2, +2 suspensos)
+        cur.execute("""
+            SELECT e.alumno_id, COUNT(*)
+            FROM evaluaciones e
+            JOIN alumnos a ON a.id = e.alumno_id
+            WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
+            GROUP BY e.alumno_id
+        """, (trimestre, grupo_id))
+        suspensos_map = dict(cur.fetchall()) # {alumno_id: num_suspensos}
+        
+    # 2. ASISTENCIA
     
     start_date, end_date = "", ""
     year = date.today().year
@@ -569,38 +668,58 @@ def grupo_data():
     
     asist_stats = dict(cur.fetchall())
     
-    # 3. PROMOCION (Alumnos con 0, 1, 2, +2 suspensos)
-    cur.execute("""
-        SELECT e.alumno_id, COUNT(*)
-        FROM evaluaciones e
-        JOIN alumnos a ON a.id = e.alumno_id
-        WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
-        GROUP BY e.alumno_id
-    """, (trimestre, grupo_id))
-    suspensos_map = dict(cur.fetchall()) # {alumno_id: num_suspensos}
-    
-    # Rellenar con 0 los que no tienen suspensos
     cur.execute("SELECT id FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     all_ids = [r[0] for r in cur.fetchall()]
     
-    distribucion = {0: 0, 1: 0, 2: 0, 3: 0} # 3 representa >2
+    distribucion = {0: 0, 1: 0, 2: 0, 3: 0} # 3 representa >2 si no es infantil
+    infantil_dist = {'C': 0, 'EP': 0, 'NI': 0}
+    evaluados_count = 0
     
-    for aid in all_ids:
-        num = suspensos_map.get(aid, 0)
-        if num > 2:
-            distribucion[3] += 1
-        else:
-            distribucion[num] += 1
+    if es_infantil:
+        for aid in all_ids:
+            cat = suspensos_map.get(aid)
+            if cat in infantil_dist:
+                infantil_dist[cat] += 1
+                evaluados_count += 1
+    else:
+        for aid in all_ids:
+            num = suspensos_map.get(aid, 0)
+            if num > 2:
+                distribucion[3] += 1
+            else:
+                distribucion[num] += 1
             
     
     def pct(n):
         return round(n * 100.0 / total_alumnos, 1) if total_alumnos > 0 else 0
+        
+    def pct_inf(n):
+        return round(n * 100.0 / evaluados_count, 1) if evaluados_count > 0 else 0
     
+    promocion_data = {}
+    if es_infantil:
+        promocion_data = {
+            "is_infantil": True,
+            "C": {"num": infantil_dist['C'], "pct": pct_inf(infantil_dist['C'])},
+            "EP": {"num": infantil_dist['EP'], "pct": pct_inf(infantil_dist['EP'])},
+            "NI": {"num": infantil_dist['NI'], "pct": pct_inf(infantil_dist['NI'])},
+            "NE": {"num": total_alumnos - evaluados_count, "pct": 0} # No evaluados
+        }
+    else:
+        promocion_data = {
+            "is_infantil": False,
+            "todo": {"num": distribucion[0], "pct": pct(distribucion[0])},
+            "una": {"num": distribucion[1], "pct": pct(distribucion[1])},
+            "dos": {"num": distribucion[2], "pct": pct(distribucion[2])},
+            "mas_de_dos": {"num": distribucion[3], "pct": pct(distribucion[3])}
+        }
+
     return jsonify({
         "generales": {
             "total_alumnos": total_alumnos,
             "media_general": media_general,
-            "total_evals": total_evals
+            "total_evals": total_evals,
+            "is_infantil": es_infantil
         },
         "asistencia": {
             "total_faltas": asist_stats.get('falta_justificada', 0) + asist_stats.get('falta_no_justificada', 0),
@@ -608,12 +727,7 @@ def grupo_data():
             "f_no_justificada": asist_stats.get('falta_no_justificada', 0),
             "total_retrasos": asist_stats.get('retraso', 0)
         },
-        "promocion": {
-            "todo": {"num": distribucion[0], "pct": pct(distribucion[0])},
-            "una": {"num": distribucion[1], "pct": pct(distribucion[1])},
-            "dos": {"num": distribucion[2], "pct": pct(distribucion[2])},
-            "mas_de_dos": {"num": distribucion[3], "pct": pct(distribucion[3])}
-        }
+        "promocion": promocion_data
     })
 
 @informes_bp.route("/api/informe/asistencia_detalle")
@@ -836,13 +950,25 @@ def informe_pdf_todos():
     
     def calc_pct(n):
         return f"{round(n * 100 / total_alumnos, 1)}%" if total_alumnos > 0 else "0%"
+        
+    def calc_pct_inf(n):
+        return f"{round(n * 100 / evaluados_infantil, 1)}%" if evaluados_infantil > 0 else "0%"
 
-    data_prom = [
-        ["Todo Aprobado", f"{susp_map[0]} ({calc_pct(susp_map[0])})"],
-        ["1 Suspenso", f"{susp_map[1]} ({calc_pct(susp_map[1])})"],
-        ["2 Suspensos", f"{susp_map[2]} ({calc_pct(susp_map[2])})"],
-        ["+2 Suspensos", f"{susp_map[3]} ({calc_pct(susp_map[3])})"]
-    ]
+    if es_infantil:
+        data_prom = [
+            ["Conseguido (C)", f"{infantil_map['C']} ({calc_pct_inf(infantil_map['C'])})"],
+            ["En Proceso (EP)", f"{infantil_map['EP']} ({calc_pct_inf(infantil_map['EP'])})"],
+            ["No Iniciado (NI)", f"{infantil_map['NI']} ({calc_pct_inf(infantil_map['NI'])})"],
+            ["No Evaluados", f"{total_alumnos - evaluados_infantil}"]
+        ]
+    else:
+        data_prom = [
+            ["Todo Aprobado", f"{susp_map[0]} ({calc_pct(susp_map[0])})"],
+            ["1 Suspenso", f"{susp_map[1]} ({calc_pct(susp_map[1])})"],
+            ["2 Suspensos", f"{susp_map[2]} ({calc_pct(susp_map[2])})"],
+            ["+2 Suspensos", f"{susp_map[3]} ({calc_pct(susp_map[3])})"]
+        ]
+        
     t_prom = Table(data_prom, colWidths=[4*cm, 4*cm])
     t_prom.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 1, colors.grey),
@@ -859,6 +985,16 @@ def informe_pdf_todos():
     elements.append(PageBreak())
     
     # --- INFORMES INDIVIDUALES ---
+    def format_nota(nota, tipo_escala):
+        if nota is None:
+            return "—"
+        if tipo_escala == "INFANTIL_NI_EP_C":
+            n = round(nota)
+            return {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
+        return f"{nota:.2f}"
+
+    periodo = f"T{trimestre}"
+
     for al in alumnos:
         conn = get_db() # Helper inside loop to be safe or reuse logic
         cur = conn.cursor()
@@ -879,25 +1015,41 @@ def informe_pdf_todos():
         asist_data = dict(cur.fetchall())
 
         cur.execute("""
-            SELECT a.id, a.nombre, ROUND(AVG(e.nota), 2)
-            FROM evaluaciones e
-            JOIN areas a ON e.area_id = a.id
-            WHERE e.alumno_id = ? AND e.trimestre = ?
-            GROUP BY a.id, a.nombre
-        """, (al['id'], trimestre))
+            SELECT a.id, a.nombre, ROUND(AVG(val.nota), 2) as media, a.tipo_escala
+            FROM (
+                SELECT area_id, nota FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
+                UNION ALL
+                SELECT c.area_id, ec.nota 
+                FROM evaluacion_criterios ec
+                JOIN criterios c ON ec.criterio_id = c.id
+                WHERE ec.alumno_id = ? AND ec.periodo = ?
+            ) val
+            JOIN areas a ON val.area_id = a.id
+            GROUP BY a.id, a.nombre, a.tipo_escala
+        """, (al['id'], trimestre, al['id'], periodo))
         notas_area = cur.fetchall()
 
         # Notas SDA con Criterios
         cur.execute("""
             SELECT a.nombre as area, s.nombre as sda, c.codigo as criterio_codigo,
-                   c.descripcion as criterio_desc, e.nota
+                   c.descripcion as criterio_desc, e.nota, a.tipo_escala
             FROM evaluaciones e
             JOIN sda s ON e.sda_id = s.id
             JOIN areas a ON e.area_id = a.id
             JOIN criterios c ON e.criterio_id = c.id
             WHERE e.alumno_id = ? AND e.trimestre = ?
-            ORDER BY a.nombre, s.nombre, c.codigo
-        """, (al['id'], trimestre))
+            
+            UNION ALL
+            
+            SELECT a.nombre as area, 'Criterios Directos' as sda, c.codigo as criterio_codigo,
+                   c.descripcion as criterio_desc, ec.nota, a.tipo_escala
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            JOIN areas a ON c.area_id = a.id
+            WHERE ec.alumno_id = ? AND ec.periodo = ?
+            
+            ORDER BY area, sda, criterio_codigo
+        """, (al['id'], trimestre, al['id'], periodo))
         notas_criterios = cur.fetchall()
 
         # Detalle Faltas
@@ -956,26 +1108,28 @@ def informe_pdf_todos():
         # Tabla Notas
         elements.append(Paragraph("Rendimiento Académico", styles['Heading3']))
         
-        area_sda_map = {}  # {area_name: {sda_name: [(criterio, nota), ...]}}
-        for area, sda, crit_cod, crit_desc, nota in notas_criterios:
+        area_sda_map = {}  # {area_name: {sda_name: [(criterio, nota, escala), ...]}}
+        for area, sda, crit_cod, crit_desc, nota, escala in notas_criterios:
             if area not in area_sda_map:
                 area_sda_map[area] = {}
             if sda not in area_sda_map[area]:
                 area_sda_map[area][sda] = []
-            area_sda_map[area][sda].append((f"{crit_cod}", nota))
+            area_sda_map[area][sda].append((f"{crit_cod}", nota, escala))
             
         data_notas = [["Área", "Nota Media", "Detalle SDA y Criterios"]]
-        for aid, area_nombre, nota_media in notas_area:
+        for aid, area_nombre, nota_media, tipo_escala in notas_area:
             sda_dict = area_sda_map.get(area_nombre, {})
             detail_lines = []
             for sda_name, criterios in sda_dict.items():
                 sda_avg = round(sum(c[1] for c in criterios) / len(criterios), 2) if criterios else 0
-                detail_lines.append(f"<b>{sda_name}</b>: {sda_avg}")
-                detail_lines.append(f"  • {crit_cod}: {nota}")
+                fmt_sda_avg = format_nota(sda_avg, tipo_escala)
+                detail_lines.append(f"<b>{sda_name}</b>: {fmt_sda_avg}")
+                for crit_cod, nota, escala in criterios:
+                    detail_lines.append(f"  • {crit_cod}: {format_nota(nota, escala)}")
             detail_str = "<br/>".join(detail_lines) if detail_lines else "Sin datos"
             data_notas.append([
                 Paragraph(area_nombre, styles['Normal']), 
-                str(nota_media), 
+                str(format_nota(nota_media, tipo_escala)), 
                 Paragraph(detail_str, styles['Normal'])
             ])
             
@@ -1243,28 +1397,74 @@ def pdf_grupo():
     
     grupo_id = session.get('active_group_id')
     
-    # Promoción (Suspensos)
+    # Comprobar si es un grupo de Infantil
     cur.execute("""
-        SELECT a.nombre, COUNT(*) as num_suspensos
-        FROM evaluaciones e
-        JOIN alumnos a ON a.id = e.alumno_id
-        WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
-        GROUP BY a.id, a.nombre
-    """, (trimestre, grupo_id))
-    suspensos_data = cur.fetchall()
-    
-    susp_map = {0: 0, 1: 0, 2: 0, 3: 0} # 0, 1, 2, +2
-    for r in suspensos_data:
-        n = r["num_suspensos"]
-        if n > 2:
-            susp_map[3] += 1
-        else:
-            susp_map[n] += 1
-            
-    # Total alumnos (para los que tienen 0 suspensos)
+        SELECT a.tipo_escala 
+        FROM grupos g
+        JOIN areas a ON g.etapa_id = a.etapa_id
+        WHERE g.id = ? AND a.tipo_escala = 'INFANTIL_NI_EP_C'
+        LIMIT 1
+    """, (grupo_id,))
+    es_infantil = cur.fetchone() is not None
+
     cur.execute("SELECT count(*) FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     total_alumnos = cur.fetchone()[0]
-    susp_map[0] = total_alumnos - len(suspensos_data)
+
+    susp_map = {}
+    infantil_map = {'C': 0, 'EP': 0, 'NI': 0}
+
+    if es_infantil:
+        periodo = f"T{trimestre}"
+        cur.execute("""
+            SELECT ec.alumno_id, ec.nota
+            FROM evaluacion_criterios ec
+            JOIN alumnos a ON ec.alumno_id = a.id
+            WHERE ec.periodo = ? AND a.grupo_id = ?
+        """, (periodo, grupo_id))
+        notas_inf = cur.fetchall()
+        
+        alumnos_medias = {}
+        for row in notas_inf:
+            aid = row["alumno_id"]
+            if aid not in alumnos_medias:
+                alumnos_medias[aid] = []
+            alumnos_medias[aid].append(row["nota"])
+            
+        evaluados_infantil = 0
+        cur.execute("SELECT id FROM alumnos WHERE grupo_id = ?", (grupo_id,))
+        for r in cur.fetchall():
+            aid = r[0]
+            if aid in alumnos_medias:
+                evaluados_infantil += 1
+                media = sum(alumnos_medias[aid]) / len(alumnos_medias[aid])
+                if media >= 2.5:
+                    infantil_map['C'] += 1
+                elif media >= 1.5:
+                    infantil_map['EP'] += 1
+                else:
+                    infantil_map['NI'] += 1
+            else:
+                pass # Already handling NE by (total_alumnos - evaluados_infantil)
+    else:
+        # Promoción (Suspensos)
+        cur.execute("""
+            SELECT a.nombre, COUNT(*) as num_suspensos
+            FROM evaluaciones e
+            JOIN alumnos a ON a.id = e.alumno_id
+            WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
+            GROUP BY a.id, a.nombre
+        """, (trimestre, grupo_id))
+        suspensos_data = cur.fetchall()
+        
+        susp_map = {0: 0, 1: 0, 2: 0, 3: 0} # 0, 1, 2, +2
+        for r in suspensos_data:
+            n = r["num_suspensos"]
+            if n > 2:
+                susp_map[3] += 1
+            else:
+                susp_map[n] += 1
+                
+        susp_map[0] = total_alumnos - len(suspensos_data)
 
     # Asistencia Max
     start_date, end_date = "", ""
@@ -1316,12 +1516,30 @@ def pdf_grupo():
     
     # Gráfica 1: Pie Chart de Promoción
     fig1, ax1 = plt.subplots(figsize=(6, 4))
-    colors_promo = ['#28a745', '#ffc107', '#fd7e14', '#dc3545']
-    ax1.pie([susp_map[0], susp_map[1], susp_map[2], susp_map[3]], 
-            labels=["Todo Aprobado", "1 Suspenso", "2 Suspensos", "+2 Suspensos"],
-            autopct='%1.1f%%',
-            colors=colors_promo,
-            startangle=90)
+    if es_infantil:
+        colors_promo = ['#28a745', '#ffc107', '#dc3545']
+        data = [infantil_map['C'], infantil_map['EP'], infantil_map['NI']]
+        if sum(data) > 0:
+            ax1.pie(data, 
+                    labels=["Conseguido", "En Proceso", "No Iniciado"],
+                    autopct='%1.1f%%',
+                    colors=colors_promo,
+                    startangle=90)
+        else:
+            ax1.text(0.5, 0.5, 'Sin datos evaluados', ha='center', va='center')
+            ax1.axis('off')
+    else:
+        colors_promo = ['#28a745', '#ffc107', '#fd7e14', '#dc3545']
+        data = [susp_map[0], susp_map[1], susp_map[2], susp_map[3]]
+        if sum(data) > 0:
+            ax1.pie(data, 
+                    labels=["Todo Aprobado", "1 Suspenso", "2 Suspensos", "+2 Suspensos"],
+                    autopct='%1.1f%%',
+                    colors=colors_promo,
+                    startangle=90)
+        else:
+            ax1.text(0.5, 0.5, 'Sin datos evaluados', ha='center', va='center')
+            ax1.axis('off')
     ax1.set_title('Análisis de Promoción')
     promo_chart_buf = BytesIO()
     plt.savefig(promo_chart_buf, format='png', bbox_inches='tight', dpi=150)

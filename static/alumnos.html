@@ -206,7 +206,6 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="/static/js/global_groups.js"></script>
 </head>
 
 <body>
@@ -236,7 +235,7 @@
                     style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <span style="font-size: 1.1rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: var(--primary); cursor: pointer; outline: none;">
+                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -1332,6 +1331,7 @@
 
         </script>
         <script src="/static/js/api.js"></script>
+        <script src="/static/js/global_groups.js"></script>
 </body>
 
 </html>

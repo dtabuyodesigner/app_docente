@@ -157,7 +157,25 @@ def asistencia_mes():
     lista = list(resumen.values())
     lista.sort(key=lambda x: (x['injustificadas'] + x['justificadas'] + x['retrasos']), reverse=True)
 
-    return jsonify(lista)
+    fechas_count = {}
+    dias_semana_count = {}
+    dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    
+    for row in datos:
+        if row["estado"] in ('falta_justificada', 'falta_no_justificada'):
+            f = row["fecha"]
+            fechas_count[f] = fechas_count.get(f, 0) + 1
+            wd = date.fromisoformat(f).weekday()
+            dias_semana_count[wd] = dias_semana_count.get(wd, 0) + 1
+            
+    stats = {
+        "dia_mas_faltas_fecha": max(fechas_count, key=fechas_count.get) if fechas_count else None,
+        "dia_mas_faltas_count": max(fechas_count.values()) if fechas_count else 0,
+        "dia_semana_mas_faltas": dias_nombres[max(dias_semana_count, key=dias_semana_count.get)] if dias_semana_count else None,
+        "dia_semana_mas_faltas_count": max(dias_semana_count.values()) if dias_semana_count else 0
+    }
+
+    return jsonify({"alumnos": lista, "stats": stats})
 
 @asistencia_bp.route("/api/asistencia/resumen")
 def resumen_asistencia():

@@ -399,19 +399,38 @@ def media_area():
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT ROUND(AVG(nota), 2)
-        FROM evaluaciones
-        WHERE alumno_id = ?
-          AND area_id = ?
-          AND trimestre = ?
-    """, (alumno_id, area_id, trimestre))
+    try:
+        cur.execute("SELECT modo_evaluacion, tipo_escala FROM areas WHERE id = ?", (area_id,))
+        area_row = cur.fetchone()
+        tipo_escala = area_row["tipo_escala"] if area_row else "NUMERICA_1_4"
 
-    media = cur.fetchone()[0]
+        if area_row and area_row["modo_evaluacion"] == "POR_CRITERIOS_DIRECTOS":
+            cur.execute("""
+                SELECT ROUND(AVG(ec.nota), 2)
+                FROM evaluacion_criterios ec
+                JOIN criterios c ON ec.criterio_id = c.id
+                WHERE ec.alumno_id = ?
+                  AND c.area_id = ?
+                  AND ec.periodo = ?
+            """, (alumno_id, area_id, f"T{trimestre}"))
+        else:
+            cur.execute("""
+                SELECT ROUND(AVG(nota), 2)
+                FROM evaluaciones
+                WHERE alumno_id = ?
+                  AND area_id = ?
+                  AND trimestre = ?
+            """, (alumno_id, area_id, trimestre))
 
-    return jsonify({
-        "media": media if media is not None else 0
-    })
+        media = cur.fetchone()[0]
+
+        return jsonify({
+            "media": media if media is not None else 0,
+            "tipo_escala": tipo_escala
+        })
+    except Exception as e:
+        print("Error in media_area:", str(e))
+        return jsonify({"media": 0, "tipo_escala": "NUMERICA_1_4"})
 
 @evaluacion_bp.route("/api/evaluacion/resumen_areas")
 def resumen_areas_alumno():
@@ -423,7 +442,7 @@ def resumen_areas_alumno():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT a.nombre, ROUND(AVG(val.nota), 2) as media
+        SELECT a.nombre, ROUND(AVG(val.nota), 2) as media, a.tipo_escala
         FROM (
             SELECT area_id, nota FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
             UNION ALL
@@ -433,14 +452,14 @@ def resumen_areas_alumno():
             WHERE ec.alumno_id = ? AND ec.periodo = ?
         ) val
         JOIN areas a ON val.area_id = a.id
-        GROUP BY a.id, a.nombre
+        GROUP BY a.id, a.nombre, a.tipo_escala
         ORDER BY a.nombre
     """, (alumno_id, trimestre, alumno_id, periodo))
 
     rows = cur.fetchall()
     
     return jsonify([
-         {"area": row["nombre"], "media": row["media"]}
+         {"area": row["nombre"], "media": row["media"], "tipo_escala": row["tipo_escala"]}
          for row in rows
     ])
 
@@ -453,21 +472,21 @@ def resumen_sda_todos():
     cur = conn.cursor()
     
     cur.execute("""
-        SELECT a.nombre as area, s.nombre as sda, ROUND(AVG(e.nota), 2) as media
+        SELECT a.nombre as area, s.nombre as sda, ROUND(AVG(e.nota), 2) as media, a.tipo_escala
         FROM evaluaciones e
         JOIN areas a ON e.area_id = a.id
         JOIN sda s ON e.sda_id = s.id
         WHERE e.alumno_id = ?
           AND e.trimestre = ?
-        GROUP BY a.nombre, s.nombre
+        GROUP BY a.nombre, s.nombre, a.tipo_escala
         ORDER BY a.nombre, s.nombre
     """, (alumno_id, trimestre))
     
     rows = cur.fetchall()
     
     return jsonify([
-        {"area": r["area"], "sda": r["sda"], "media": r["media"]}
-        for r in rows
+         {"area": row["area"], "sda": row["sda"], "media": row["media"], "tipo_escala": row["tipo_escala"]}
+         for row in rows
     ])
 
 @evaluacion_bp.route("/api/rubricas/<int:criterio_id>")

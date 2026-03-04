@@ -183,20 +183,20 @@
 <body>
     <div class="container">
         <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Calendario</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes" class="active">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a>
+        <a href="/">🏠 Inicio</a>
+        <a href="/alumnos">👥 Alumnos</a>
+        <a href="/asistencia">📋 Pasar lista</a>
+        <a href="/diario">📓 Diario</a>
+        <a href="/programacion">📅 Calendario</a>
+        <a href="/horario">⏰ Horario</a>
+        <a href="/evaluacion">📊 Evaluación</a>
+        <a href="/rubricas">📝 Rúbricas</a>
+        <a href="/informes" class="active">📜 Informes</a>
+        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+        <a href="/biblioteca">📚 Biblioteca</a>
+        <a href="/material">📦 Material</a>
+        <a href="/tareas">✅ Tareas</a>
+        <a href="/configuracion">⚙️ Configuración</a>
         </div>
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
@@ -205,7 +205,7 @@
                     style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <span style="font-size: 1.1rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: #003366; cursor: pointer; outline: none;">
+                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -216,7 +216,7 @@
         <!-- PESTAÑAS -->
         <div class="tab-container" style="margin-bottom: 20px;"><button class="tab-button active"
                 onclick="switchTab('tabIndividual')">👤 Informes Individuales</button><button class="tab-button"
-                onclick="switchTab('tabGrupo')">👨‍👩‍👧‍👦 Informe de Grupo (Global)</button></div>
+                onclick="switchTab('tabGrupo', true)">👨‍👩‍👧‍👦 Informe de Grupo (Global)</button></div>
         <!-- MODAL DETALLE ASISTENCIA -->
         <div id="modalAsistencia" class="modal">
             <div class="modal-content">
@@ -370,14 +370,20 @@
             let trimInd = document.getElementById("trimestreIndividual");
             let trimGrp = document.getElementById("trimestreGrupo");
 
-            function switchTab(tabId) {
+            function switchTab(tabId, checkGroup = false) {
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
                 document.getElementById(tabId).classList.add('active');
-                event.currentTarget.classList.add('active');
 
-                if (tabId === 'tabGrupo') cargarInformeGrupo();
-                else cargarInforme();
+                // Use event target if triggered by click, else handle manually if needed (not strict requirement here)
+                if (event && event.currentTarget) {
+                    event.currentTarget.classList.add('active');
+                } else if (tabId === 'tabGrupo') {
+                    document.querySelector('.tab-button[onclick*="tabGrupo"]').classList.add('active');
+                }
+
+                if (tabId === 'tabGrupo' && checkGroup) cargarInformeGrupo();
+                else if (tabId === 'tabIndividual') cargarInforme();
             }
 
             // Cargar alumnos Inicial
@@ -400,6 +406,28 @@
                 return "#28a745";
             }
 
+            function formatNotaText(nota, escala) {
+                if (escala === 'INFANTIL_NI_EP_C') {
+                    const rnd = Math.round(nota);
+                    if (rnd === 1) return 'NI';
+                    if (rnd === 2) return 'EP';
+                    if (rnd === 3) return 'C';
+                    return '—';
+                }
+                return nota.toFixed(2);
+            }
+
+            function getColorNotaEscala(nota, escala) {
+                if (escala === 'INFANTIL_NI_EP_C') {
+                    if (nota < 2) return "#dc3545"; // NI
+                    if (nota < 3) return "#ffc107"; // EP
+                    return "#28a745"; // C
+                }
+                if (nota < 5) return "#dc3545";
+                if (nota < 7) return "#ffc107";
+                return "#28a745";
+            }
+
             function cargarInforme() {
                 if (!alumnoSelect.value) return;
                 const alumnoId = alumnoSelect.value;
@@ -410,7 +438,9 @@
                     .then(datos => {
                         let html = datos.length === 0 ? "<em>No hay calificaciones.</em>" : "<table><tr><th>Área</th><th>Media</th></tr>";
                         datos.forEach(d => {
-                            html += `<tr><td>${d.area}</td><td style="color:${getColorNota(d.media)};font-weight:bold;">${d.media}</td></tr>`;
+                            const valText = formatNotaText(d.media, d.tipo_escala);
+                            const valColor = getColorNotaEscala(d.media, d.tipo_escala);
+                            html += `<tr><td>${d.area}</td><td style="color:${valColor};font-weight:bold;">${valText}</td></tr>`;
                         });
                         document.getElementById("mediasAreas").innerHTML = html + "</table>";
                     });
@@ -418,6 +448,7 @@
                 fetch(`/api/evaluacion/resumen_sda_todos?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(datos => {
+                        // Current endpoint doesn't return tipo_escala, so default to standard
                         let html = datos.length === 0 ? "<em>No hay calificaciones.</em>" : "<table><tr><th>Área</th><th>SDA</th><th>Media</th></tr>";
                         datos.forEach(d => {
                             html += `<tr><td>${d.area}</td><td>${d.sda}</td><td style="color:${getColorNota(d.media)};font-weight:bold;">${d.media}</td></tr>`;
@@ -462,11 +493,36 @@
                         const g = d.generales;
                         const a = d.asistencia;
                         const p = d.promocion;
+
+                        let mediaHtml = '';
+                        let promocionHtml = '';
+
+                        if (g.is_infantil) {
+                            const valText = formatNotaText(g.media_general, 'INFANTIL_NI_EP_C');
+                            const valColor = getColorNotaEscala(g.media_general, 'INFANTIL_NI_EP_C');
+                            mediaHtml = `<b style="color:${valColor}">${valText}</b>`;
+
+                            promocionHtml = `
+                                <tr><td>✅ Conseguido (C):</td><td><b>${p.C.num}</b> (${p.C.pct}%)</td></tr>
+                                <tr><td>⚠️ En Proceso (EP):</td><td><b>${p.EP.num}</b> (${p.EP.pct}%)</td></tr>
+                                <tr><td>❌ No Iniciado (NI):</td><td><b>${p.NI.num}</b> (${p.NI.pct}%)</td></tr>
+                                <tr style="color: #666;"><td>⚪ No Evaluados (NE):</td><td><b>${p.NE.num}</b></td></tr>
+                            `;
+                        } else {
+                            mediaHtml = `<b style="color:${getColorNota(g.media_general)}">${g.media_general}</b>`;
+                            promocionHtml = `
+                                <tr><td>✅ Todo aprobado:</td><td><b>${p.todo.num}</b> (${p.todo.pct}%)</td></tr>
+                                <tr><td>⚠️ 1 Suspenso:</td><td><b>${p.una.num}</b> (${p.una.pct}%)</td></tr>
+                                <tr><td>❌ 2 Suspensos:</td><td><b>${p.dos.num}</b> (${p.dos.pct}%)</td></tr>
+                                <tr><td>🚫 +2 Suspensos:</td><td><b>${p.mas_de_dos.num}</b> (${p.mas_de_dos.pct}%)</td></tr>
+                            `;
+                        }
+
                         document.getElementById("resumenGrupoStats").innerHTML = `
                         <div style="padding: 10px;">
                             <strong>Dashboard T${trimestre}:</strong> 
                             <div class="stat-card">👥 Alumnos: <b>${g.total_alumnos}</b></div>
-                            <div class="stat-card">📊 Media: <b style="color:${getColorNota(g.media_general)}">${g.media_general}</b></div>
+                            <div class="stat-card">📊 Media: ${mediaHtml}</div>
                             <div class="stat-card">📅 Faltas: <b>${a.total_faltas}</b> (
                                 <span class="stat-clickable" style="color:green; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_justificada')">J: ${a.f_justificada}</span> / 
                                 <span class="stat-clickable" style="color:red; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_no_justificada')">I: ${a.f_no_justificada}</span>
@@ -477,10 +533,7 @@
                             <div style="flex: 1;">
                                 <strong>Análisis de Promoción:</strong>
                                 <table style="margin-top: 5px; font-size: 13px;">
-                                    <tr><td>✅ Todo aprobado:</td><td><b>${p.todo.num}</b> (${p.todo.pct}%)</td></tr>
-                                    <tr><td>⚠️ 1 Suspenso:</td><td><b>${p.una.num}</b> (${p.una.pct}%)</td></tr>
-                                    <tr><td>❌ 2 Suspensos:</td><td><b>${p.dos.num}</b> (${p.dos.pct}%)</td></tr>
-                                    <tr><td>🚫 +2 Suspensos:</td><td><b>${p.mas_de_dos.num}</b> (${p.mas_de_dos.pct}%)</td></tr>
+                                    ${promocionHtml}
                                 </table>
                             </div>
                         </div>

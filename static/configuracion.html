@@ -158,20 +158,64 @@
 
     <div class="container">
         <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Calendario</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion" class="active">⚙️ Configuración</a>
+        <a href="/">🏠 Inicio</a>
+        <a href="/alumnos">👥 Alumnos</a>
+        <a href="/asistencia">📋 Pasar lista</a>
+        <a href="/diario">📓 Diario</a>
+        <a href="/programacion">📅 Calendario</a>
+        <a href="/horario">⏰ Horario</a>
+        <a href="/evaluacion">📊 Evaluación</a>
+        <a href="/rubricas">📝 Rúbricas</a>
+        <a href="/informes">📜 Informes</a>
+        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+        <a href="/biblioteca">📚 Biblioteca</a>
+        <a href="/material">📦 Material</a>
+        <a href="/tareas">✅ Tareas</a>
+        <a href="/configuracion" class="active">⚙️ Configuración</a>
+        </div>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;" class="injected-group-selector">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size: 1.1rem;">📚</span>
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)" style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card"
+            style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
+            <h2 style="color: white; border-bottom: 1px solid rgba(255,255,255,0.2); margin-top: 0;">⚙️ Administración
+                Rápida</h2>
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; margin-top: 20px;">
+                <a href="/usuarios"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span style="font-size: 2rem;">👤</span> Usuarios
+                </a>
+                <a href="#" onclick="abrirAjustesGrupos(); return false;"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span style="font-size: 2rem;">⚙️</span> Grupos
+                </a>
+                <a href="/areas"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span style="font-size: 2rem;">🏗️</span> Áreas
+                </a>
+                <a href="/evaluacion#crit-pane"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span style="font-size: 2rem;">📌</span> Criterios
+                </a>
+            </div>
         </div>
 
         <div class="card">
@@ -261,6 +305,123 @@
 
         window.onload = loadConfig;
     </script>
+
+    <!-- Ajustes Grupos Modal -->
+    <div class="modal-overlay" id="ajustesGruposModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 style="color: var(--primary); margin: 0;">⚙️ Ajustes de Grupos</h3>
+                <button class="modal-close"
+                    onclick="document.getElementById('ajustesGruposModal').style.display='none'">&times;</button>
+            </div>
+            <div style="margin-top: 20px; text-align: left;">
+
+                <div style="margin-bottom: 30px;">
+                    <h4 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top:0;">Mis Grupos</h4>
+                    <div id="ajustesGruposList">
+                        <p style="color: #666; font-style: italic;">Cargando grupos...</p>
+                    </div>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                    <h4 style="margin-top: 0; color:var(--primary);">➕ Crear Nuevo Grupo</h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Etapa y Curso:</label>
+                        <select id="newGroupStage"
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                            <optgroup label="Educación Infantil">
+                                <option value="infantil_3">Infantil 3 años</option>
+                                <option value="infantil_4">Infantil 4 años</option>
+                                <option value="infantil_5">Infantil 5 años</option>
+                            </optgroup>
+                            <optgroup label="Educación Primaria">
+                                <option value="primaria_1">1º de Primaria</option>
+                                <option value="primaria_2">2º de Primaria</option>
+                                <option value="primaria_3">3º de Primaria</option>
+                                <option value="primaria_4">4º de Primaria</option>
+                                <option value="primaria_5">5º de Primaria</option>
+                                <option value="primaria_6">6º de Primaria</option>
+                            </optgroup>
+                            <optgroup label="Colegios Unitarios">
+                                <option value="unitario_infantil">Unitario - Solo Infantil (3 a 5 años)</option>
+                                <option value="unitario_primaria">Unitario - Solo Primaria (1º a 6º)</option>
+                                <option value="unitario_mixto">Unitario - Mixto (Infantil y Primaria)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 25px;">
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Línea (Letra):</label>
+                        <select id="newGroupLine"
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                            <option value="">Ninguna (Línea Única)</option>
+                            <option value="A">Línea A</option>
+                            <option value="B">Línea B</option>
+                            <option value="C">Línea C</option>
+                            <option value="D">Línea D</option>
+                        </select>
+                    </div>
+                    <button onclick="createNewGroup()"
+                        style="width:100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                        Guardar Grupo
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Renombrar Grupo Modal -->
+    <div class="modal-overlay" id="renombrarGrupoModal" style="z-index: 1010;">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 style="color: var(--primary); margin: 0;">✏️ Renombrar Grupo</h3>
+                <button class="modal-close"
+                    onclick="document.getElementById('renombrarGrupoModal').style.display='none'">&times;</button>
+            </div>
+            <div style="margin-top: 20px; text-align: left;">
+                <input type="hidden" id="renameGroupId">
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Etapa y Curso:</label>
+                    <select id="renameGroupStage"
+                        style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                        <optgroup label="Educación Infantil">
+                            <option value="infantil_3">Infantil 3 años</option>
+                            <option value="infantil_4">Infantil 4 años</option>
+                            <option value="infantil_5">Infantil 5 años</option>
+                        </optgroup>
+                        <optgroup label="Educación Primaria">
+                            <option value="primaria_1">1º de Primaria</option>
+                            <option value="primaria_2">2º de Primaria</option>
+                            <option value="primaria_3">3º de Primaria</option>
+                            <option value="primaria_4">4º de Primaria</option>
+                            <option value="primaria_5">5º de Primaria</option>
+                            <option value="primaria_6">6º de Primaria</option>
+                        </optgroup>
+                        <optgroup label="Colegios Unitarios">
+                            <option value="unitario_infantil">Unitario - Solo Infantil (3 a 5 años)</option>
+                            <option value="unitario_primaria">Unitario - Solo Primaria (1º a 6º)</option>
+                            <option value="unitario_mixto">Unitario - Mixto (Infantil y Primaria)</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Línea (Letra):</label>
+                    <select id="renameGroupLine"
+                        style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                        <option value="">Ninguna (Línea Única)</option>
+                        <option value="A">Línea A</option>
+                        <option value="B">Línea B</option>
+                        <option value="C">Línea C</option>
+                        <option value="D">Línea D</option>
+                    </select>
+                </div>
+                <button onclick="ejecutarRenombrarGrupo()"
+                    style="width:100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">
+                    Actualizar Nombre
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="/static/js/global_groups.js"></script>
     <script src="/static/js/api.js"></script>

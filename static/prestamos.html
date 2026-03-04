@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <style>
         :root {
             --primary: #003366;
@@ -430,6 +432,17 @@
         <a href="/configuracion">⚙️ Configuración</a>
     </nav>
     <div class="container">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;" class="injected-group-selector">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-size: 1.1rem;">📚</span>
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)" style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
+                        <option value="">Cargando grupos...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div class="page-header">
             <h1>📋 Préstamos de Libros</h1>
             <div style="display:flex;gap:10px;">
@@ -576,6 +589,8 @@
             updateStats();
         }
 
+        let tsAlumno, tsLibro;
+
         async function loadAlumnos() {
             const r = await fetch('/api/alumnos');
             if (!r.ok) return;
@@ -585,6 +600,13 @@
             (alumnos.alumnos || alumnos).forEach(a => {
                 sel.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
             });
+
+            if (tsAlumno) tsAlumno.destroy();
+            tsAlumno = new TomSelect('#sel-alumno', {
+                create: false,
+                sortField: { field: "text", direction: "asc" },
+                placeholder: 'Buscar alumno...'
+            });
         }
 
         async function loadLibros() {
@@ -593,6 +615,13 @@
             sel.innerHTML = '<option value="">-- Selecciona un libro --</option>';
             libros.filter(l => l.cantidad_disponible > 0).forEach(l => {
                 sel.innerHTML += `<option value="${l.id}">${l.titulo} (${l.cantidad_disponible} disp.)</option>`;
+            });
+
+            if (tsLibro) tsLibro.destroy();
+            tsLibro = new TomSelect('#sel-libro', {
+                create: false,
+                sortField: { field: "text", direction: "asc" },
+                placeholder: 'Buscar libro...'
             });
         }
 
@@ -681,8 +710,11 @@
         }
 
         async function registrarPrestamo() {
-            const alumno_id = document.getElementById('sel-alumno').value;
-            const libro_id = document.getElementById('sel-libro').value;
+            let alumno_id = document.getElementById('sel-alumno').value;
+            let libro_id = document.getElementById('sel-libro').value;
+            if (tsAlumno) alumno_id = tsAlumno.getValue();
+            if (tsLibro) libro_id = tsLibro.getValue();
+
             const fecha_prestamo = document.getElementById('sel-fecha').value;
             const alertEl = document.getElementById('loanAlert');
             if (!alumno_id || !libro_id) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Selecciona un alumno y un libro</div>'; return; }
@@ -690,6 +722,11 @@
             if (d.ok) {
                 alertEl.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`;
                 setTimeout(() => alertEl.innerHTML = '', 3000);
+
+                // Clear selection
+                if (tsAlumno) tsAlumno.clear();
+                if (tsLibro) tsLibro.clear();
+
                 // Actualizar todo inmediatamente tras el préstamo
                 await Promise.all([loadLibros(), loadActivos(), loadRetrasos(), loadHistorial()]);
                 await updateStats();
@@ -740,6 +777,8 @@
 
         loadAll();
     </script>
+
+    <script src="/static/js/global_groups.js"></script>
 </body>
 
 </html>

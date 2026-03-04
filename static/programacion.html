@@ -677,7 +677,7 @@
                     style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <span style="font-size: 1.1rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: #003366; cursor: pointer; outline: none;">
+                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -758,14 +758,20 @@
 
                 <input type="hidden" id="eventId">
 
-                <div style="margin-bottom:15px;">
-                    <label>Fecha:</label>
-                    <input type="date" id="eventDate">
+                <div style="margin-bottom:15px; display:flex; gap:15px;">
+                    <div style="flex:1;">
+                        <label>Fecha:</label>
+                        <input type="date" id="eventDate">
+                    </div>
+                    <div style="flex:1;">
+                        <label>Hora (Opcional):</label>
+                        <input type="time" id="eventTime">
+                    </div>
                 </div>
 
                 <div style="margin-bottom:15px;">
                     <label>Tipo de Evento:</label>
-                    <div style="display:flex; gap:10px;">
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:5px;">
                         <button type="button" class="btn-type active" data-color="#3788d8" data-type="clase"
                             onclick="selectType(this)">📘 Clase</button>
                         <button type="button" class="btn-type" data-color="#dc3545" data-type="examen"
@@ -774,6 +780,8 @@
                             onclick="selectType(this)">🌲 Excursión</button>
                         <button type="button" class="btn-type" data-color="#6c757d" data-type="festivo"
                             onclick="selectType(this)">🎉 Festivo</button>
+                        <button type="button" class="btn-type" data-color="#ff8c00" data-type="reunion"
+                            onclick="selectType(this)">🤝 Reunión</button>
                     </div>
                     <input type="hidden" id="eventType" value="clase">
                     <input type="hidden" id="eventColor" value="#3788d8">
@@ -1756,8 +1764,19 @@
 
             if (event) {
                 document.getElementById('eventId').value = event.id;
-                document.getElementById('eventDate').value = event.startStr;
-                document.getElementById('eventActivity').value = event.title;
+                document.getElementById('eventDate').value = event.startStr.split('T')[0];
+
+                // Extract time from title if it matches the format [HH:MM] Title
+                let title = event.title;
+                let timeMatched = title.match(/^\[(\d{2}:\d{2})\]\s*(.*)/);
+                if (timeMatched) {
+                    document.getElementById('eventTime').value = timeMatched[1];
+                    document.getElementById('eventActivity').value = timeMatched[2];
+                } else {
+                    document.getElementById('eventTime').value = '';
+                    document.getElementById('eventActivity').value = title;
+                }
+
                 document.getElementById('eventObs').value = event.extendedProps.observaciones || "";
                 document.getElementById('eventSda').value = event.extendedProps.sda_id || "";
 
@@ -1770,6 +1789,7 @@
                     document.getElementById('eventObs').disabled = true;
                     document.getElementById('eventSda').disabled = true;
                     document.getElementById('eventDate').disabled = true;
+                    document.getElementById('eventTime').disabled = true;
 
                     const btn = document.querySelector(`.btn-type[data-type="clase"]`);
                     if (btn) selectType(btn);
@@ -1782,6 +1802,7 @@
                     document.getElementById('eventObs').disabled = false;
                     document.getElementById('eventSda').disabled = false;
                     document.getElementById('eventDate').disabled = false;
+                    document.getElementById('eventTime').disabled = false;
                     document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
                     document.querySelector('.btn-success').style.display = 'inline-block';
 
@@ -1792,6 +1813,7 @@
             } else {
                 document.getElementById('eventId').value = "";
                 document.getElementById('eventDate').value = dateStr;
+                document.getElementById('eventTime').value = "";
                 document.getElementById('eventActivity').value = "";
                 document.getElementById('eventActivity').disabled = false;
                 document.getElementById('eventObs').value = "";
@@ -1799,6 +1821,7 @@
                 document.getElementById('eventSda').value = "";
                 document.getElementById('eventSda').disabled = false;
                 document.getElementById('eventDate').disabled = false;
+                document.getElementById('eventTime').disabled = false;
                 document.querySelector('.btn-success').style.display = 'inline-block';
                 document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
                 selectType(document.querySelector('.btn-type[data-type="clase"]'));
@@ -1820,9 +1843,21 @@
 
         function saveEvent() {
             const id = document.getElementById('eventId').value;
+
+            let activityText = document.getElementById('eventActivity').value;
+            const eventTime = document.getElementById('eventTime').value;
+            let fullDateStr = document.getElementById('eventDate').value;
+
+            // Si hay hora, la añadimos al título para que la muestre en el calendario (no requiere DB schema change ahora)
+            if (eventTime) {
+                activityText = `[${eventTime}] ${activityText}`;
+                // Optional: We could also append the time to the date if we want it to parse as datetime in calendar
+                // fullDateStr = `${fullDateStr}T${eventTime}:00`; 
+            }
+
             const data = {
-                fecha: document.getElementById('eventDate').value,
-                actividad: document.getElementById('eventActivity').value,
+                fecha: fullDateStr,
+                actividad: activityText,
                 observaciones: document.getElementById('eventObs').value,
                 sda_id: document.getElementById('eventSda').value,
                 tipo: document.getElementById('eventType').value,
@@ -1932,7 +1967,7 @@
             }
 
             const data = {
-                fecha: event.startStr,
+                fecha: event.startStr.split('T')[0],
                 actividad: event.title,
                 observaciones: event.extendedProps.observaciones,
                 sda_id: event.extendedProps.sda_id,

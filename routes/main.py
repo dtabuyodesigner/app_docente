@@ -218,6 +218,7 @@ def get_mis_grupos():
     grupos = [dict(g) for g in cur.fetchall()]
     return jsonify(grupos)
 
+
 @main_bp.route("/api/grupos", methods=["POST"])
 def new_grupo():
     if not session.get('logged_in'):

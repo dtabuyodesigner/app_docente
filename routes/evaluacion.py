@@ -15,6 +15,19 @@ def borrar_evaluacion():
     conn = get_db()
     cur = conn.cursor()
     try:
+        if area_id:
+            cur.execute("SELECT modo_evaluacion FROM areas WHERE id = ?", (area_id,))
+            ar = cur.fetchone()
+            if ar and ar["modo_evaluacion"] == "POR_CRITERIOS_DIRECTOS":
+                cur.execute("""
+                    DELETE FROM evaluacion_criterios 
+                    WHERE alumno_id = ? AND periodo = ? AND criterio_id IN (
+                        SELECT id FROM criterios WHERE area_id = ?
+                    )
+                """, (alumno_id, f"T{trimestre}", area_id))
+                conn.commit()
+                return jsonify({"ok": True})
+
         if sda_id and sda_id != 'null':
             cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?",
                         (alumno_id, sda_id, trimestre))
@@ -102,18 +115,53 @@ def obtener_evaluacion():
 
 @evaluacion_bp.route("/api/evaluacion/areas")
 def evaluacion_areas():
+    """Devuelve áreas activas filtradas por etapa.
+    Prioridad: 1) ?etapa_id= en URL, 2) etapa del grupo activo en sesión.
+    CRÍTICO según spec: nunca mezclar áreas entre etapas.
+    """
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("SELECT id, nombre, modo_evaluacion, tipo_escala FROM areas ORDER BY nombre")
-    datos = cur.fetchall()
+    # Prioridad 1: parámetro explícito de la URL (desde selector de Etapa en UI)
+    etapa_id = request.args.get('etapa_id', type=int)
 
+    # Prioridad 2: deducir del grupo activo en sesión
+    if not etapa_id:
+        grupo_id = session.get('active_group_id')
+        if grupo_id:
+            cur.execute("SELECT etapa_id, tipo_evaluacion FROM grupos WHERE id = ?", (grupo_id,))
+            g = cur.fetchone()
+            if g:
+                etapa_id = g["etapa_id"]
+                # Retrocompatibilidad: si no hay etapa_id, deducir de tipo_evaluacion
+                if not etapa_id and g["tipo_evaluacion"]:
+                    cur.execute("SELECT id FROM etapas WHERE LOWER(nombre) = LOWER(?)",
+                               ("Infantil" if g["tipo_evaluacion"] == "infantil" else "Primaria",))
+                    et = cur.fetchone()
+                    if et:
+                        etapa_id = et["id"]
+
+    if etapa_id:
+        cur.execute("""
+            SELECT id, nombre, modo_evaluacion, tipo_escala, etapa_id, activa
+            FROM areas
+            WHERE activa = 1 AND etapa_id = ?
+            ORDER BY nombre
+        """, (etapa_id,))
+    else:
+        cur.execute("""
+            SELECT id, nombre, modo_evaluacion, tipo_escala, etapa_id, activa
+            FROM areas WHERE activa = 1 ORDER BY nombre
+        """)
+
+    datos = cur.fetchall()
     return jsonify([
         {
-            "id": a["id"], 
+            "id": a["id"],
             "nombre": a["nombre"],
             "modo_evaluacion": a["modo_evaluacion"],
-            "tipo_escala": a["tipo_escala"]
+            "tipo_escala": a["tipo_escala"],
+            "etapa_id": a["etapa_id"]
         } for a in datos
     ])
 
@@ -323,11 +371,21 @@ def media_sda():
             WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
         """, (alumno_id, sda_id, trimestre))
     else:
-        cur.execute("""
-            SELECT ROUND(AVG(nota), 2)
-            FROM evaluaciones
-            WHERE alumno_id = ? AND sda_id IS NULL AND trimestre = ? AND area_id = ?
-        """, (alumno_id, trimestre, area_id))
+        cur.execute("SELECT modo_evaluacion FROM areas WHERE id = ?", (area_id,))
+        area_row = cur.fetchone()
+        if area_row and area_row["modo_evaluacion"] == "POR_CRITERIOS_DIRECTOS":
+            cur.execute("""
+                SELECT ROUND(AVG(ec.nota), 2)
+                FROM evaluacion_criterios ec
+                JOIN criterios c ON ec.criterio_id = c.id
+                WHERE ec.alumno_id = ? AND c.area_id = ? AND ec.periodo = ?
+            """, (alumno_id, area_id, f"T{trimestre}"))
+        else:
+            cur.execute("""
+                SELECT ROUND(AVG(nota), 2)
+                FROM evaluaciones
+                WHERE alumno_id = ? AND sda_id IS NULL AND trimestre = ? AND area_id = ?
+            """, (alumno_id, trimestre, area_id))
 
     media = cur.fetchone()[0]
     return jsonify({"media": media if media is not None else 0})
@@ -359,19 +417,25 @@ def media_area():
 def resumen_areas_alumno():
     alumno_id = request.args.get("alumno_id")
     trimestre = request.args.get("trimestre")
+    periodo = f"T{trimestre}"
 
     conn = get_db()
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT a.nombre, ROUND(AVG(e.nota), 2) as media
-        FROM evaluaciones e
-        JOIN areas a ON e.area_id = a.id
-        WHERE e.alumno_id = ?
-          AND e.trimestre = ?
+        SELECT a.nombre, ROUND(AVG(val.nota), 2) as media
+        FROM (
+            SELECT area_id, nota FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT c.area_id, ec.nota 
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            WHERE ec.alumno_id = ? AND ec.periodo = ?
+        ) val
+        JOIN areas a ON val.area_id = a.id
         GROUP BY a.id, a.nombre
         ORDER BY a.nombre
-    """, (alumno_id, trimestre))
+    """, (alumno_id, trimestre, alumno_id, periodo))
 
     rows = cur.fetchall()
     

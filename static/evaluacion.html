@@ -197,6 +197,68 @@
             font-weight: 600;
             color: #0056a0;
         }
+
+        /* Tabs */
+        .tab-btn-eval {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            color: #555;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0;
+        }
+
+        .tab-btn-eval:hover {
+            background: #e9ecef;
+        }
+
+        .tab-btn-eval.active {
+            background: white;
+            border-bottom: 2px solid white;
+            color: var(--primary);
+            position: relative;
+            z-index: 2;
+            margin-bottom: -1px;
+        }
+
+        .tab-pane-eval {
+            display: none;
+        }
+
+        .tab-pane-eval.active {
+            display: block;
+        }
+
+        /* Criteria Table Specific Styles */
+        .table-crit th,
+        .table-crit td {
+            text-align: left;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .inactive {
+            opacity: 0.5;
+        }
     </style>
 </head>
 
@@ -210,97 +272,275 @@
             <a href="/programacion">📅 Calendario</a>
             <a href="/horario">⏰ Horario</a>
             <a href="/evaluacion" class="active">📊 Evaluación</a>
-            <a href="/criterios.html">🎯 Criterios</a>
             <a href="/rubricas">📝 Rúbricas</a>
             <a href="/informes">📜 Informes</a>
             <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
             <a href="/biblioteca">📚 Biblioteca</a>
             <a href="/material">📦 Material</a>
             <a href="/tareas">✅ Tareas</a>
+            <a href="/configuracion">⚙️ Configuración</a>
         </div>
 
-        <div
-            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-            <div style="display:flex; align-items:center; gap:15px;">
-                <h2 style="margin:0;">📊 Evaluación</h2>
-                <div
-                    style="background:white; padding:6px 12px; border-radius:8px; border:1px solid #ddd; display:flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                    <span style="font-size:1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary); cursor:pointer; outline:none;">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
-                <div id="modoBadge" class="modo-badge" style="display:none;"></div>
-            </div>
+        <div class="tabs-eval"
+            style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px;">
+            <button class="tab-btn-eval active" onclick="showEvalTab('eval-pane', this)">📊 Evaluación</button>
+            <button class="tab-btn-eval" onclick="showEvalTab('crit-pane', this)">🎯 Gestión de Criterios</button>
         </div>
 
-        <div id="filtrosGlobales"
-            style="margin-bottom:15px; display:grid; grid-template-columns: auto auto auto minmax(0,1fr); gap:15px; align-items:center;">
-            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
-                <select id="alumno"
-                    style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
-            </label>
-            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Materia/Área:
-                <select id="area" style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
-            </label>
-            <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Trimestre:
-                <select id="trimestre" style="margin:0;">
-                    <option value="1">1º Trimestre</option>
-                    <option value="2" selected>2º Trimestre</option>
-                    <option value="3">3º Trimestre</option>
-                </select>
-            </label>
-            <label id="lblSDA"
-                style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;overflow:hidden;">SDA:
-                <select id="sda"
-                    style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;"></select>
-            </label>
-        </div>
-
-        <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
-            <button id="btnRellenar3" onclick="rellenarTodos(3)"
-                style="background:#007bff; color:white; display:none;">⚡ Rellenar Visible a 3</button>
-            <button class="btnRellenarNI" onclick="rellenarTodos(2)"
-                style="background:#ffc107; color:#333; display:none;">⚡ Rellenar Visible a [EP]</button>
-            <button onclick="limpiarTodos()" style="background:#dc3545; color:white; border-color:#dc3545;">🗑️ Limpiar
-                Visible</button>
-            <button id="btnCriterioExtra" onclick="abrirModalExtra()"
-                style="background:#28a745; color:white; border-color:#28a745; font-weight:bold; display:none;">➕
-                Criterio Extra</button>
-        </div>
-
-        <table>
-            <thead id="thead"></thead>
-            <tbody id="tbody"></tbody>
-        </table>
-
-        <div id="mediaSDA" style="margin-top:15px; text-align:right; font-size:18px; font-weight:bold; color:#333;">📊
-            Resultado: —</div>
-        <div id="mediaArea" style="margin-top:5px; text-align:right; font-size:18px; font-weight:bold; color:#28a745;">
-            📈 Resultado del Área: —</div>
-
-        <div style="margin-top:30px; border-top:2px solid #ddd; padding-top:15px;">
-            <h3>📋 Resumen por Alumno</h3>
-            <div id="resumenAlumno"
-                style="background:#fff; padding:15px; border:1px solid #ccc; border-radius:5px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-                <em>Selecciona un alumno para ver su resultado en cada área.</em>
-            </div>
-        </div>
-
-        <!-- Modal Criterio Extra (solo Primaria) -->
-        <div id="modalExtra"
-            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div id="eval-pane" class="tab-pane-eval active">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height:80vh; display:flex; flex-direction:column;">
-                <h3 style="margin-top:0;">Añadir Criterio Extra</h3>
-                <p style="color:#666; font-size:0.9rem;">Selecciona un criterio para evaluarlo independientemente de la
-                    SDA actual.</p>
-                <div style="flex:1; overflow-y:auto; border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:15px;"
-                    id="listaCriteriosExtra"></div>
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <h2 style="margin:0;">📊 Evaluación</h2>
+                    <div
+                        style="background:white; padding:6px 12px; border-radius:8px; border:1px solid #ddd; display:flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <span style="font-size:1.1rem;">📚</span>
+                        <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
+                            style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary); cursor:pointer; outline:none; max-width:200px;">
+                            <option value="">Cargando grupos...</option>
+                        </select>
+                    </div>
+                    <div id="modoBadge" class="modo-badge" style="display:none;"></div>
+                </div>
+            </div>
+
+            <div id="filtrosGlobales"
+                style="margin-bottom:15px; display:grid; grid-template-columns: auto auto auto auto minmax(0,1fr); gap:15px; align-items:center;">
+                <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
+                    <select id="alumno"
+                        style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
+                </label>
+                <!-- Selector de Etapa: oculto en UI, usado internamente por JS -->
+                <select id="etapaFiltro" onchange="cambiarEtapa(this.value)" style="display:none;">
+                    <option value="">-- Etapa --</option>
+                    <option value="1">Infantil</option>
+                    <option value="2">Primaria</option>
+                    <option value="3">Secundaria</option>
+                </select>
+                <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Materia/Área:
+                    <select id="area"
+                        style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Trimestre:
+                    <select id="trimestre" style="margin:0;">
+                        <option value="1">1º Trimestre</option>
+                        <option value="2" selected>2º Trimestre</option>
+                        <option value="3">3º Trimestre</option>
+                    </select>
+                </label>
+                <div id="directControls" style="display:none;">
+                    <button onclick="abrirModalPeriodo()"
+                        style="background:var(--primary); color:white; font-size:0.85rem; padding:8px 12px; border-radius:8px;">🎯
+                        Seleccionar Criterios Periodo</button>
+                </div>
+                <label id="lblSDA"
+                    style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;overflow:hidden;">SDA:
+                    <select id="sda"
+                        style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;"></select>
+                </label>
+            </div>
+
+            <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button id="btnRellenar3" onclick="rellenarTodos(3)"
+                    style="background:#007bff; color:white; display:none;">⚡ Rellenar Visible a 3</button>
+                <button class="btnRellenarNI" onclick="rellenarTodos(2)"
+                    style="background:#ffc107; color:#333; display:none;">⚡ Rellenar Visible a [EP]</button>
+                <button class="btnRellenarC" onclick="rellenarTodos(3)"
+                    style="background:#28a745; color:white; display:none;">⚡ Rellenar Visible a [C]</button>
+                <button onclick="limpiarTodos()" style="background:#dc3545; color:white; border-color:#dc3545;">🗑️
+                    Limpiar
+                    Visible</button>
+                <button id="btnCriterioExtra" onclick="abrirModalExtra()"
+                    style="background:#28a745; color:white; border-color:#28a745; font-weight:bold; display:none;">➕
+                    Criterio Extra</button>
+            </div>
+
+            <table>
+                <thead id="thead"></thead>
+                <tbody id="tbody"></tbody>
+            </table>
+
+            <div id="mediaSDA" style="margin-top:15px; text-align:right; font-size:18px; font-weight:bold; color:#333;">
+                📊
+                Resultado: —</div>
+            <div id="mediaArea"
+                style="margin-top:5px; text-align:right; font-size:18px; font-weight:bold; color:#28a745;">
+                📈 Resultado del Área: —</div>
+
+            <div style="margin-top:30px; border-top:2px solid #ddd; padding-top:15px;">
+                <h3>📋 Resumen por Alumno</h3>
+                <div id="resumenAlumno"
+                    style="background:#fff; padding:15px; border:1px solid #ccc; border-radius:5px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                    <em>Selecciona un alumno para ver su resultado en cada área.</em>
+                </div>
+            </div>
+
+        </div> <!-- Fin eval-pane -->
+
+        <!-- TAB 2: GESTIÓN DE CRITERIOS -->
+        <div id="crit-pane" class="tab-pane-eval">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0;">🎯 Gestión de Criterios de Evaluación</h2>
+            </div>
+
+            <div class="toolbar"
+                style="display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
+                <div class="filters"
+                    style="display:flex; gap:15px; background:white; padding:15px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); flex:1; min-width:300px;">
+                    <div style="display:flex; flex-direction:column; gap:5px; min-width:160px;">
+                        <label style="font-size:0.85rem; font-weight:600; color:#555;">Filtrar por Etapa:</label>
+                        <select id="filterEtapa" onchange="filtrarEtapaCrit(this.value)">
+                            <option value="">Todas las Etapas</option>
+                            <option value="Infantil">Infantil</option>
+                            <option value="Primaria">Primaria</option>
+                            <option value="Secundaria">Secundaria</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px; flex:1;">
+                        <label style="font-size:0.85rem; font-weight:600; color:#555;">Filtrar por Área/Materia:</label>
+                        <select id="filterArea" onchange="cargarListaCriterios()">
+                            <option value="">Todas las Áreas</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="actions" style="display:flex; gap:10px;">
+                    <button class="btn-success" style="background:var(--success); color:white;"
+                        onclick="abrirModalImportar()">📥 Importar CSV</button>
+                    <button class="btn-primary" style="background:var(--primary); color:white;"
+                        onclick="abrirModalNuevo()">➕ Nuevo Criterio</button>
+                </div>
+            </div>
+
+            <table class="table-crit">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Código</th>
+                        <th style="width: 45%;">Descripción</th>
+                        <th style="width: 15%;">Etapa / Área</th>
+                        <th style="width: 10%;">Estado</th>
+                        <th style="width: 15%; text-align:center;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="listaCriterios">
+                    <tr>
+                        <td colspan="5" style="text-align:center;">Cargando criterios...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal Formulario Criterio -->
+        <div id="modalCriterio" class="modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div class="modal-content"
+                style="background:white; padding:30px; border-radius:12px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <h3 id="modalCritTitle">Nuevo Criterio</h3>
+                <form id="criterioForm" onsubmit="guardarCriterioConfig(event)">
+                    <input type="hidden" id="critId">
+                    <div class="form-group">
+                        <label>Código (ej. ING-1.2)</label>
+                        <input type="text" id="critCodigo" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción completa</label>
+                        <textarea id="critDescripcion" required
+                            style="width:100%; min-height:80px; resize:vertical;"></textarea>
+                    </div>
+                    <div style="display:flex; gap:15px;">
+                        <div class="form-group" style="flex:1;">
+                            <label>Etapa</label>
+                            <select id="critEtapa" required>
+                                <option value="Infantil">Infantil</option>
+                                <option value="Primaria">Primaria</option>
+                                <option value="Secundaria">Secundaria</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label>Área / Materia</label>
+                            <select id="critArea" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                        <input type="checkbox" id="critActivo" checked style="width:auto;">
+                        <label for="critActivo" style="margin:0;">Activo (visible en nuevas evaluaciones)</label>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="button" onclick="cerrarModalCriterio()">Cancelar</button>
+                        <button type="submit" class="btn-primary"
+                            style="background:var(--primary); color:white;">Guardar Criterio</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Importar CSV -->
+        <div id="modalImportar" class="modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div class="modal-content"
+                style="background:white; padding:30px; border-radius:12px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 style="margin:0;">📥 Importar Criterios desde CSV</h3>
+                    <button onclick="descargarPlantilla()"
+                        title="Descarga esta plantilla. Copia los criterios desde el PDF oficial. Puedes utilizar una IA para que copie los criterios dentro de esta plantilla automáticamente. Después importa el archivo CSV aquí."
+                        style="background:#eef2f7; color:var(--primary); font-size:0.85rem; padding:8px 12px; border:1px solid #ddd; cursor:help; position:relative;">📄
+                        Descargar Plantilla ℹ️</button>
+                </div>
+
+                <div id="importInitialState">
+                    <p style="font-size:0.9rem; color:#666;">El archivo debe usar punto y coma (<code>;</code>) como
+                        separador y tener la cabecera exacta.</p>
+                    <form id="importForm" onsubmit="importarCSV(event)">
+                        <div class="form-group">
+                            <label>Seleccionar Archivo CSV</label>
+                            <input type="file" id="csvFile" accept=".csv" required>
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                            <button type="button" onclick="cerrarModalImportar()">Cancelar</button>
+                            <button type="submit" class="btn-success"
+                                style="background:var(--success); color:white; font-weight:bold;">🚀 Subir e
+                                Importar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="importResultState" style="display:none;">
+                    <div id="importSummary" style="margin-bottom:20px; padding:15px; border-radius:8px;"></div>
+                    <div id="importErrorDetails" style="display:none; margin-bottom:15px;">
+                        <h4 style="color:var(--danger); margin-bottom:10px;">Filas rechazadas:</h4>
+                        <div id="listOfErrors"
+                            style="max-height:150px; overflow-y:auto; border:1px solid #ddd; padding:10px; font-size:0.85rem; background:#fffafb;">
+                        </div>
+                        <button id="btnDownloadErrors" onclick="descargarErroresCSV()"
+                            style="margin-top:10px; background:white; color:var(--danger); border-color:var(--danger); width:100%;">📥
+                            Descargar reporte de errores</button>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end;">
+                        <button class="btn-primary" onclick="cerrarModalImportar()"
+                            style="background:var(--primary); color:white; padding:8px 25px;">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Seleccionar Criterios Periodo -->
+        <div id="modalPeriodo" class="modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div class="modal-content"
+                style="background:white; padding:30px; border-radius:12px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <h3 style="margin:0 0 15px 0;">🎯 Seleccionar Criterios para el Periodo</h3>
+                <p style="font-size:0.9rem; color:#666; margin-bottom:15px;">Selecciona los criterios que se evaluarán
+                    en este trimestre para esta área.</p>
+
+                <div id="periodoCritList"
+                    style="max-height:400px; overflow-y:auto; border:1px solid #ddd; padding:10px; border-radius:8px; margin-bottom:20px;">
+                    <!-- Lista de criterios con checkboxes -->
+                </div>
+
                 <div style="display:flex; justify-content:flex-end; gap:10px;">
-                    <button onclick="cerrarModalExtra()"
-                        style="background:#ccc; color:#333; padding:8px 15px;">Cancelar</button>
+                    <button type="button" onclick="cerrarModalPeriodo()">Cancelar</button>
+                    <button type="button" class="btn-primary" onclick="guardarPeriodoCrits()"
+                        style="background:var(--primary); color:white; font-weight:bold; padding:8px 25px;">Guardar
+                        Selección</button>
                 </div>
             </div>
         </div>
@@ -325,15 +565,17 @@
             const modoBadge = document.getElementById("modoBadge");
 
             // Helpers Etiqueta/Escala
+            // Según spec: NI→nivel 1, EP→nivel 2, C→nivel 3
             function nivelLabel(n) {
                 if (n === 1) return "NI";
-                if (n <= 3) return "EP";
-                return "C";
+                if (n === 2) return "EP";
+                return "C";  // nivel 3
             }
 
+            // Convierte nota interna (1,2,3) a texto Infantil
             function notaToNivel(nota) {
-                if (nota <= 2.5) return "NI";
-                if (nota <= 7.5) return "EP";
+                if (nota <= 1) return "NI";
+                if (nota <= 2) return "EP";
                 return "C";
             }
 
@@ -346,7 +588,8 @@
                 }
                 if (nota < 5) return "#dc3545";
                 if (nota < 7) return "#ffc107";
-                return "#28a745";
+                if (nota < 9) return "#28a745";
+                return "#0056a0"; // Sobresaliente 9-10
             }
 
             function formatNota(nota, tipoEscala) {
@@ -355,10 +598,22 @@
                 return nota;
             }
 
-            // Inicialización
-            document.addEventListener('DOMContentLoaded', () => {
-                cargarAlumnos();
-                cargarAreas();
+            // Inicialización — auto-detecta etapa desde el grupo activo
+            document.addEventListener('DOMContentLoaded', async () => {
+                await cargarAlumnos();
+                // Auto-detectar etapa del grupo activo y cargar áreas filtradas
+                try {
+                    const gr = await fetch('/api/grupo_activo');
+                    const g = await gr.json();
+                    if (g && g.etapa_id) {
+                        document.getElementById('etapaFiltro').value = g.etapa_id;
+                        await cargarAreas(g.etapa_id);
+                    } else {
+                        await cargarAreas(); // sin filtro si no hay grupo
+                    }
+                } catch (e) {
+                    await cargarAreas();
+                }
             });
 
             async function cargarAlumnos() {
@@ -368,15 +623,277 @@
                 datos.forEach(a => { alumnoSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
             }
 
-            async function cargarAreas() {
-                const r = await fetch("/api/evaluacion/areas");
+            async function cargarAreas(etapa_id_override) {
+                // etapa_id_override: si se pasa, filtra por esa etapa
+                // si no, intenta detectar la etapa del grupo activo
+                let url = '/api/evaluacion/areas';
+                if (etapa_id_override) url += '?etapa_id=' + etapa_id_override;
+
+                const r = await fetch(url);
                 const datos = await r.json();
                 areaSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Área --</option>';
+                const filterArea = document.getElementById('filterArea');
+                const critArea = document.getElementById('critArea');
+                filterArea.innerHTML = '<option value="">Todas las Áreas</option>';
+                critArea.innerHTML = '';
+
                 datos.forEach(a => {
                     areasData[a.id] = a;
                     areaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                    filterArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                    critArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
                 });
+
+                // Autodetectar etapa del grupo activo y actualizar selector
+                if (!etapa_id_override && datos.length > 0 && datos[0].etapa_id) {
+                    const etapaSel = document.getElementById('etapaFiltro');
+                    if (etapaSel && !etapaSel.value) {
+                        etapaSel.value = datos[0].etapa_id;
+                    }
+                }
             }
+
+            window.cambiarEtapa = function (etapa_id) {
+                // Al cambiar la etapa, recargar las áreas filtradas
+                areaSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Área --</option>';
+                thead.innerHTML = '';
+                tbody.innerHTML = '';
+                modoBadge.style.display = 'none';
+                if (!etapa_id) return;
+                cargarAreas(etapa_id);
+            };
+
+            // TAB SWITCHING
+            window.showEvalTab = function (tabId, btn) {
+                document.querySelectorAll('.tab-pane-eval').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.tab-btn-eval').forEach(b => b.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                btn.classList.add('active');
+
+                if (tabId === 'crit-pane') {
+                    cargarListaCriterios();
+                }
+            };
+
+            // Filtrado encadenado Etapa → Área en el panel de criterios
+            window.filtrarEtapaCrit = async function (etapaNombre) {
+                const filterArea = document.getElementById('filterArea');
+                filterArea.innerHTML = '<option value="">Todas las Áreas</option>';
+                if (etapaNombre) {
+                    // Pedir áreas de esta etapa
+                    const etapaMap = { 'Infantil': 1, 'Primaria': 2, 'Secundaria': 3 };
+                    const etapa_id = etapaMap[etapaNombre];
+                    if (etapa_id) {
+                        try {
+                            const r = await fetch(`/api/evaluacion/areas?etapa_id=${etapa_id}`);
+                            const areas = await r.json();
+                            areas.forEach(a => {
+                                filterArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                            });
+                        } catch (e) { console.error('Error cargando áreas:', e); }
+                    }
+                }
+                cargarListaCriterios();
+            };
+
+            // CRITERIA MANAGEMENT LOGIC
+            async function cargarListaCriterios() {
+                const area_id = document.getElementById('filterArea').value;
+                const etapa = document.getElementById('filterEtapa').value;
+
+                let url = '/api/criterios?';
+                if (area_id) url += `area_id=${area_id}&`;
+                if (etapa) url += `etapa=${etapa}`;
+
+                try {
+                    const r = await fetch(url);
+                    const data = await r.json();
+                    const tbodyCrit = document.getElementById('listaCriterios');
+                    tbodyCrit.innerHTML = '';
+
+                    if (!data.length) {
+                        tbodyCrit.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#666;">No se encontraron criterios con los filtros actuales.</td></tr>';
+                        return;
+                    }
+
+                    data.forEach(c => {
+                        const tr = document.createElement('tr');
+                        const badge = c.activo
+                            ? `<span class="badge badge-active">Activo</span>`
+                            : `<span class="badge badge-inactive">Desactivado</span>`;
+
+                        tr.innerHTML = `
+                            <td class="${!c.activo ? 'inactive' : ''}"><strong>${c.codigo}</strong></td>
+                            <td class="${!c.activo ? 'inactive' : ''}" style="font-size:0.9rem; text-align:left;">${c.descripcion}</td>
+                            <td class="${!c.activo ? 'inactive' : ''}" style="text-align:left;"><small>${c.etapa || '—'} <br> ${c.area_nombre || '—'}</small></td>
+                            <td>${badge}</td>
+                            <td style="text-align:center;">
+                                <div style="display:flex; gap:5px; justify-content:center;">
+                                    <button class="btn-outline" style="padding:4px 8px; font-size:0.8rem;" onclick='abrirModalEditar(${JSON.stringify(c).replace(/'/g, "&#39;")})'>✏️ Editar</button>
+                                    <button class="btn-outline" style="padding:4px 8px; font-size:0.8rem; color:var(--danger); border-color:var(--danger);" onclick='eliminarCriterio(${c.id}, "${c.codigo}")'>🗑️ Eliminar</button>
+                                </div>
+                            </td>
+                        `;
+                        tbodyCrit.appendChild(tr);
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            window.abrirModalNuevo = function () {
+                document.getElementById('critId').value = '';
+                document.getElementById('critCodigo').value = '';
+                document.getElementById('critDescripcion').value = '';
+                if (document.getElementById('filterEtapa').value) document.getElementById('critEtapa').value = document.getElementById('filterEtapa').value;
+                if (document.getElementById('filterArea').value) document.getElementById('critArea').value = document.getElementById('filterArea').value;
+                document.getElementById('critActivo').checked = true;
+                document.getElementById('modalCritTitle').innerText = 'Nuevo Criterio';
+                document.getElementById('modalCriterio').style.display = 'flex';
+            };
+
+            window.abrirModalEditar = function (c) {
+                document.getElementById('critId').value = c.id;
+                document.getElementById('critCodigo').value = c.codigo;
+                document.getElementById('critDescripcion').value = c.descripcion;
+                document.getElementById('critEtapa').value = c.etapa || 'Primaria';
+                document.getElementById('critArea').value = c.area_id;
+                document.getElementById('critActivo').checked = c.activo;
+                document.getElementById('modalCritTitle').innerText = 'Editar Criterio';
+                document.getElementById('modalCriterio').style.display = 'flex';
+            };
+
+            window.cerrarModalCriterio = function () { document.getElementById('modalCriterio').style.display = 'none'; };
+
+            window.guardarCriterioConfig = async function (e) {
+                e.preventDefault();
+                const id = document.getElementById('critId').value;
+                const payload = {
+                    codigo: document.getElementById('critCodigo').value,
+                    descripcion: document.getElementById('critDescripcion').value,
+                    etapa: document.getElementById('critEtapa').value,
+                    area_id: document.getElementById('critArea').value,
+                    activo: document.getElementById('critActivo').checked
+                };
+
+                const url = id ? `/api/criterios/${id}` : '/api/criterios';
+                const method = id ? 'PUT' : 'POST';
+
+                try {
+                    const r = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await r.json();
+                    if (data.ok) {
+                        cerrarModalCriterio();
+                        cargarListaCriterios();
+                        // If we added a criterio, we might want to refresh the evaluation table too
+                        if (areaSelect.value) {
+                            areaSelect.dispatchEvent(new Event('change'));
+                        }
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                } catch (err) { alert("Error de conexión"); }
+            };
+
+            window.eliminarCriterio = async function (id, codigo) {
+                if (!confirm(`¿Estás seguro de que deseas eliminar el criterio "${codigo}"?\n\nEsta acción NO se puede deshacer y fallará si el criterio tiene evaluaciones o está enlazado a una Situación de Aprendizaje.`)) return;
+
+                try {
+                    const r = await fetch(`/api/criterios/${id}`, { method: 'DELETE' });
+                    const data = await r.json();
+                    if (data.ok) {
+                        cargarListaCriterios();
+                        if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                } catch (err) {
+                    alert("Error de conexión al intentar eliminar.");
+                }
+            };
+
+            window.abrirModalImportar = function () {
+                document.getElementById('csvFile').value = '';
+                document.getElementById('importInitialState').style.display = 'block';
+                document.getElementById('importResultState').style.display = 'none';
+                document.getElementById('modalImportar').style.display = 'flex';
+            };
+
+            window.cerrarModalImportar = function () { document.getElementById('modalImportar').style.display = 'none'; };
+
+            window.descargarPlantilla = function () {
+                window.location.href = '/api/criterios/template';
+            };
+
+            let lastImportErrors = [];
+
+            window.importarCSV = async function (e) {
+                e.preventDefault();
+                const fileInput = document.getElementById('csvFile');
+                if (!fileInput.files.length) return;
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                try {
+                    const r = await fetch('/api/criterios/import_csv', { method: 'POST', body: formData });
+                    const data = await r.json();
+
+                    document.getElementById('importInitialState').style.display = 'none';
+                    document.getElementById('importResultState').style.display = 'block';
+
+                    const summary = document.getElementById('importSummary');
+
+                    if (data.ok) {
+                        summary.style.background = '#d4edda';
+                        summary.style.color = '#155724';
+                        summary.innerHTML = `
+                            <p style="margin:0; font-weight:bold;">✅ Importación completada con éxito.</p>
+                            <ul style="margin:10px 0 0 0; padding-left:20px;">
+                                <li><strong>${data.inserted}</strong> criterios nuevos creados.</li>
+                                <li><strong>${data.updated}</strong> criterios existentes actualizados.</li>
+                                <li><strong>${data.errors.length}</strong> filas con errores.</li>
+                            </ul>
+                        `;
+
+                        if (data.errors.length > 0) {
+                            lastImportErrors = data.errors;
+                            document.getElementById('importErrorDetails').style.display = 'block';
+                            const list = document.getElementById('listOfErrors');
+                            list.innerHTML = data.errors.map(err => `<div>Fila ${err.row}: ${err.reason}</div>`).join('');
+                        } else {
+                            document.getElementById('importErrorDetails').style.display = 'none';
+                        }
+
+                        cargarListaCriterios();
+                        if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
+                    } else {
+                        summary.style.background = '#f8d7da';
+                        summary.style.color = '#721c24';
+                        summary.innerHTML = `<p style="margin:0; font-weight:bold;">❌ Error: ${data.error}</p>`;
+                        document.getElementById('importErrorDetails').style.display = 'none';
+                    }
+                } catch (err) { alert("Error de conexión durante la importación."); }
+            };
+
+            window.descargarErroresCSV = function () {
+                if (!lastImportErrors.length) return;
+
+                const header = "Fila;Motivo;Datos originales\n";
+                const rows = lastImportErrors.map(e => `${e.row};${e.reason};"${e.data.join(';')}"`).join('\n');
+
+                const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", "errores_importacion_criterios.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
 
             // Lógica de Área
             function getAreaConfig() {
@@ -397,6 +914,7 @@
                     modoBadge.style.color = '#856404';
                     btnRellenar3.style.display = 'none';
                     btnRellenarNI.style.display = 'inline-block';
+                    document.querySelector(".btnRellenarC").style.display = 'inline-block';
                 } else {
                     modoBadge.innerHTML = '🎓 ' + conf.modo_evaluacion.replace(/_/g, ' ');
                     modoBadge.style.background = '#e8f4fd';
@@ -404,15 +922,18 @@
                     modoBadge.style.color = '#0056a0';
                     btnRellenar3.style.display = 'inline-block';
                     btnRellenarNI.style.display = 'none';
+                    document.querySelector(".btnRellenarC").style.display = 'none';
                 }
 
                 if (conf.modo_evaluacion === 'POR_SA') {
                     lblSDA.style.display = 'flex';
                     btnCriterioExtra.style.display = 'inline-block';
+                    document.getElementById("directControls").style.display = 'none';
                     cargarSDA();
                 } else {
                     lblSDA.style.display = 'none';
                     btnCriterioExtra.style.display = 'none';
+                    document.getElementById("directControls").style.display = 'block';
                     cargarCriteriosDirectos();
                 }
 
@@ -464,10 +985,42 @@
             }
 
             async function cargarCriteriosDirectos() {
-                const r = await fetch(`/api/evaluacion/criterios_directos/${areaSelect.value}`);
-                const criterios = await r.json();
+                const area_id = areaSelect.value;
+                const trimestreVal = trimestreSelect.value;
+                if (!area_id) return;
+
+                // Obtener grupo activo
+                let grupo_id = null;
+                try {
+                    const gr = await fetch('/api/grupo_activo');
+                    const gdata = await gr.json();
+                    grupo_id = gdata.id;
+                } catch (e) { }
+
+                // Período en formato TEXT: T1, T2, T3
+                const periodo = 'T' + trimestreVal;
+
+                // Obtener criterios del período activados para este grupo+área
+                const cpUrl = `/api/criterios/periodo?grupo_id=${grupo_id}&area_id=${area_id}&periodo=${periodo}`;
+                const cpR = await fetch(cpUrl);
+                const cpData = await cpR.json();
+                const activeIds = new Set(cpData.active_ids || []);
+
+                // Obtener todos los criterios del área activos
+                const critR = await fetch(`/api/criterios?area_id=${area_id}`);
+                const todosLosCriterios = await critR.json();
+
+                // Filtrar: solo los activados para el periodo (si hay activación), si no, mostrar todos activos
+                const criterios = activeIds.size > 0
+                    ? todosLosCriterios.filter(c => activeIds.has(c.id) && c.activo)
+                    : todosLosCriterios.filter(c => c.activo);
+
                 if (!criterios.length) {
-                    thead.innerHTML = ""; tbody.innerHTML = `<tr><td colspan="3" style="color:#666;padding:20px;">No hay criterios activos configurados para esta área. Usa Gestión de Criterios.</td></tr>`;
+                    thead.innerHTML = "";
+                    tbody.innerHTML = `<tr><td colspan="3" style="color:#666;padding:20px; text-align:center;">
+                        No hay criterios activados para este periodo. <br>
+                        Usa el botón "Seleccionar Criterios Periodo" para activarlos.
+                    </td></tr>`;
                     return;
                 }
                 renderTabla(criterios);
@@ -484,12 +1037,17 @@
                     const tr = document.createElement("tr");
                     tr.id = `row-${c.id}`;
                     if (esInfantil) {
+                        // Spec definitiva: NI→nivel 1, EP→nivel 2, C→nivel 3
+                        const mappingInfantil = [
+                            { n: 1, label: "NI" },
+                            { n: 2, label: "EP" },
+                            { n: 3, label: "C" }
+                        ];
                         tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
-                        <td>${[1, 2, 3, 4].map(n => {
-                            const label = nivelLabel(n);
-                            return `<button class="btn-nivel" data-label="${label}" data-criterio="${c.id}" data-nivel="${n}"
-                                onclick="guardar(${c.id},${n})" id="btn-${c.id}-${n}"
-                                style="font-weight:700; min-width:42px;">${label}</button>`;
+                        <td>${mappingInfantil.map(m => {
+                            return `<button class="btn-nivel" data-label="${m.label}" data-criterio="${c.id}" data-nivel="${m.n}"
+                                onclick="guardar(${c.id},${m.n})" id="btn-${c.id}-${m.n}"
+                                style="font-weight:700; min-width:60px; margin: 0 5px;">${m.label}</button>`;
                         }).join('')}</td>`;
                     } else {
                         tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
@@ -514,15 +1072,27 @@
 
                 document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
 
-                const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
-                fetch(`/api/evaluacion/alumno?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
-                    .then(r => r.json()).then(notas => {
-                        for (const [criterioId, nivel] of Object.entries(notas)) {
-                            let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
-                            if (btn) btn.classList.add("selected");
-                        }
-                        cargarMedia();
-                    });
+                if (conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS') {
+                    const periodo = 'T' + trimestreSelect.value;
+                    fetch(`/api/evaluacion/criterios?alumno_id=${alumId}&area_id=${conf.id}&periodo=${periodo}`)
+                        .then(r => r.json()).then(data => {
+                            data.forEach(d => {
+                                let btn = document.getElementById(`btn-${d.criterio_id}-${d.nivel}`);
+                                if (btn) btn.classList.add("selected");
+                            });
+                            cargarMedia();
+                        });
+                } else {
+                    const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
+                    fetch(`/api/evaluacion/alumno?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
+                        .then(r => r.json()).then(notas => {
+                            for (const [criterioId, nivel] of Object.entries(notas)) {
+                                let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
+                                if (btn) btn.classList.add("selected");
+                            }
+                            cargarMedia();
+                        });
+                }
             }
 
             function cargarMedia() {
@@ -583,6 +1153,7 @@
                 const conf = getAreaConfig();
                 if (!alumId || !conf) { alert("Selecciona un alumno."); return; }
 
+                // Limpiar selección visual (para ambas escalas 1-4 y 1-3)
                 for (let i = 1; i <= 4; i++) {
                     let b = document.getElementById(`btn-${criterio_id}-${i}`);
                     if (b) b.classList.remove("selected");
@@ -590,23 +1161,44 @@
                 let b = document.getElementById(`btn-${criterio_id}-${nivel}`);
                 if (b) b.classList.add("selected");
 
-                const sdaId = conf.modo_evaluacion === 'POR_SA' ? (sdaSelect.value || null) : null;
+                const esDirecto = conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
 
-                fetch("/api/evaluacion", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        alumno_id: alumId,
-                        area_id: conf.id,
-                        sda_id: sdaId,
-                        criterio_id: criterio_id,
-                        trimestre: trimestreSelect.value,
-                        nivel: nivel
-                    })
-                }).then(r => r.json()).then(data => {
-                    if (data.ok) { cargarMedia(); cargarResumenAlumno(); }
-                    else alert("Error al guardar");
-                });
+                if (esDirecto) {
+                    // Modo Directo (Infantil/Sec): guardar en evaluacion_criterios con periodo TEXT
+                    const periodo = 'T' + trimestreSelect.value;
+                    fetch("/api/evaluacion/criterios", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            alumno_id: alumId,
+                            criterio_id: criterio_id,
+                            periodo: periodo,
+                            nivel: nivel,
+                            escala: conf.tipo_escala
+                        })
+                    }).then(r => r.json()).then(data => {
+                        if (data.ok) { cargarMedia(); cargarResumenAlumno(); }
+                        else alert("Error al guardar: " + (data.error || ''));
+                    });
+                } else {
+                    // Modo POR_SA: guardar en evaluaciones (tabla histórica SDA)
+                    const sdaId = sdaSelect.value || null;
+                    fetch("/api/evaluacion", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            alumno_id: alumId,
+                            area_id: conf.id,
+                            sda_id: sdaId,
+                            criterio_id: criterio_id,
+                            trimestre: trimestreSelect.value,
+                            nivel: nivel
+                        })
+                    }).then(r => r.json()).then(data => {
+                        if (data.ok) { cargarMedia(); cargarResumenAlumno(); }
+                        else alert("Error al guardar");
+                    });
+                }
             };
 
             window.rellenarTodos = function (nivel) {
@@ -687,6 +1279,90 @@
                         setTimeout(() => toast.remove(), 3000);
                     } else alert("Error: " + data.error);
                 });
+            };
+
+            // MODAL SELECCION PERIODOS
+            window.abrirModalPeriodo = async function () {
+                const area_id = areaSelect.value;
+                if (!area_id) return;
+                document.getElementById('modalPeriodo').style.display = 'flex';
+                const list = document.getElementById('periodoCritList');
+                list.innerHTML = '<p style="text-align:center;">Cargando criterios...</p>';
+
+                // Obtener grupo activo
+                let grupo_id = null;
+                try {
+                    const gr = await fetch('/api/grupo_activo');
+                    const gdata = await gr.json();
+                    grupo_id = gdata.id;
+                } catch (e) { }
+
+                const periodo = 'T' + trimestreSelect.value;
+
+                // Obtener todos los criterios del área y los activos del período
+                const [allRes, activeRes] = await Promise.all([
+                    fetch(`/api/criterios?area_id=${area_id}&activo=1`),
+                    fetch(`/api/criterios/periodo?grupo_id=${grupo_id}&area_id=${area_id}&periodo=${periodo}`)
+                ]);
+                const allCrits = await allRes.json();
+                const activeIds = (await activeRes.json()).active_ids || [];
+
+                list.innerHTML = '';
+                if (allCrits.length === 0) {
+                    list.innerHTML = '<p style="text-align:center;">No hay criterios configurados para esta área.</p>';
+                } else {
+                    allCrits.forEach(c => {
+                        const checked = activeIds.includes(c.id) ? 'checked' : '';
+                        const item = document.createElement('div');
+                        item.style.padding = '8px';
+                        item.style.borderBottom = '1px solid #eee';
+                        item.innerHTML = `
+                            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                                <input type="checkbox" class="periodo-check" value="${c.id}" ${checked}>
+                                <div>
+                                    <strong>${c.codigo}</strong>: ${c.descripcion}
+                                </div>
+                            </label>
+                        `;
+                        list.appendChild(item);
+                    });
+                }
+            };
+
+            window.cerrarModalPeriodo = () => document.getElementById('modalPeriodo').style.display = 'none';
+
+            window.guardarPeriodoCrits = async function () {
+                const area_id = areaSelect.value;
+                const checks = document.querySelectorAll('.periodo-check:checked');
+                const criterio_ids = Array.from(checks).map(c => parseInt(c.value));
+
+                // Obtener grupo activo
+                let grupo_id = null;
+                try {
+                    const gr = await fetch('/api/grupo_activo');
+                    const gdata = await gr.json();
+                    grupo_id = gdata.id;
+                } catch (e) { }
+
+                const periodo = 'T' + trimestreSelect.value;
+
+                const r = await fetch('/api/criterios/periodo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        grupo_id: grupo_id,
+                        area_id: parseInt(area_id),
+                        periodo: periodo,
+                        criterio_ids: criterio_ids
+                    })
+                });
+                const res = await r.json();
+                if (res.ok) {
+                    cerrarModalPeriodo();
+                    cargarCriteriosDirectos();
+                } else {
+                    alert("Error: " + res.error);
+                }
             };
         </script>
     </div>

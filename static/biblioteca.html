@@ -687,7 +687,7 @@
 </head>
 
 <body>
-    <nav class="nav">
+    <div class="nav">
         <a href="/">🏠 Inicio</a>
         <a href="/alumnos">👥 Alumnos</a>
         <a href="/asistencia">📋 Pasar lista</a>
@@ -701,7 +701,8 @@
         <a href="/biblioteca" class="active">📚 Biblioteca</a>
         <a href="/material">📦 Material</a>
         <a href="/tareas">✅ Tareas</a>
-    </nav>
+        <a href="/configuracion">⚙️ Configuración</a>
+    </div>
     <div class="container">
         <div class="page-header">
             <h1>📚 Biblioteca</h1>
@@ -1022,33 +1023,60 @@
                     style="font-size:1.1rem;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
                     📚 Registrar Nuevo Préstamo
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 180px;gap:14px;align-items:end;">
+
+                <!-- Row 1: Group + Student + Date -->
+                <div
+                    style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:16px;">
                     <div>
                         <label
-                            style="display:block;font-size:.78rem;font-weight:700;margin-bottom:6px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;">Alumno</label>
-                        <select id="p-alumno"
-                            style="width:100%;padding:10px 14px;border:none;border-radius:10px;font-size:.9rem;font-family:inherit;background:rgba(255,255,255,0.95);color:#003366;font-weight:600;cursor:pointer;">
-                            <option value="">-- Selecciona un alumno --</option>
+                            style="display:block;font-size:.72rem;font-weight:700;margin-bottom:5px;opacity:.8;text-transform:uppercase;letter-spacing:.6px;">Grupo</label>
+                        <select id="p-grupo" onchange="cargarAlumnosPorGrupo()"
+                            style="width:100%;padding:9px 12px;border:none;border-radius:8px;font-size:.9rem;font-family:inherit;background:rgba(255,255,255,0.12);color:white;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.25);">
+                            <option value="" style="color:#333">-- Grupo --</option>
                         </select>
                     </div>
                     <div>
                         <label
-                            style="display:block;font-size:.78rem;font-weight:700;margin-bottom:6px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;">Libro
-                            disponible</label>
-                        <select id="p-libro"
-                            style="width:100%;padding:10px 14px;border:none;border-radius:10px;font-size:.9rem;font-family:inherit;background:rgba(255,255,255,0.95);color:#003366;font-weight:600;cursor:pointer;">
-                            <option value="">-- Selecciona un libro --</option>
+                            style="display:block;font-size:.72rem;font-weight:700;margin-bottom:5px;opacity:.8;text-transform:uppercase;letter-spacing:.6px;">Alumno</label>
+                        <select id="p-alumno" disabled
+                            style="width:100%;padding:9px 12px;border:none;border-radius:8px;font-size:.9rem;font-family:inherit;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.25);">
+                            <option value="" style="color:#333">-- Selecciona un grupo --</option>
                         </select>
                     </div>
                     <div>
                         <label
-                            style="display:block;font-size:.78rem;font-weight:700;margin-bottom:6px;opacity:.85;text-transform:uppercase;letter-spacing:.5px;">Fecha</label>
+                            style="display:block;font-size:.72rem;font-weight:700;margin-bottom:5px;opacity:.8;text-transform:uppercase;letter-spacing:.6px;">Fecha</label>
                         <input type="date" id="p-fecha"
-                            style="width:100%;padding:10px 14px;border:none;border-radius:10px;font-size:.9rem;font-family:inherit;box-sizing:border-box;">
+                            style="padding:9px 12px;border:1px solid rgba(255,255,255,0.25);border-radius:8px;font-size:.9rem;font-family:inherit;background:rgba(255,255,255,0.12);color:white;box-sizing:border-box;cursor:pointer;">
                     </div>
                 </div>
+
+                <!-- Row 2: Book search -->
+                <div style="margin-bottom:18px;">
+                    <label
+                        style="display:block;font-size:.72rem;font-weight:700;margin-bottom:5px;opacity:.8;text-transform:uppercase;letter-spacing:.6px;">📖
+                        Libro</label>
+                    <div style="position:relative;">
+                        <input type="text" id="p-libro-search" placeholder="🔍 Buscar por título o autor..."
+                            oninput="filtrarLibrosPrest()" autocomplete="off"
+                            style="width:100%;padding:9px 40px 9px 14px;border:1px solid rgba(255,255,255,0.25);border-radius:8px;font-size:.9rem;font-family:inherit;background:rgba(255,255,255,0.12);color:white;box-sizing:border-box;">
+                        <span id="p-libro-clear" onclick="limpiarSeleccionLibro()"
+                            style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;opacity:.7;font-size:1rem;">✕</span>
+                    </div>
+                    <input type="hidden" id="p-libro">
+                    <div id="p-libro-results"
+                        style="background:white;border-radius:0 0 10px 10px;max-height:160px;overflow-y:auto;display:none;">
+                    </div>
+                    <div id="p-libro-selected" style="margin-top:8px;display:none;">
+                        <div
+                            style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;padding:8px 14px;font-size:.875rem;font-weight:600;">
+                            📗 <span id="p-libro-selected-text"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <button onclick="registrarPrestamo()"
-                    style="margin-top:18px;background:white;color:#003366;font-weight:800;font-size:.95rem;padding:11px 28px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,.15);">
+                    style="background:white;color:#003366;font-weight:800;font-size:.95rem;padding:10px 26px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,.2);">
                     ✅ Registrar Préstamo
                 </button>
             </div>
@@ -1137,8 +1165,16 @@
                 </div>
             </div>
             <div id="pst-tab-historial" class="tab-panel">
-                <input class="search-input" id="p-search-hist" placeholder="🔍 Buscar alumno o libro..."
-                    oninput="filtrarHistorial()" style="margin-bottom:14px;max-width:340px;">
+                <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+                    <input class="search-input" id="p-search-hist" placeholder="🔍 Buscar alumno o libro..."
+                        oninput="filtrarHistorial()" style="flex:1;min-width:200px;max-width:340px;">
+                    <button onclick="expandirTodoHistorial(true)"
+                        style="padding:7px 14px;background:#003366;color:white;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;">⬇
+                        Expandir todo</button>
+                    <button onclick="expandirTodoHistorial(false)"
+                        style="padding:7px 14px;background:#f0f4f8;color:#003366;border:1px solid #cdd9e5;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;">⬆
+                        Colapsar todo</button>
+                </div>
                 <div id="pst-historial-cont">
                     <div class="empty-state">
                         <div class="icon">⏳</div>
@@ -1212,6 +1248,48 @@
                 <button class="btn btn-primary" style="flex:1" onclick="guardarEditPrest()">💾 Guardar</button>
                 <button class="btn" style="background:#ddd;color:#555;flex:1"
                     onclick="closeEditPrest()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prestamo Rapido Modal -->
+    <div class="modal-overlay" id="prestamoRapidoModal"
+        onclick="if(event.target===this)closeModal('prestamoRapidoModal')" style="display:none;">
+        <div class="modal" style="max-width:480px;">
+            <h2 style="margin-bottom:18px;">📤 Préstamo Rápido</h2>
+            <div id="pr-info"
+                style="background:#e3f2fd;padding:12px;border-radius:8px;margin-bottom:18px;font-size:.9rem;border-left:4px solid #17a2b8;">
+            </div>
+            <input type="hidden" id="pr-libro-id">
+
+            <div class="form-group" style="margin-bottom:12px;">
+                <label>Seleccionar Grupo</label>
+                <select id="pr-grupo" onchange="filterPrAlumnosByGrupo()"
+                    style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;">
+                    <option value="">-- Todos los grupos --</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:12px;">
+                <label>Seleccionar Alumno</label>
+                <select id="pr-alumno" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"
+                    disabled>
+                    <option value="">-- Selecciona primero un grupo --</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:18px;">
+                <label>Fecha de Préstamo</label>
+                <input type="date" id="pr-fecha">
+            </div>
+
+            <div id="pr-alert" style="margin-bottom:10px;"></div>
+
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-success" style="flex:1" onclick="confirmarPrestamoRapido()">✅ Confirmar
+                    Préstamo</button>
+                <button class="btn btn-outline" style="flex:1"
+                    onclick="closeModal('prestamoRapidoModal')">Cancelar</button>
             </div>
         </div>
     </div>
@@ -1386,8 +1464,9 @@
                             <div class="book-meta">${[b.nivel_lectura, b.genero, b.año_publicacion].filter(Boolean).join(' · ')} &nbsp;<span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total}${agotado ? ' — Sin existencias' : ''}</span></div>
                         </div>
                         <div class="book-actions">
-                            <button class="btn btn-outline btn-sm" onclick="openEdit(${b.id})">✏️</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')">🗑️</button>
+                            ${!agotado ? `<button class="btn btn-success btn-sm" onclick="openPrestamoRapido(${b.id}, '${b.titulo.replace(/'/g, "\\'")}', '${b.autor ? b.autor.replace(/'/g, "\\'") : ''}')" title="Prestar Libro" style="padding: 4px 10px; font-size: .85rem;">📤 Prestar</button>` : ''}
+                            <button class="btn btn-outline btn-sm" onclick="openEdit(${b.id})" title="Editar">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')" title="Eliminar">🗑️</button>
                         </div>
                     </div>`;
                 } else {
@@ -1397,6 +1476,7 @@
                         <div class="book-author">${b.autor || 'Autor desconocido'}</div>
                         <div class="book-meta">${[b.nivel_lectura, b.genero, b.año_publicacion].filter(Boolean).join(' · ')}</div>
                         <span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total}${agotado ? ' — Sin existencias' : ' disponibles'}</span>
+                        ${!agotado ? `<button class="btn btn-success btn-sm" style="width:100%; margin-top: 10px;" onclick="openPrestamoRapido(${b.id}, '${b.titulo.replace(/'/g, "\\'")}', '${b.autor ? b.autor.replace(/'/g, "\\'") : ''}')">📤 Prestar</button>` : ''}
                         <div class="book-actions">
                             <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEdit(${b.id})">✏️ Editar</button>
                             <button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')">🗑️</button>
@@ -1517,33 +1597,113 @@
             _prestamosLoaded = true;
             document.getElementById('p-fecha').value = new Date().toISOString().split('T')[0];
             document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
-            // Inicializa el selector desde la BD
+            // Init config
             try {
                 const cfg = await (await fetch('/api/config')).json();
                 _plazoGlobal = cfg.max_dias_prestamo || 7;
                 const sel = document.getElementById('plazo-dias');
                 if (sel) sel.value = _plazoGlobal;
             } catch (e) { }
-            await Promise.all([_loadAlumnosPrest(), _loadLibrosPrest(), _loadActivos(), _loadRetrasos(), _loadHistorial()]);
+            await Promise.all([_loadGruposPrest(), _loadLibrosPrest(), _loadActivos(), _loadRetrasos(), _loadHistorial()]);
             _updateStatsPrest();
         }
 
-        async function _loadAlumnosPrest() {
-            const r = await fetch('/api/alumnos');
-            if (!r.ok) return;
-            const d = await r.json();
-            const sel = document.getElementById('p-alumno');
-            sel.innerHTML = '<option value="">-- Selecciona un alumno --</option>';
-            (d.alumnos || d).forEach(a => sel.innerHTML += `<option value="${a.id}">${a.nombre}</option>`);
+        async function _loadGruposPrest() {
+            try {
+                const r = await fetch('/api/grupos');
+                const grupos = await r.json();
+                const selG = document.getElementById('p-grupo');
+                selG.innerHTML = '<option value="" style="color:#333;background:white;">-- Selecciona un grupo --</option>' +
+                    grupos.map(g => `<option value="${g.id}" style="color:#333;background:white;">${g.nombre}</option>`).join('');
+                // If only one group, auto-select it and load students
+                if (grupos.length === 1) {
+                    selG.value = grupos[0].id;
+                    cargarAlumnosPorGrupo();
+                }
+            } catch (e) { console.error('Error loading groups:', e); }
         }
+
+        async function cargarAlumnosPorGrupo() {
+            const grupoId = document.getElementById('p-grupo').value;
+            const selA = document.getElementById('p-alumno');
+            if (!grupoId) {
+                selA.innerHTML = '<option value="">-- Selecciona primero un grupo --</option>';
+                selA.disabled = true;
+                return;
+            }
+            selA.innerHTML = '<option value="">⏳ Cargando...</option>';
+            selA.disabled = true;
+            try {
+                const r = await fetch(`/api/alumnos/por-grupo/${grupoId}`);
+                const alumnos = await r.json();
+                selA.innerHTML = '<option value="" style="color:#333;background:white;">-- Selecciona un alumno --</option>' +
+                    alumnos.map(a => `<option value="${a.id}" style="color:#333;background:white;">${a.nombre}</option>`).join('');
+                selA.disabled = false;
+            } catch (e) {
+                selA.innerHTML = '<option value="">❌ Error</option>';
+            }
+        }
+
+        let _todosLibrosPrest = []; // cache for filterable book list
 
         async function _loadLibrosPrest() {
             const libros = await (await fetch('/api/libros')).json();
-            const sel = document.getElementById('p-libro');
-            sel.innerHTML = '<option value="">-- Selecciona un libro --</option>';
-            libros.filter(l => l.cantidad_disponible > 0).forEach(l =>
-                sel.innerHTML += `<option value="${l.id}">${l.titulo} (${l.cantidad_disponible} disp.)</option>`);
+            _todosLibrosPrest = libros.filter(l => l.cantidad_disponible > 0);
         }
+
+        function filtrarLibrosPrest() {
+            const q = document.getElementById('p-libro-search').value.toLowerCase().trim();
+            const resultsEl = document.getElementById('p-libro-results');
+
+            // Clear any previous selection when typing
+            document.getElementById('p-libro').value = '';
+            document.getElementById('p-libro-selected').style.display = 'none';
+            document.getElementById('p-libro-clear').style.display = 'none';
+
+            if (!q) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; return; }
+
+            const filtered = _todosLibrosPrest.filter(l =>
+                (l.titulo || '').toLowerCase().includes(q) || (l.autor || '').toLowerCase().includes(q)
+            ).slice(0, 12);
+
+            if (!filtered.length) {
+                resultsEl.innerHTML = '<div style="padding:12px 16px;color:#888;font-size:.875rem;">Sin resultados</div>';
+                resultsEl.style.display = 'block';
+                return;
+            }
+
+            resultsEl.innerHTML = filtered.map(l => `
+                <div onclick="seleccionarLibroPrest(${l.id}, '${(l.titulo || '').replace(/'/g, "\\'")}', ${l.cantidad_disponible})"
+                    style="padding:10px 16px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;font-size:.875rem;transition:background .15s;"
+                    onmouseover="this.style.background='#f0f5ff'" onmouseout="this.style.background='white'">
+                    <div>
+                        <div style="font-weight:600;color:#003366;">${l.titulo}</div>
+                        ${l.autor ? `<div style="color:#666;font-size:.8rem;">${l.autor}</div>` : ''}
+                    </div>
+                    <span style="background:#e8f0fe;color:#003366;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">${l.cantidad_disponible} disp.</span>
+                </div>
+            `).join('');
+            resultsEl.style.display = 'block';
+        }
+
+        function seleccionarLibroPrest(id, titulo, disp) {
+            document.getElementById('p-libro').value = id;
+            document.getElementById('p-libro-search').value = '';
+            document.getElementById('p-libro-results').style.display = 'none';
+            document.getElementById('p-libro-results').innerHTML = '';
+            document.getElementById('p-libro-selected-text').textContent = `${titulo} (${disp} disp.)`;
+            document.getElementById('p-libro-selected').style.display = 'block';
+            document.getElementById('p-libro-clear').style.display = 'block';
+        }
+
+        function limpiarSeleccionLibro() {
+            document.getElementById('p-libro').value = '';
+            document.getElementById('p-libro-search').value = '';
+            document.getElementById('p-libro-results').style.display = 'none';
+            document.getElementById('p-libro-selected').style.display = 'none';
+            document.getElementById('p-libro-clear').style.display = 'none';
+        }
+
 
         async function _loadStudentsHub() {
             try {
@@ -1618,19 +1778,88 @@
         function _renderHistorial(data) {
             const cont = document.getElementById('pst-historial-cont');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Sin registros.</p></div>'; return; }
-            cont.innerHTML = `<table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Préstamo</th><th>Devolución</th><th>Días</th><th>Estado</th><th></th></tr></thead><tbody>
-                ${data.map(p => {
-                const cls = p.estado === 'devuelto' ? 'avail-ok' : (p.dias_lectura > _plazoGlobal ? 'avail-none' : 'avail-low');
-                return `<tr><td>${p.alumno_nombre}</td><td>${p.libro_titulo}</td><td>${p.fecha_prestamo}</td>
-                        <td>${p.fecha_devolucion || '—'}</td><td>${p.dias_lectura}d</td>
+
+            // Group by student
+            const byAlumno = {};
+            data.forEach(p => {
+                const key = p.alumno_nombre || 'Desconocido';
+                if (!byAlumno[key]) byAlumno[key] = [];
+                byAlumno[key].push(p);
+            });
+
+            const alumnosOrdenados = Object.keys(byAlumno).sort((a, b) => a.localeCompare(b));
+
+            let tbodyRows = '';
+            alumnosOrdenados.forEach((nombre, idx) => {
+                const prestamos = byAlumno[nombre];
+                const activos = prestamos.filter(p => p.estado !== 'devuelto').length;
+                const devueltos = prestamos.filter(p => p.estado === 'devuelto').length;
+                const groupId = `hist-group-${idx}`;
+
+                // Student header row
+                tbodyRows += `
+                    <tr onclick="toggleHistGroup('${groupId}', ${idx})" style="cursor:pointer;background:white;" id="${groupId}-header">
+                        <td colspan="6" style="padding:11px 16px;border-bottom:2px solid #e8eef5;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span id="${groupId}-arrow" style="font-size:.85rem;display:inline-block;transition:transform .2s;">▶</span>
+                                    <strong style="color:#003366;font-size:.92rem;">${nombre}</strong>
+                                    <span style="background:#e8f0fe;color:#003366;font-size:.73rem;font-weight:700;padding:2px 8px;border-radius:20px;">${prestamos.length} libro${prestamos.length > 1 ? 's' : ''}</span>
+                                </div>
+                                <div style="display:flex;gap:6px;">
+                                    ${activos > 0 ? `<span class="avail-badge avail-low">${activos} activo${activos > 1 ? 's' : ''}</span>` : ''}
+                                    ${devueltos > 0 ? `<span class="avail-badge avail-ok">${devueltos} devuelto${devueltos > 1 ? 's' : ''}</span>` : ''}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="${groupId}-subhead" style="display:none;background:#f0f4f9;">
+                        <th style="padding:5px 24px;font-size:.73rem;color:#666;font-weight:700;">Libro</th>
+                        <th style="padding:5px 8px;font-size:.73rem;color:#666;font-weight:700;">Préstamo</th>
+                        <th style="padding:5px 8px;font-size:.73rem;color:#666;font-weight:700;">Devolución</th>
+                        <th style="padding:5px 8px;font-size:.73rem;color:#666;font-weight:700;">Estado</th>
+                        <th style="padding:5px 8px;font-size:.73rem;color:#666;font-weight:700;">Días</th>
+                        <th style="padding:5px 8px;"></th>
+                    </tr>`;
+
+                // Loan rows (hidden by default)
+                prestamos.forEach(p => {
+                    const cls = p.estado === 'devuelto' ? 'avail-ok' : (p.dias_lectura > _plazoGlobal ? 'avail-none' : 'avail-low');
+                    tbodyRows += `
+                    <tr class="hist-row-${idx}" style="display:none;background:#f9fbfd;">
+                        <td style="padding:9px 9px 9px 28px;color:#444;font-size:.875rem;">📖 ${p.libro_titulo}</td>
+                        <td style="font-size:.875rem;">${p.fecha_prestamo}</td>
+                        <td style="font-size:.875rem;">${p.fecha_devolucion || '—'}</td>
                         <td><span class="avail-badge ${cls}">${p.estado === 'devuelto' ? 'Devuelto' : 'Activo'}</span></td>
-                        <td style="display:flex;gap:4px;">
+                        <td style="font-size:.875rem;">${p.dias_lectura}d</td>
+                        <td style="display:flex;gap:4px;flex-wrap:wrap;">
                             ${p.estado === 'devuelto' ? `<button class="btn btn-sm" style="background:white;border:1px solid #ccc;padding:4px 8px;" onclick="reactivarPrestamo(${p.id})" title="Reactivar">↺</button>` : ''}
                             <button class="btn btn-sm" style="background:#fff3cd;color:#856404;border:1px solid #ffc107;padding:4px 8px;" onclick="openEditPrest(${p.id})">✏️</button>
                             <button class="btn btn-danger btn-sm" style="padding:4px 8px;" onclick="eliminarPrestamo(${p.id})">🗑️</button>
-                        </td></tr>`;
-            }).join('')}
-            </tbody></table>`;
+                        </td>
+                    </tr>`;
+                });
+            });
+
+            cont.innerHTML = `<table class="table" style="border-collapse:collapse;">${tbodyRows}</table>`;
+        }
+
+
+        function toggleHistGroup(groupId, idx) {
+            const rows = document.querySelectorAll(`.hist-row-${idx}`);
+            const subhead = document.getElementById(`${groupId}-subhead`);
+            const arrow = document.getElementById(`${groupId}-arrow`);
+            const isOpen = rows.length > 0 && rows[0].style.display !== 'none';
+            rows.forEach(r => r.style.display = isOpen ? 'none' : '');
+            if (subhead) subhead.style.display = isOpen ? 'none' : '';
+            if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+        }
+
+        function expandirTodoHistorial(expand) {
+            const cont = document.getElementById('pst-historial-cont');
+            cont.querySelectorAll('tr[id$="-subhead"]').forEach(r => r.style.display = expand ? '' : 'none');
+            cont.querySelectorAll('tr[class^="hist-row-"]').forEach(r => r.style.display = expand ? '' : 'none');
+            cont.querySelectorAll('[id$="-arrow"]').forEach(a => a.style.transform = expand ? 'rotate(90deg)' : '');
         }
 
         // ── EDIT / DELETE PRESTAMO ─────────────────────────────────
@@ -1765,6 +1994,9 @@
             if (d.ok) {
                 alertEl.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`;
                 setTimeout(() => alertEl.innerHTML = '', 3000);
+                // Clear selections
+                document.getElementById('p-alumno').value = '';
+                limpiarSeleccionLibro();
                 _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats();
             } else {
                 alertEl.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
@@ -1797,6 +2029,105 @@
             else alert(`Error: ${d.error}`);
         }
 
+        // --- PRESTAMO RAPIDO (Desde Catalogo) ---
+        let _prAllAlumnos = []; // cache for the rapid modal filtering
+
+        async function openPrestamoRapido(libroId, titulo, autor) {
+            document.getElementById('pr-libro-id').value = libroId;
+            document.getElementById('pr-info').innerHTML = `Vas a prestar: <strong>${titulo}</strong> <br><small style="color:#666">${autor}</small>`;
+            document.getElementById('pr-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('pr-alert').innerHTML = '';
+
+            const selG = document.getElementById('pr-grupo');
+            const selA = document.getElementById('pr-alumno');
+
+            selA.innerHTML = '<option value="">-- Selecciona primero un grupo --</option>';
+            selA.disabled = true;
+            document.getElementById('prestamoRapidoModal').style.display = 'flex';
+
+            // Load Groups only
+            try {
+                const rGrupos = await fetch('/api/grupos');
+                const gruposData = await rGrupos.json();
+
+                selG.innerHTML = '<option value="">-- Selecciona un grupo --</option>' +
+                    gruposData.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+                selG.onchange = filterPrAlumnosByGrupo; // Attach event listener
+
+                // Auto-select first group if only one
+                if (gruposData.length === 1) {
+                    selG.value = gruposData[0].id;
+                    filterPrAlumnosByGrupo();
+                }
+
+            } catch (e) {
+                selG.innerHTML = '<option value="">❌ Error cargando grupos</option>';
+            }
+        }
+
+        async function filterPrAlumnosByGrupo() {
+            const grupoId = document.getElementById('pr-grupo').value;
+            const selA = document.getElementById('pr-alumno');
+
+            if (!grupoId) {
+                selA.innerHTML = '<option value="">-- Selecciona primero un grupo --</option>';
+                selA.disabled = true;
+                return;
+            }
+
+            selA.innerHTML = '<option value="">⏳ Cargando alumnos...</option>';
+            selA.disabled = true;
+
+            try {
+                const r = await fetch(`/api/alumnos/por-grupo/${grupoId}`);
+                const alumnos = await r.json();
+
+                selA.innerHTML = '<option value="">-- Buscar un alumno --</option>' +
+                    alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+
+                selA.disabled = false;
+            } catch (e) {
+                selA.innerHTML = '<option value="">❌ Error cargando alumnos</option>';
+            }
+        }
+
+        async function confirmarPrestamoRapido() {
+            const alumno_id = document.getElementById('pr-alumno').value;
+            const libro_id = document.getElementById('pr-libro-id').value;
+            const fecha_prestamo = document.getElementById('pr-fecha').value;
+            const alertEl = document.getElementById('pr-alert');
+
+            if (!alumno_id) {
+                alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Por favor, selecciona un alumno.</div>';
+                return;
+            }
+
+            try {
+                const d = await (await fetch('/api/prestamos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
+                })).json();
+
+                if (d.ok) {
+                    alertEl.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`;
+                    setTimeout(() => {
+                        closeModal('prestamoRapidoModal');
+                        _prestamosLoaded = false;
+                        if (document.getElementById('tab-prestamos').classList.contains('active')) {
+                            initPrestamos();
+                        }
+                        loadBooks();
+                        loadStats();
+                    }, 1200);
+                } else {
+                    alertEl.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+                }
+            } catch (e) {
+                alertEl.innerHTML = `<div class="alert alert-danger">❌ Error de conexión</div>`;
+            }
+        }
+
         function closeDevModal() { document.getElementById('devModal').style.display = 'none'; }
 
         // Jump to tab based on URL hash
@@ -1811,6 +2142,7 @@
             document.getElementById('btnGrid').classList.remove('active');
             document.getElementById('btnList').classList.add('active');
         }
+
         // Initialize data
         loadBooks();
         loadStats();

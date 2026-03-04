@@ -65,6 +65,20 @@ def obtener_alumnos():
 
     return jsonify(alumnos)
 
+@alumnos_bp.route("/api/alumnos/por-grupo/<int:grupo_id_param>")
+def alumnos_por_grupo(grupo_id_param):
+    """Get students for a specific group (used by Quick Loan modal)."""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, nombre
+        FROM alumnos
+        WHERE grupo_id = ? AND deleted_at IS NULL
+        ORDER BY nombre
+    """, (grupo_id_param,))
+    alumnos = [{"id": r["id"], "nombre": r["nombre"]} for r in cur.fetchall()]
+    return jsonify(alumnos)
+
 @alumnos_bp.route("/api/alumnos/nuevo", methods=["POST"])
 def nuevo_alumno():
     d = request.json

@@ -36,7 +36,21 @@ def close_db(e=None):
     if db is not None:
         db.close()
 
-def nivel_a_nota(nivel):
-    """Convierte un nivel (1-4) en una nota numérica (0-10)"""
-    mapping = {1: 2.5, 2: 5.0, 3: 7.5, 4: 10.0}
+def nivel_a_nota(nivel, escala=None):
+    """Convierte un nivel en una nota numérica.
+    
+    Escala NUMERICA_1_4: 1→2.5, 2→5.0, 3→7.5, 4→10.0
+    Escala INFANTIL_NI_EP_C: 1(NI)→1, 2(EP)→2, 3(C)→3
+    """
+    if escala == "INFANTIL_NI_EP_C":
+        # Nivel 1=NI, 2=EP, 3=C — se guarda internamente como 1,2,3
+        mapping = {1: 1, 2: 2, 3: 3}
+    else:
+        # Escala numérica 1-4 estándar
+        mapping = {1: 2.5, 2: 5.0, 3: 7.5, 4: 10.0}
     return mapping.get(nivel, 0.0)
+
+def infantil_nivel_a_texto(nivel):
+    """Devuelve el texto legible para una evaluación Infantil (NI/EP/C)."""
+    mapping = {1: "NI", 2: "EP", 3: "C"}
+    return mapping.get(nivel, "—")

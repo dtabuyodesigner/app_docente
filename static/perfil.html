@@ -256,6 +256,48 @@
             font-weight: 600;
         }
 
+        /* Nav */
+        .nav {
+            background: #003366;
+            padding: 10px 15px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
         /* Responsive */
         @media (max-width: 850px) {
             .profile-grid {
@@ -268,9 +310,24 @@
 <body>
 
     <div class="container">
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/programacion">📅 Calendario</a>
+            <a href="/horario">⏰ Horario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+            <a href="/biblioteca">📚 Biblioteca</a>
+            <a href="/material">📦 Material</a>
+            <a href="/tareas">✅ Tareas</a>
+            <a href="/configuracion">⚙️ Configuración</a>
+        </div>
         <div class="header-bar">
             <h1 class="h1-title">📘 Expediente del Alumno</h1>
-            <a href="/alumnos" class="btn-back">⬅ Volver a Alumnos</a>
         </div>
 
         <div class="profile-grid">
@@ -524,7 +581,7 @@
 
         document.addEventListener('DOMContentLoaded', loadProfile);
     </script>
-<script src="/static/js/api.js"></script>
+    <script src="/static/js/api.js"></script>
 </body>
 
 </html>

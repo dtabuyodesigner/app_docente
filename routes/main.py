@@ -108,6 +108,18 @@ def comedor_page():
 def perfil_page(id):
     return send_from_directory("static", "perfil.html")
 
+@main_bp.route("/criterios")
+def criterios_page():
+    return send_from_directory("static", "evaluacion.html")
+
+@main_bp.route("/areas")
+def areas_page():
+    return send_from_directory("static", "areas.html")
+
+@main_bp.route("/gestion_areas")
+def gestion_areas_page():
+    return send_from_directory("static", "areas.html")
+
 @main_bp.route("/tareas")
 def tareas_page():
     return send_from_directory("static", "tareas.html")
@@ -248,8 +260,29 @@ def new_grupo():
     else:
         prof_id = prof["id"]
         
+    # Determinar etapa_id: infantil → 1, primaria/secundaria → 2 (o 3)
+    etapa_id_map = {
+        "infantil_3": 1, "infantil_4": 1, "infantil_5": 1, "unitario_infantil": 1,
+        "primaria_1": 2, "primaria_2": 2, "primaria_3": 2, "primaria_4": 2,
+        "primaria_5": 2, "primaria_6": 2, "unitario_primaria": 2, "unitario_mixto": 2,
+    }
+    # Buscar id real de etapas en BD
+    cur.execute("SELECT id, nombre FROM etapas")
+    etapas_db = {r["nombre"]: r["id"] for r in cur.fetchall()}
+    
+    etapa_id_num = etapa_id_map.get(etapa_curso, 2)
+    if etapa_id_num == 1:
+        etapa_id_real = etapas_db.get("Infantil", 1)
+        tipo_eval = "infantil"
+    else:
+        etapa_id_real = etapas_db.get("Primaria", 2)
+        tipo_eval = "primaria"
+    
     try:
-        cur.execute("INSERT INTO grupos (nombre, curso, profesor_id) VALUES (?, ?, ?)", (nombre_final, etapa_curso, prof_id))
+        cur.execute(
+            "INSERT INTO grupos (nombre, curso, profesor_id, etapa_id, tipo_evaluacion) VALUES (?, ?, ?, ?, ?)",
+            (nombre_final, etapa_curso, prof_id, etapa_id_real, tipo_eval)
+        )
         new_group_id = cur.lastrowid
         
         # If it's the first group created and they have none active
@@ -356,12 +389,12 @@ def manage_grupo_activo():
         if active_id:
             conn = get_db()
             cur = conn.cursor()
-            cur.execute("SELECT nombre, curso FROM grupos WHERE id = ?", (active_id,))
+            cur.execute("SELECT nombre, curso, etapa_id FROM grupos WHERE id = ?", (active_id,))
             g = cur.fetchone()
             if g:
-                return jsonify({"id": active_id, "nombre": g["nombre"], "curso": g["curso"]})
-                
-        return jsonify({"id": None, "nombre": "Seleccionar Grupo", "curso": ""})
+                return jsonify({"id": active_id, "nombre": g["nombre"], "curso": g["curso"], "etapa_id": g["etapa_id"]})
+
+        return jsonify({"id": None, "nombre": "Seleccionar Grupo", "curso": "", "etapa_id": None})
 
 @main_bp.route("/logout")
 def do_logout():

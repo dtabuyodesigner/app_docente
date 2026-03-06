@@ -542,14 +542,33 @@ def borrar_rubrica_criterio(criterio_id):
 def curricular_full():
     conn = get_db()
     cur = conn.cursor()
+
+    # Filter areas by the active group's etapa_id to avoid mixing stages
+    grupo_id = session.get('active_group_id')
+    etapa_id = None
+    if grupo_id:
+        cur.execute("SELECT etapa_id FROM grupos WHERE id = ?", (grupo_id,))
+        g = cur.fetchone()
+        if g:
+            etapa_id = g["etapa_id"]
+
+    if etapa_id:
+        cur.execute("SELECT id, nombre FROM areas WHERE activa = 1 AND etapa_id = ? ORDER BY nombre", (etapa_id,))
+    else:
+        cur.execute("SELECT id, nombre FROM areas WHERE activa = 1 ORDER BY nombre")
     
-    # Get all areas
-    cur.execute("SELECT id, nombre FROM areas ORDER BY nombre")
     areas = [dict(a) for a in cur.fetchall()]
     
     for area in areas:
-        # Get SDAs for this area
-        cur.execute("SELECT id, nombre, trimestre FROM sda WHERE area_id = ? ORDER BY id", (area["id"],))
+        # Get SDAs for this area (optionally filtered by group)
+        if grupo_id:
+            cur.execute("""
+                SELECT id, nombre, trimestre FROM sda
+                WHERE area_id = ? AND (grupo_id = ? OR grupo_id IS NULL)
+                ORDER BY trimestre, id
+            """, (area["id"], grupo_id))
+        else:
+            cur.execute("SELECT id, nombre, trimestre FROM sda WHERE area_id = ? ORDER BY trimestre, id", (area["id"],))
         sdas = [dict(s) for s in cur.fetchall()]
         
         for sda in sdas:
@@ -582,6 +601,9 @@ def curricular_full():
             sda["competencias"] = [dict(comp) for comp in cur.fetchall()]
             
         area["sdas"] = sdas
+        
+    # Only return areas that have SDAs (hide empty areas from the dropdown)
+    areas = [a for a in areas if a["sdas"]]
         
     return jsonify(areas)
 

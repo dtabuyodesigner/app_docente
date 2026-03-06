@@ -350,3 +350,58 @@ def historial_encargados():
         "total_alumnos": total_alumnos,
         "historial": [{"fecha": row["fecha"], "nombre": row["nombre"]} for row in datos]
     })
+
+
+@asistencia_bp.route("/api/asistencia/exportar/csv")
+def exportar_asistencia_csv():
+    conn = get_db()
+    cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
+    
+    cur.execute("""
+        SELECT 
+            a.nombre,
+            asist.fecha,
+            asist.estado,
+            asist.tipo_ausencia,
+            asist.horas_ausencia
+        FROM alumnos a
+        JOIN asistencia asist ON asist.alumno_id = a.id
+        WHERE asist.estado IN ('retraso', 'falta_justificada', 'falta_no_justificada')
+          AND a.grupo_id = ?
+        ORDER BY asist.fecha DESC, a.nombre ASC
+    """, (grupo_id,))
+    
+    datos = cur.fetchall()
+    
+    import io
+    import csv
+    from flask import send_file
+    
+    si = io.StringIO()
+    cw = csv.writer(si)
+    cw.writerow(["Alumno", "Fecha", "Estado", "Tipo Justificacion", "Horas"])
+    
+    for row in datos:
+        horas = ""
+        if row["tipo_ausencia"] == "horas" and row["horas_ausencia"]:
+            horas = ", ".join(json.loads(row["horas_ausencia"]))
+            
+        cw.writerow([
+            row["nombre"],
+            row["fecha"],
+            row["estado"],
+            row["tipo_ausencia"] or "dia",
+            horas
+        ])
+        
+    output = io.BytesIO()
+    output.write(si.getvalue().encode('utf-8'))
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=f"asistencia_export_{date.today()}.csv",
+    )

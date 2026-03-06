@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda y Documentación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+
+        /* Documentation styles */
+        .help-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .help-menu {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 20px 0;
+            position: sticky;
+            top: 20px;
+        }
+
+        .help-menu h3 {
+            margin: 0 20px 15px 20px;
+            color: var(--primary);
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .help-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .help-menu li a {
+            display: block;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .help-menu li a:hover {
+            background: #f8f9fa;
+            color: var(--primary);
+            border-left-color: #d0e1f9;
+        }
+
+        .help-menu li a.active {
+            background: #e8f0fe;
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .help-content-area {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 40px;
+            min-height: 60vh;
+        }
+
+        .help-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .help-section.active {
+            display: block;
+        }
+
+        .help-section h1 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 3px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .help-section h2 {
+            color: #444;
+            margin-top: 35px;
+            font-size: 1.4rem;
+        }
+
+        .help-section h3 {
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        .help-section p,
+        .help-section li {
+            line-height: 1.6;
+            color: #555;
+            font-size: 1.05rem;
+            margin-bottom: 12px;
+        }
+
+        .help-section ul,
+        .help-section ol {
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+
+        .highlight-box {
+            background: #f8f9fa;
+            border-left: 4px solid var(--secondary);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+
+        .highlight-box.warning {
+            border-left-color: var(--warning);
+            background: #fffcf0;
+        }
+
+        .highlight-box.success {
+            border-left-color: var(--success);
+            background: #f0fdf4;
+        }
+
+        .highlight-box strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .img-placeholder {
+            background: #e9ecef;
+            border: 1px dashed #ced4da;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            color: #888;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            background: #002244;
+            transform: translateY(-2px);
+        }
+
+        code {
+            background: #f1f3f5;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #e83e8c;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #212529;
+            color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .help-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .help-menu {
+                position: static;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Navegación principal -->
+        <div class="nav">
+            <a href="/">🏠 Inicio</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/horario">⏰ Horario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+            <a href="/biblioteca">📚 Biblioteca</a>
+            <a href="/material">📦 Material</a>
+            <a href="/tareas">✅ Tareas</a>
+            <a href="/configuracion">⚙️ Config.</a>
+            <a href="/ayuda" class="active">💡 Ayuda</a>
+        </div>
+
+        <div class="help-layout">
+            <!-- Menú lateral -->
+            <nav class="help-menu">
+                <h3>📖 Manual de Uso</h3>
+                <ul>
+                    <li><a href="#inicio" onclick="showSection('inicio')" class="active">🏠 Resumen del Cuaderno</a>
+                    </li>
+                    <li><a href="#alumnos" onclick="showSection('alumnos')">👥 Alumnos y Asistencia</a></li>
+                    <li><a href="#diario" onclick="showSection('diario')">📓 Diario y Calendario</a></li>
+                    <li><a href="#evaluacion" onclick="showSection('evaluacion')">📊 Cómo Evaluar</a></li>
+                    <li><a href="#criterios" onclick="showSection('criterios')">🎯 Gestión de Criterios</a></li>
+                    <li><a href="#rubricas" onclick="showSection('rubricas')">📝 Rúbricas</a></li>
+                    <li><a href="#informes" onclick="showSection('informes')">📜 Informes</a></li>
+                    <li><a href="#configuracion" onclick="showSection('configuracion')">⚙️ Configuración y Grupos</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Contenido -->
+            <main class="help-content-area">
+
+                <!-- SECCIÓN INFO INICIO -->
+                <section id="inicio" class="help-section active">
+                    <h1>🏠 Resumen del Cuaderno del Docente</h1>
+                    <p>¡Bienvenido/a al Cuaderno del Docente! Esta aplicación está diseñada para centralizar todo tu
+                        trabajo de aula, desde pasar lista hasta la generación de informes trimestrales.</p>
+
+                    <p>El sistema se organiza entorno a diferentes módulos accesibles desde la barra superior de
+                        navegación. Toda la información está estructurada según tus <strong>Grupos de clase</strong>.
+                    </p>
+
+                    <div class="highlight-box">
+                        <strong>📌 Concepto Clave: El Selector de Grupos</strong>
+                        La mayoría de las pantallas de la aplicación cuentan con un menú desplegable en la parte
+                        superior derecha donde puedes seleccionar con qué grupo estás trabajando (por ejemplo, "1º de
+                        Primaria" o "Infantil 4 años"). Al cambiar de grupo, todos los alumnos de la vista se
+                        actualizarán automáticamente.
+                    </div>
+
+                    <h2>Módulos principales</h2>
+                    <ul>
+                        <li><strong>Alumnos y Asistencia:</strong> Gestión del listado de la clase, incidencias diarias
+                            y registro de faltas.</li>
+                        <li><strong>Diario de Clase:</strong> Para anotar lo ocurrido en cada sesión vinculando fechas y
+                            materias.</li>
+                        <li><strong>Evaluación y Criterios:</strong> El núcleo oficial para poner notas en base a
+                            escalas numéricas (Primaria/Secundaria) o escalas cualitativas (NC/EP/C para Infantil)
+                            basándose en los criterios vigentes.</li>
+                        <li><strong>Informes:</strong> Generación automática de boletines en PDF para entregar a las
+                            familias, que agrupan las notas y observaciones añadidas durante el trimestre.</li>
+                    </ul>
+                </section>
+
+                <!-- SECCIÓN ALUMNOS -->
+                <section id="alumnos" class="help-section">
+                    <h1>👥 Alumnos y Asistencia</h1>
+
+                    <h2>Gestión de Alumnos</h2>
+                    <p>En el apartado de Alumnos puedes registrar a todos los estudiantes vinculados a un grupo. Al
+                        crear un nuevo alumno debes escribir su nombre completo e indicar su grupo correspondiente.</p>
+                    <p>Dentro de esta vista también podrás anotar <strong>Positivos (+)</strong> o <strong>Negativos
+                            (-)</strong> para cuestiones de comportamiento, que quedarán registrados en su ficha e
+                        informe si así lo deseas.</p>
+
+                    <h2>Pasar Lista</h2>
+                    <p>La pestaña 📋 <strong>Pasar Lista</strong> está diseñada para la rapidez del día a día:</p>
+                    <ol>
+                        <li>Selecciona la fecha de hoy mediante el calendario de la parte superior, o pincha en "Hoy".
+                        </li>
+                        <li>Junto a cada alumno verás botones para registrar: Presente, Falta y Retraso.</li>
+                        <li>Al pinchar en Falta, puedes añadir un comentario (ej: Cita médica) y marcar si se justifica
+                            a la derecha.</li>
+                        <li>El sistema guarda los datos en el momento. Si te equivocas, simplemente pincha en "Presente"
+                            y la falta desaparecerá.</li>
+                    </ol>
+                </section>
+
+                <!-- SECCIÓN DIARIO -->
+                <section id="diario" class="help-section">
+                    <h1>📓 Diario y Calendario</h1>
+
+                    <p>El diario te permite mantener un registro cronológico de lo que haces en el aula.</p>
+
+                    <h2>Crear una entrada de diario</h2>
+                    <p>Selecciona la pestaña de Diario y asegúrate de elegir tu Grupo actual.</p>
+                    <p>Aparecerá un editor donde puedes relatar qué se ha trabajado, qué página del libro, anotaciones
+                        de cómo ha ido la clase, etc. Este diario se guarda vinculado a la fecha solicitada.</p>
+
+                    <div class="highlight-box success">
+                        <strong>💡 Integración:</strong>
+                        Lo que apuntes en el Diario puedes aprovecharlo luego vinculándolo mentalmente a la Evaluación
+                        del día o de los Criterios que estás impartiendo.
+                    </div>
+                </section>
+
+                <!-- SECCIÓN EVALUACIÓN -->
+                <section id="evaluacion" class="help-section">
+                    <h1>📊 Cómo Evaluar</h1>
+
+                    <p>El módulo de evaluación es muy potente y te permite evaluar directamente los criterios oficiales
+                        que impone el gobierno (LOMLOE).</p>
+
+                    <h2>1. Conceptos Básicos</h2>
+                    <ul>
+                        <li><strong>Escalas:</strong> Infantil se evalúa con la escala Ni/EP/C (No Iniciado, En Proceso,
+                            Conseguido). Primaria y Secundaria del 1 al 10 o rúbricas numéricas 1-4. La aplicación
+                            adapta los botones y colores dependiendo de qué selecciones como Etapa para el área en
+                            Configuración.</li>
+                        <li><strong>Criterios vs Situaciones de Aprendizaje (SA):</strong> Puedes evaluar criterio por
+                            criterio de forma directa ("Modo Directo"), o puedes evaluar agrupando los saberes dentro de
+                            un proyecto o unidad llamado "SA" ("Modo por SA").</li>
+                    </ul>
+
+                    <h2>2. Evaluando en la Tabla Central</h2>
+                    <ol>
+                        <li>En Evaluación, primero escoge el <strong>Grupo</strong> (botón superior derecho).</li>
+                        <li>Luego selecciona el <strong>Alumno</strong>, el <strong>Trimestre</strong> y el
+                            <strong>Área/Materia</strong>.
+                        </li>
+                        <li>La tabla te mostrará todos los criterios que hayas "Activo" para ese trimestre.</li>
+                        <li>Si el área es Infantil, los botones para evaluar serán rojos (NI), amarillos (EP) y verdes
+                            (C). Pincha en el nivel de logro para asignarlo al alumno. El sistema lo guardará
+                            instantáneamente y calculará la nota media de ese Área.</li>
+                    </ol>
+
+                    <div class="highlight-box warning">
+                        <strong>⚠️ Selección Rápida "Rellenar"</strong>
+                        Verás botones que dicen "Rellenar Visible a [C]". Si has observado que el alumno lo tiene todo
+                        conseguido en esa materia, puedes pulsar el botón y mágicamente te rellenará todas las filas
+                        vacías a ese nivel (Conseguido) de golpe.
+                    </div>
+                </section>
+
+                <!-- SECCIÓN CRITERIOS -->
+                <section id="criterios" class="help-section">
+                    <h1>🎯 Gestión de Criterios</h1>
+
+                    <p>Para poder evaluar, la base de datos necesita conocer los Criterios de Evaluación oficiales. En
+                        vez de escribirlos a mano uno a uno, el sistema permite importarlos de forma masiva en la
+                        pestaña adjunta de la sección Evaluación ("Gestión de Criterios").</p>
+
+                    <h2>1. Cómo descargar la plantilla CSV</h2>
+                    <p>Si aún no tienes criterios, lo mejor es bajarte el Excel (CSV) base:</p>
+                    <ol>
+                        <li>Ve a la vista <strong>Evaluación</strong>.</li>
+                        <li>En las pestañas de debajo, haz clic en <strong>"🎯 Gestión de Criterios"</strong>.</li>
+                        <li>Haz clic en el botón verde <strong>"📥 Importar CSV"</strong>.</li>
+                        <li>Arriba a la derecha, pincha en <strong>"📄 Descargar Plantilla ℹ️"</strong>.</li>
+                    </ol>
+
+                    <h2>2. Cómo rellenar la plantilla Excel / CSV</h2>
+                    <p>El archivo <code>plantilla_criterios.csv</code> se puede abrir con Excel, Google Sheets, Calc o
+                        bloc de notas.</p>
+                    <p>La cabecera debe mantenerse intacta, y las columnas obligatorias son:</p>
+                    <pre>Codigo;Descripcion completa;Etapa;Area;Materia;Activo (Si/No)
+EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
+                    <ul>
+                        <li><strong>Codigo:</strong> Un identificador, el que tú quieras (ej: LENG-2.1).</li>
+                        <li><strong>Etapa:</strong> Exactamente: Infantil, Primaria, Secundaria.</li>
+                        <li><strong>Area/Materia:</strong> Pon el área genérica y la materia (que se usará para
+                            agruparlo en los despegables).</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>💡 Uso de Inteligencia Artificial (ChatGPT, Claude, etc)</strong>
+                        Lo más rápido es coger el BOE o BOCYL de tu comunidad con el PDF oficial y decirle a una
+                        Inteligencia artificial: <em>"Cópíame estos criterios de Infantil en una tabla CSV separada por
+                            punto y coma (;) con estas columnas exactas..."</em> para crear tu archivo final sin
+                        escribirlo a mano.
+                    </div>
+
+                    <h2>3. Importar tus criterios</h2>
+                    <p>Vuelve a pinchar en <strong>"📥 Importar CSV"</strong>, elige el archivo que has guardado e
+                        impórtalo. La página te dirá inmediatamente cuántos han sido insertados y podrás empezar a
+                        evaluarlos al instante.</p>
+                </section>
+
+                <!-- SECCIÓN RÚBRICAS E INFORMES -->
+                <section id="rubricas" class="help-section">
+                    <h1>📝 Rúbricas</h1>
+                    <p>Las rúbricas te permiten desglosar un trabajo en varias dimensiones (Presentación, Contenido,
+                        Ortografía) para dotar de una nota más justa a un proyecto.</p>
+                    <p>Una vez creas una rúbrica en la sección, se la asignas a una actividad y pasas a evaluarla
+                        pinchando en la tabla que se te genera. La media de esos apartados pasará a formar la nota del
+                        alumno.</p>
+                </section>
+
+                <section id="informes" class="help-section">
+                    <h1>📜 Informes de Evaluación</h1>
+                    <p>El generador de informes recoge automáticamente todas las notas ("Conseguido", "8", etc.) por
+                        área y las incidencias del alumno de ese trimestre.</p>
+
+                    <ol>
+                        <li>En la sección Informes, escoge al alumno.</li>
+                        <li>Escribe las Observaciones cualitativas (texto libre) finales o de comportamiento usando el
+                            editor de texto.</li>
+                        <li>Puedes pulsar **"Guardar Borrador"** para no perder el progreso y seguir más tarde.</li>
+                        <li>Cuando termines, pulsa **"Imprimir PDF"**. Se descargará un boletín oficial limpio con las
+                            valoraciones finales y una tabla limpia.</li>
+                    </ol>
+                </section>
+
+                <!-- SECCIÓN CONFIGURACIÓN -->
+                <section id="configuracion" class="help-section">
+                    <h1>⚙️ Configuración y Grupos</h1>
+
+                    <p>Esta es la base de todo tu cuaderno. Aquí defines qué grupos virtuales impartes.</p>
+
+                    <h2>1. Administración de Centro</h2>
+                    <p>En **Centro** indicas el nombre oficial del colegio, tu nombre como Tutor que saldrá en los
+                        boletines, y algunos parámetros por defecto para bibliotecas o comedor.</p>
+
+                    <h2>2. Gestión de Grupos</h2>
+                    <p>Aquí creas "Infantil 4 años" o "1º B Primaria". Si borras un grupo, ¡cuidado!, borrarás también a
+                        todos sus alumnos y sus calificaciones asociadas a él.</p>
+
+                    <h2>3. Usuarios</h2>
+                    <p>Si eres administrador, puedes invitar a otros compañeros o especialistas dando de alta su nombre
+                        de usuario (email) y contraseña. Útil si queréis compartir el cuaderno en la red del cole.</p>
+
+                    <h2>4. Áreas</h2>
+                    <p>Te permite crear nuevas "asignaturas" no oficiales, por ejemplo "Taller de Robótica", que no
+                        estén en el currículum base. Deberás asignarles también una etapa y una escala de notas para que
+                        el cuaderno sepa cómo tratarlas.</p>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Script para cambiar pestañas internamente -->
+    <script>
+        function showSection(id) {
+            // Esconder todas las secciones de contenido
+            document.querySelectorAll('.help-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+
+            // Quitar clase activa a todos los links del menú
+            document.querySelectorAll('.help-menu a').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Activar la sección actual
+            document.getElementById(id).classList.add('active');
+
+            // Activar el link
+            document.querySelector(`.help-menu a[onclick="showSection('${id}')"]`).classList.add('active');
+        }
+
+        // Leer el hash al cargar por si entran en /ayuda#evaluacion
+        window.onload = function () {
+            const hash = window.location.hash.replace('#', '');
+            if (hash && document.getElementById(hash)) {
+                showSection(hash);
+            }
+        };
+    </script>
+</body>
+
+</html>

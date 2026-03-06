@@ -7,6 +7,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/es.js'></script>
     <style>
         :root {
             --primary: #003366;
@@ -29,51 +33,10 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        /* Nav */
-        .nav {
-            background: #003366;
-            padding: 10px 15px;
-            margin-bottom: 25px;
-            border-radius: 12px;
-            display: flex;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            flex-wrap: wrap;
-            align-items: center;
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px 12px;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        .nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav a.active {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
 
         /* Tabs */
         .tabs {
@@ -351,29 +314,28 @@
 
     <div class="container">
         <div class="nav">
-        <a href="/">🏠 Inicio</a>
-        <a href="/alumnos">👥 Alumnos</a>
-        <a href="/asistencia">📋 Pasar lista</a>
-        <a href="/diario">📓 Diario</a>
-        <a href="/programacion">📅 Calendario</a>
-        <a href="/horario">⏰ Horario</a>
-        <a href="/evaluacion">📊 Evaluación</a>
-        <a href="/rubricas">📝 Rúbricas</a>
-        <a href="/informes">📜 Informes</a>
-        <a href="/reuniones" class="active">👨‍👩‍👧‍👦 Reuniones</a>
-        <a href="/biblioteca">📚 Biblioteca</a>
-        <a href="/material">📦 Material</a>
-        <a href="/tareas">✅ Tareas</a>
-        <a href="/configuracion">⚙️ Configuración</a>
+            <a href="/">🏠 Inicio</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/horario">⏰ Horario</a>
+            <a href="/evaluacion">📊 Evaluación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/reuniones" class="active">👨‍👩‍👧‍👦 Reuniones</a>
+            <a href="/biblioteca">📚 Biblioteca</a>
+            <a href="/material">📦 Material</a>
+            <a href="/tareas">✅ Tareas</a>
+            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
         </div>
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div
-                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div class="group-selector-container injected-group-selector">
                     <span style="font-size: 1.1rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
+                        class="group-selector-select">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -386,31 +348,55 @@
             <div class="tab" onclick="setMode('CICLO')" id="tabCiclo">🏫 Reuniones de Ciclo</div>
         </div>
 
-        <div class="controls">
-            <div>
-                <h2 style="margin:0 0 5px 0;" id="pageTitle">Reuniones con Familias</h2>
-                <select id="studentSelect">
-                    <option value="">-- Ver Todas (Resumen) --</option>
-                </select>
-                <select id="cycleSelect" style="display:none;">
-                    <option value="">-- Seleccionar Ciclo --</option>
-                </select>
-                <div style="margin-top: 10px;">
-                    <label style="font-size: 0.9rem; color: #555;">Nombre Tutor/a (para firmas):</label>
-                    <input type="text" id="tutorName" placeholder="Tu Nombre completo"
-                        style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; width: 250px;">
-                    <button onclick="saveTutorName()"
-                        style="padding: 5px 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">💾</button>
+        <div class="controls" style="display: flex; flex-direction: column; gap: 15px; align-items: stretch;">
+            <!-- Fila Superior: Título y Selectores -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <h2 style="margin:0;" id="pageTitle">Reuniones con Familias</h2>
+                    <select id="studentSelect" style="width: auto;">
+                        <option value="">-- Ver Todas (Resumen) --</option>
+                    </select>
+                    <select id="cycleSelect" style="display:none; width: auto;">
+                        <option value="">-- Seleccionar Ciclo --</option>
+                    </select>
+                </div>
+
+                <!-- Botones de Acción Globales -->
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-config" onclick="exportarReunionesCSV()" style="background: #28a745;">📥 Exportar
+                        CSV</button>
+                    <button class="btn-config" onclick="exportarReunionesICal()" style="background: #6f42c1;">📅
+                        Exportar iCal</button>
+                    <button class="btn-config" id="btnConfig" onclick="openConfigModal()" style="display:none;">⚙️
+                        Configurar</button>
+                    <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-config" id="btnConfig" onclick="openConfigModal()" style="display:none;">⚙️
-                    Configurar</button>
-                <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
+
+            <!-- Fila Inferior: Configuración del Tutor -->
+            <div
+                style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                <label style="font-size: 0.9rem; color: #555; white-space: nowrap; margin: 0;">Nombre Tutor/a (para
+                    firmas):</label>
+                <div style="display: flex; gap: 5px; flex-wrap: nowrap; align-items: center;">
+                    <input type="text" id="tutorName" placeholder="Tu Nombre completo"
+                        style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; width: 250px; margin: 0;">
+                    <button onclick="saveTutorName()"
+                        style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">💾</button>
+                </div>
             </div>
         </div>
 
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
+
+        <!-- Vista Calendario (Nueva Función) -->
+        <div id="calendarContainer"
+            style="background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 20px;">
+            <div id='calendar'></div>
+        </div>
+
+        <h3 style="margin-top: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px;">📋 Listado Detallado</h3>
         <div id="meetingList" class="meeting-list"></div>
 
     </div>
@@ -440,8 +426,8 @@
             </div>
 
             <div class="form-group">
-                <label>Fecha</label>
-                <input type="date" id="mFecha" class="form-control">
+                <label>Fecha y Hora</label>
+                <input type="datetime-local" id="mFecha" class="form-control">
             </div>
 
             <div class="form-group" id="groupAsistentes">
@@ -583,6 +569,7 @@
         cycleSelect.addEventListener('change', loadMeetings);
 
         let cyclesData = [];
+        let calendar = null;
 
         function setMode(mode) {
             currentMode = mode;
@@ -621,6 +608,80 @@
 
         let meetingsData = [];
 
+        function renderCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (calendar) {
+                calendar.destroy();
+            }
+
+            // Create events array
+            const events = meetingsData.map(m => {
+                let title = "";
+                if (m.tipo === 'PADRES' && m.alumno_nombre) {
+                    title = "👨‍👩‍👧‍👦 " + m.alumno_nombre;
+                } else if (m.tipo === 'CICLO') {
+                    title = "🏫 Ciclo";
+                }
+
+                return {
+                    id: m.id,
+                    title: title,
+                    start: m.fecha, // Assuming YYYY-MM-DDTHH:MM or YYYY-MM-DD
+                    backgroundColor: m.tipo === 'CICLO' ? 'var(--warning)' : 'var(--secondary)',
+                    borderColor: m.tipo === 'CICLO' ? '#d39e00' : '#0056b3',
+                    textColor: m.tipo === 'CICLO' ? '#333' : 'white',
+                    allDay: !m.fecha.includes('T')
+                };
+            });
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana'
+                },
+                events: events,
+                height: 500,
+                eventClick: function (info) {
+                    // Open edit modal directly
+                    const id = parseInt(info.event.id);
+                    openEdit(id);
+                },
+                // Permite seleccionar un hueco para crear nueva reunión
+                selectable: true,
+                select: function (info) {
+                    // Pre-fill modal
+                    openModal();
+                    // info.startStr includes Time if in timeGridWeek view
+                    let d = new Date(info.startStr);
+
+                    // Si es en vista mes, pone la hora a las 16:00
+                    if (!info.startStr.includes('T')) {
+                        d.setHours(16, 0);
+                        // Shift to local timezone display
+                        const localD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+                        mFecha.value = localD.toISOString().slice(0, 16);
+                    } else {
+                        mFecha.value = info.startStr.slice(0, 16); // format for datetime-local
+                    }
+                },
+                // Resaltar los lunes por la tarde en vista semanal
+                businessHours: {
+                    daysOfWeek: [1], // Lunes
+                    startTime: '14:30',
+                    endTime: '17:30',
+                }
+            });
+            calendar.render();
+        }
+
         function loadMeetings() {
             loading.style.display = 'block';
             listContainer.innerHTML = '';
@@ -637,6 +698,9 @@
                 .then(data => {
                     meetingsData = data; // Store for edit access
                     loading.style.display = 'none';
+
+                    renderCalendar();
+
                     if (data.length === 0) {
                         listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No hay reuniones registradas.</div>';
                         return;
@@ -646,16 +710,44 @@
                         const card = document.createElement('div');
                         card.className = `meeting-card ${m.tipo === 'CICLO' ? 'cycle' : ''}`;
 
-                        // Format date
-                        let d = new Date(m.fecha);
-                        let dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        // Format datetime
+                        let hasTime = m.fecha.includes('T');
+                        let dateStr = "";
+                        let gcalDstart = "";
+                        let gcalDend = "";
+
+                        try {
+                            let d = hasTime ? new Date(m.fecha) : new Date(m.fecha + "T16:00:00");
+                            dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            if (hasTime) {
+                                dateStr += " " + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                            }
+
+                            // Prepare Google Calendar payload
+                            let endD = new Date(d);
+                            endD.setHours(endD.getHours() + 1); // 1 hr default
+
+                            gcalDstart = d.toISOString().replace(/-|:|\.\d\d\d/g, "");
+                            gcalDend = endD.toISOString().replace(/-|:|\.\d\d\d/g, "");
+
+                        } catch (e) {
+                            dateStr = m.fecha; // fallback
+                        }
 
                         let headerTitle = m.asistentes;
+                        let rawTitleObj = "Reunión";
                         if (m.tipo === 'PADRES' && m.alumno_nombre) {
                             headerTitle = `<strong>${m.alumno_nombre}</strong>: ${m.asistentes}`;
+                            rawTitleObj = `Reunión Familias - ${m.alumno_nombre}`;
                         } else if (m.tipo === 'CICLO') {
                             headerTitle = `🏫 ${m.asistentes || 'Reunión de Ciclo'}`;
+                            rawTitleObj = `Reunión de Ciclo`;
                         }
+
+                        // Generate GCal Link
+                        let gUrlDetails = `Asistentes: ${m.asistentes}\nTemas:\n${m.temas}`;
+                        let gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(rawTitleObj)}&dates=${gcalDstart}/${gcalDend}&details=${encodeURIComponent(gUrlDetails)}`;
+
 
                         card.innerHTML = `
                             <div class="meeting-header">
@@ -669,6 +761,9 @@
                                 ${m.acuerdos ? `<h4>🤝 Acuerdos</h4><div class="meeting-text">${m.acuerdos}</div>` : ''}
                             </div>
                             <div class="meeting-actions">
+                                <a href="${gcalLink}" target="_blank" class="btn-config" style="background: #ea4335; color: white; border: none; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9rem;">
+                                    ➕ Google Calendar
+                                </a>
                                 <button class="btn-pdf" onclick="generatePDF(${m.id})">📄 PDF</button>
                                 <button class="btn-edit" onclick="openEdit(${m.id})">✏️ Editar</button>
                                 <button class="btn-delete" onclick="deleteMeeting(${m.id})">🗑️ Borrar</button>
@@ -679,6 +774,7 @@
                 });
         }
 
+
         // ... (Modal functions)
 
         function openEdit(id) {
@@ -687,24 +783,49 @@
             editMeeting(meeting);
         }
 
-        // ...
+        function editMeeting(m) {
+            modal.style.display = "block";
+            document.body.style.overflow = "hidden";
+            modalTitle.innerText = "Editar Reunión";
+            editingId.value = m.id;
 
-        function deleteMeeting(id) {
-            if (!confirm("¿Seguro que quieres borrar esta reunión?")) return;
+            // Handle datetime-local prepopulation (needs YYYY-MM-DDTHH:MM)
+            if (m.fecha.includes('T')) {
+                // If it already has time, just slice it to HH:MM precision if longer
+                mFecha.value = m.fecha.slice(0, 16);
+            } else {
+                // Legacy date without time, assume 16:00
+                mFecha.value = m.fecha + "T16:00";
+            }
 
-            fetch(`/api/reuniones/${id}`, { method: 'DELETE' })
-                .then(res => {
-                    if (res.ok) {
-                        loadMeetings();
-                    } else {
-                        alert("Error al borrar");
-                    }
-                });
-        }
+            mTemas.value = m.temas;
+            mAcuerdos.value = m.acuerdos || "";
+            mAsistentesOtro.value = "";
+            mAsistentesCiclo.value = "";
 
-        window.onclick = function (event) {
-            if (event.target == modal) {
-                closeModal();
+            if (currentMode === 'PADRES') {
+                groupAsistentes.style.display = 'block';
+                groupAsistentesCiclo.style.display = 'none';
+                mCycleGroup.style.display = 'none';
+                mAlumnoGroup.style.display = 'block';
+                mAlumnoSelect.value = m.alumno_id;
+
+                const commonOptions = ["Madre", "Padre", "Padre y Madre", "Tutores", "Abuelo", "Abuela"];
+                if (commonOptions.includes(m.asistentes)) {
+                    mAsistentesSelect.value = m.asistentes;
+                    mAsistentesOtro.style.display = 'none';
+                } else {
+                    mAsistentesSelect.value = "Otro";
+                    mAsistentesOtro.value = m.asistentes;
+                    mAsistentesOtro.style.display = 'block';
+                }
+            } else {
+                groupAsistentes.style.display = 'none';
+                groupAsistentesCiclo.style.display = 'block';
+                mCycleGroup.style.display = 'block';
+                mAlumnoGroup.style.display = 'none';
+                mCycleSelect.value = m.ciclo_id;
+                renderCycleAttendees(m.asistentes);
             }
         }
 
@@ -730,8 +851,10 @@
             modalTitle.innerText = "Nueva Reunión";
             editingId.value = "";
 
-            // Clear fields
-            mFecha.value = new Date().toISOString().split('T')[0];
+            // Clear fields (use ISO format and slice off seconds to match datetime-local)
+            let now = new Date();
+            let localNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+            mFecha.value = localNow.toISOString().slice(0, 16);
             mAsistentesSelect.value = "";
             mAsistentesOtro.value = "";
             mAsistentesCiclo.value = "";
@@ -952,8 +1075,15 @@
             const tutor = localStorage.getItem('tutorName') || "El Tutor/a";
             window.open(`/api/reuniones/${id}/pdf?tutor=${encodeURIComponent(tutor)}`, '_blank');
         }
-    </script>
 
+        function exportarReunionesCSV() {
+            window.location.href = `/api/reuniones/exportar/csv?tipo=${currentMode}`;
+        }
+
+        function exportarReunionesICal() {
+            window.location.href = `/api/reuniones/exportar/ical?tipo=${currentMode}`;
+        }
+    </script>
     <script src="/static/js/global_groups.js"></script>
     <script src="/static/js/api.js"></script>
 </body>

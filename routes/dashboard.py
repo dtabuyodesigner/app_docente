@@ -78,32 +78,88 @@ def dashboard_resumen():
             "faltan_nombres": nombres_faltan
         })
 
-    # 6. Distribución de notas (Global del trimestre actual)
+    # 6. Distribución de notas (Global del trimestre actual separado por área)
     cur.execute("""
-        SELECT 
-            CASE 
-                WHEN nota < 5 THEN 'Insuficiente'
-                WHEN nota < 7 THEN 'Suficiente/Bien'
-                WHEN nota < 9 THEN 'Notable'
-                ELSE 'Sobresaliente'
-            END as rango,
-            COUNT(*)
-        FROM (
-            SELECT e.alumno_id, AVG(e.nota) as nota
-            FROM evaluaciones e
-            JOIN alumnos a ON a.id = e.alumno_id
-            WHERE e.trimestre = ? AND a.grupo_id = ?
-            GROUP BY e.alumno_id
-        )
-        GROUP BY 
-            CASE 
-                WHEN nota < 5 THEN 'Insuficiente'
-                WHEN nota < 7 THEN 'Suficiente/Bien'
-                WHEN nota < 9 THEN 'Notable'
-                ELSE 'Sobresaliente'
-            END
-    """, (ultimo_tri, grupo_id))
-    distribucion = {r[0]: r[1] for r in cur.fetchall()}
+        SELECT DISTINCT a.id, a.nombre, a.tipo_escala, a.modo_evaluacion 
+        FROM areas a
+        LEFT JOIN evaluaciones e ON e.area_id = a.id
+        LEFT JOIN criterios c ON c.area_id = a.id
+        LEFT JOIN evaluacion_criterios ec ON ec.criterio_id = c.id
+        LEFT JOIN alumnos al ON (al.id = e.alumno_id OR al.id = ec.alumno_id)
+        WHERE al.grupo_id = ?
+    """, (grupo_id,))
+    areas_evaluadas = [dict(row) for row in cur.fetchall()]
+    
+    distribucion = {}
+    
+    for area in areas_evaluadas:
+        area_nombre = area['nombre']
+        distribucion[area_nombre] = {}
+        
+        if area['tipo_escala'] == 'INFANTIL_NI_EP_C' or area['modo_evaluacion'] == 'POR_CRITERIOS_DIRECTOS':
+            # Evaluaciones directas de criterios (Infantil)
+            cur.execute("""
+                SELECT 
+                    CASE 
+                        WHEN ec.nivel = 1 THEN 'NI'
+                        WHEN ec.nivel = 2 THEN 'EP'
+                        WHEN ec.nivel = 3 THEN 'C'
+                        ELSE 'Sincro'
+                    END as rango,
+                    COUNT(*) as count
+                FROM (
+                    SELECT ec.alumno_id, ROUND(AVG(ec.nivel)) as nivel
+                    FROM evaluacion_criterios ec
+                    JOIN criterios c ON c.id = ec.criterio_id
+                    JOIN alumnos a ON a.id = ec.alumno_id
+                    WHERE c.area_id = ? AND a.grupo_id = ? AND ec.periodo = ?
+                    GROUP BY ec.alumno_id
+                ) ec
+                GROUP BY 
+                    CASE 
+                        WHEN ec.nivel = 1 THEN 'NI'
+                        WHEN ec.nivel = 2 THEN 'EP'
+                        WHEN ec.nivel = 3 THEN 'C'
+                        ELSE 'Sincro'
+                    END
+            """, (area['id'], grupo_id, f"T{ultimo_tri}"))
+            
+            for r in cur.fetchall():
+                distribucion[area_nombre][r['rango']] = r['count']
+                
+        else:
+            # Evaluaciones numéricas por SA (Primaria/Secundaria)
+            cur.execute("""
+                SELECT 
+                    CASE 
+                        WHEN e.nota < 5 THEN 'Insuficiente'
+                        WHEN e.nota < 7 THEN 'Suficiente/Bien'
+                        WHEN e.nota < 9 THEN 'Notable'
+                        ELSE 'Sobresaliente'
+                    END as rango,
+                    COUNT(*) as count
+                FROM (
+                    SELECT e.alumno_id, AVG(e.nota) as nota
+                    FROM evaluaciones e
+                    JOIN alumnos a ON a.id = e.alumno_id
+                    WHERE e.trimestre = ? AND a.grupo_id = ? AND e.area_id = ?
+                    GROUP BY e.alumno_id
+                ) e
+                GROUP BY 
+                    CASE 
+                        WHEN e.nota < 5 THEN 'Insuficiente'
+                        WHEN e.nota < 7 THEN 'Suficiente/Bien'
+                        WHEN e.nota < 9 THEN 'Notable'
+                        ELSE 'Sobresaliente'
+                    END
+            """, (ultimo_tri, grupo_id, area['id']))
+            
+            for r in cur.fetchall():
+                distribucion[area_nombre][r['rango']] = r['count']
+                
+        # Si el área no tiene datos, la eliminamos para no ensuciar el gráfico
+        if not distribucion[area_nombre]:
+            del distribucion[area_nombre]
 
     # 7. Alertas
     mes_actual = date.today().strftime("%Y-%m")

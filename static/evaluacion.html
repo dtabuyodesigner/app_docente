@@ -36,46 +36,6 @@
             margin: 0 auto;
         }
 
-        .nav {
-            background: #003366;
-            padding: 10px 15px;
-            margin-bottom: 25px;
-            border-radius: 12px;
-            display: flex;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            flex-wrap: wrap;
-            align-items: center;
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px 12px;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        .nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav a.active {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
 
         select {
             padding: 8px;
@@ -265,20 +225,20 @@
 <body>
     <div class="container">
         <div class="nav">
-        <a href="/">🏠 Inicio</a>
-        <a href="/alumnos">👥 Alumnos</a>
-        <a href="/asistencia">📋 Pasar lista</a>
-        <a href="/diario">📓 Diario</a>
-        <a href="/programacion">📅 Calendario</a>
-        <a href="/horario">⏰ Horario</a>
-        <a href="/evaluacion" class="active">📊 Evaluación</a>
-        <a href="/rubricas">📝 Rúbricas</a>
-        <a href="/informes">📜 Informes</a>
-        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-        <a href="/biblioteca">📚 Biblioteca</a>
-        <a href="/material">📦 Material</a>
-        <a href="/tareas">✅ Tareas</a>
-        <a href="/configuracion">⚙️ Configuración</a>
+            <a href="/">🏠 Inicio</a>
+            <a href="/alumnos">👥 Alumnos</a>
+            <a href="/asistencia">📋 Pasar lista</a>
+            <a href="/diario">📓 Diario</a>
+            <a href="/programacion">📅 Programación</a>
+            <a href="/horario">⏰ Horario</a>
+            <a href="/evaluacion" class="active">📊 Evaluación</a>
+            <a href="/rubricas">📝 Rúbricas</a>
+            <a href="/informes">📜 Informes</a>
+            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+            <a href="/biblioteca">📚 Biblioteca</a>
+            <a href="/material">📦 Material</a>
+            <a href="/tareas">✅ Tareas</a>
+            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
         </div>
 
         <div class="tabs-eval"
@@ -292,11 +252,10 @@
                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
                 <div style="display:flex; align-items:center; gap:15px;">
                     <h2 style="margin:0;">📊 Evaluación</h2>
-                    <div
-                        style="background:white; padding:6px 12px; border-radius:8px; border:1px solid #ddd; display:flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div class="group-selector-container injected-group-selector">
                         <span style="font-size:1.1rem;">📚</span>
                         <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                            style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
+                            class="group-selector-select">
                             <option value="">Cargando grupos...</option>
                         </select>
                     </div>
@@ -614,6 +573,12 @@
                 } catch (e) {
                     await cargarAreas();
                 }
+
+                // Check hash to open correct tab
+                if (window.location.hash === '#crit-pane') {
+                    const btnCrit = document.querySelector('button[onclick="showEvalTab(\'crit-pane\', this)"]');
+                    if (btnCrit) showEvalTab('crit-pane', btnCrit);
+                }
             });
 
             async function cargarAlumnos() {
@@ -903,7 +868,17 @@
 
             areaSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
-                if (!conf) return;
+                if (!conf) {
+                    thead.innerHTML = "";
+                    tbody.innerHTML = "";
+                    modoBadge.style.display = 'none';
+                    lblSDA.style.display = 'none';
+                    btnCriterioExtra.style.display = 'none';
+                    document.getElementById("directControls").style.display = 'none';
+                    document.getElementById("mediaSDA").innerText = "📊 Resultado: —";
+                    document.getElementById("mediaArea").innerText = "📈 Resultado del Área: —";
+                    return;
+                }
 
                 // Adjust UI based on area config
                 modoBadge.style.display = 'inline-flex';
@@ -952,6 +927,8 @@
             });
 
             alumnoSelect.addEventListener("change", () => {
+                areaSelect.value = ""; // Reset de área al cambiar alumno
+                areaSelect.dispatchEvent(new Event('change'));
                 cargarNotasExistentes();
                 cargarResumenAlumno();
             });

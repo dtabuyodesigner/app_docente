@@ -405,11 +405,10 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h1 style="margin: 0;">📘 Panel de Control</h1>
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div
-                    style="background: var(--light); padding: 8px 15px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 8px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
+                <div class="group-selector-container injected-group-selector">
                     <span style="font-size: 1.2rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
+                        class="group-selector-select">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -489,6 +488,10 @@
             <a href="/configuracion" class="nav-btn" style="border-color: #ffd700;">
                 <span class="nav-icon">🔧</span>
                 <span class="nav-text">Configuración Avanzada</span>
+            </a>
+            <a href="/ayuda" class="nav-btn" style="border-color: #17a2b8; background: #f0fbfc;">
+                <span class="nav-icon">💡</span>
+                <span class="nav-text">Ayuda y Guía</span>
             </a>
         </div>
 
@@ -1250,28 +1253,76 @@
         function renderGradesChart(dist) {
             const ctx = document.getElementById('gradesChart').getContext('2d');
 
-            // Order: Insuficiente, Suficiente, Notable, Sobresaliente
-            const labels = ['Insuficiente', 'Suficiente/Bien', 'Notable', 'Sobresaliente'];
-            const values = labels.map(l => dist[l] || 0);
-            const colors = ['#dc3545', '#ffc107', '#17a2b8', '#28a745'];
+            // dist is now an object like: { 'Matemáticas': {'Notable': 2, 'Insuficiente': 1}, 'Lengua': {...} }
+            const areas = Object.keys(dist);
+
+            // All possible grade categories across both numeric and Infantil scales
+            // Order defines how they stack (bottom to top)
+            const categories = [
+                { label: 'Insuficiente', color: '#dc3545' },
+                { label: 'NI', color: '#dc3545' }, // Needs Improvement (Infantil)
+                { label: 'Suficiente/Bien', color: '#ffc107' },
+                { label: 'EP', color: '#ffc107' }, // En Proceso (Infantil)
+                { label: 'Notable', color: '#17a2b8' },
+                { label: 'Sobresaliente', color: '#28a745' },
+                { label: 'C', color: '#28a745' }   // Conseguido (Infantil)
+            ];
+
+            const datasets = [];
+
+            // Build a dataset for each category
+            categories.forEach(cat => {
+                const data = areas.map(area => dist[area][cat.label] || 0);
+                // Only add the dataset if at least one area has this grade
+                if (data.some(val => val > 0)) {
+                    datasets.push({
+                        label: cat.label,
+                        data: data,
+                        backgroundColor: cat.color,
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    });
+                }
+            });
 
             if (gradesChart) gradesChart.destroy();
 
             gradesChart = new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar', // Changed from doughnut to stacked bar
                 data: {
-                    labels: labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: colors,
-                        borderWidth: 0
-                    }]
+                    labels: areas,
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'right' }
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: {
+                                font: { size: 10 },
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
                     }
                 }
             });

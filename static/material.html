@@ -6,6 +6,7 @@
     <title>📦 Listado de Material - Cuaderno del Tutor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <style>
         :root {
             --primary: #003366;
@@ -27,8 +28,11 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
+        }
+
+        .premium-card {
             background: white;
             padding: 30px;
             border-radius: 20px;
@@ -142,46 +146,6 @@
             font-weight: 700;
         }
 
-        .nav {
-            background: #003366;
-            padding: 10px 15px;
-            margin-bottom: 25px;
-            border-radius: 12px;
-            display: flex;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            flex-wrap: wrap;
-            align-items: center;
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px 12px;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        .nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav a.active {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
 
         .import-export {
             display: flex;
@@ -249,8 +213,9 @@
         .tabs {
             display: flex;
             gap: 10px;
-            border-bottom: 2px solid #eef2f7;
-            padding-bottom: 10px;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            align-items: center;
         }
 
         .tab-btn {
@@ -295,282 +260,579 @@
             height: 20px;
             cursor: pointer;
         }
+
+        .student-item:hover {
+            background-color: #f0f4f8 !important;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            background: #fff;
+        }
+
+        .checklist-item:hover {
+            background: #f9f9f9;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <div class="nav no-print">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Calendario</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material" class="active">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a>
-        </div>
+<div class="container">
+    <div class="nav no-print">
+        <a href="/">🏠 Inicio</a>
+        <a href="/alumnos">👥 Alumnos</a>
+        <a href="/asistencia">📋 Pasar lista</a>
+        <a href="/diario">📓 Diario</a>
+        <a href="/programacion">📅 Programación</a>
+        <a href="/horario">⏰ Horario</a>
+        <a href="/evaluacion">📊 Evaluación</a>
+        <a href="/rubricas">📝 Rúbricas</a>
+        <a href="/informes">📜 Informes</a>
+        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
+        <a href="/biblioteca">📚 Biblioteca</a>
+        <a href="/material" class="active">📦 Material</a>
+        <a href="/tareas">✅ Tareas</a>
+        <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
+    </div>
+    <div class="premium-card">
 
         <div class="no-print"
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <h2 style="margin:0;">📦 Listado de Material</h2>
-                <div
-                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
-            </div>
-            <div class="tabs no-print">
-                <button onclick="switchTab('config')" id="tab-config" class="tab-btn active">📝 Plantilla y
-                    Datos</button>
-                <button onclick="switchTab('control')" id="tab-control" class="tab-btn">✅ Control de Entrega</button>
-            </div>
-        </div>
-
-        <h1 class="only-print">📦 Listado de Material del Alumnado</h1>
-
-        <!-- TAB 1: CONFIGURATION -->
-        <div id="view-config">
-            <div class="import-export no-print">
-                <div>
-                    <button onclick="document.getElementById('fileInput').click()" class="btn btn-info">📥 Importar
-                        CSV</button>
-                    <input type="file" id="fileInput" style="display: none;" accept=".csv" onchange="importarCSV(this)">
-                    <a href="/api/material/plantilla" class="btn btn-primary">📄 Descargar Plantilla</a>
-                </div>
-                <button onclick="window.print()" class="btn btn-success">🖨️ Imprimir Listado</button>
-            </div>
-
-            <!-- General Info Section -->
-            <div class="section">
-                <div class="section-title">🏢 Información General</div>
-                <div class="info-grid">
-                    <div class="form-group">
-                        <label>Centro:</label>
-                        <input type="text" id="infoCentro" placeholder="Nombre del centro educativo">
-                    </div>
-                    <div class="form-group">
-                        <label>Curso escolar:</label>
-                        <input type="text" id="infoCursoEscolar" placeholder="Ej: 2024/2025">
-                    </div>
-                    <div class="form-group">
-                        <label>Nivel/Curso:</label>
-                        <input type="text" id="infoNivelCurso" placeholder="Ej: 3º de Primaria B">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; margin-top: 10px; border-bottom: 2px solid #eef2f7; padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <h2 style="margin:0;">📦 Listado de Material</h2>
+                    <div class="group-selector-container injected-group-selector">
+                        <span style="font-size: 1.1rem;">📚</span>
+                        <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
+                            class="group-selector-select">
+                            <option value="">Cargando grupos...</option>
+                        </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Observaciones:</label>
-                    <textarea id="infoObservaciones" rows="3"
-                        placeholder="Instrucciones adicionales para las familias..."></textarea>
-                </div>
-                <div class="no-print" style="text-align: right;">
-                    <button onclick="saveGeneralInfo()" class="btn btn-primary">💾 Guardar Información</button>
-                </div>
-            </div>
-
-            <!-- Help Materials Section -->
-            <div class="section">
-                <div class="section-title">
-                    🎁 Material para alumnado que no recibe ayuda / Material que cubre la ayuda
-                    <button onclick="openAddModal('AYUDA')" class="btn btn-success no-print"
-                        style="margin-left: auto; padding: 5px 10px; font-size: 0.8rem;">➕ Añadir</button>
-                </div>
-                <table id="tableAyuda">
-                    <thead>
-                        <tr>
-                            <th style="width: 80px;">Unidades</th>
-                            <th>Material</th>
-                            <th class="no-print" style="width: 100px;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <!-- All Students Materials Section -->
-            <div class="section">
-                <div class="section-title">
-                    🎒 Material que debe aportar TODO el alumnado
-                    <button onclick="openAddModal('TODO')" class="btn btn-success no-print"
-                        style="margin-left: auto; padding: 5px 10px; font-size: 0.8rem;">➕ Añadir</button>
-                </div>
-                <table id="tableTodo">
-                    <thead>
-                        <tr>
-                            <th style="width: 80px;">Unidades</th>
-                            <th>Material</th>
-                            <th class="no-print" style="width: 100px;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- TAB 2: DELIVERY CONTROL -->
-        <div id="view-control" style="display: none;">
-            <div class="student-selector">
-                <label style="margin-bottom: 0;">Seleccionar Alumno/a:</label>
-                <select id="alumnoSelect" onchange="loadStudentChecklist(this.value)" style="flex: 1;">
-                    <option value="">-- Elige un alumno --</option>
-                </select>
-            </div>
-
-            <div id="checklist-container" style="display: none;">
-                <div class="section">
-                    <div class="section-title">✅ Checklist de Entrega</div>
-                    <div id="student-checklist">
-                        <!-- Items will be loaded here -->
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div class="tabs no-print"
+                        style="margin-bottom: 0; border: none; padding: 0; display: flex; gap: 5px;">
+                        <button onclick="switchTab('con-ayuda')" id="tab-ayuda" class="tab-btn active"
+                            style="margin: 0; padding: 10px 15px; height: 42px;">🎁 Reciben Ayuda</button>
+                        <button onclick="switchTab('sin-ayuda')" id="tab-no-ayuda" class="tab-btn"
+                            style="margin: 0; padding: 10px 15px; height: 42px;">🎒 Sin Ayuda</button>
                     </div>
+                    <button onclick="switchTab('ayuda-gestion')" class="btn btn-secondary no-print"
+                        id="tab-ayuda-gestion"
+                        style="font-size: 0.85rem; padding: 0 15px; height: 42px; display: flex; align-items: center; gap: 8px; border: 1px dashed var(--primary); background: #fdfdfd; color: var(--primary);">
+                        <span>⚙️</span> Gestionar Ayudas
+                    </button>
+                    <div style="height: 24px; width: 1px; background: #ddd; margin: 0 5px;" class="no-print"></div>
+                    <button onclick="switchTab('config')" class="btn btn-primary no-print" id="tab-config"
+                        style="font-size: 0.85rem; padding: 0 15px; height: 42px; display: flex; align-items: center; gap: 8px;">
+                        <span>📋</span> Definir Materiales
+                    </button>
                 </div>
             </div>
 
-            <div id="no-student-msg" style="text-align: center; color: #999; padding: 40px;">
-                Selecciona un alumno para ver y gestionar su entrega de materiales.
+            <div id="print-header" class="only-print"
+                style="margin-bottom: 30px; text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">
+                <h1 style="margin:0; color: var(--primary);">Listado de Material del Alumnado</h1>
+                <div id="print-info"
+                    style="font-size: 1.1rem; margin-top: 10px; color: #444; display: flex; justify-content: center; gap: 40px; font-weight: 600;">
+                    <span id="print-centro"></span>
+                    <span id="print-curso"></span>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Add/Edit Modal -->
-    <div id="materialModal" class="modal-overlay">
-        <div class="modal">
-            <h3 id="modalTitle">Añadir Material</h3>
-            <input type="hidden" id="materialId">
-            <input type="hidden" id="materialCategoria">
-            <div class="form-group">
-                <label>Unidades:</label>
-                <input type="number" id="materialUnidades" value="1" min="1">
-            </div>
-            <div class="form-group">
-                <label>Material:</label>
-                <input type="text" id="materialNombre" placeholder="Nombre o descripción del material">
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                <button onclick="closeModal()" class="btn btn-danger">Cancelar</button>
-                <button onclick="saveMaterial()" class="btn btn-success">Guardar</button>
-            </div>
-        </div>
-    </div>
+            <!-- Material Definition View (initially hidden) -->
+            <div id="view-config" style="display: none;">
+                <div class="import-export no-print">
+                    <div>
+                        <button onclick="document.getElementById('fileInput').click()" class="btn btn-info">📥 Importar
+                            CSV</button>
+                        <input type="file" id="fileInput" style="display: none;" accept=".csv"
+                            onchange="importarCSV(this)">
+                        <a href="/api/material/plantilla" class="btn btn-primary">📄 Descargar Plantilla</a>
+                    </div>
+                    <button onclick="window.print()" class="btn btn-success">🖨️ Imprimir Listado</button>
+                </div>
 
-    <script src="/static/js/api.js"></script>
-    <script src="/static/js/global_groups.js"></script>
-    <script>
-        let currentMaterial = [];
-        let currentStudents = [];
-
-        async function loadData() {
-            try {
-                const response = await fetch('/api/material');
-                const data = await response.json();
-
-                // Fill info
-                document.getElementById('infoCentro').value = data.info.centro || '';
-                document.getElementById('infoCursoEscolar').value = data.info.curso_escolar || '';
-                document.getElementById('infoNivelCurso').value = data.info.nivel_curso || '';
-                document.getElementById('infoObservaciones').value = data.info.observaciones || '';
-
-                currentMaterial = data.material;
-                renderTables();
-                loadStudents(); // Load students for the second tab
-            } catch (e) {
-                console.error("Error loading material:", e);
-            }
-        }
-
-        async function loadStudents() {
-            try {
-                const response = await fetch('/api/alumnos');
-                currentStudents = await response.json();
-                const select = document.getElementById('alumnoSelect');
-                select.innerHTML = '<option value="">-- Elige un alumno --</option>';
-                currentStudents.forEach(a => {
-                    select.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
-                });
-            } catch (e) { console.error(e); }
-        }
-
-        async function loadStudentChecklist(alumnoId) {
-            if (!alumnoId) {
-                document.getElementById('checklist-container').style.display = 'none';
-                document.getElementById('no-student-msg').style.display = 'block';
-                return;
-            }
-
-            document.getElementById('no-student-msg').style.display = 'none';
-            document.getElementById('checklist-container').style.display = 'block';
-            const container = document.getElementById('student-checklist');
-            container.innerHTML = '<p style="text-align:center;">Cargando checklist...</p>';
-
-            try {
-                const response = await fetch(`/api/material/estado/${alumnoId}`);
-                const material = await response.json();
-
-                if (material.length === 0) {
-                    container.innerHTML = '<p style="color:#999; text-align:center;">No hay materiales configurados en la plantilla.</p>';
-                    return;
-                }
-
-                container.innerHTML = material.map(m => `
-                    <div class="checklist-item">
-                        <input type="checkbox" ${m.entregado ? 'checked' : ''} 
-                               onchange="toggleStatus(${alumnoId}, ${m.id}, this.checked)">
+                <!-- Group Configuration section inside Material Definition -->
+                <div class="section no-print" style="background: #f8fbff; border: 1px dashed #c0d1e6;">
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <span style="font-size: 1.5rem;">🏫</span>
                         <div style="flex:1;">
-                            <strong>${m.unidades}x</strong> ${m.material} 
-                            <span style="font-size:0.75rem; color:#888;">(${m.categoria})</span>
+                            <label style="font-size: 0.75rem;">Nivel/Curso del Grupo:</label>
+                            <input type="text" id="infoNivelCurso" placeholder="Ej: 3º de Primaria B"
+                                onchange="saveGeneralInfo()" style="padding: 5px 10px; font-size: 0.9rem;">
                         </div>
                     </div>
-                `).join('');
-            } catch (e) {
-                console.error(e);
-                container.innerHTML = '<p style="color:red;">Error al cargar el checklist.</p>';
-            }
-        }
+                    <div style="margin-top: 15px;">
+                        <label style="font-size: 0.75rem;">Observaciones para las familias:</label>
+                        <textarea id="infoObservaciones" rows="2" placeholder="Instrucciones adicionales..."
+                            onchange="saveGeneralInfo()" style="padding: 8px 12px; font-size: 0.9rem;"></textarea>
+                    </div>
+                </div>
 
-        async function toggleStatus(alumnoId, materialId, entregado) {
-            try {
-                await fetch('/api/material/estado', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        alumno_id: alumnoId,
-                        material_id: materialId,
-                        entregado: entregado ? 1 : 0
-                    })
+                <!-- Help Materials Section -->
+                <div class="section">
+                    <div class="section-title">
+                        🎁 Material para alumnado que no recibe ayuda / Material que cubre la ayuda
+                        <button onclick="openAddModal('AYUDA')" class="btn btn-success no-print"
+                            style="margin-left: auto; padding: 5px 10px; font-size: 0.8rem;">➕ Añadir</button>
+                    </div>
+                    <table id="tableAyuda">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Unidades</th>
+                                <th>Material</th>
+                                <th class="no-print" style="width: 100px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- All Students Materials Section -->
+                <div class="section">
+                    <div class="section-title">
+                        🎒 Material que debe aportar TODO el alumnado
+                        <button onclick="openAddModal('TODO')" class="btn btn-success no-print"
+                            style="margin-left: auto; padding: 5px 10px; font-size: 0.8rem;">➕ Añadir</button>
+                    </div>
+                    <table id="tableTodo">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Unidades</th>
+                                <th>Material</th>
+                                <th class="no-print" style="width: 100px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div style="text-align: center; margin-top: 20px;" class="no-print">
+                    <button onclick="switchTab('con-ayuda')" class="btn btn-primary">Volver al Registro</button>
+                </div>
+            </div>
+
+            <!-- TAB 2: DELIVERY CONTROL (AYUDA) - DEFAULT -->
+            <div id="view-con-ayuda">
+                <div style="display: grid; grid-template-columns: 350px 1fr; gap: 25px; margin-top: 20px;">
+                    <!-- Student list with search -->
+                    <div class="section" style="margin-bottom:0;">
+                        <div class="section-title">👥 Alumnado con Ayuda <span id="count-ayuda"
+                                style="font-size: 0.9rem; margin-left: 8px; color: #666; background: #eee; padding: 2px 8px; border-radius: 12px; font-weight: 500;">(0)</span>
+                        </div>
+                        <div style="position: relative; margin-bottom: 10px;">
+                            <input type="text" placeholder="Buscar alumno..." id="search-ayuda"
+                                oninput="filterStudentLists()"
+                                style="padding-left: 35px; border-radius: 30px; background: #f8f9fa;">
+                            <span style="position: absolute; left: 12px; top: 10px; color: #999;">🔍</span>
+                        </div>
+                        <div id="list-ayuda" style="max-height: 500px; overflow-y: auto;">
+                            <!-- Alumnos loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Checklist for selected student -->
+                    <div id="checklist-con-ayuda" class="section"
+                        style="margin-bottom:0; min-height: 400px; background: #fffcf5;">
+                        <div id="checklist-con-ayuda-header"
+                            style="border-bottom: 2px solid #ff980044; padding-bottom: 15px; margin-bottom: 20px;">
+                            <h3 style="margin:0; color: #e65100;">Selecciona un alumno/a</h3>
+                        </div>
+                        <div id="items-con-ayuda">
+                            <p style="color:#999; text-align:center; padding: 40px;">Usa la lista de la izquierda para
+                                gestionar la entrega.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: DELIVERY CONTROL (SIN AYUDA) -->
+            <div id="view-sin-ayuda" style="display: none;">
+                <div style="display: grid; grid-template-columns: 350px 1fr; gap: 25px; margin-top: 20px;">
+                    <!-- Student list with search -->
+                    <div class="section" style="margin-bottom:0;">
+                        <div class="section-title">👥 Alumnado sin Ayuda <span id="count-sin-ayuda"
+                                style="font-size: 0.9rem; margin-left: 8px; color: #666; background: #eee; padding: 2px 8px; border-radius: 12px; font-weight: 500;">(0)</span>
+                        </div>
+                        <div style="position: relative; margin-bottom: 10px;">
+                            <input type="text" placeholder="Buscar alumno..." id="search-no-ayuda"
+                                oninput="filterStudentLists()"
+                                style="padding-left: 35px; border-radius: 30px; background: #f8f9fa;">
+                            <span style="position: absolute; left: 12px; top: 10px; color: #999;">🔍</span>
+                        </div>
+                        <div id="list-sin-ayuda" style="max-height: 500px; overflow-y: auto;">
+                            <!-- Alumnos loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Checklist for selected student -->
+                    <div id="checklist-sin-ayuda" class="section" style="margin-bottom:0; min-height: 400px;">
+                        <div id="checklist-sin-ayuda-header"
+                            style="border-bottom: 2px solid #00336611; padding-bottom: 15px; margin-bottom: 20px;">
+                            <h3 style="margin:0; color: var(--primary);">Selecciona un alumno/a</h3>
+                        </div>
+                        <div id="items-sin-ayuda">
+                            <p style="color:#999; text-align:center; padding: 40px;">Usa la lista de la izquierda para
+                                gestionar la entrega.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: AID MANAGEMENT (CHECKLIST) -->
+            <div id="view-ayuda-gestion" style="display: none;">
+                <div class="section" style="margin-top: 20px;">
+                    <div class="section-title">
+                        ⚙️ Gestión de Ayudas de Material
+                    </div>
+                    <p style="margin-bottom: 20px; color: #666;">Marca a los alumnos que <strong>reciben ayuda de
+                            material</strong>. Esto determinará qué lista de materiales se les asigna.</p>
+
+                    <div style="position: relative; margin-bottom: 20px; max-width: 400px;">
+                        <input type="text" placeholder="Buscar alumno para gestionar ayuda..." id="search-gestion-ayuda"
+                            oninput="renderAidManagementList()"
+                            style="padding-left: 35px; border-radius: 30px; background: #f8f9fa;">
+                        <span style="position: absolute; left: 12px; top: 10px; color: #999;">🔍</span>
+                    </div>
+
+                    <div id="aidManagementListContent"
+                        style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fdfdfd; max-height: 600px; overflow-y: auto;">
+                        <!-- Alumnos with checkboxes loaded here -->
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button onclick="switchTab('con-ayuda')" class="btn btn-primary">Guardar y Volver</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Modal -->
+        <div id="materialModal" class="modal-overlay">
+            <div class="modal">
+                <h3 id="modalTitle">Añadir Material</h3>
+                <input type="hidden" id="materialId">
+                <input type="hidden" id="materialCategoria">
+                <div class="form-group">
+                    <label>Unidades:</label>
+                    <input type="number" id="materialUnidades" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Material:</label>
+                    <input type="text" id="materialNombre" placeholder="Nombre o descripción del material">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button onclick="closeModal()" class="btn btn-danger">Cancelar</button>
+                    <button onclick="saveMaterial()" class="btn btn-success">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="/static/js/api.js"></script>
+        <script>
+            let currentMaterial = [];
+            let currentStudents = [];
+            let materialStatus = {}; // { student_id: {entregados, total} }
+            let selectedStudentId = null;
+
+            function normalizeString(str) {
+                if (!str) return '';
+                return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            }
+
+            async function loadData() {
+                try {
+                    const response = await fetch('/api/material');
+                    const data = await response.json();
+
+                    // Fill info for display and print
+                    const info = data.info || {};
+                    const centroEl = document.getElementById('print-centro');
+                    const cursoEl = document.getElementById('print-curso');
+                    if (centroEl) centroEl.textContent = info.centro || '';
+                    if (cursoEl) cursoEl.textContent = info.curso_escolar || '';
+
+                    const nivelEl = document.getElementById('infoNivelCurso');
+                    const obsEl = document.getElementById('infoObservaciones');
+                    if (nivelEl) nivelEl.value = info.nivel_curso || '';
+                    if (obsEl) obsEl.value = info.observaciones || '';
+
+                    currentMaterial = data.material || [];
+                    renderTables();
+                    await loadStudents();
+
+                    // Show default tab
+                    switchTab('con-ayuda');
+                } catch (e) {
+                    console.error("Error loading material:", e);
+                }
+            }
+
+            async function loadStudents() {
+                try {
+                    console.log("Fetching students and status...");
+                    const [stuRes, statusRes] = await Promise.all([
+                        fetch('/api/alumnos'),
+                        fetch('/api/material/estado_grupo')
+                    ]);
+
+                    currentStudents = await stuRes.json();
+                    materialStatus = await statusRes.json();
+
+                    console.log("Students loaded:", currentStudents.length);
+                    renderStudentLists();
+                } catch (e) { console.error("Error loading students:", e); }
+            }
+
+            function renderStudentLists() {
+                console.log("Rendering student lists...");
+                const listAyuda = document.getElementById('list-ayuda');
+                const listNoAyuda = document.getElementById('list-sin-ayuda');
+                if (!listAyuda || !listNoAyuda) return;
+
+                const searchAyudaInput = document.getElementById('search-ayuda');
+                const searchNoAyudaInput = document.getElementById('search-no-ayuda');
+
+                const qAyuda = normalizeString(searchAyudaInput ? searchAyudaInput.value : '');
+                const qNoAyuda = normalizeString(searchNoAyudaInput ? searchNoAyudaInput.value : '');
+
+                const filteredAyuda = currentStudents.filter(a => a.tiene_ayuda_material && normalizeString(a.nombre).includes(qAyuda));
+                const filteredNoAyuda = currentStudents.filter(a => !a.tiene_ayuda_material && normalizeString(a.nombre).includes(qNoAyuda));
+
+                // Update counters based on ALL students (not filtered by search for the count, or maybe search count is better?)
+                // User said "niños que reciben ayuda y los que no", usually global count is better or visible count?
+                // Let's do global counts for the category.
+                const totalAyuda = currentStudents.filter(a => a.tiene_ayuda_material).length;
+                const totalSinAyuda = currentStudents.filter(a => !a.tiene_ayuda_material).length;
+
+                const countAyudaEl = document.getElementById('count-ayuda');
+                const countSinAyudaEl = document.getElementById('count-sin-ayuda');
+                if (countAyudaEl) countAyudaEl.textContent = `(${totalAyuda})`;
+                if (countSinAyudaEl) countSinAyudaEl.textContent = `(${totalSinAyuda})`;
+
+                console.log(`Filtered: Ayuda=${filteredAyuda.length}, Sin=${filteredNoAyuda.length}`);
+
+                listAyuda.innerHTML = filteredAyuda.map(a => renderStudentItem(a)).join('');
+                listNoAyuda.innerHTML = filteredNoAyuda.map(a => renderStudentItem(a)).join('');
+
+                if (filteredAyuda.length === 0) listAyuda.innerHTML = '<p style="color:#999; text-align:center; padding:10px;">Sin alumnos en esta lista</p>';
+                if (filteredNoAyuda.length === 0) listNoAyuda.innerHTML = '<p style="color:#999; text-align:center; padding:10px;">Sin alumnos en esta lista</p>';
+            }
+
+            function renderStudentItem(a) {
+                const isActive = selectedStudentId === a.id;
+                const status = materialStatus[a.id] || { entregados: 0, total: 0 };
+                const isComplete = status.total > 0 && status.entregados === status.total;
+                const progressColor = isComplete ? '#28a745' : '#666';
+
+                const aidBadge = a.tiene_ayuda_material ?
+                    `<span style="color:#e65100; font-size:0.65rem; background:#fff3e0; padding:2px 6px; border-radius:10px; margin-left:5px; font-weight:bold; border:1px solid #ffe0b2;">AYUDA</span>` : '';
+
+                return `
+                <div onclick="selectStudent(${a.id})" class="student-item" 
+                     style="padding:12px 15px; cursor:pointer; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; ${isActive ? 'background:#eef2f7; border-left:4px solid var(--primary);' : 'background:white;'}">
+                    <div style="flex:1; overflow:hidden;">
+                        <div style="font-weight: 600; color: ${isActive ? 'var(--primary)' : '#444'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; display:flex; align-items:center;">
+                            ${a.nombre} ${aidBadge}
+                        </div>
+                        <div style="font-size: 0.75rem; color: ${progressColor}; font-weight: ${isComplete ? '700' : '500'};">
+                            ${isComplete ? '✅' : '📦'} ${status.entregados}/${status.total} entregados
+                        </div>
+                    </div>
+                    <button onclick="toggleAidStatus(event, ${a.id}, ${a.tiene_ayuda_material ? 0 : 1})" 
+                            title="${a.tiene_ayuda_material ? 'Quitar ayuda' : 'Marcar con ayuda'}"
+                            style="border:1px solid #eee; background:#fafafa; border-radius:6px; font-size:1rem; cursor:pointer; padding: 4px 8px; margin-left:10px; transition:all 0.2s;">
+                        ${a.tiene_ayuda_material ? '🎁' : '🎒'}
+                    </button>
+                </div>
+            `;
+            }
+
+
+            function filterStudentLists() {
+                renderStudentLists();
+            }
+
+            async function toggleAidStatus(event, alumnoId, nuevoEstado) {
+                event.stopPropagation();
+                try {
+                    const res = await fetch('/api/material/ayuda_alumno', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ alumno_id: alumnoId, tiene_ayuda: nuevoEstado })
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        const stu = currentStudents.find(s => s.id === alumnoId);
+                        if (stu) stu.tiene_ayuda_material = nuevoEstado;
+                        renderStudentLists();
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            async function selectStudent(alumnoId) {
+                selectedStudentId = alumnoId;
+                const stu = currentStudents.find(s => s.id === alumnoId);
+                if (!stu) return;
+
+                renderStudentLists();
+
+                const prefix = stu.tiene_ayuda_material ? 'con-ayuda' : 'sin-ayuda';
+                const header = document.getElementById(`checklist-${prefix}-header`);
+                const itemsCont = document.getElementById(`items-${prefix}`);
+                if (!header || !itemsCont) return;
+
+                const otherPrefix = stu.tiene_ayuda_material ? 'sin-ayuda' : 'con-ayuda';
+                document.getElementById(`items-${otherPrefix}`).innerHTML = '<p style="color:#999; text-align:center; padding: 40px;">Usa la lista de la izquierda para gestionar la entrega.</p>';
+                document.getElementById(`checklist-${otherPrefix}-header`).innerHTML = '<h3 style="margin:0; color:#999;">Selecciona un alumno/a</h3>';
+
+                header.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; color: ${stu.tiene_ayuda_material ? '#e65100' : 'var(--primary)'};">✅ ${stu.nombre}</h3>
+                    <span style="font-size:0.8rem; background: ${stu.tiene_ayuda_material ? '#fff3e0' : '#eef2f7'}; padding:4px 10px; border-radius:15px; font-weight:700; color: ${stu.tiene_ayuda_material ? '#e65100' : 'var(--primary)'};">
+                        ${stu.tiene_ayuda_material ? 'RECEPTOR AYUDA' : 'APORTACIÓN PROPIA'}
+                    </span>
+                </div>
+            `;
+                itemsCont.innerHTML = '<p style="text-align:center; padding:20px;">Cargando...</p>';
+
+                try {
+                    const response = await fetch(`/api/material/estado/${alumnoId}`);
+                    let material = await response.json();
+                    if (!stu.tiene_ayuda_material) material = material.filter(m => m.categoria === 'TODO');
+
+                    if (material.length === 0) {
+                        itemsCont.innerHTML = '<p style="color:#999; text-align:center; padding:40px;">No hay materiales requeridos.</p>';
+                    } else {
+                        itemsCont.innerHTML = material.map(m => `
+                        <div class="checklist-item" style="padding: 12px; border-radius: 8px; margin-bottom: 5px; transition: background 0.2s;">
+                            <input type="checkbox" ${m.entregado ? 'checked' : ''} 
+                                   onchange="toggleStatus(${alumnoId}, ${m.id}, this.checked)">
+                            <div style="flex:1; cursor:pointer;" onclick="this.previousElementSibling.click()">
+                                <strong style="font-size: 1.1rem;">${m.unidades}x</strong> ${m.material} 
+                            </div>
+                        </div>
+                    `).join('');
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            async function toggleStatus(alumnoId, materialId, entregado) {
+                try {
+                    const res = await fetch('/api/material/estado', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            alumno_id: alumnoId,
+                            material_id: materialId,
+                            entregado: entregado ? 1 : 0
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        // Update local status to reflect progress immediately
+                        if (!materialStatus[alumnoId]) materialStatus[alumnoId] = { entregados: 0, total: 0 };
+                        materialStatus[alumnoId].entregados += entregado ? 1 : -1;
+                        renderStudentLists();
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            function switchTab(tabId) {
+                const views = ['view-con-ayuda', 'view-sin-ayuda', 'view-config', 'view-ayuda-gestion'];
+                views.forEach(v => {
+                    const el = document.getElementById(v);
+                    if (el) el.style.display = 'none';
                 });
-            } catch (e) {
-                console.error(e);
-                alert("Error al guardar el estado.");
+
+                document.getElementById('view-' + tabId).style.display = 'block';
+
+                // Update active tab button
+                const buttons = {
+                    'con-ayuda': 'tab-ayuda',
+                    'sin-ayuda': 'tab-no-ayuda',
+                    'config': 'tab-config',
+                    'ayuda-gestion': 'tab-ayuda-gestion'
+                };
+
+                Object.values(buttons).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.remove('active');
+                });
+
+                const activeBtn = document.getElementById(buttons[tabId]);
+                if (activeBtn) activeBtn.classList.add('active');
+
+                if (tabId === 'ayuda-gestion') {
+                    renderAidManagementList();
+                } else if (tabId === 'config') {
+                    renderTables();
+                } else {
+                    renderStudentLists();
+                }
             }
-        }
 
-        function switchTab(tab) {
-            document.getElementById('view-config').style.display = tab === 'config' ? 'block' : 'none';
-            document.getElementById('view-control').style.display = tab === 'control' ? 'block' : 'none';
-            document.getElementById('tab-config').className = 'tab-btn' + (tab === 'config' ? ' active' : '');
-            document.getElementById('tab-control').className = 'tab-btn' + (tab === 'control' ? ' active' : '');
-        }
+            function renderAidManagementList() {
+                const listCont = document.getElementById('aidManagementListContent');
+                if (!listCont) return;
 
-        function renderTables() {
-            const tableAyuda = document.querySelector('#tableAyuda tbody');
-            const tableTodo = document.querySelector('#tableTodo tbody');
+                const q = normalizeString(document.getElementById('search-gestion-ayuda').value);
+                const filtered = currentStudents.filter(a => normalizeString(a.nombre).includes(q));
 
-            tableAyuda.innerHTML = '';
-            tableTodo.innerHTML = '';
+                listCont.innerHTML = filtered.map(a => `
+                    <div style="padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; background: white; transition: background 0.2s;">
+                        <input type="checkbox" id="aid-gestion-check-${a.id}" ${a.tiene_ayuda_material ? 'checked' : ''} 
+                               onchange="toggleAidStatusInView(${a.id}, this.checked)"
+                               style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="aid-gestion-check-${a.id}" style="flex:1; cursor: pointer; font-weight: 500; font-size: 1rem; color: #333;">${a.nombre}</label>
+                        <span style="font-size: 1.4rem;">${a.tiene_ayuda_material ? '🎁' : '🎒'}</span>
+                    </div>
+                `).join('');
 
-            currentMaterial.forEach(item => {
-                const row = `
+                if (filtered.length === 0) {
+                    listCont.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">No se encontraron alumnos</div>';
+                }
+            }
+
+            async function toggleAidStatusInView(alumnoId, nuevoEstado) {
+                try {
+                    const res = await fetch('/api/material/ayuda_alumno', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ alumno_id: alumnoId, tiene_ayuda: nuevoEstado ? 1 : 0 })
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        const stu = currentStudents.find(s => s.id === alumnoId);
+                        if (stu) stu.tiene_ayuda_material = nuevoEstado;
+                        renderStudentLists();
+                        renderAidManagementList(); // Re-render to update icon
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            function renderTables() {
+                const tableAyuda = document.querySelector('#tableAyuda tbody');
+                const tableTodo = document.querySelector('#tableTodo tbody');
+
+                tableAyuda.innerHTML = '';
+                tableTodo.innerHTML = '';
+
+                currentMaterial.forEach(item => {
+                    const row = `
                     <tr>
                         <td>${item.unidades}</td>
                         <td>${item.material}</td>
@@ -582,133 +844,138 @@
                         </td>
                     </tr>
                 `;
-                if (item.categoria === 'AYUDA') {
-                    tableAyuda.innerHTML += row;
-                } else {
-                    tableTodo.innerHTML += row;
-                }
-            });
+                    if (item.categoria === 'AYUDA') {
+                        tableAyuda.innerHTML += row;
+                    } else {
+                        tableTodo.innerHTML += row;
+                    }
+                });
 
-            // Add empty rows for printing if list is short (to match user's template look)
-            fillEmptyRows('tableAyuda', 5);
-            fillEmptyRows('tableTodo', 5);
-        }
-
-        function fillEmptyRows(tableId, minRows) {
-            const tbody = document.querySelector(`#${tableId} tbody`);
-            const currentRows = tbody.children.length;
-            for (let i = currentRows; i < minRows; i++) {
-                tbody.innerHTML += `<tr><td>&nbsp;</td><td>&nbsp;</td><td class="no-print">&nbsp;</td></tr>`;
+                // Add empty rows for printing if list is short (to match user's template look)
+                fillEmptyRows('tableAyuda', 5);
+                fillEmptyRows('tableTodo', 5);
             }
-        }
 
-        async function saveGeneralInfo() {
-            const info = {
-                centro: document.getElementById('infoCentro').value,
-                curso_escolar: document.getElementById('infoCursoEscolar').value,
-                nivel_curso: document.getElementById('infoNivelCurso').value,
-                observaciones: document.getElementById('infoObservaciones').value
-            };
+            function fillEmptyRows(tableId, minRows) {
+                const tbody = document.querySelector(`#${tableId} tbody`);
+                if (!tbody) return;
+                const currentRows = tbody.children.length;
+                for (let i = currentRows; i < minRows; i++) {
+                    tbody.innerHTML += `<tr><td>&nbsp;</td><td>&nbsp;</td><td class="no-print">&nbsp;</td></tr>`;
+                }
+            }
 
-            try {
-                const res = await fetch('/api/material/info', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(info)
-                });
-                const data = await res.json();
-                if (data.ok) alert("Información guardada correctamente.");
-                else alert("Error: " + data.error);
-            } catch (e) { console.error(e); }
-        }
+            async function saveGeneralInfo() {
+                const info = {
+                    nivel_curso: document.getElementById('infoNivelCurso').value,
+                    observaciones: document.getElementById('infoObservaciones').value
+                };
 
-        function openAddModal(categoria) {
-            document.getElementById('modalTitle').innerText = "Añadir Material";
-            document.getElementById('materialId').value = "";
-            document.getElementById('materialCategoria').value = categoria;
-            document.getElementById('materialUnidades').value = 1;
-            document.getElementById('materialNombre').value = "";
-            document.getElementById('materialModal').style.display = 'flex';
-        }
+                try {
+                    const res = await fetch('/api/material/info', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(info)
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        console.log("Información guardada.");
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                } catch (e) { console.error(e); }
+            }
 
-        function openEditModal(id) {
-            const item = currentMaterial.find(m => m.id === id);
-            if (!item) return;
+            function openAddModal(categoria) {
+                document.getElementById('modalTitle').innerText = "Añadir Material";
+                document.getElementById('materialId').value = "";
+                document.getElementById('materialCategoria').value = categoria;
+                document.getElementById('materialUnidades').value = 1;
+                document.getElementById('materialNombre').value = "";
+                document.getElementById('materialModal').style.display = 'flex';
+            }
 
-            document.getElementById('modalTitle').innerText = "Editar Material";
-            document.getElementById('materialId').value = id;
-            document.getElementById('materialCategoria').value = item.categoria;
-            document.getElementById('materialUnidades').value = item.unidades;
-            document.getElementById('materialNombre').value = item.material;
-            document.getElementById('materialModal').style.display = 'flex';
-        }
+            function openEditModal(id) {
+                const item = currentMaterial.find(m => m.id === id);
+                if (!item) return;
 
-        function closeModal() {
-            document.getElementById('materialModal').style.display = 'none';
-        }
+                document.getElementById('modalTitle').innerText = "Editar Material";
+                document.getElementById('materialId').value = id;
+                document.getElementById('materialCategoria').value = item.categoria;
+                document.getElementById('materialUnidades').value = item.unidades;
+                document.getElementById('materialNombre').value = item.material;
+                document.getElementById('materialModal').style.display = 'flex';
+            }
 
-        async function saveMaterial() {
-            const id = document.getElementById('materialId').value;
-            const item = {
-                categoria: document.getElementById('materialCategoria').value,
-                unidades: document.getElementById('materialUnidades').value,
-                material: document.getElementById('materialNombre').value
-            };
+            function closeModal() {
+                document.getElementById('materialModal').style.display = 'none';
+            }
 
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/api/material/${id}` : '/api/material';
+            async function saveMaterial() {
+                const id = document.getElementById('materialId').value;
+                const item = {
+                    categoria: document.getElementById('materialCategoria').value,
+                    unidades: document.getElementById('materialUnidades').value,
+                    material: document.getElementById('materialNombre').value
+                };
 
-            try {
-                const res = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(item)
-                });
-                const data = await res.json();
-                if (data.ok) {
-                    closeModal();
-                    loadData();
-                } else alert("Error: " + data.error);
-            } catch (e) { console.error(e); }
-        }
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `/api/material/${id}` : '/api/material';
 
-        async function deleteItem(id) {
-            if (!confirm("¿Seguro que quieres borrar este material?")) return;
-            try {
-                const res = await fetch(`/api/material/${id}`, {
-                    method: 'DELETE',
-                });
-                const data = await res.json();
-                if (data.ok) loadData();
-            } catch (e) { console.error(e); }
-        }
+                try {
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(item)
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        closeModal();
+                        loadData();
+                    } else alert("Error: " + data.error);
+                } catch (e) { console.error(e); }
+            }
 
-        async function importarCSV(input) {
-            if (!input.files || input.files.length === 0) return;
-            const file = input.files[0];
-            const formData = new FormData();
-            formData.append('archivo', file);
+            async function deleteItem(id) {
+                if (!confirm("¿Seguro que quieres borrar este material?")) return;
+                try {
+                    const res = await fetch(`/api/material/${id}`, {
+                        method: 'DELETE',
+                    });
+                    const data = await res.json();
+                    if (data.ok) loadData();
+                } catch (e) { console.error(e); }
+            }
 
-            try {
-                const res = await fetch('/api/material/importar', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                if (data.ok) {
-                    alert(`Se han importado ${data.count} elementos.`);
-                    loadData();
-                } else alert("Error: " + data.error);
-            } catch (e) { console.error(e); }
-            input.value = ""; // Reset
-        }
+            async function importarCSV(input) {
+                if (!input.files || input.files.length === 0) return;
+                const file = input.files[0];
+                const formData = new FormData();
+                formData.append('archivo', file);
 
-        window.onload = loadData;
-    </script>
+                try {
+                    const res = await fetch('/api/material/importar', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        alert(`Se han importado ${data.count} elementos.`);
+                        loadData();
+                    } else alert("Error: " + data.error);
+                } catch (e) { console.error(e); }
+                input.value = ""; // Reset
+            }
+
+            window.onload = loadData;
+        </script>
+    </div>
+</div>
+<script src="/static/js/global_groups.js"></script>
 </body>
 
 </html>

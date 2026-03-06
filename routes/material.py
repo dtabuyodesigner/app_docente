@@ -16,15 +16,33 @@ def get_material():
     conn = get_db()
     cur = conn.cursor()
 
-    # Get general info
-    cur.execute("SELECT * FROM material_info WHERE grupo_id = ?", (grupo_id,))
-    info_row = cur.fetchone()
-    info = dict(info_row) if info_row else {
-        "centro": "",
-        "curso_escolar": "",
-        "nivel_curso": "",
+    # Get center info from config (Global)
+    cur.execute("SELECT clave, valor FROM config WHERE clave IN ('nombre_centro', 'curso_escolar')")
+    config_rows = cur.fetchall()
+    config_data = {r["clave"]: r["valor"] for r in config_rows}
+
+    # Fallback to local material_info if not set globally? 
+    # Actually user said "desaparezca de aquí y se los traiga directamente de la configuración"
+    info = {
+        "centro": config_data.get("nombre_centro", ""),
+        "curso_escolar": config_data.get("curso_escolar", ""),
+        "nivel_curso": "", # This might still be group-specific
         "observaciones": ""
     }
+
+    # Get group name as default for nivel_curso
+    cur.execute("SELECT nombre FROM grupos WHERE id = ?", (grupo_id,))
+    grupo_row = cur.fetchone()
+    default_nivel = grupo_row["nombre"] if grupo_row else ""
+
+    # Still check material_info for observations and level_curso
+    cur.execute("SELECT nivel_curso, observaciones FROM material_info WHERE grupo_id = ?", (grupo_id,))
+    local_info = cur.fetchone()
+    if local_info:
+        info["nivel_curso"] = local_info["nivel_curso"] or default_nivel
+        info["observaciones"] = local_info["observaciones"]
+    else:
+        info["nivel_curso"] = default_nivel
 
     # Get material items
     cur.execute("SELECT * FROM material_alumnado WHERE grupo_id = ? ORDER BY categoria, id", (grupo_id,))
@@ -39,8 +57,6 @@ def save_material_info():
         return jsonify({"ok": False, "error": "No hay grupo seleccionado"}), 400
 
     d = request.json
-    centro = sanitize_input(d.get("centro", ""))
-    curso_escolar = sanitize_input(d.get("curso_escolar", ""))
     nivel_curso = sanitize_input(d.get("nivel_curso", ""))
     observaciones = sanitize_input(d.get("observaciones", ""))
 
@@ -48,9 +64,12 @@ def save_material_info():
     cur = conn.cursor()
     try:
         cur.execute("""
-            INSERT OR REPLACE INTO material_info (grupo_id, centro, curso_escolar, nivel_curso, observaciones)
-            VALUES (?, ?, ?, ?, ?)
-        """, (grupo_id, centro, curso_escolar, nivel_curso, observaciones))
+            INSERT INTO material_info (grupo_id, nivel_curso, observaciones)
+            VALUES (?, ?, ?)
+            ON CONFLICT(grupo_id) DO UPDATE SET
+                nivel_curso = excluded.nivel_curso,
+                observaciones = excluded.observaciones
+        """, (grupo_id, nivel_curso, observaciones))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
@@ -231,6 +250,77 @@ def toggle_material_status():
                 fecha_entrega = excluded.fecha_entrega
         """, (alumno_id, material_id, entregado, fecha))
         
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+@material_bp.route("/api/material/estado_grupo")
+def get_material_estado_grupo():
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({})
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Get all students in the group
+    cur.execute("SELECT id, tiene_ayuda_material FROM alumnos WHERE grupo_id = ? AND deleted_at IS NULL", (grupo_id,))
+    alumnos = cur.fetchall()
+
+    # Get total material items for AYUDA and TODO
+    cur.execute("SELECT COUNT(*) as cnt FROM material_alumnado WHERE grupo_id = ? AND categoria = 'AYUDA'", (grupo_id,))
+    total_ayuda = cur.fetchone()["cnt"]
+    cur.execute("SELECT COUNT(*) as cnt FROM material_alumnado WHERE grupo_id = ? AND categoria = 'TODO'", (grupo_id,))
+    total_todo = cur.fetchone()["cnt"]
+
+    # Get delivered counts per student
+    cur.execute("""
+        SELECT me.alumno_id, COUNT(*) as entregados
+        FROM material_entregado me
+        JOIN material_alumnado ma ON me.material_id = ma.id
+        WHERE ma.grupo_id = ? AND me.entregado = 1
+        GROUP BY me.alumno_id
+    """, (grupo_id,))
+    entregados_data = {r["alumno_id"]: r["entregados"] for r in cur.fetchall()}
+
+    result = {}
+    for a in alumnos:
+        # If student doesn't have aid, they only need 'TODO' materials.
+        # If they have aid, they need BOTH 'AYUDA' and 'TODO'? 
+        # Actually user said: "Material que cubre la ayuda" vs "Material que debe aportar TODO el alumnado".
+        # Let's clarify: if they have aid, they DON'T need to bring 'TODO' because it's covered?
+        # Re-reading code: if (!stu.tiene_ayuda_material) material = material.filter(m => m.categoria === 'TODO');
+        # Wait, if they HAVE aid, they get BOTH? 
+        # In material.html: if (!stu.tiene_ayuda_material) material = material.filter(m => m.categoria === 'TODO');
+        # So: 
+        # - NO AID: category 'TODO' only.
+        # - WITH AID: category 'AYUDA' + 'TODO'.
+        
+        total = total_todo
+        if a["tiene_ayuda_material"]:
+            total += total_ayuda
+            
+        result[a["id"]] = {
+            "entregados": entregados_data.get(a["id"], 0),
+            "total": total
+        }
+
+    return jsonify(result)
+
+@material_bp.route("/api/material/ayuda_alumno", methods=["POST"])
+def update_alumno_ayuda():
+    d = request.json
+    alumno_id = d.get("alumno_id")
+    tiene_ayuda = int(d.get("tiene_ayuda", 0))
+
+    if not alumno_id:
+        return jsonify({"ok": False, "error": "Falta alumno_id"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE alumnos SET tiene_ayuda_material = ? WHERE id = ?", (tiene_ayuda, alumno_id))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:

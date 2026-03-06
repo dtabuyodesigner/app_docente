@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <style>
@@ -31,44 +32,6 @@
             color: #343a40;
         }
 
-        .nav {
-            background: #003366;
-            padding: 10px 15px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            flex-wrap: wrap;
-            align-items: center;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-            border-radius: 0 0 12px 12px;
-        }
-
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px 12px;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            transition: all 0.2s;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-        }
-
-        .nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav a.active {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.8);
-        }
 
         .container {
             max-width: 1100px;
@@ -420,7 +383,7 @@
         <a href="/alumnos">👥 Alumnos</a>
         <a href="/asistencia">📋 Pasar lista</a>
         <a href="/diario">📓 Diario</a>
-        <a href="/programacion">📅 Calendario</a>
+        <a href="/programacion">📅 Programación</a>
         <a href="/horario">⏰ Horario</a>
         <a href="/evaluacion">📊 Evaluación</a>
         <a href="/rubricas">📝 Rúbricas</a>
@@ -432,11 +395,14 @@
         <a href="/configuracion">⚙️ Configuración</a>
     </nav>
     <div class="container">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;" class="injected-group-selector">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;"
+            class="injected-group-selector">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div
+                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)" style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
+                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
+                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -448,7 +414,7 @@
             <div style="display:flex;gap:10px;">
                 <a href="/biblioteca" class="back-link" style="background:#e8f5e9;border-color:#c8e6c9;">📚
                     Biblioteca</a>
-                <a href="/" class="back-link">🏠 Inicio</a>
+                <a href="/" class="back-link">🏠 Inicio</a> <a href="/ayuda">💡 Ayuda</a>
             </div>
         </div>
 

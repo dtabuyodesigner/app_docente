@@ -173,6 +173,147 @@ def api_ciclo(cid):
             conn.rollback()
             print("Error en api_ciclo (DELETE):", str(e))
             return jsonify({"ok": False, "error": "Error interno al borrar ciclo."}), 500
-            return jsonify({"ok": False, "error": "Error interno al guardar la reunión."}), 500
         finally:
             pass
+
+@reuniones_bp.route("/api/reuniones/exportar/csv")
+def exportar_reuniones_csv():
+    conn = get_db()
+    cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
+    tipo = request.args.get("tipo")
+    
+    sql = """
+        SELECT r.fecha, r.asistentes, r.temas, r.acuerdos, r.tipo, a.nombre as alumno_nombre
+        FROM reuniones r
+        LEFT JOIN alumnos a ON r.alumno_id = a.id
+        WHERE (r.tipo = 'CICLO' OR a.grupo_id = ?)
+    """
+    params = [grupo_id]
+    if tipo:
+        sql += " AND r.tipo = ?"
+        params.append(tipo)
+        
+    sql += " ORDER BY r.fecha DESC"
+    
+    cur.execute(sql, params)
+    datos = cur.fetchall()
+    
+    import io
+    import csv
+    from flask import send_file
+    
+    si = io.StringIO()
+    cw = csv.writer(si)
+    cw.writerow(["Fecha", "Tipo", "Alumno", "Asistentes", "Temas", "Acuerdos"])
+    
+    for row in datos:
+        nom_alum = row["alumno_nombre"] or ""
+        tipo_lbl = "Ciclo" if row["tipo"] == "CICLO" else "Padres/Tutores"
+        cw.writerow([
+            row["fecha"],
+            tipo_lbl,
+            nom_alum,
+            row["asistentes"],
+            row["temas"],
+            row["acuerdos"]
+        ])
+        
+    output = io.BytesIO()
+    output.write(si.getvalue().encode('utf-8'))
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=f"reuniones_export_{date.today()}.csv",
+    )
+
+@reuniones_bp.route("/api/reuniones/exportar/ical")
+def exportar_reuniones_ical():
+    conn = get_db()
+    cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
+    tipo = request.args.get("tipo")
+    
+    sql = """
+        SELECT r.fecha, r.asistentes, r.temas, r.acuerdos, r.tipo, a.nombre as alumno_nombre
+        FROM reuniones r
+        LEFT JOIN alumnos a ON r.alumno_id = a.id
+        WHERE (r.tipo = 'CICLO' OR a.grupo_id = ?)
+    """
+    params = [grupo_id]
+    if tipo:
+        sql += " AND r.tipo = ?"
+        params.append(tipo)
+        
+    sql += " ORDER BY r.fecha DESC"
+    
+    cur.execute(sql, params)
+    datos = cur.fetchall()
+    
+    import io
+    from flask import send_file
+    from datetime import datetime
+    import uuid
+    
+    # Simple iCal builder
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//App Evaluacion//Reuniones//ES"
+    ]
+    
+    for row in datos:
+        try:
+            # Parse date and default time to 16:00 if no time part available
+            try:
+                dt = datetime.strptime(row["fecha"], "%Y-%m-%dT%H:%M")
+            except ValueError:
+                dt = datetime.strptime(row["fecha"], "%Y-%m-%d")
+                dt = dt.replace(hour=16, minute=0)
+            
+            # End time default to +1 hour
+            dt_end = dt.replace(hour=dt.hour + 1)
+            
+            dtstamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+            dtstart = dt.strftime("%Y%m%dT%H%M%S")
+            dtend = dt_end.strftime("%Y%m%dT%H%M%S")
+            
+            nom_alum = row["alumno_nombre"] or ""
+            tipo_lbl = "Ciclo" if row["tipo"] == "CICLO" else "Padres"
+            summary = f"Reunión {tipo_lbl}" + (f" - {nom_alum}" if nom_alum else "")
+            
+            desc = f"Asistentes: {row['asistentes']}\\n\\nTemas: {row['temas']}"
+            if row['acuerdos']:
+                desc += f"\\n\\nAcuerdos: {row['acuerdos']}"
+                
+            lines.extend([
+                "BEGIN:VEVENT",
+                f"UID:{uuid.uuid4()}@app_evaluacion",
+                f"DTSTAMP:{dtstamp}",
+                f"DTSTART;TZID=Europe/Madrid:{dtstart}",
+                f"DTEND;TZID=Europe/Madrid:{dtend}",
+                f"SUMMARY:{summary}",
+                f"DESCRIPTION:{desc}",
+                "END:VEVENT"
+            ])
+        except Exception as e:
+            print(f"Error parsing date for iCal export: {e}")
+            continue
+            
+    lines.append("END:VCALENDAR")
+    lines.append("") # EOF trailing newline
+    
+    output = io.BytesIO()
+    # \r\n is required by iCal spec
+    output.write("\\r\\n".join(lines).encode('utf-8')) 
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype="text/calendar",
+        as_attachment=True,
+        download_name=f"calendario_reuniones_{date.today()}.ics",
+    )

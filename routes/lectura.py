@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, send_from_directory
+from flask import Blueprint, request, jsonify, send_from_directory, session
 from utils.db import get_db
 from datetime import datetime, date
 import os
@@ -368,7 +368,9 @@ def get_prestamos_alumno(alumno_id):
 def get_prestamos_activos():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("""
+    
+    active_group_id = session.get('active_group_id')
+    query = """
         SELECT
             pl.id, a.nombre as alumno_nombre, l.titulo as libro_titulo,
             pl.fecha_prestamo,
@@ -378,8 +380,14 @@ def get_prestamos_activos():
         JOIN alumnos a ON pl.alumno_id = a.id
         JOIN libros l ON pl.libro_id = l.id
         WHERE pl.estado = 'activo'
-        ORDER BY pl.fecha_prestamo ASC
-    """)
+    """
+    params = []
+    if active_group_id:
+        query += " AND a.grupo_id = ?"
+        params.append(active_group_id)
+        
+    query += " ORDER BY pl.fecha_prestamo ASC"
+    cur.execute(query, params)
     return jsonify([dict(row) for row in cur.fetchall()])
 
 
@@ -387,7 +395,9 @@ def get_prestamos_activos():
 def get_historial_prestamos():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("""
+    
+    active_group_id = session.get('active_group_id')
+    query = """
         SELECT
             pl.id, a.nombre as alumno_nombre, l.titulo as libro_titulo,
             pl.fecha_prestamo, pl.fecha_devolucion, pl.estado, pl.observaciones,
@@ -396,9 +406,15 @@ def get_historial_prestamos():
         FROM prestamos_libros pl
         JOIN alumnos a ON pl.alumno_id = a.id
         JOIN libros l ON pl.libro_id = l.id
-        ORDER BY pl.fecha_prestamo DESC
-        LIMIT 200
-    """)
+        WHERE 1=1
+    """
+    params = []
+    if active_group_id:
+        query += " AND a.grupo_id = ?"
+        params.append(active_group_id)
+        
+    query += " ORDER BY pl.fecha_prestamo DESC LIMIT 200"
+    cur.execute(query, params)
     return jsonify([dict(row) for row in cur.fetchall()])
 
 
@@ -443,14 +459,21 @@ def estadisticas_lectura():
 def ranking_lectura():
     conn = get_db()
     cur = conn.cursor()
-    # Count both active and returned loans as "read" books
-    cur.execute("""
+    
+    active_group_id = session.get('active_group_id')
+    query = """
         SELECT a.nombre, COUNT(*) as total_lecturas
         FROM prestamos_libros pl
         JOIN alumnos a ON pl.alumno_id = a.id
-        GROUP BY pl.alumno_id
-        ORDER BY total_lecturas DESC
-    """)
+        WHERE 1=1
+    """
+    params = []
+    if active_group_id:
+        query += " AND a.grupo_id = ?"
+        params.append(active_group_id)
+        
+    query += " GROUP BY pl.alumno_id ORDER BY total_lecturas DESC"
+    cur.execute(query, params)
     ranking = [dict(row) for row in cur.fetchall()]
     return jsonify(ranking)
 

@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
 
     <style>
         :root {
@@ -36,47 +37,6 @@
             margin: 0 auto;
         }
 
-        /* Nav */
-        .nav {
-            background: #003366;
-            padding: 10px 15px;
-            margin-bottom: 25px;
-            border-radius: 12px;
-            display: flex;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            flex-wrap: wrap;
-            align-items: center;
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px 12px;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        .nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav a.active {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
 
         a {
             text-decoration: none;
@@ -215,7 +175,7 @@
             <a href="/alumnos" class="active">👥 Alumnos</a>
             <a href="/asistencia">📋 Pasar lista</a>
             <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Calendario</a>
+            <a href="/programacion">📅 Programación</a>
             <a href="/horario">⏰ Horario</a>
             <a href="/evaluacion">📊 Evaluación</a>
             <a href="/rubricas">📝 Rúbricas</a>
@@ -224,18 +184,17 @@
             <a href="/biblioteca">📚 Biblioteca</a>
             <a href="/material">📦 Material</a>
             <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a>
+            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
         </div>
 
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <h2 style="margin:0;">👦 Alumnos</h2>
-                <div
-                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div class="group-selector-container injected-group-selector">
                     <span style="font-size: 1.1rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
+                        class="group-selector-select">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>

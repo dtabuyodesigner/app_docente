@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/es.js'></script>
@@ -52,47 +53,6 @@
             margin: 0 auto;
         }
 
-        /* Nav */
-        .nav {
-            background: #003366;
-            padding: 10px 15px;
-            margin-bottom: 25px;
-            border-radius: 12px;
-            display: flex;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            flex-wrap: wrap;
-            align-items: center;
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 8px 12px;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        .nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav a.active {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
 
         /* Tab System */
         .tabs {
@@ -490,38 +450,35 @@
             }
         }
 
-        /* SA and Activity Redesign */
-        .area-tabs-container {
+        .trimestre-filters {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
+            flex-wrap: wrap;
         }
 
-        .btn-area-tab {
-            background: #f0f2f5;
-            color: #555;
-            border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
-            font-weight: 700;
-            border-radius: 8px;
+        .btn-trim-tab {
+            background: white;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s;
-            white-space: nowrap;
         }
 
-        .btn-area-tab:hover {
-            background: #e2e6ea;
-            color: var(--primary);
+        .btn-trim-tab:hover {
+            border-color: var(--secondary);
+            color: var(--secondary);
         }
 
-        .btn-area-tab.active {
-            background: var(--primary);
+        .btn-trim-tab.active {
+            background: var(--secondary);
             color: white;
-            box-shadow: 0 4px 10px rgba(0, 51, 102, 0.2);
+            border-color: var(--secondary);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
         }
 
         .trimestre-filters {
@@ -659,7 +616,7 @@
             <a href="/alumnos">👥 Alumnos</a>
             <a href="/asistencia">📋 Pasar lista</a>
             <a href="/diario">📓 Diario</a>
-            <a href="/programacion" class="active">📅 Calendario</a>
+            <a href="/programacion" class="active">📅 Programación</a>
             <a href="/horario">⏰ Horario</a>
             <a href="/evaluacion">📊 Evaluación</a>
             <a href="/rubricas">📝 Rúbricas</a>
@@ -668,16 +625,16 @@
             <a href="/biblioteca">📚 Biblioteca</a>
             <a href="/material">📦 Material</a>
             <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a>
+            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
         </div>
-        <div
-            style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <div class="premium-card"
+            style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div
-                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <h2 style="margin:0;">📅 Programación</h2>
+                <div class="group-selector-container injected-group-selector">
                     <span style="font-size: 1.1rem;">📚</span>
                     <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
+                        class="group-selector-select">
                         <option value="">Cargando grupos...</option>
                     </select>
                 </div>
@@ -686,10 +643,9 @@
 
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('tabDiario')">📅 Calendario / Diario</button>
-            <button class="tab-btn" onclick="showTab('tabCurriculo')">🎯 Situaciones de Aprendizaje</button>
-            <button class="tab-btn" onclick="showTab('tabTasks')">🗒️ Tareas</button>
-            <button class="tab-btn" onclick="showTab('tabDocs')">📄 Documentos PDF/Word</button>
+            <button class="tab-btn active" onclick="showTab('tabDiario')">📅 Diario de Aula</button>
+            <button class="tab-btn" onclick="showTab('tabCurriculo')">🎯 Sit. Aprendizaje (SDA)</button>
+            <button class="tab-btn" onclick="showTab('tabDocs')">📄 Documentación</button>
         </div>
 
         <!-- SECCIÓN: DIARIO DE AULA (CALENDARIO) -->
@@ -989,27 +945,9 @@
         <!-- Removed -->
 
         <!-- SECCIÓN: TAREAS -->
-        <div id="tabTasks" class="section">
-            <h2>🗒️ Tareas Pendientes</h2>
-            <div
-                style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px dashed #ccc; margin-bottom: 30px;">
-                <div class="form-row">
-                    <div style="grid-column: span 2;">
-                        <label>Nueva Tarea:</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="newTaskId" placeholder="Escribe algo pendiente...">
-                            <input type="date" id="newTaskDate" style="width: auto;" title="Fecha límite (opcional)">
-                            <button class="btn btn-success" onclick="addTarea()">➕ Añadir</button>
-                            <button class="btn btn-danger" onclick="deleteCompletedTasks()"
-                                style="margin-left: auto;">🗑️
-                                Borrar Completadas</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="taskList">
-                <p style="text-align:center; color:#999;">Cargando tareas...</p>
-            </div>
+        <!-- SECCIÓN: TAREAS (Mantenida oculta por ahora si hay lógica pendiente, o eliminada) -->
+        <div id="tabTasks" class="section" style="display:none !important;">
+            <!-- Unificado en modulo Tareas -->
         </div>
     </div>
 
@@ -1179,178 +1117,253 @@
 
         function renderCurriculoView() {
             const list = document.getElementById('curriculoList');
-            list.innerHTML = "";
+            list.innerHTML = '';
             if (fullCurriculo.length === 0) {
                 list.innerHTML = '<p style="text-align:center; padding: 20px;">Aún no has importado ninguna SDA.</p>';
                 return;
             }
 
-            // 1. Area Tabs
-            const areaTabsHeader = document.createElement('div');
-            areaTabsHeader.className = 'area-tabs-container';
+            // 1. Toolbar: área select + trim filters
+            const toolbar = document.createElement('div');
+            toolbar.style.cssText = 'display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; padding:16px 20px; background:#f8faff; border-radius:14px; border:1px solid #e3e9f5; box-shadow: 0 2px 10px rgba(0,0,0,0.02);';
+
+            const areaLabel = document.createElement('label');
+            areaLabel.textContent = '📚 Área:';
+            areaLabel.style.cssText = 'font-weight:700; color:#1a2a3a; font-size:0.9rem; white-space:nowrap;';
+
+            const areaSelect = document.createElement('select');
+            areaSelect.id = 'curriculoAreaSelect';
+            areaSelect.style.cssText = 'border:1px solid #d0dae9; border-radius:10px; padding:8px 14px; font-size:0.9rem; color:#1a2a3a; font-weight:600; background:white; min-width:240px; cursor:pointer; outline: none; transition: border-color 0.2s;';
+            areaSelect.onfocus = () => areaSelect.style.borderColor = 'var(--secondary)';
+            areaSelect.onblur = () => areaSelect.style.borderColor = '#d0dae9';
+
             fullCurriculo.forEach(area => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-area-tab' + (currentAreaFilter == area.id ? ' active' : '');
-                btn.innerText = area.nombre;
-                btn.type = 'button';
-                btn.onclick = () => { currentAreaFilter = parseInt(area.id); renderCurriculoView(); };
-                areaTabsHeader.appendChild(btn);
+                const opt = document.createElement('option');
+                opt.value = area.id;
+                opt.textContent = area.nombre;
+                if (String(area.id) === String(currentAreaFilter)) opt.selected = true;
+                areaSelect.appendChild(opt);
             });
-            list.appendChild(areaTabsHeader);
+            areaSelect.onchange = () => { currentAreaFilter = parseInt(areaSelect.value); renderCurriculoView(); };
 
-            // 2. Trimester Filters
-            const trimFilters = document.createElement('div');
-            trimFilters.className = 'trimestre-filters';
-            const trimesters = ['Todos', '1', '2', '3'];
-            trimesters.forEach(t => {
+            toolbar.appendChild(areaLabel);
+            toolbar.appendChild(areaSelect);
+
+            const spacer = document.createElement('span');
+            spacer.style.flex = '1';
+            toolbar.appendChild(spacer);
+
+            const trimGroup = document.createElement('div');
+            trimGroup.className = 'trimestre-filters';
+            trimGroup.style.marginBottom = '0';
+            const trims = [{ v: 'Todos', l: 'Todos' }, { v: '1', l: '1º T' }, { v: '2', l: '2º T' }, { v: '3', l: '3º T' }];
+            trims.forEach(t => {
                 const btn = document.createElement('button');
-                const label = t === 'Todos' ? 'Todos' : t + 'º Trimestre';
-                btn.className = 'btn-trim-tab' + (currentTrimFilter == t ? ' active' : '');
-                btn.innerText = label;
                 btn.type = 'button';
-                btn.onclick = () => { currentTrimFilter = t; renderCurriculoView(); };
-                trimFilters.appendChild(btn);
+                btn.className = `btn-trim-tab ${String(currentTrimFilter) === String(t.v) ? 'active' : ''}`;
+                btn.textContent = t.l;
+                btn.onclick = () => { currentTrimFilter = t.v; renderCurriculoView(); };
+                trimGroup.appendChild(btn);
             });
-            list.appendChild(trimFilters);
+            toolbar.appendChild(trimGroup);
+            list.appendChild(toolbar);
 
-            // 3. Find active area
-            const activeArea = fullCurriculo.find(a => a.id === currentAreaFilter);
-            if (!activeArea) return;
+            // 2. Find active area
+            const activeArea = fullCurriculo.find(a => String(a.id) === String(currentAreaFilter));
+            if (!activeArea) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.cssText = 'text-align:center; padding:40px; color:#a0aec0;';
+                emptyMsg.textContent = 'Selecciona un área para ver sus Situaciones de Aprendizaje.';
+                list.appendChild(emptyMsg);
+                return;
+            }
 
-            // 4. Render SDAs
-            let sdasToRender = activeArea.sdas;
+            // 3. Render SDAs
+            let sdasToRender = activeArea.sdas || [];
             if (currentTrimFilter !== 'Todos') {
                 sdasToRender = sdasToRender.filter(sda => String(sda.trimestre) === currentTrimFilter);
             }
 
             if (sdasToRender.length === 0) {
-                const emptyMsg = document.createElement('p');
-                emptyMsg.style.textAlign = 'center';
-                emptyMsg.style.color = '#999';
-                emptyMsg.style.marginTop = '20px';
-                emptyMsg.innerText = 'No hay situaciones de aprendizaje para este trimestre.';
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.cssText = 'text-align:center; padding:60px 20px; color:#a0aec0; font-size:1rem; background:#f8fafc; border-radius:16px; border:1px dashed #e2e8f0; margin-top: 20px;';
+                emptyMsg.innerHTML = '<div style="font-size: 3rem; margin-bottom: 10px;">📭</div>No hay Situaciones de Aprendizaje para este filtro.';
                 list.appendChild(emptyMsg);
                 return;
             }
 
+            const trimColors = { '1': '#3b82f6', '2': '#10b981', '3': '#f59e0b' };
+
             sdasToRender.forEach(sda => {
-                const sdaDiv = document.createElement('div');
-                sdaDiv.className = 'sda-item';
-                sdaDiv.style.border = '1px solid #edf2f7';
-                sdaDiv.style.borderRadius = '12px';
-                sdaDiv.style.marginBottom = '20px';
-                sdaDiv.style.padding = '20px';
-                sdaDiv.style.background = '#fcfdfe';
+                const trimColor = trimColors[String(sda.trimestre)] || '#6c757d';
+                const sdaCard = document.createElement('div');
+                sdaCard.style.cssText = `background:white; border-radius:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,51,102,0.06); border:1px solid #eef2f7; border-left:5px solid ${trimColor}; overflow:hidden; transition: all 0.3s ease;`;
 
-                const headerDiv = document.createElement('div');
-                headerDiv.style.display = 'flex';
-                headerDiv.style.justifyContent = 'space-between';
-                headerDiv.style.alignItems = 'center';
-                headerDiv.innerHTML = `<h3 style="margin: 0; color: var(--primary); font-size: 1.15rem;">[Trimestre ${sda.trimestre}] ${sda.nombre}</h3>`;
-                sdaDiv.appendChild(headerDiv);
+                // Card header
+                const cardHeader = document.createElement('div');
+                cardHeader.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:18px 24px; background:linear-gradient(to right, #ffffff, #fafcfe); border-bottom:1px solid #f0f4fa; cursor:pointer; user-select:none;';
 
-                // Actividades Display
-                if (sda.actividades && sda.actividades.length > 0) {
-                    const actGrid = document.createElement('div');
-                    actGrid.className = 'actividades-grid';
-                    sda.actividades.forEach(a => {
-                        const card = document.createElement('div');
-                        card.className = 'actividad-card';
-                        card.onclick = () => openSessionsModal(a);
+                const headerLeft = document.createElement('div');
+                headerLeft.style.cssText = 'display:flex; align-items:center; gap:14px; flex:1; min-width:0;';
 
-                        const dateDiv = document.createElement('div');
-                        dateDiv.className = 'act-card-date';
-                        dateDiv.innerText = 'Actividad';
+                const trimBadge = document.createElement('span');
+                trimBadge.textContent = `${sda.trimestre}º Trimestre`;
+                trimBadge.style.cssText = `background:${trimColor}15; color:${trimColor}; border: 1px solid ${trimColor}30; border-radius:8px; padding:4px 12px; font-size:0.75rem; font-weight:800; white-space:nowrap; flex-shrink:0; text-transform: uppercase; letter-spacing: 0.5px;`;
 
-                        const titleDiv = document.createElement('div');
-                        titleDiv.className = 'act-card-title';
-                        titleDiv.innerText = a.nombre;
+                const sdaTitle = document.createElement('h3');
+                sdaTitle.textContent = sda.nombre;
+                sdaTitle.style.cssText = 'margin:0; font-size:1.1rem; color:#1a2a3a; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing: -0.2px;';
 
-                        const descDiv = document.createElement('div');
-                        descDiv.style.fontSize = '0.85rem';
-                        descDiv.style.color = '#666';
-                        descDiv.style.flexGrow = '1';
-                        descDiv.style.display = '-webkit-box';
-                        descDiv.style.webkitLineClamp = '3';
-                        descDiv.style.webkitBoxOrient = 'vertical';
-                        descDiv.style.overflow = 'hidden';
-                        descDiv.innerText = a.descripcion || 'Sin descripción';
+                headerLeft.appendChild(trimBadge);
+                headerLeft.appendChild(sdaTitle);
 
-                        const sesDiv = document.createElement('div');
-                        sesDiv.className = 'act-card-sesiones';
-                        sesDiv.innerText = `${a.sesiones} sesión${a.sesiones > 1 ? 'es' : ''}`;
+                const headerActions = document.createElement('div');
+                headerActions.style.cssText = 'display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:12px;';
 
-                        let titleStr = "Fechas de las sesiones:\n";
-                        if (a.sesiones_detalle && a.sesiones_detalle.length > 0) {
-                            a.sesiones_detalle.forEach(sd => {
-                                const fechaStr = sd.fecha ? sd.fecha.split('-').reverse().join('/') : 'Sin fecha asignada';
-                                titleStr += `- Sesión ${sd.numero_sesion}: ${fechaStr}\n`;
-                            });
-                        } else {
-                            for (let i = 1; i <= a.sesiones; i++) {
-                                titleStr += `- Sesión ${i}: Sin fecha asignada\n`;
-                            }
-                        }
-                        sesDiv.setAttribute('data-tooltip', titleStr.trim());
-                        sesDiv.classList.add('custom-tooltip');
-                        sesDiv.style.cursor = 'help';
-                        sesDiv.style.textDecoration = 'underline dotted #888';
-
-                        card.appendChild(dateDiv);
-                        card.appendChild(titleDiv);
-                        card.appendChild(descDiv);
-                        card.appendChild(sesDiv);
-
-                        actGrid.appendChild(card);
-                    });
-                    const actsWrapper = document.createElement('div');
-                    actsWrapper.style.marginTop = '15px';
-                    actsWrapper.innerHTML = `<div style="margin-bottom: 10px; color: #555; font-size: 0.9rem;"><strong>✨ Actividades:</strong> (Haz clic para ver/editar sesiones)</div>`;
-                    actsWrapper.appendChild(actGrid);
-                    sdaDiv.appendChild(actsWrapper);
-                }
-
-                // Botón Editar SA
-                const btnCont = document.createElement('div');
-                btnCont.style.marginTop = '20px';
                 const btnEdit = document.createElement('button');
-                btnEdit.className = 'btn btn-info';
-                btnEdit.style.fontSize = '0.85rem';
-                btnEdit.style.padding = '6px 12px';
-                btnEdit.innerText = '✏️ Editar SA';
-                btnEdit.onclick = function () {
-                    openSaModal(sda);
-                };
-                btnCont.appendChild(btnEdit);
-                sdaDiv.appendChild(btnCont);
+                btnEdit.type = 'button';
+                btnEdit.innerHTML = '⚙️ Gestionar';
+                btnEdit.style.cssText = 'font-size:0.8rem; padding:6px 14px; border:1px solid #e2e8f0; border-radius:10px; background:white; color:#4a5568; cursor:pointer; font-weight:700; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
+                btnEdit.onmouseover = () => { btnEdit.style.background = '#f7fafc'; btnEdit.style.borderColor = '#cbd5e0'; }
+                btnEdit.onmouseout = () => { btnEdit.style.background = 'white'; btnEdit.style.borderColor = '#e2e8f0'; }
+                btnEdit.onclick = e => { e.stopPropagation(); openSaModal(sda); };
 
-                // Competencias Específicas
-                const compList = document.createElement('div');
-                compList.className = 'criteria-list';
-                compList.style.marginTop = '15px';
+                const toggleIcon = document.createElement('span');
+                let expanded = true;
+                toggleIcon.textContent = '▼';
+                toggleIcon.style.cssText = 'font-size:0.8rem; color:#a0aec0; transition: transform 0.3s ease;';
+
+                headerActions.appendChild(btnEdit);
+                headerActions.appendChild(toggleIcon);
+                cardHeader.appendChild(headerLeft);
+                cardHeader.appendChild(headerActions);
+
+                // Card body
+                const cardBody = document.createElement('div');
+                cardBody.style.cssText = 'padding:24px; background: #ffffff;';
+
+                // --- 1. Competencias Específicas ---
                 if (sda.competencias && sda.competencias.length > 0) {
-                    compList.innerHTML = '<strong>🧩 Competencias Específicas:</strong>';
+                    const compSection = document.createElement('div');
+                    compSection.style.marginBottom = '24px';
+
+                    const compTitle = document.createElement('div');
+                    compTitle.style.cssText = 'font-size:0.75rem; font-weight:800; color:#718096; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px; display: flex; align-items: center; gap: 8px;';
+                    compTitle.innerHTML = `<span style="background:#edf2ff; padding:4px; border-radius:6px;">🌟</span> Competencias Específicas`;
+                    compSection.appendChild(compTitle);
+
+                    const compList = document.createElement('div');
+                    compList.style.cssText = 'display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:12px;';
+
                     sda.competencias.forEach(c => {
-                        compList.innerHTML += `<div class="criteria-item" style="margin-left:10px;"><strong>${c.codigo}:</strong> ${c.descripcion}</div>`;
+                        const compItem = document.createElement('div');
+                        compItem.style.cssText = 'padding:14px; background:#f9fafb; border-radius:12px; border:1px solid #f1f5f9;';
+                        compItem.innerHTML = `
+                            <div style="font-weight:800; color:#3b82f6; font-size:0.85rem; margin-bottom:4px;">${c.codigo}</div>
+                            <div style="font-size:0.85rem; color:#4a5568; line-height:1.5;">${c.descripcion}</div>
+                        `;
+                        compList.appendChild(compItem);
                     });
+                    compSection.appendChild(compList);
+                    cardBody.appendChild(compSection);
                 }
-                sdaDiv.appendChild(compList);
 
-                // Criterios
-                const critList = document.createElement('div');
-                critList.className = 'criteria-list';
-                critList.style.marginTop = '10px';
+                // --- 2. Criterios de Evaluación (CON DESCRIPCIÓN) ---
                 if (sda.criterios && sda.criterios.length > 0) {
-                    critList.innerHTML = '<strong>📋 Criterios de Evaluación:</strong>';
-                    sda.criterios.forEach(c => {
-                        critList.innerHTML += `<div class="criteria-item" style="margin-left:10px;"><strong>${c.codigo}:</strong> ${c.descripcion}</div>`;
-                    });
-                } else {
-                    critList.innerHTML = `<div style="color:#999; font-style:italic;">No hay criterios vinculados.</div>`;
-                }
-                sdaDiv.appendChild(critList);
+                    const critSection = document.createElement('div');
+                    critSection.style.marginBottom = '24px';
 
-                list.appendChild(sdaDiv);
+                    const critTitle = document.createElement('div');
+                    critTitle.style.cssText = 'font-size:0.75rem; font-weight:800; color:#718096; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px; display: flex; align-items: center; gap: 8px;';
+                    critTitle.innerHTML = `<span style="background:#fff7ed; padding:4px; border-radius:6px;">🎯</span> Criterios de Evaluación`;
+                    critSection.appendChild(critTitle);
+
+                    const critList = document.createElement('div');
+                    critList.style.cssText = 'display:flex; flex-direction:column; gap:10px;';
+
+                    sda.criterios.forEach(c => {
+                        const critItem = document.createElement('div');
+                        critItem.style.cssText = 'display:flex; gap:16px; padding:12px 16px; background:#ffffff; border-radius:12px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.02);';
+                        critItem.innerHTML = `
+                            <div style="min-width:60px; font-weight:800; color:#f59e0b; font-size:0.85rem;">${c.codigo}</div>
+                            <div style="font-size:0.85rem; color:#4a5568; line-height:1.5;">${c.descripcion}</div>
+                        `;
+                        critList.appendChild(critItem);
+                    });
+                    critSection.appendChild(critList);
+                    cardBody.appendChild(critSection);
+                }
+
+                // --- 3. Actividades (CON DESCRIPCIÓN) ---
+                if (sda.actividades && sda.actividades.length > 0) {
+                    const actSection = document.createElement('div');
+
+                    const actTitle = document.createElement('div');
+                    actTitle.style.cssText = 'font-size:0.75rem; font-weight:800; color:#718096; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px; display: flex; align-items: center; gap: 8px;';
+                    actTitle.innerHTML = `<span style="background:#f0fdf4; padding:4px; border-radius:6px;">⚡</span> ${sda.actividades.length} Actividades`;
+                    actSection.appendChild(actTitle);
+
+                    const actList = document.createElement('div');
+                    actList.style.cssText = 'display:flex; flex-direction:column; gap:8px;';
+
+                    sda.actividades.forEach((a, idx) => {
+                        const actRow = document.createElement('div');
+                        actRow.style.cssText = 'display:flex; align-items:flex-start; gap:12px; padding:16px; background:#ffffff; border-radius:14px; border:1px solid #eef2f7; cursor:pointer; transition:all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02);';
+                        actRow.onmouseover = () => {
+                            actRow.style.background = '#f8faff';
+                            actRow.style.transform = 'translateX(5px)';
+                            actRow.style.borderColor = trimColor + '44';
+                        };
+                        actRow.onmouseout = () => {
+                            actRow.style.background = '#ffffff';
+                            actRow.style.transform = 'translateX(0)';
+                            actRow.style.borderColor = '#eef2f7';
+                        };
+                        actRow.onclick = () => openSessionsModal(a);
+
+                        const actNum = document.createElement('span');
+                        actNum.textContent = idx + 1;
+                        actNum.style.cssText = `min-width:32px; height:32px; border-radius:10px; background:${trimColor}15; color:${trimColor}; font-weight:800; font-size:0.9rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;`;
+
+                        const actInfo = document.createElement('div');
+                        actInfo.style.cssText = 'flex:1; min-width:0;';
+
+                        const actName = document.createElement('div');
+                        actName.textContent = a.nombre;
+                        actName.style.cssText = 'font-weight:700; color:#2d3748; font-size:1rem; margin-bottom:4px;';
+
+                        actInfo.appendChild(actName);
+                        if (a.descripcion) {
+                            const actDesc = document.createElement('div');
+                            actDesc.textContent = a.descripcion;
+                            actDesc.style.cssText = 'font-size:0.85rem; color:#718096; line-height:1.5;';
+                            actInfo.appendChild(actDesc);
+                        }
+
+                        const sesBadge = document.createElement('span');
+                        sesBadge.innerHTML = `📅 ${a.sesiones} <span style="font-size: 0.75rem; font-weight: 500; opacity:0.8;">ses.</span>`;
+                        sesBadge.style.cssText = `background:${trimColor}10; color:${trimColor}; border: 1px solid ${trimColor}25; border-radius:8px; padding:6px 12px; font-size:0.85rem; font-weight:800; flex-shrink:0; display: flex; align-items: center; gap: 6px; align-self: center;`;
+
+                        actRow.appendChild(actNum);
+                        actRow.appendChild(actInfo);
+                        actRow.appendChild(sesBadge);
+                        actList.appendChild(actRow);
+                    });
+                    actSection.appendChild(actList);
+                    cardBody.appendChild(actSection);
+                }
+
+                // Toggle collapse on header click
+                cardHeader.onclick = () => {
+                    expanded = !expanded;
+                    cardBody.style.display = expanded ? 'block' : 'none';
+                    toggleIcon.style.transform = expanded ? 'rotate(0deg)' : 'rotate(-90deg)';
+                    sdaCard.style.boxShadow = expanded ? '0 4px 15px rgba(0,51,102,0.06)' : '0 2px 5px rgba(0,0,0,0.03)';
+                };
+
+                sdaCard.appendChild(cardHeader);
+                sdaCard.appendChild(cardBody);
+                list.appendChild(sdaCard);
             });
         }
 
@@ -2055,113 +2068,14 @@
                 });
         }
 
+
         // --- TAREAS ---
-        function loadTareas() {
-            const list = document.getElementById('taskList');
-            fetch('/api/tareas').then(r => r.json()).then(tasks => {
-                if (tasks.length === 0) {
-                    list.innerHTML = '<p style="text-align:center;">No hay tareas pendientes.</p>';
-                    return;
-                }
-                list.innerHTML = "";
-                const today = new Date().toISOString().split('T')[0];
-
-                // Detect overdue tasks
-                const overdueTasks = tasks.filter(t => t.fecha && t.fecha <= today && !t.completada);
-
-                // Show alert if there are overdue tasks
-                if (overdueTasks.length > 0) {
-                    const taskList = overdueTasks.map(t => `• ${t.texto} (${t.fecha})`).join('\n');
-                    setTimeout(() => {
-                        showToast(
-                            `⚠️ Tienes ${overdueTasks.length} tarea(s) vencida(s):\n${taskList}`,
-                            'error',
-                            7000
-                        );
-                    }, 500);
-                }
-
-                tasks.forEach(t => {
-                    const div = document.createElement('div');
-                    div.style = "background: white; border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;";
-                    if (t.completada) div.style.background = "#f8f9fa";
-
-                    // Check if overdue
-                    const isOverdue = t.fecha && t.fecha < today && !t.completada;
-                    const borderColor = isOverdue ? '#dc3545' : '#eee';
-                    div.style.borderLeft = `4px solid ${borderColor}`;
-
-                    const dateDisplay = t.fecha ? `<span style="color: ${isOverdue ? '#dc3545' : '#666'}; font-weight: ${isOverdue ? 'bold' : 'normal'};">📅 ${t.fecha}${isOverdue ? ' ⚠️ VENCIDA' : ''}</span>` : '';
-
-                    div.innerHTML = `
-                        <div style="display:flex; align-items:center; gap: 10px; flex: 1;">
-                            <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="toggleTarea(${t.id}, ${!t.completada})" style="width: 20px; height: 20px; cursor: pointer;">
-                            <div id="task-${t.id}" style="flex: 1;">
-                                <div style="font-weight: bold; text-decoration: ${t.completada ? 'line-through' : ''}; color: ${t.completada ? '#999' : '#333'}">${escapeHtml(t.texto)}</div>
-                                <div style="font-size: 0.85rem; margin-top: 4px;">${dateDisplay}</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 5px;">
-                            <button onclick="editTarea(${t.id}, '${escapeHtml(t.texto)}', '${t.fecha || ''}')" class="btn btn-info" style="padding: 5px 10px;" title="Editar">✏️</button>
-                            <button onclick="deleteTarea(${t.id})" class="btn btn-danger" style="padding: 5px 10px;" title="Borrar">🗑️</button>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-            });
-        }
-
-        function addTarea() {
-            const txt = document.getElementById('newTaskId').value.trim();
-            const date = document.getElementById('newTaskDate').value;
-            if (!txt) return;
-            fetch('/api/tareas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ texto: txt, fecha: date })
-            }).then(r => r.json()).then(res => {
-                if (res.ok) {
-                    document.getElementById('newTaskId').value = "";
-                    loadTareas();
-                }
-            });
-        }
+        // El sistema de tareas ha sido unificado en el módulo principal (tareas.html).
+        // Se mantiene la carga de datos del calendario y SDA.
 
         function escapeHtml(text) {
             if (!text) return '';
             return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        }
-
-        function toggleTarea(id, completed) {
-            fetch(`/api/tareas/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ completada: completed })
-            }).then(() => loadTareas());
-        }
-
-        function editTarea(id, currentText, currentDate) {
-            const newText = prompt("Editar tarea:", currentText.replace(/\\'/g, "'"));
-            if (newText === null || newText.trim() === '') return;
-
-            const newDate = prompt("Fecha límite (YYYY-MM-DD, dejar vacío para sin fecha):", currentDate);
-
-            fetch(`/api/tareas/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ texto: newText.trim(), fecha: newDate || null })
-            }).then(() => {
-                showToast('Tarea actualizada', 'success');
-                loadTareas();
-            });
-        }
-
-        function deleteTarea(id) {
-            if (!confirm("¿Borrar esta tarea?")) return;
-            fetch(`/api/tareas/${id}`, { method: 'DELETE' }).then(() => {
-                showToast('Tarea eliminada', 'success');
-                loadTareas();
-            });
         }
 
         // --- SCHEDULE ACTIVITY LOGIC ---

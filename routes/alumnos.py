@@ -46,7 +46,7 @@ def obtener_alumnos():
         return jsonify([])
 
     cur.execute("""
-        SELECT id, nombre, no_comedor, comedor_dias, foto
+        SELECT id, nombre, no_comedor, comedor_dias, foto, tiene_ayuda_material
         FROM alumnos
         WHERE grupo_id = ? AND deleted_at IS NULL
         ORDER BY nombre
@@ -58,7 +58,8 @@ def obtener_alumnos():
             "nombre": r["nombre"],
             "no_comedor": r["no_comedor"],
             "comedor_dias": r["comedor_dias"],
-            "foto": r["foto"]
+            "foto": r["foto"],
+            "tiene_ayuda_material": r["tiene_ayuda_material"]
         }
         for r in cur.fetchall()
     ]

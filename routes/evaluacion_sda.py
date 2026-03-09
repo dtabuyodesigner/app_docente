@@ -40,6 +40,10 @@ def guardar_evaluacion_sda():
     d = request.json
     nivel = int(d["nivel"])
     nota = nivel_a_nota(nivel)
+    sda_id = d.get("sda_id")
+    # Si sda_id es 'null' (string de JS) o está vacío, tratarlo como None (NULL en DB)
+    if sda_id == 'null' or sda_id == '': sda_id = None
+    
     conn = get_db()
     cur = conn.cursor()
     try:
@@ -49,7 +53,7 @@ def guardar_evaluacion_sda():
             VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
             DO UPDATE SET nivel = excluded.nivel, nota = excluded.nota
-        """, (d["alumno_id"], d["area_id"], d["trimestre"], d["sda_id"], d["criterio_id"], nivel, nota))
+        """, (d["alumno_id"], d["area_id"], d["trimestre"], sda_id, d["criterio_id"], nivel, nota))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
@@ -61,10 +65,10 @@ def evaluacion_sda_alumno():
     alumno_id = request.args.get("alumno_id")
     sda_id    = request.args.get("sda_id")
     trimestre = request.args.get("trimestre")
-    area_id   = request.args.get("area_id") # Para modo Infantil (sda_id=null)
+    area_id   = request.args.get("area_id")
     conn = get_db()
     cur = conn.cursor()
-    if sda_id and sda_id != 'null':
+    if sda_id and sda_id != 'null' and sda_id != 'None':
         cur.execute("""
             SELECT criterio_id, nivel FROM evaluaciones
             WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
@@ -85,7 +89,7 @@ def media_sda():
     area_id   = request.args.get("area_id")
     conn = get_db()
     cur = conn.cursor()
-    if sda_id and sda_id != 'null':
+    if sda_id and sda_id != 'null' and sda_id != 'None':
         cur.execute("""
             SELECT ROUND(AVG(nota), 2) FROM evaluaciones
             WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
@@ -171,7 +175,7 @@ def borrar_evaluacion():
                 """, (alumno_id, f"T{trimestre}", area_id))
                 conn.commit()
                 return jsonify({"ok": True})
-        if sda_id and sda_id != 'null':
+        if sda_id and sda_id != 'null' and sda_id != 'None':
             cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?", (alumno_id, sda_id, trimestre))
         else:
             cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id IS NULL AND trimestre = ? AND area_id = ?", (alumno_id, trimestre, area_id))

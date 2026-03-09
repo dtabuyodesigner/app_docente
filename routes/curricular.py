@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from utils.db import get_db
+import csv
+import io
 
 curricular_bp = Blueprint('curricular', __name__)
 
@@ -203,8 +205,6 @@ def curricular_full():
 
 @curricular_bp.route("/importar_todo", methods=["POST"])
 def importar_todo():
-    import csv as csv_lib
-    import io
     d = request.json
     csv_text = d.get("csv", "")
     if not csv_text: return jsonify({"ok": False, "error": "No hay CSV"}), 400
@@ -215,7 +215,7 @@ def importar_todo():
     try:
         cur.execute("BEGIN")
         f = io.StringIO(csv_text)
-        reader = csv_lib.DictReader(f, delimiter=';')
+        reader = csv.DictReader(f, delimiter=';')
         for row in reader:
             area_nom, sda_nom, trim = row.get("Area"), row.get("SDA"), row.get("Trimestre")
             crit_cod, crit_des, act_nom = row.get("Codigo Criterio"), row.get("Desc. Criterio"), row.get("Actividad")

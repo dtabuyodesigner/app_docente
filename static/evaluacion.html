@@ -591,7 +591,7 @@
             async function cargarAreas(etapa_id_override) {
                 // etapa_id_override: si se pasa, filtra por esa etapa
                 // si no, intenta detectar la etapa del grupo activo
-                let url = '/api/evaluacion/areas';
+                let url = '/api/curricular/areas';
                 if (etapa_id_override) url += '?etapa_id=' + etapa_id_override;
 
                 const r = await fetch(url);
@@ -650,7 +650,7 @@
                     const etapa_id = etapaMap[etapaNombre];
                     if (etapa_id) {
                         try {
-                            const r = await fetch(`/api/evaluacion/areas?etapa_id=${etapa_id}`);
+                            const r = await fetch(`/api/curricular/areas?etapa_id=${etapa_id}`);
                             const areas = await r.json();
                             areas.forEach(a => {
                                 filterArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
@@ -934,7 +934,7 @@
             });
 
             async function cargarSDA() {
-                const r = await fetch(`/api/evaluacion/sda/${areaSelect.value}?trimestre=${trimestreSelect.value}`);
+                const r = await fetch(`/api/evaluacion/sda/lista?area_id=${areaSelect.value}&trimestre=${trimestreSelect.value}`);
                 const datos = await r.json();
                 sdaSelect.innerHTML = "";
                 if (datos.length === 0) {
@@ -949,12 +949,12 @@
 
             async function cargarCriteriosSA() {
                 if (!sdaSelect.value) { tbody.innerHTML = ""; return; }
-                const r = await fetch(`/api/evaluacion/criterios/${sdaSelect.value}`);
+                const r = await fetch(`/api/evaluacion/sda/criterios/${sdaSelect.value}`);
                 const criterios = await r.json();
 
                 rubricasSDA = {};
                 const rubCalls = criterios.map(c =>
-                    fetch(`/api/rubricas/${c.id}`).then(r => r.json()).then(data => { rubricasSDA[c.id] = data; })
+                    fetch(`/api/curricular/rubricas/${c.id}`).then(r => r.json()).then(data => { rubricasSDA[c.id] = data; })
                 );
                 await Promise.all(rubCalls);
 
@@ -1051,17 +1051,18 @@
 
                 if (conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS') {
                     const periodo = 'T' + trimestreSelect.value;
-                    fetch(`/api/evaluacion/criterios?alumno_id=${alumId}&area_id=${conf.id}&periodo=${periodo}`)
+                    fetch(`/api/evaluacion/directa/alumno?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`)
                         .then(r => r.json()).then(data => {
-                            data.forEach(d => {
-                                let btn = document.getElementById(`btn-${d.criterio_id}-${d.nivel}`);
+                            // Backend returns { "crit_id": nivel }
+                            for (const [criterioId, nivel] of Object.entries(data)) {
+                                let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
                                 if (btn) btn.classList.add("selected");
-                            });
+                            }
                             cargarMedia();
                         });
                 } else {
                     const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
-                    fetch(`/api/evaluacion/alumno?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
+                    fetch(`/api/evaluacion/sda/alumno?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
                         .then(r => r.json()).then(notas => {
                             for (const [criterioId, nivel] of Object.entries(notas)) {
                                 let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
@@ -1079,8 +1080,7 @@
 
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
                 const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
-
-                fetch(`/api/evaluacion/media?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
+                fetch(`/api/evaluacion/sda/media?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
                     .then(r => r.json()).then(d => {
                         const el = document.getElementById("mediaSDA");
                         if (conf.modo_evaluacion === 'POR_SA') {
@@ -1091,7 +1091,7 @@
                         el.style.color = d.media ? getColorNota(d.media, conf.tipo_escala) : "#333";
                     });
 
-                fetch(`/api/evaluacion/media_area?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`)
+                fetch(`/api/evaluacion/sda/media_area?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`)
                     .then(r => r.json()).then(d => {
                         const el = document.getElementById("mediaArea");
                         el.innerText = "📈 Resultado del Área: " + formatNota(d.media, conf.tipo_escala);
@@ -1102,7 +1102,7 @@
             function cargarResumenAlumno() {
                 const alumId = alumnoSelect.value;
                 if (!alumId) return;
-                fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumId}&trimestre=${trimestreSelect.value}`)
+                fetch(`/api/evaluacion/sda/resumen_areas?alumno_id=${alumId}&trimestre=${trimestreSelect.value}`)
                     .then(r => r.json()).then(datos => {
                         let html = `<table style="width:auto; margin:0;">`;
                         if (!datos.length) html = "<em>No hay calificaciones registradas para este trimestre.</em>";
@@ -1143,7 +1143,7 @@
                 if (esDirecto) {
                     // Modo Directo (Infantil/Sec): guardar en evaluacion_criterios con periodo TEXT
                     const periodo = 'T' + trimestreSelect.value;
-                    fetch("/api/evaluacion/criterios", {
+                    fetch("/api/evaluacion/directa/", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -1160,7 +1160,7 @@
                 } else {
                     // Modo POR_SA: guardar en evaluaciones (tabla histórica SDA)
                     const sdaId = sdaSelect.value || null;
-                    fetch("/api/evaluacion", {
+                    fetch("/api/evaluacion/sda/", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -1195,8 +1195,7 @@
 
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
                 const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
-
-                fetch(`/api/evaluacion?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`, { method: 'DELETE' })
+                fetch(`/api/evaluacion/sda/?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`, { method: 'DELETE' })
                     .then(r => r.json()).then(d => {
                         if (d.ok) {
                             cargarNotasExistentes();

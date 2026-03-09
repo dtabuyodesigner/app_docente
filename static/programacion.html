@@ -1468,7 +1468,7 @@
 
             // Populate areas dropdown if empty
             if (saAreaSelect.options.length <= 1) {
-                fetch('/api/evaluacion/areas')
+                fetch('/api/curricular/areas')
                     .then(r => r.json())
                     .then(areas => {
                         saAreaSelect.innerHTML = '<option value="">-- Selecciona --</option>';
@@ -2154,7 +2154,7 @@
             statusDiv.style.background = '#fff3cd';
             statusDiv.innerText = "⏳ Procesando importación unificada...";
 
-            fetch('/api/importar_todo', {
+            fetch('/api/curricular/importar_todo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ csv: text })

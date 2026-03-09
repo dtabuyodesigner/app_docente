@@ -22,7 +22,7 @@ run_startup_tasks()
 from routes.main import main_bp
 from routes.alumnos import alumnos_bp
 from routes.asistencia import asistencia_bp
-from routes.evaluacion import evaluacion_bp
+# from routes.evaluacion import evaluacion_bp (Moved to sda/directa)
 from routes.dashboard import dashboard_bp
 from routes.horario import horario_bp
 from routes.comedor import comedor_bp
@@ -38,13 +38,15 @@ from routes.material import material_bp
 from routes.configuracion import configuracion_bp
 from routes.criterios_api import criterios_bp
 from routes.ayuda import ayuda_bp
-from routes.sda_import import sda_import_bp
+from routes.curricular import curricular_bp
+from routes.evaluacion_sda import evaluacion_sda_bp
+from routes.evaluacion_directa import evaluacion_directa_bp
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
 app.register_blueprint(asistencia_bp)
-app.register_blueprint(evaluacion_bp)
+# app.register_blueprint(evaluacion_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(horario_bp)
 app.register_blueprint(comedor_bp)
@@ -58,9 +60,11 @@ app.register_blueprint(lectura_bp, url_prefix='/api')
 app.register_blueprint(admin_bp)
 app.register_blueprint(material_bp)
 app.register_blueprint(configuracion_bp)
-app.register_blueprint(criterios_bp)
 app.register_blueprint(ayuda_bp)
-app.register_blueprint(sda_import_bp)
+app.register_blueprint(criterios_bp)
+app.register_blueprint(curricular_bp, url_prefix='/api/curricular')
+app.register_blueprint(evaluacion_sda_bp, url_prefix='/api/evaluacion/sda')
+app.register_blueprint(evaluacion_directa_bp, url_prefix='/api/evaluacion/directa')
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db
@@ -70,7 +74,7 @@ app.teardown_appcontext(close_db)
 
 csrf = CSRFProtect()
 csrf.init_app(app)
-csrf.exempt(sda_import_bp) # Bulk import often needs exemption if tokens are not easily passed
+csrf.exempt(curricular_bp) 
 
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():

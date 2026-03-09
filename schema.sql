@@ -11,9 +11,19 @@ CREATE TABLE grupos (
     profesor_id INTEGER,
     FOREIGN KEY(profesor_id) REFERENCES profesores(id)
 );
+CREATE TABLE etapas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT UNIQUE NOT NULL
+);
 CREATE TABLE areas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL
+    nombre TEXT NOT NULL,
+    etapa_id INTEGER,
+    es_oficial INTEGER DEFAULT 1,
+    activa INTEGER DEFAULT 1,
+    tipo_escala TEXT DEFAULT 'NUMERICA_1_4',
+    modo_evaluacion TEXT DEFAULT 'POR_SA',
+    FOREIGN KEY(etapa_id) REFERENCES etapas(id)
 );
 CREATE TABLE sqlite_sequence(name,seq);
 CREATE TABLE sda (
@@ -52,7 +62,20 @@ CREATE TABLE informe_grupo (
     observaciones TEXT,
     propuestas_mejora TEXT
 , conclusion TEXT);
-CREATE TABLE programacion_diaria (id INTEGER PRIMARY KEY AUTOINCREMENT, fecha DATE NOT NULL, sda_id INTEGER, actividad TEXT NOT NULL, observaciones TEXT, tipo TEXT DEFAULT 'clase', color TEXT DEFAULT '#3788d8', FOREIGN KEY(sda_id) REFERENCES sda(id));
+CREATE TABLE programacion_diaria (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    fecha DATE NOT NULL, 
+    sda_id INTEGER, 
+    actividad_id INTEGER,
+    numero_sesion INTEGER,
+    descripcion TEXT,
+    material TEXT,
+    evaluable INTEGER DEFAULT 0,
+    tipo TEXT DEFAULT 'clase', 
+    color TEXT DEFAULT '#3788d8', 
+    FOREIGN KEY(sda_id) REFERENCES sda(id),
+    FOREIGN KEY(actividad_id) REFERENCES actividades_sda(id)
+);
 CREATE TABLE actividades_sda (id INTEGER PRIMARY KEY AUTOINCREMENT, sda_id INTEGER, nombre TEXT NOT NULL, sesiones INTEGER DEFAULT 1, descripcion TEXT, FOREIGN KEY(sda_id) REFERENCES sda(id));
 CREATE TABLE rubricas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -169,6 +192,16 @@ CREATE TABLE IF NOT EXISTS "ficha_alumno" (
                 PRIMARY KEY(alumno_id),
                 FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
             );
+CREATE TABLE IF NOT EXISTS "criterios_periodo" (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    criterio_id INTEGER NOT NULL,
+    grupo_id INTEGER NOT NULL,
+    periodo TEXT NOT NULL, -- T1, T2, T3
+    activo INTEGER DEFAULT 1,
+    FOREIGN KEY (criterio_id) REFERENCES criterios(id) ON DELETE CASCADE,
+    FOREIGN KEY (grupo_id) REFERENCES grupos(id) ON DELETE CASCADE,
+    UNIQUE(criterio_id, grupo_id, periodo)
+);
 CREATE TABLE IF NOT EXISTS "informe_observaciones" (
             alumno_id INTEGER NOT NULL,
             trimestre INTEGER NOT NULL,

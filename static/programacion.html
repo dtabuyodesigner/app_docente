@@ -930,19 +930,112 @@
             </div>
         </div>
 
+        <!-- Import Modal -->
+        <div id="importSdaModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1002; align-items:center; justify-content:center; padding: 20px;">
+            <div
+                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:800px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-shrink: 0;">
+                    <h3 style="margin:0; color:var(--primary);">📤 Importar Programación (CSV)</h3>
+                    <button onclick="closeImportModal()"
+                        style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                </div>
+
+                <div style="overflow-y: auto; flex-grow: 1; padding-right: 10px;">
+                    <div style="margin-bottom:25px;">
+                        <h4 style="margin-top:0;">🚀 Importación Unificada</h4>
+                        <div
+                            style="margin-bottom:15px; padding:15px; background:#f8f9fa; border-radius:10px; border:1px dashed #ccc;">
+                            <label style="display:block; margin-bottom:10px; font-weight:bold;">Subir archivo CSV
+                                unificado:</label>
+                            <input type="file" id="unifiedFile" accept=".csv" style="margin-bottom:10px;">
+                            <p style="font-size:0.8rem; color:#666; margin:0;">Formato: Area;SDA;Trimestre;Codigo
+                                Criterio;Desc. Criterio;Actividad;Sesiones;Desc. Actividad</p>
+                        </div>
+
+                        <details>
+                            <summary
+                                style="cursor:pointer; font-size:0.9rem; color:var(--primary); margin-bottom:10px;">O
+                                pegar texto manualmente (opcional)</summary>
+                            <textarea id="csvUnifiedData"
+                                style="width:100%; height:150px; font-family:monospace; margin-bottom:10px;"
+                                placeholder="Lengua;Unidad 1;1;L.1.1;Lee correctamente;Lectura;2;Lectura en voz alta..."></textarea>
+                        </details>
+
+                        <div id="statusImportUnified"
+                            style="display:none; padding:10px; border-radius:8px; margin-bottom:10px; font-size:0.9rem;">
+                        </div>
+                        <button class="btn btn-info" onclick="processUnifiedFile()">📥 Procesar Importación
+                            Completa</button>
+                    </div>
+
+                </div>
+
+                <div
+                    style="display:flex; justify-content:flex-end; margin-top:20px; gap: 10px; flex-shrink: 0; padding-top: 20px; border-top: 1px solid #eee;">
+                    <button class="btn" onclick="closeImportModal()"
+                        style="background:#ccc; color:#333;">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
 
         <!-- SECCIÓN: VER CURRÍCULO -->
         <div id="tabCurriculo" class="section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <div style="display:flex; flex-direction: column; align-items: flex-start; margin-bottom: 20px; gap: 10px;">
                 <h2 style="margin: 0;">🎯 Situaciones de Aprendizaje y Actividades</h2>
-                <button class="btn btn-success" onclick="openSaModal()">➕ Nueva SA (Manual)</button>
+                <div style="display:flex; gap:8px; flex-wrap: wrap;">
+                    <a href="/static/plantilla_sda.csv" download="plantilla_sda.csv" class="btn btn-info"
+                        style="text-decoration:none; padding: 6px 10px; font-size: 0.75rem;">📥 Descargar Plantilla
+                        CSV</a>
+                    <button class="btn btn-warning" onclick="openImportSdaModal()"
+                        style="padding: 6px 10px; font-size: 0.75rem;">📤 Importar SDA desde CSV</button>
+                    <button class="btn btn-warning" onclick="openImportModal()"
+                        style="padding: 6px 10px; font-size: 0.75rem;">📤 Importar Unificado (Legacy)</button>
+                    <button class="btn btn-success" onclick="openSaModal()"
+                        style="padding: 6px 10px; font-size: 0.75rem;">➕ Nueva SA (Manual)</button>
+                </div>
             </div>
             <div id="curriculoList">
                 <p style="text-align:center; color:#999;">Cargando currículo...</p>
             </div>
         </div>
 
-        <!-- Removed -->
+        <!-- SDA Specific Import Modal -->
+        <div id="sdaImportModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1100; align-items:center; justify-content:center; padding: 20px;">
+            <div
+                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <h3 style="margin:0; color:var(--primary);">📥 Importar Situaciones de Aprendizaje (SDA)</h3>
+                    <button onclick="closeImportSdaModal()"
+                        style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                </div>
+
+                <div style="margin-bottom:20px; padding:15px; background:#e7f3fe; border-radius:10px; color:#1e4265; font-size:0.9rem;">
+                    <p style="margin-top:0;"><strong>💡 Instrucciones:</strong></p>
+                    <ul style="margin-bottom:0; padding-left:20px;">
+                        <li>Usa la plantilla CSV oficial.</li>
+                        <li>Asegúrate de haber seleccionado el grupo correcto.</li>
+                        <li>El sistema creará las SDA, Actividades, Sesiones y Criterios automáticamente.</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <label style="font-weight:bold;">Selecciona el archivo CSV:</label>
+                    <input type="file" id="sdaCsvFile" accept=".csv" style="margin-top:10px;">
+                </div>
+
+                <div id="sdaImportStatus" style="display:none; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.9rem;">
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button class="btn" onclick="closeImportSdaModal()" style="background:#ccc; color:#333;">Cancelar</button>
+                    <button class="btn btn-success" id="btnDoImportSda" onclick="uploadSdaCsv()">🚀 Empezar Importación</button>
+                </div>
+            </div>
+        </div>
 
         <!-- SECCIÓN: TAREAS -->
         <!-- SECCIÓN: TAREAS (Mantenida oculta por ahora si hay lógica pendiente, o eliminada) -->
@@ -1030,7 +1123,7 @@
             });
 
             if (id === 'tabCurriculo') loadCurriculo();
-            if (id === 'tabDiario') loadSessions();
+            if (id === 'tabDiario') { /* loadSessions if defined later */ }
             if (id === 'tabTasks') loadTareas();
             if (id === 'tabDocs') loadDocs();
         }
@@ -1056,7 +1149,6 @@
                         select.appendChild(group);
                     });
                 });
-            loadSessions();
         }
 
         function updateActivitySelect() {
@@ -2010,45 +2102,59 @@
         }
 
         // --- IMPORTACIÓN ---
-        function importSDA() {
-            const text = document.getElementById('csvData').value.trim();
-            const statusDiv = document.getElementById('statusImport');
-            if (!text) return alert("Pega datos CSV primero");
-
-            statusDiv.style.display = 'block';
-            statusDiv.style.background = '#fff3cd';
-            statusDiv.innerText = "⏳ Procesando...";
-
-            fetch('/api/importar_sda', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ csv: text })
-            })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.ok) {
-                        statusDiv.style.background = '#d4edda';
-                        statusDiv.innerText = `✅ Éxito: Se han importado ${res.count} líneas.`;
-                        document.getElementById('csvData').value = "";
-                        loadInitialData(); // Reload selects
-                        setTimeout(() => statusDiv.style.display = 'none', 5000);
-                    } else {
-                        statusDiv.style.background = '#f8d7da';
-                        statusDiv.innerText = "❌ Error: " + res.error;
-                    }
-                });
+        function openImportModal() {
+            document.getElementById('importSdaModal').style.display = 'flex';
         }
 
-        function importActividades() {
-            const text = document.getElementById('csvActData').value.trim();
-            const statusDiv = document.getElementById('statusImportAct');
-            if (!text) return alert("Pega datos CSV primero");
+        function closeImportModal() {
+            document.getElementById('importSdaModal').style.display = 'none';
+        }
+
+        function processSdaFile() {
+            const fileInput = document.getElementById('sdaFile');
+            const manualText = document.getElementById('csvData').value.trim();
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    importSDA(e.target.result);
+                };
+                reader.readAsText(file);
+            } else if (manualText) {
+                importSDA(manualText);
+            } else {
+                alert("Por favor, selecciona un archivo o pega los datos CSV.");
+            }
+        }
+
+        function processUnifiedFile() {
+            const fileInput = document.getElementById('unifiedFile');
+            const manualText = document.getElementById('csvUnifiedData').value.trim();
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    importUnified(e.target.result);
+                };
+                reader.readAsText(file);
+            } else if (manualText) {
+                importUnified(manualText);
+            } else {
+                alert("Por favor, selecciona un archivo o pega los datos CSV.");
+            }
+        }
+
+        function importUnified(text) {
+            const statusDiv = document.getElementById('statusImportUnified');
+            if (!text) return alert("No hay datos para importar");
 
             statusDiv.style.display = 'block';
             statusDiv.style.background = '#fff3cd';
-            statusDiv.innerText = "⏳ Procesando...";
+            statusDiv.innerText = "⏳ Procesando importación unificada...";
 
-            fetch('/api/importar_actividades', {
+            fetch('/api/importar_todo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ csv: text })
@@ -2057,14 +2163,19 @@
                 .then(res => {
                     if (res.ok) {
                         statusDiv.style.background = '#d4edda';
-                        statusDiv.innerText = `✅ Éxito: Se han importado ${res.count} actividades.`;
-                        document.getElementById('csvActData').value = "";
+                        statusDiv.innerText = `✅ Éxito: Se han procesado ${res.count} líneas unificadas.`;
+                        document.getElementById('csvUnifiedData').value = "";
+                        document.getElementById('unifiedFile').value = "";
                         loadInitialData();
                         setTimeout(() => statusDiv.style.display = 'none', 5000);
                     } else {
                         statusDiv.style.background = '#f8d7da';
                         statusDiv.innerText = "❌ Error: " + res.error;
                     }
+                })
+                .catch(err => {
+                    statusDiv.style.background = '#f8d7da';
+                    statusDiv.innerText = "❌ Error de conexión: " + err;
                 });
         }
 
@@ -2402,6 +2513,70 @@
             document.getElementById('docViewerContainer').style.display = 'none';
             document.getElementById('pdfFrame').src = '';
             document.getElementById('docsList').style.display = 'grid';
+        }
+
+        // --- SDA Specific Import Logic ---
+        function openImportSdaModal() {
+            document.getElementById('sdaImportModal').style.display = 'flex';
+            document.getElementById('sdaImportStatus').style.display = 'none';
+            document.getElementById('sdaCsvFile').value = '';
+        }
+
+        function closeImportSdaModal() {
+            document.getElementById('sdaImportModal').style.display = 'none';
+        }
+
+        function uploadSdaCsv() {
+            const fileInput = document.getElementById('sdaCsvFile');
+            const file = fileInput.files[0];
+            const statusDiv = document.getElementById('sdaImportStatus');
+            const btn = document.getElementById('btnDoImportSda');
+
+            if (!file) {
+                showToast('Por favor, selecciona un archivo CSV', 'warning');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            btn.disabled = true;
+            btn.innerHTML = '⌛ Importando...';
+            statusDiv.style.display = 'none';
+
+            fetch('/api/sda/import_csv', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Empezar Importación';
+                
+                if (res.ok) {
+                    statusDiv.className = 'status-msg'; // Reset or set appropriate class
+                    statusDiv.style.backgroundColor = '#d4edda';
+                    statusDiv.style.color = '#155724';
+                    statusDiv.style.display = 'block';
+                    statusDiv.innerHTML = `
+                        <strong>✅ ¡Importación completada!</strong><br>
+                        SDA creadas: ${res.stats.sda}<br>
+                        Actividades creadas: ${res.stats.actividades}<br>
+                        Sesiones creadas: ${res.stats.sesiones}<br>
+                        Criterios registrados: ${res.stats.criterios}<br>
+                        Errores: ${res.stats.errores}
+                    `;
+                    showToast('Importación finalizada', 'success');
+                    loadCurriculo(); // Refresh the list
+                } else {
+                    showToast(res.error, 'error');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Empezar Importación';
+                showToast('Error en la conexión con el servidor', 'error');
+            });
         }
 
         // Init

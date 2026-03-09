@@ -862,9 +862,16 @@
                     document.getElementById('birthdayList').innerText = data.cumples.join(', ');
                 }
 
-                // 3. Alertas (faltas + notas + libros vencidos + backup)
+                // 3. Alertas (cumples semana + faltas + notas + libros vencidos + backup)
                 const alertsContainer = document.getElementById('alertsList');
                 let todasAlertas = data.alertas ? [...data.alertas] : [];
+
+                // Cumpleaños de la semana
+                if (data.proximos_cumples && data.proximos_cumples.length > 0) {
+                    data.proximos_cumples.forEach(c => {
+                        todasAlertas.push(`🎂 Próximo cumple: <strong>${c.nombre}</strong> (${c.dia} ${c.fecha})`);
+                    });
+                }
 
                 // Alertas de libros vencidos
                 try {

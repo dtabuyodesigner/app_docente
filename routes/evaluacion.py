@@ -999,3 +999,104 @@ def guardar_sesiones_actividad(actividad_id):
         conn.rollback()
         print("Error guardar_sesiones_actividad:", str(e))
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@evaluacion_bp.route("/api/importar_todo", methods=["POST"])
+def importar_todo():
+    d = request.json
+    csv_text = d.get("csv", "")
+    if not csv_text:
+        return jsonify({"ok": False, "error": "No hay datos"}), 400
+        
+    lines = csv_text.strip().split("\n")
+    if not lines:
+        return jsonify({"ok": False, "error": "El archivo está vacío."}), 400
+        
+    start_idx = 0
+    # Area;SDA;Trimestre;Codigo Criterio;Descripcion Criterio;Actividad;Sesiones;Descripcion Actividad
+    if lines[0].lower().startswith("area"):
+        start_idx = 1
+        
+    valid_lines = []
+    for i in range(start_idx, len(lines)):
+        line = lines[i].strip()
+        if not line: continue
+        parts = line.split(";")
+        if len(parts) < 5:
+            continue
+        valid_lines.append(parts)
+        
+    if not valid_lines:
+        return jsonify({"ok": False, "error": "No hay datos válidos para procesar."}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    
+    imported_rows = 0
+    try:
+        cur.execute("BEGIN")
+        for parts in valid_lines:
+            area_name = parts[0].strip()
+            sda_name = parts[1].strip()
+            try:
+                trimestre = int(parts[2].strip() or 1)
+            except:
+                trimestre = 1
+            crit_code = parts[3].strip()
+            crit_desc = parts[4].strip()
+            
+            # 1. Get/Create Area
+            cur.execute("SELECT id FROM areas WHERE nombre = ?", (area_name,))
+            row = cur.fetchone()
+            if row: 
+                area_id = row["id"]
+            else:
+                cur.execute("INSERT INTO areas (nombre) VALUES (?)", (area_name,))
+                area_id = cur.lastrowid
+                
+            # 2. Get/Create SDA
+            cur.execute("SELECT id FROM sda WHERE nombre = ? AND area_id = ?", (sda_name, area_id))
+            row = cur.fetchone()
+            if row: 
+                sda_id = row["id"]
+                cur.execute("UPDATE sda SET trimestre = ? WHERE id = ?", (trimestre, sda_id))
+            else:
+                cur.execute("INSERT INTO sda (nombre, area_id, trimestre) VALUES (?, ?, ?)", (sda_name, area_id, trimestre))
+                sda_id = cur.lastrowid
+                
+            # 3. Get/Create Criterion
+            cur.execute("SELECT id FROM criterios WHERE codigo = ? AND area_id = ?", (crit_code, area_id))
+            row = cur.fetchone()
+            if row: 
+                crit_id = row["id"]
+            else:
+                cur.execute("INSERT INTO criterios (codigo, descripcion, area_id) VALUES (?, ?, ?)", (crit_code, crit_desc, area_id))
+                crit_id = cur.lastrowid
+                
+            # 4. Link SDA - Criterion
+            cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, crit_id))
+
+            # 5. Activity info
+            if len(parts) >= 8:
+                act_name = parts[5].strip()
+                if act_name:
+                    try:
+                        sesiones = int(parts[6].strip() or 1)
+                    except:
+                        sesiones = 1
+                    act_desc = parts[7].strip()
+                    
+                    cur.execute("SELECT id FROM actividades_sda WHERE sda_id = ? AND nombre = ?", (sda_id, act_name))
+                    if not cur.fetchone():
+                        cur.execute("""
+                            INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion)
+                            VALUES (?, ?, ?, ?)
+                        """, (sda_id, act_name, sesiones, act_desc))
+            
+            imported_rows += 1
+            
+        conn.commit()
+        return jsonify({"ok": True, "count": imported_rows})
+    except Exception as e:
+        conn.rollback()
+        print("Error en importar_todo:", str(e))
+        return jsonify({"ok": False, "error": f"Error interno: {str(e)}"}), 500

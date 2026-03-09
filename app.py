@@ -38,6 +38,7 @@ from routes.material import material_bp
 from routes.configuracion import configuracion_bp
 from routes.criterios_api import criterios_bp
 from routes.ayuda import ayuda_bp
+from routes.sda_import import sda_import_bp
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
@@ -59,6 +60,7 @@ app.register_blueprint(material_bp)
 app.register_blueprint(configuracion_bp)
 app.register_blueprint(criterios_bp)
 app.register_blueprint(ayuda_bp)
+app.register_blueprint(sda_import_bp)
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db
@@ -68,6 +70,7 @@ app.teardown_appcontext(close_db)
 
 csrf = CSRFProtect()
 csrf.init_app(app)
+csrf.exempt(sda_import_bp) # Bulk import often needs exemption if tokens are not easily passed
 
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
@@ -98,7 +101,12 @@ def serve_manifest():
 @app.before_request
 def require_auth():
     # Allow static files and the login/logout routes
-    if (request.path.startswith('/static/') or request.path in ['/login', '/logout', '/api/csrf-token', '/api/recover_password', '/api/setup', '/service-worker.js', '/manifest.json'] or request.path.endswith('.js') or request.path.endswith('.css') or request.endpoint == 'static'):
+    if (request.path.startswith('/static/') or 
+        request.path in ['/login', '/logout', '/api/csrf-token', '/api/recover_password', '/api/setup', '/service-worker.js', '/manifest.json', '/static/plantilla_sda.csv'] or 
+        request.path.endswith('.js') or 
+        request.path.endswith('.css') or 
+        request.path.endswith('.csv') or
+        request.endpoint == 'static'):
         return
         
     if not session.get('logged_in') or 'username' not in session:

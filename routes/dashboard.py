@@ -30,14 +30,35 @@ def dashboard_resumen():
     # 2. Comedor
     comedor_total = calculate_comedor_total(conn, fecha_hoy, grupo_id)
 
-    # 3. Cumpleaños
-    cur.execute("""
-        SELECT a.nombre 
-        FROM ficha_alumno f
-        JOIN alumnos a ON a.id = f.alumno_id
-        WHERE strftime('%m-%d', f.fecha_nacimiento) = ? AND a.grupo_id = ?
-    """, (hoy_mm_dd, grupo_id))
-    cumples = [r["nombre"] for r in cur.fetchall()]
+    # 3. Cumpleaños (Hoy y Próximos 7 días)
+    cumples_hoy = []
+    cumples_semana = []
+    
+    # Días de la semana en español
+    dias_semana_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    
+    for i in range(8): # 0 (hoy) hasta 7 días vista
+        target_date = date.today() + timedelta(days=i)
+        target_mm_dd = target_date.strftime("%m-%d")
+        
+        cur.execute("""
+            SELECT a.nombre 
+            FROM ficha_alumno f
+            JOIN alumnos a ON a.id = f.alumno_id
+            WHERE strftime('%m-%d', f.fecha_nacimiento) = ? AND a.grupo_id = ?
+        """, (target_mm_dd, grupo_id))
+        
+        rows = cur.fetchall()
+        for r in rows:
+            if i == 0:
+                cumples_hoy.append(r["nombre"])
+            else:
+                dia_nombre = dias_semana_es[target_date.weekday()]
+                cumples_semana.append({
+                    "nombre": r["nombre"],
+                    "dia": dia_nombre,
+                    "fecha": target_date.strftime("%d/%m")
+                })
 
     # 4. Media Clase (último trimestre con datos)
     cur.execute("SELECT MAX(e.trimestre) FROM evaluaciones e JOIN alumnos a ON a.id=e.alumno_id WHERE a.grupo_id=?", (grupo_id,))
@@ -256,7 +277,8 @@ def dashboard_resumen():
             "faltas": asist_stats[1] if asist_stats[1] else 0
         },
         "comedor": comedor_total,
-        "cumples": cumples,
+        "cumples": cumples_hoy,
+        "proximos_cumples": cumples_semana,
         "media_clase": round(media_clase, 2),
         "trimestre_actual": ultimo_tri,
         "asistencia_semanal": asist_semanal,

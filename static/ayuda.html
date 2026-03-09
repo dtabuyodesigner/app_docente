@@ -261,6 +261,7 @@
                     <li><a href="#diario" onclick="showSection('diario')">📓 Diario y Calendario</a></li>
                     <li><a href="#evaluacion" onclick="showSection('evaluacion')">📊 Cómo Evaluar</a></li>
                     <li><a href="#criterios" onclick="showSection('criterios')">🎯 Gestión de Criterios</a></li>
+                    <li><a href="#sda" onclick="showSection('sda')">🧩 Situaciones de Aprendizaje (SDA)</a></li>
                     <li><a href="#rubricas" onclick="showSection('rubricas')">📝 Rúbricas</a></li>
                     <li><a href="#informes" onclick="showSection('informes')">📜 Informes</a></li>
                     <li><a href="#configuracion" onclick="showSection('configuracion')">⚙️ Configuración y Grupos</a>
@@ -425,6 +426,56 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                     <p>Vuelve a pinchar en <strong>"📥 Importar CSV"</strong>, elige el archivo que has guardado e
                         impórtalo. La página te dirá inmediatamente cuántos han sido insertados y podrás empezar a
                         evaluarlos al instante.</p>
+                </section>
+
+                <!-- SECCIÓN SDA -->
+                <section id="sda" class="help-section">
+                    <h1>🧩 Situaciones de Aprendizaje (SDA)</h1>
+
+                    <p>Las Situaciones de Aprendizaje permiten organizar tu programación por unidades o proyectos,
+                        vinculando los criterios de evaluación a actividades y sesiones de clase de forma unificada.</p>
+
+                    <h2>1. Estructura de la Programación</h2>
+                    <p>El nuevo importador permite crear toda la estructura curricular de una vez:</p>
+                    <ul>
+                        <li><strong>Identificación:</strong> Nombre de la unidad (SDA), etapa, área y trimestre.</li>
+                        <li><strong>Criterios:</strong> Vinculación de criterios y su activación automática para la evaluación.</li>
+                        <li><strong>Actividades y Sesiones:</strong> Tareas específicas que se integran en el diario de clase y calendario.</li>
+                    </ul>
+
+                    <div class="highlight-box success">
+                        <strong>🚀 Importación Completa (Recomendado)</strong>
+                        Ahora puedes importar un archivo CSV que contiene todo lo anterior. El sistema se encarga de:
+                        <ol>
+                            <li>Crear el Área si no existe.</li>
+                            <li>Crear o actualizar la SDA (basándose en el ID).</li>
+                            <li>Crear los criterios y activarlos para el trimestre seleccionado.</li>
+                            <li>Generar las actividades y las sesiones de programación diaria.</li>
+                        </ol>
+                    </div>
+
+                    <h2>2. Paso a paso para importar</h2>
+                    <ol>
+                        <li>Ve a la vista <strong>Programación</strong>.</li>
+                        <li>En la pestaña <strong>"🎯 Sit. Aprendizaje (SDA)"</strong>, pincha primero en <strong>"📥 Descargar Plantilla CSV"</strong>.</li>
+                        <li>Rellena el archivo con tu programación. Es importante mantener las cabeceras intactas.</li>
+                        <li>Usa el botón <strong>"📤 Importar SDA desde CSV"</strong> para subir tu archivo.</li>
+                    </ol>
+
+                    <h2>3. Formato del Archivo</h2>
+                    <p>La plantilla incluye columnas para: <code>Etapa, Area, Trimestre, SDA_ID, SDA_Titulo, Duracion_Semanas, Criterio_Codigo, Criterio_Descriptor, Actividad_ID, Actividad_Titulo, Sesion_Numero, Sesion_Titulo...</code></p>
+                    <p>Al rellenarlo, asegúrate de:</p>
+                    <ul>
+                        <li><strong>SDA_ID:</strong> Usa un código único para cada SDA (ej: SA1, SA2) para que el sistema sepa qué filas pertenecen a la misma unidad.</li>
+                        <li><strong>Etapa:</strong> Debe ser Infantil, Primaria или Secundaria.</li>
+                        <li><strong>Trimestre:</strong> Usa el formato T1, T2 o T3.</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>🤖 Uso de Inteligencia Artificial</strong>
+                        Puedes pasarle tu programación en PDF o Word a una IA y decirle:
+                        <pre>"Genera un CSV (separado por comas) con estas columnas: Etapa, Area, Trimestre, SDA_ID, SDA_Titulo, Criterio_Codigo, Criterio_Descriptor, Actividad_ID, Sesion_Numero, Sesion_Titulo. Pásame los datos de mi programación así..."</pre>
+                    </div>
                 </section>
 
                 <!-- SECCIÓN RÚBRICAS E INFORMES -->

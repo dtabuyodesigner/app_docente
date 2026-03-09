@@ -51,7 +51,7 @@
 
         .contenedor {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 420px 1fr;
             gap: 20px;
         }
 
@@ -61,7 +61,7 @@
             background: white;
             border-radius: 12px;
             padding: 15px;
-            height: calc(100vh - 180px);
+            height: calc(100vh - 160px);
             overflow-y: auto;
             box-shadow: var(--shadow);
             border: 1px solid #eef2f7;
@@ -531,6 +531,7 @@
                             content.style.display = "flex";
                             content.style.justifyContent = "space-between";
                             content.style.alignItems = "center";
+                            content.style.width = "100%";
 
                             // Nombre (Clickable para seleccionar)
                             // Container de info principal (Foto + Nombre)
@@ -568,11 +569,34 @@
                             }
 
                             const spanNombre = document.createElement("span");
+                            spanNombre.style.fontWeight = "600";
                             spanNombre.innerText = a.nombre;
+
+                            const divText = document.createElement("div");
+                            divText.style.display = "flex";
+                            divText.style.flexDirection = "column";
+                            divText.appendChild(spanNombre);
+
+                            if (a.madre_telefono || a.padre_telefono) {
+                                const divTels = document.createElement("div");
+                                divTels.style.fontSize = "0.8em";
+                                divTels.style.color = "#666";
+                                divTels.style.display = "flex";
+                                divTels.style.gap = "8px";
+                                divTels.style.marginTop = "2px";
+
+                                if (a.madre_telefono) {
+                                    divTels.innerHTML += `<span title="Mamá: ${a.madre_telefono}">👩‍🦱 ${a.madre_telefono}</span>`;
+                                }
+                                if (a.padre_telefono) {
+                                    divTels.innerHTML += `<span title="Papá: ${a.padre_telefono}">👨 ${a.padre_telefono}</span>`;
+                                }
+                                divText.appendChild(divTels);
+                            }
 
                             divInfo.appendChild(cb);
                             divInfo.appendChild(img);
-                            divInfo.appendChild(spanNombre);
+                            divInfo.appendChild(divText);
 
                             // Botones acciones
                             const divAcciones = document.createElement("div");

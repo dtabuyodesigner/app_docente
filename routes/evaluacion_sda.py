@@ -184,3 +184,90 @@ def borrar_evaluacion():
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
     return jsonify({"ok": True})
+
+@evaluacion_sda_bp.route("/tabla")
+def datos_tabla_evaluacion():
+    area_id = request.args.get("area_id")
+    sda_id = request.args.get("sda_id")
+    trimestre = request.args.get("trimestre")
+    grupo_id = session.get('active_group_id')
+    
+    if sda_id == 'null' or sda_id == '': sda_id = None
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # 1. Alumnos del grupo
+    cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ? ORDER BY nombre", (grupo_id,))
+    alumnos = [dict(r) for r in cur.fetchall()]
+    
+    # 2. Criterios de la SDA o del Área/Periodo (Directa)
+    if sda_id:
+        cur.execute("""
+            SELECT c.id, c.codigo, c.descripcion
+            FROM criterios c
+            JOIN sda_criterios sc ON sc.criterio_id = c.id
+            WHERE sc.sda_id = ?
+            ORDER BY c.id
+        """, (sda_id,))
+    else:
+        # Criterios directos para el área y periodo (T1, T2, T3)
+        periodo = f"T{trimestre}"
+        cur.execute("""
+            SELECT c.id, c.codigo, c.descripcion
+            FROM criterios c
+            JOIN criterios_periodo cp ON cp.criterio_id = c.id
+            WHERE cp.grupo_id = ? AND cp.periodo = ? AND c.area_id = ? AND cp.activo = 1
+            ORDER BY c.id
+        """, (grupo_id, periodo, area_id))
+    
+    criterios = [dict(r) for r in cur.fetchall()]
+    
+    # 3. Evaluaciones actuales
+    if sda_id:
+        cur.execute("""
+            SELECT alumno_id, criterio_id, nivel 
+            FROM evaluaciones
+            WHERE sda_id = ? AND trimestre = ?
+        """, (sda_id, trimestre))
+    else:
+        cur.execute("""
+            SELECT alumno_id, criterio_id, nivel 
+            FROM evaluaciones
+            WHERE sda_id IS NULL AND area_id = ? AND trimestre = ?
+        """, (area_id, trimestre))
+    
+    evals = cur.fetchall()
+    eval_map = {}
+    for ev in evals:
+        key = f"{ev['alumno_id']}_{ev['criterio_id']}"
+        eval_map[key] = ev["nivel"]
+        
+    return jsonify({
+        "alumnos": alumnos,
+        "criterios": criterios,
+        "evaluaciones": eval_map
+    })
+
+@evaluacion_sda_bp.route("/resumen_clase")
+def resumen_clase():
+    area_id = request.args.get("area_id")
+    trimestre = request.args.get("trimestre")
+    grupo_id = session.get('active_group_id')
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Calcular media por criterio para el grupo y trimestre
+    cur.execute("""
+        SELECT c.codigo as criterio, ROUND(AVG(e.nivel), 2) as media
+        FROM evaluaciones e
+        JOIN criterios c ON e.criterio_id = c.id
+        JOIN alumnos a ON e.alumno_id = a.id
+        WHERE a.grupo_id = ? AND e.area_id = ? AND e.trimestre = ?
+        GROUP BY e.criterio_id
+        ORDER BY c.codigo
+    """, (grupo_id, area_id, trimestre))
+    
+    rows = cur.fetchall()
+    return jsonify([dict(r) for r in rows])

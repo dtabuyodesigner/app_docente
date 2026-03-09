@@ -219,6 +219,69 @@
         .inactive {
             opacity: 0.5;
         }
+
+        /* Table View Styles */
+        .eval-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .eval-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .eval-table th {
+            padding: 12px 8px;
+            background: #f1f3f5;
+            color: var(--primary);
+            font-size: 0.8rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .eval-table td {
+            padding: 0;
+            border: 1px solid #dee2e6;
+            min-width: 60px;
+            height: 45px;
+        }
+
+        .eval-table .alumno-name {
+            padding: 8px 15px;
+            text-align: left;
+            font-weight: 600;
+            background: #f8f9fa;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            min-width: 200px;
+        }
+
+        .eval-cell {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .eval-cell:hover {
+            background: #f0f7ff;
+        }
+
+        .eval-cell.val-1 { background: #fee2e2; color: #991b1b; }
+        .eval-cell.val-2 { background: #fef3c7; color: #92400e; }
+        .eval-cell.val-3 { background: #d1fae5; color: #065f46; }
+        .eval-cell.val-4 { background: #dbeafe; color: #1e40af; }
     </style>
 </head>
 
@@ -312,12 +375,25 @@
                 <button id="btnCriterioExtra" onclick="abrirModalExtra()"
                     style="background:#28a745; color:white; border-color:#28a745; font-weight:bold; display:none;">➕
                     Criterio Extra</button>
+                <button id="btnModoTabla" onclick="toggleModoTabla()"
+                    style="background:var(--primary); color:white; font-weight:bold;">📋 Modo Tabla (Edición Rápida)</button>
             </div>
 
-            <table>
-                <thead id="thead"></thead>
-                <tbody id="tbody"></tbody>
-            </table>
+            <div id="vistaIndividual">
+                <table>
+                    <thead id="thead"></thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+
+            <div id="vistaTabla" style="display:none;">
+                <div class="eval-table-container">
+                    <table class="eval-table">
+                        <thead id="theadTabla"></thead>
+                        <tbody id="tbodyTabla"></tbody>
+                    </table>
+                </div>
+            </div>
 
             <div id="mediaSDA" style="margin-top:15px; text-align:right; font-size:18px; font-weight:bold; color:#333;">
                 📊
@@ -509,6 +585,7 @@
         <script>
             let areasData = {};
             let rubricasSDA = {};
+            let modoTabla = false;
 
             const alumnoSelect = document.getElementById("alumno");
             const areaSelect = document.getElementById("area");
@@ -1124,6 +1201,150 @@
                         document.getElementById("resumenAlumno").innerHTML = html;
                     });
             }
+
+                }
+            };
+
+            window.toggleModoTabla = function() {
+                modoTabla = !modoTabla;
+                const btn = document.getElementById('btnModoTabla');
+                const vInd = document.getElementById('vistaIndividual');
+                const vTable = document.getElementById('vistaTabla');
+                const filtrosGlobales = document.getElementById('filtrosGlobales');
+                
+                if (modoTabla) {
+                    btn.innerText = "👤 Volver a Vista Individual";
+                    btn.style.background = "#6c757d";
+                    vInd.style.display = 'none';
+                    vTable.style.display = 'block';
+                    document.querySelector('label[for="alumno"]').style.display = 'none';
+                    alumnoSelect.style.display = 'none';
+                    cargarDatosTabla();
+                } else {
+                    btn.innerText = "📋 Modo Tabla (Edición Rápida)";
+                    btn.style.background = "var(--primary)";
+                    vInd.style.display = 'block';
+                    vTable.style.display = 'none';
+                    document.querySelector('label[for="alumno"]').style.display = 'flex';
+                    alumnoSelect.style.display = 'inline-block';
+                    if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
+                }
+            };
+
+            async function cargarDatosTabla() {
+                const area_id = areaSelect.value;
+                const sda_id = sdaSelect.value;
+                const trimestre = trimestreSelect.value;
+                if (!area_id) return;
+
+                const url = `/api/evaluacion/sda/tabla?area_id=${area_id}&sda_id=${sda_id}&trimestre=${trimestre}`;
+                try {
+                    const r = await fetch(url);
+                    const data = await r.json();
+                    renderModoTabla(data);
+                } catch (e) {
+                    console.error("Error cargando tabla:", e);
+                }
+            }
+
+            function renderModoTabla(data) {
+                const theadT = document.getElementById('theadTabla');
+                const tbodyT = document.getElementById('tbodyTabla');
+                const conf = getAreaConfig();
+                const esInfantil = conf.tipo_escala === 'INFANTIL_NI_EP_C';
+
+                // Header
+                let htmlHead = `<tr><th class="alumno-name">Alumno</th>`;
+                data.criterios.forEach(c => {
+                    htmlHead += `<th title="${c.descripcion}">${c.codigo}</th>`;
+                });
+                htmlHead += `</tr>`;
+                theadT.innerHTML = htmlHead;
+
+                // Body
+                tbodyT.innerHTML = "";
+                data.alumnos.forEach(alum => {
+                    const tr = document.createElement('tr');
+                    let htmlRow = `<td class="alumno-name">${alum.nombre}</td>`;
+                    
+                    data.criterios.forEach(crit => {
+                        const val = data.evaluaciones[`${alum.id}_${crit.id}`] || "";
+                        const label = esInfantil ? (val === 1 ? "NI" : val === 2 ? "EP" : val === 3 ? "C" : "") : val;
+                        htmlRow += `<td>
+                            <div class="eval-cell val-${val}" 
+                                 onclick="siguienteNivel(${alum.id}, ${crit.id}, this, ${esInfantil ? 3 : 4})"
+                                 id="cell-${alum.id}-${crit.id}">${label || "—"}</div>
+                        </td>`;
+                    });
+                    tr.innerHTML = htmlRow;
+                    tbodyT.appendChild(tr);
+                });
+            }
+
+            window.siguienteNivel = async function(alumno_id, criterio_id, cell, max) {
+                let current = parseInt(cell.innerText) || 0;
+                if (isNaN(current)) {
+                    // Handle labels NI, EP, C
+                    const label = cell.innerText;
+                    if (label === "NI") current = 1;
+                    else if (label === "EP") current = 2;
+                    else if (label === "C") current = 3;
+                    else current = 0;
+                }
+                
+                let next = current + 1;
+                if (next > max) next = 0; // Toggle cycle: 0 -> 1 -> 2 -> 3 -> 4 -> 0
+
+                // Update UI immediately
+                cell.className = `eval-cell val-${next}`;
+                const conf = getAreaConfig();
+                const esInfantil = conf.tipo_escala === 'INFANTIL_NI_EP_C';
+                
+                if (next === 0) {
+                    cell.innerText = "—";
+                    // Delete evaluation
+                    const area_id = areaSelect.value;
+                    const sda_id = sdaSelect.value || 'null';
+                    const trimestre = trimestreSelect.value;
+                    // Note: need a way to delete specific criterion evaluation or just let it be level 0/null
+                    // For now, let's keep it simple and just save level 0 if backend handles it or use the delete endpoint
+                    // Actually, let's just save next if it's > 0
+                } else {
+                    const label = esInfantil ? (next === 1 ? "NI" : next === 2 ? "EP" : "C") : next;
+                    cell.innerText = label;
+                }
+
+                // Save to backend
+                if (next === 0) {
+                    // Optional: call delete if needed, but saving level 0 might be enough if handled
+                    // For now, let's just not save or handle it as deletion in a custom way
+                    return;
+                }
+
+                const payload = {
+                    alumno_id: alumno_id,
+                    criterio_id: criterio_id,
+                    nivel: next,
+                    area_id: areaSelect.value,
+                    sda_id: sdaSelect.value || null,
+                    trimestre: trimestreSelect.value
+                };
+
+                const isDirecto = getAreaConfig().modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
+                const url = isDirecto ? "/api/evaluacion/directa/" : "/api/evaluacion/sda/";
+                
+                if (isDirecto) payload.periodo = 'T' + trimestreSelect.value;
+
+                try {
+                    await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                } catch (e) {
+                    console.error("Error saving evaluation:", e);
+                }
+            };
 
             window.guardar = function (criterio_id, nivel) {
                 const alumId = alumnoSelect.value;

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cuaderno del Tutor - Progreso de Clase</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --bg: #f0f2f5;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h2 { color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 10px; }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            background: #f8faff;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        label { font-weight: 700; font-size: 0.9rem; color: #555; }
+        select { padding: 10px; border-radius: 8px; border: 1px solid #ddd; min-width: 150px; }
+
+        .grid-charts {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f8fbff;
+            padding: 15px;
+            border-radius: 10px;
+            border-bottom: 3px solid var(--secondary);
+            text-align: center;
+        }
+
+        .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 0.8rem; color: #666; text-transform: uppercase; }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/static/evaluacion.html" class="btn-back">⬅️ Volver a Evaluación</a>
+        
+        <div class="card">
+            <h2>📊 Resumen de Progreso de Clase</h2>
+            
+            <div class="filters">
+                <div>
+                    <label>Área:</label><br>
+                    <select id="areaSelect"></select>
+                </div>
+                <div>
+                    <label>Trimestre:</label><br>
+                    <select id="trimestreSelect">
+                        <option value="1">1º Trimestre</option>
+                        <option value="2">2º Trimestre</option>
+                        <option value="3">3º Trimestre</option>
+                    </select>
+                </div>
+                <div style="flex-grow:1; display:flex; align-items:flex-end; justify-content:flex-end;">
+                    <button onclick="cargarDatos()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">🔄 Actualizar</button>
+                </div>
+            </div>
+
+            <div id="statsContainer" class="stats-summary" style="display:none;">
+                <div class="stat-card">
+                    <div id="statMedia" class="stat-val">—</div>
+                    <div class="stat-label">Media Global</div>
+                </div>
+                <div class="stat-card">
+                    <div id="statCrits" class="stat-val">—</div>
+                    <div class="stat-label">Criterios Evaluados</div>
+                </div>
+            </div>
+
+            <div class="chart-container" style="margin-top:30px;">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chart = null;
+
+        async function init() {
+            // Cargar áreas
+            const ra = await fetch('/api/curricular/areas');
+            const areas = await ra.json();
+            const areaSelect = document.getElementById('areaSelect');
+            areas.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a.id;
+                opt.textContent = a.nombre;
+                areaSelect.appendChild(opt);
+            });
+
+            if (areas.length > 0) cargarDatos();
+        }
+
+        async function cargarDatos() {
+            const area_id = document.getElementById('areaSelect').value;
+            const trimestre = document.getElementById('trimestreSelect').value;
+            
+            if (!area_id) return;
+
+            const r = await fetch(`/api/evaluacion/sda/resumen_clase?area_id=${area_id}&trimestre=${trimestre}`);
+            const data = await r.json();
+
+            renderChart(data);
+            updateStats(data);
+        }
+
+        function updateStats(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('statsContainer').style.display = 'none';
+                return;
+            }
+            document.getElementById('statsContainer').style.display = 'grid';
+            
+            const total = data.reduce((acc, curr) => acc + curr.media, 0);
+            const avg = (total / data.length).toFixed(2);
+            
+            document.getElementById('statMedia').innerText = avg;
+            document.getElementById('statCrits').innerText = data.length;
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            
+            if (chart) chart.destroy();
+
+            if (data.length === 0) {
+                ctx.font = "20px Inter";
+                ctx.textAlign = "center";
+                ctx.fillText("No hay datos suficientes para generar el gráfico", ctx.canvas.width/2, ctx.canvas.height/2);
+                return;
+            }
+
+            const labels = data.map(d => d.criterio);
+            const values = data.map(d => d.media);
+            const colors = values.map(v => v < 2 ? '#dc3545' : v < 3 ? '#ffc107' : '#28a745');
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Media de la Clase',
+                        data: values,
+                        backgroundColor: colors,
+                        borderRadius: 8,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 4,
+                            ticks: { stepSize: 1 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Media: ${context.raw}`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>

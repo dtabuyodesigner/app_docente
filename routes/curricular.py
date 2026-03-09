@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, session
 from utils.db import get_db
 import csv
 import io
+from datetime import datetime
 
 curricular_bp = Blueprint('curricular', __name__)
 
@@ -244,6 +245,196 @@ def importar_todo():
             count += 1
         conn.commit()
         return jsonify({"ok": True, "count": count})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@curricular_bp.route("/sda/import_csv", methods=["POST"])
+def importar_sda_csv():
+    if not session.get('logged_in'):
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+    
+    file = request.files.get('file')
+    if not file:
+        return jsonify({"ok": False, "error": "No se ha subido ningún archivo"}), 400
+    
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({"ok": False, "error": "No hay un grupo activo seleccionado"}), 400
+
+    stats = {"sda": 0, "actividades": 0, "sesiones": 0, "criterios": 0, "errores": 0}
+    
+    try:
+        content = file.stream.read().decode("utf-8-sig")
+        stream = io.StringIO(content)
+        # Intentar detectar delimitador
+        sample = stream.read(2048)
+        stream.seek(0)
+        dialect = 'excel'
+        if sample:
+            if ';' in sample and ',' not in sample: dialect = 'excel-tab' # close enough for DictReader with delimiter
+            elif ';' in sample:
+                # Manual check
+                first_line = sample.split('\n')[0]
+                if ';' in first_line: reader = csv.DictReader(stream, delimiter=';')
+                else: reader = csv.DictReader(stream)
+            else: reader = csv.DictReader(stream)
+        else:
+            reader = csv.DictReader(stream)
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Etapas mapping
+        cur.execute("SELECT id, nombre FROM etapas")
+        etapas_map = {r["nombre"].lower(): r["id"] for r in cur.fetchall()}
+        
+        cur.execute("BEGIN TRANSACTION")
+        
+        for row in reader:
+            try:
+                # 1. Etapa y Área
+                etapa_nom = row.get("Etapa", "").strip()
+                area_nom = row.get("Area", "").strip()
+                if not etapa_nom or not area_nom: continue
+                
+                etapa_id = etapas_map.get(etapa_nom.lower())
+                if not etapa_id:
+                    cur.execute("INSERT INTO etapas (nombre) VALUES (?)", (etapa_nom,))
+                    etapa_id = cur.lastrowid
+                    etapas_map[etapa_nom.lower()] = etapa_id
+                
+                cur.execute("SELECT id FROM areas WHERE nombre = ? AND etapa_id = ?", (area_nom, etapa_id))
+                area_row = cur.fetchone()
+                if area_row:
+                    area_id = area_row["id"]
+                else:
+                    cur.execute("INSERT INTO areas (nombre, etapa_id, activa) VALUES (?, ?, 1)", (area_nom, etapa_id))
+                    area_id = cur.lastrowid
+                
+                # 2. SDA
+                sda_cod = row.get("SDA_ID", "").strip()
+                sda_tit = row.get("SDA_Titulo", "").strip()
+                trim_str = row.get("Trimestre", "1").strip()
+                # Handle "T1", "T2", "T3" or just "1", "2", "3"
+                trim = int(trim_str.replace("T", "")) if trim_str else 1
+                duracion = row.get("Duracion_Semanas")
+                duracion = int(duracion) if duracion and duracion.isdigit() else None
+                
+                if not sda_tit: continue
+                
+                if sda_cod:
+                    cur.execute("SELECT id FROM sda WHERE codigo_sda = ? AND grupo_id = ?", (sda_cod, grupo_id))
+                else:
+                    cur.execute("SELECT id FROM sda WHERE nombre = ? AND grupo_id = ? AND area_id = ?", (sda_tit, grupo_id, area_id))
+                
+                sda_row = cur.fetchone()
+                if sda_row:
+                    sda_id = sda_row["id"]
+                    cur.execute("UPDATE sda SET nombre = ?, trimestre = ?, duracion_semanas = ? WHERE id = ?", 
+                               (sda_tit, trim, duracion, sda_id))
+                else:
+                    cur.execute("INSERT INTO sda (area_id, nombre, trimestre, grupo_id, codigo_sda, duracion_semanas) VALUES (?, ?, ?, ?, ?, ?)",
+                               (area_id, sda_tit, trim, grupo_id, sda_cod, duracion))
+                    sda_id = cur.lastrowid
+                    stats["sda"] += 1
+                
+                # 3. Criterios y Competencias
+                crit_cod = row.get("Criterio_Codigo", "").strip()
+                crit_desc = row.get("Criterio_Descriptor", "").strip()
+                if crit_cod:
+                    cur.execute("SELECT id FROM criterios WHERE codigo = ? AND area_id = ?", (crit_cod, area_id))
+                    c_row = cur.fetchone()
+                    if c_row:
+                        crit_id = c_row["id"]
+                        if crit_desc: cur.execute("UPDATE criterios SET descripcion = ? WHERE id = ?", (crit_desc, crit_id))
+                    else:
+                        cur.execute("INSERT INTO criterios (codigo, descripcion, area_id) VALUES (?, ?, ?)", 
+                                   (crit_cod, crit_desc, area_id))
+                        crit_id = cur.lastrowid
+                        stats["criterios"] += 1
+                    
+                    cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, crit_id))
+                    
+                    # Activación automática
+                    periodo = f"T{trim}"
+                    cur.execute("""
+                        INSERT OR IGNORE INTO criterios_periodo (criterio_id, grupo_id, periodo, activo)
+                        VALUES (?, ?, ?, 1)
+                    """, (crit_id, grupo_id, periodo))
+                
+                comp_cod = row.get("Competencia_Codigo", "").strip()
+                comp_desc = row.get("Competencia_Descriptor", "").strip()
+                if comp_cod:
+                    cur.execute("SELECT id FROM competencias_especificas WHERE codigo = ? AND area_id = ?", (comp_cod, area_id))
+                    comp_row = cur.fetchone()
+                    if comp_row:
+                        comp_id = comp_row["id"]
+                    else:
+                        cur.execute("INSERT INTO competencias_especificas (codigo, descripcion, area_id) VALUES (?, ?, ?)",
+                                   (comp_cod, comp_desc, area_id))
+                        comp_id = cur.lastrowid
+                    
+                    cur.execute("INSERT OR IGNORE INTO sda_competencias (sda_id, competencia_id) VALUES (?, ?)", (sda_id, comp_id))
+
+                # 4. Actividades
+                act_cod = row.get("Actividad_ID", "").strip()
+                act_tit = row.get("Actividad_Titulo", "").strip()
+                if act_tit:
+                    if act_cod:
+                        cur.execute("SELECT id FROM actividades_sda WHERE codigo_actividad = ? AND sda_id = ?", (act_cod, sda_id))
+                    else:
+                        cur.execute("SELECT id FROM actividades_sda WHERE nombre = ? AND sda_id = ?", (act_tit, sda_id))
+                    
+                    act_row = cur.fetchone()
+                    if act_row:
+                        act_id = act_row["id"]
+                    else:
+                        cur.execute("INSERT INTO actividades_sda (sda_id, nombre, codigo_actividad) VALUES (?, ?, ?)",
+                                   (sda_id, act_tit, act_cod))
+                        act_id = cur.lastrowid
+                        stats["actividades"] += 1
+                    
+                    # 5. Sesiones
+                    ses_num = row.get("Sesion_Numero")
+                    ses_num = int(ses_num) if ses_num and ses_num.isdigit() else None
+                    ses_tit = row.get("Sesion_Titulo", "").strip()
+                    ses_desc = row.get("Descripcion_Sesion", "").strip()
+                    material = row.get("Material", "").strip()
+                    evaluable = 1 if row.get("Evaluable", "").lower() in ("si", "sí", "true", "1") else 0
+                    fecha = row.get("Fecha", "").strip()
+                    
+                    if ses_num:
+                        cur.execute("SELECT id FROM programacion_diaria WHERE actividad_id = ? AND numero_sesion = ?", (act_id, ses_num))
+                        pd_row = cur.fetchone()
+                        
+                        db_fecha = None
+                        if fecha:
+                            for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y"):
+                                try:
+                                    db_fecha = datetime.strptime(fecha, fmt).strftime("%Y-%m-%d")
+                                    break
+                                except: continue
+                        
+                        if pd_row:
+                            cur.execute("""
+                                UPDATE programacion_diaria 
+                                SET descripcion = ?, material = ?, evaluable = ?, sda_id = ?, fecha = COALESCE(?, fecha)
+                                WHERE id = ?
+                            """, (ses_desc or ses_tit, material, evaluable, sda_id, db_fecha, pd_row["id"]))
+                        elif db_fecha:
+                            cur.execute("""
+                                INSERT INTO programacion_diaria (fecha, sda_id, actividad_id, numero_sesion, descripcion, material, evaluable)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                            """, (db_fecha, sda_id, act_id, ses_num, ses_desc or ses_tit, material, evaluable))
+                            stats["sesiones"] += 1
+
+            except Exception as e:
+                print(f"Error procesando fila {reader.line_num}: {e}")
+                stats["errores"] += 1
+        
+        conn.commit()
+        return jsonify({"ok": True, "stats": stats})
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500

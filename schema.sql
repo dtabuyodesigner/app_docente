@@ -91,10 +91,12 @@ CREATE TABLE programacion_diaria (
     descripcion TEXT,
     material TEXT,
     evaluable INTEGER DEFAULT 0,
+    criterio_id INTEGER,
     tipo TEXT DEFAULT 'clase', 
     color TEXT DEFAULT '#3788d8', 
     FOREIGN KEY(sda_id) REFERENCES sda(id) ON DELETE SET NULL,
-    FOREIGN KEY(actividad_id) REFERENCES actividades_sda(id) ON DELETE SET NULL
+    FOREIGN KEY(actividad_id) REFERENCES actividades_sda(id) ON DELETE SET NULL,
+    FOREIGN KEY(criterio_id) REFERENCES criterios(id) ON DELETE SET NULL
 );
 
 CREATE TABLE actividades_sda (
@@ -103,6 +105,7 @@ CREATE TABLE actividades_sda (
     nombre TEXT NOT NULL, 
     sesiones INTEGER DEFAULT 1, 
     descripcion TEXT, 
+    codigo_actividad TEXT,
     FOREIGN KEY(sda_id) REFERENCES sda(id) ON DELETE CASCADE
 );
 
@@ -325,3 +328,4 @@ CREATE INDEX idx_sda_grupo ON sda (grupo_id);
 CREATE INDEX idx_criterios_area ON criterios (area_id);
 CREATE INDEX idx_asistencia_alumno_fecha ON asistencia (alumno_id, fecha);
 CREATE INDEX idx_alumno_grupo ON alumnos (grupo_id);
+CREATE INDEX idx_crit_per_periodo ON criterios_periodo (periodo);

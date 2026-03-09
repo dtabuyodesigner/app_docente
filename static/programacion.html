@@ -755,6 +755,18 @@
                     <input type="text" id="eventActivity" placeholder="Ej: Repaso de Matemáticas">
                 </div>
 
+                <div style="margin-bottom:15px; display:flex; gap:15px; align-items:center; background:#f0f8ff; padding:10px; border-radius:10px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" id="eventEvaluable" style="width:20px; height:20px; cursor:pointer;">
+                        <label for="eventEvaluable" style="margin-bottom:0; cursor:pointer;">⭐ Evaluable</label>
+                    </div>
+                    <div style="flex:1;">
+                        <select id="eventCriterio" style="display:none; font-size:0.8rem;">
+                            <option value="">-- Selecciona Criterio --</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div style="margin-bottom:15px;">
                     <label>Detalles / Observaciones:</label>
                     <textarea id="eventObs" style="height:80px;"></textarea>
@@ -1006,33 +1018,39 @@
         <div id="sdaImportModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1100; align-items:center; justify-content:center; padding: 20px;">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:650px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                     <h3 style="margin:0; color:var(--primary);">📥 Importar Situaciones de Aprendizaje (SDA)</h3>
                     <button onclick="closeImportSdaModal()"
                         style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
                 </div>
 
-                <div style="margin-bottom:20px; padding:15px; background:#e7f3fe; border-radius:10px; color:#1e4265; font-size:0.9rem;">
-                    <p style="margin-top:0;"><strong>💡 Instrucciones:</strong></p>
-                    <ul style="margin-bottom:0; padding-left:20px;">
-                        <li>Usa la plantilla CSV oficial.</li>
-                        <li>Asegúrate de haber seleccionado el grupo correcto.</li>
-                        <li>El sistema creará las SDA, Actividades, Sesiones y Criterios automáticamente.</li>
+                <div style="margin-bottom:20px; padding:20px; background:#f0f7ff; border-radius:12px; color:#1e4265; font-size:0.9rem; border-left: 5px solid var(--primary);">
+                    <p style="margin-top:0; font-weight: bold; color: var(--primary);">💡 Información Importante:</p>
+                    <ul style="margin-bottom:0; padding-left:20px; line-height: 1.6;">
+                        <li>Usa la <strong>plantilla CSV oficial</strong> para evitar errores de formato (punto y coma <code>;</code> o coma <code>,</code>).</li>
+                        <li>El sistema detectará automáticamente el Área y la Etapa. Si no existen, las creará.</li>
+                        <li><strong>Automatización</strong>: Se crearán las SDA, Actividades, Sesiones de clase y se activarán los Criterios para la evaluación del trimestre seleccionado.</li>
+                        <li>Si vuelves a importar la misma SDA (mismo ID), los datos se actualizarán.</li>
                     </ul>
                 </div>
 
-                <div style="margin-bottom:20px;">
-                    <label style="font-weight:bold;">Selecciona el archivo CSV:</label>
-                    <input type="file" id="sdaCsvFile" accept=".csv" style="margin-top:10px;">
+                <div style="margin-bottom:25px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:10px;">Selecciona el archivo CSV:</label>
+                    <div style="display:flex; align-items:center; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #ddd;">
+                        <input type="file" id="sdaCsvFile" accept=".csv" style="flex-grow:1;">
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <a href="/static/plantilla_sda.csv" download="plantilla_sda.csv" style="font-size: 0.8rem; color: var(--primary); text-decoration: none;">📥 Descargar plantilla de ejemplo</a>
+                    </div>
                 </div>
 
-                <div id="sdaImportStatus" style="display:none; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.9rem;">
+                <div id="sdaImportStatus" style="display:none; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.9rem; line-height: 1.5;">
                 </div>
 
-                <div style="display:flex; justify-content:flex-end; gap:10px;">
-                    <button class="btn" onclick="closeImportSdaModal()" style="background:#ccc; color:#333;">Cancelar</button>
-                    <button class="btn btn-success" id="btnDoImportSda" onclick="uploadSdaCsv()">🚀 Empezar Importación</button>
+                <div style="display:flex; justify-content:flex-end; gap:12px; border-top: 1px solid #eee; padding-top: 20px;">
+                    <button class="btn" onclick="closeImportSdaModal()" style="background:#eee; color:#666; border: 1px solid #ddd;">Cancelar</button>
+                    <button class="btn btn-primary" id="btnDoImportSda" onclick="uploadSdaCsv()" style="padding: 10px 25px; font-weight: bold;">🚀 Empezar Importación</button>
                 </div>
             </div>
         </div>
@@ -1865,7 +1883,18 @@
         function openModal(event, dateStr) {
             const modal = document.getElementById('eventModal');
             document.getElementById('modalTitle').innerText = event ? 'Editar Evento' : 'Nuevo Evento';
-            document.getElementById('btnDelete').style.display = event ? 'block' : 'none';
+            const btnDelete = document.getElementById('btnDelete');
+            btnDelete.style.display = event ? 'block' : 'none';
+
+            const sdaSelect = document.getElementById('eventSda');
+            const critSelect = document.getElementById('eventCriterio');
+            const checkEvaluable = document.getElementById('eventEvaluable');
+
+            // Reset
+            sdaSelect.value = '';
+            critSelect.style.display = 'none';
+            critSelect.innerHTML = '<option value="">-- Selecciona Criterio --</option>';
+            checkEvaluable.checked = false;
 
             if (event) {
                 document.getElementById('eventId').value = event.id;
@@ -1883,7 +1912,14 @@
                 }
 
                 document.getElementById('eventObs').value = event.extendedProps.observaciones || "";
-                document.getElementById('eventSda').value = event.extendedProps.sda_id || "";
+                
+                if (event.extendedProps.sda_id) {
+                    sdaSelect.value = event.extendedProps.sda_id;
+                    cargarCriteriosParaEvento(event.extendedProps.sda_id, event.extendedProps.criterio_id);
+                }
+
+                checkEvaluable.checked = event.extendedProps.evaluable == 1;
+                if (checkEvaluable.checked) critSelect.style.display = 'block';
 
                 const type = event.extendedProps.tipo || 'clase';
 
@@ -1900,7 +1936,7 @@
                     if (btn) selectType(btn);
 
                     document.querySelectorAll('.btn-type').forEach(b => b.classList.add('disabled-btn'));
-                    document.getElementById('btnDelete').style.display = 'none';
+                    btnDelete.style.display = 'none';
                     document.querySelector('.btn-success').style.display = 'none';
                 } else {
                     document.getElementById('eventActivity').disabled = false;
@@ -1923,7 +1959,6 @@
                 document.getElementById('eventActivity').disabled = false;
                 document.getElementById('eventObs').value = "";
                 document.getElementById('eventObs').disabled = false;
-                document.getElementById('eventSda').value = "";
                 document.getElementById('eventSda').disabled = false;
                 document.getElementById('eventDate').disabled = false;
                 document.getElementById('eventTime').disabled = false;
@@ -1933,6 +1968,38 @@
             }
 
             modal.style.display = 'flex';
+        }
+
+        document.getElementById('eventEvaluable').addEventListener('change', function() {
+            const critSelect = document.getElementById('eventCriterio');
+            critSelect.style.display = this.checked ? 'block' : 'none';
+        });
+
+        document.getElementById('eventSda').addEventListener('change', function() {
+            cargarCriteriosParaEvento(this.value);
+        });
+
+        async function cargarCriteriosParaEvento(sdaId, preselectedId = null) {
+            const critSelect = document.getElementById('eventCriterio');
+            if (!sdaId) {
+                critSelect.innerHTML = '<option value="">-- Selecciona Criterio --</option>';
+                return;
+            }
+
+            try {
+                const r = await fetch(`/api/evaluacion/sda/criterios/${sdaId}`);
+                const criterios = await r.json();
+                critSelect.innerHTML = '<option value="">-- Selecciona Criterio --</option>';
+                criterios.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `${c.codigo}: ${c.descripcion.substring(0, 50)}...`;
+                    if (preselectedId && c.id == preselectedId) opt.selected = true;
+                    critSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error cargando criterios:", e);
+            }
         }
 
         function closeModal() {
@@ -1964,9 +2031,11 @@
                 fecha: fullDateStr,
                 actividad: activityText,
                 observaciones: document.getElementById('eventObs').value,
-                sda_id: document.getElementById('eventSda').value,
+                sda_id: document.getElementById('eventSda').value ? parseInt(document.getElementById('eventSda').value) : null,
                 tipo: document.getElementById('eventType').value,
-                color: document.getElementById('eventColor').value
+                color: document.getElementById('eventColor').value,
+                evaluable: document.getElementById('eventEvaluable').checked ? 1 : 0,
+                criterio_id: document.getElementById('eventCriterio').value ? parseInt(document.getElementById('eventCriterio').value) : null
             };
 
             // Validate data
@@ -2544,7 +2613,7 @@
             btn.innerHTML = '⌛ Importando...';
             statusDiv.style.display = 'none';
 
-            fetch('/api/sda/import_csv', {
+            fetch('/api/curricular/sda/import_csv', {
                 method: 'POST',
                 body: formData
             })
@@ -2553,23 +2622,30 @@
                 btn.disabled = false;
                 btn.innerHTML = '🚀 Empezar Importación';
                 
+                statusDiv.style.display = 'block';
                 if (res.ok) {
-                    statusDiv.className = 'status-msg'; // Reset or set appropriate class
                     statusDiv.style.backgroundColor = '#d4edda';
                     statusDiv.style.color = '#155724';
-                    statusDiv.style.display = 'block';
+                    statusDiv.style.border = '1px solid #c3e6cb';
                     statusDiv.innerHTML = `
-                        <strong>✅ ¡Importación completada!</strong><br>
-                        SDA creadas: ${res.stats.sda}<br>
-                        Actividades creadas: ${res.stats.actividades}<br>
-                        Sesiones creadas: ${res.stats.sesiones}<br>
-                        Criterios registrados: ${res.stats.criterios}<br>
-                        Errores: ${res.stats.errores}
+                        <strong>✅ Importación completada con éxito</strong><br>
+                        <ul style="margin: 10px 0 0 20px; padding: 0;">
+                            <li>Situaciones de Aprendizaje (SDA): ${res.stats.sda}</li>
+                            <li>Actividades: ${res.stats.actividades}</li>
+                            <li>Sesiones programadas: ${res.stats.sesiones}</li>
+                            <li>Criterios registrados/actualizados: ${res.stats.criterios}</li>
+                        </ul>
+                        ${res.stats.errores > 0 ? `<p style="margin:10px 0 0 0; color:#856404;">⚠️ Se saltaron ${res.stats.errores} filas por errores de formato.</p>` : ''}
+                        <p style="margin:10px 0 0 0; font-size:0.8rem;">La vista del currículo se actualizará al cerrar.</p>
                     `;
                     showToast('Importación finalizada', 'success');
-                    loadCurriculo(); // Refresh the list
+                    loadCurriculo(); 
                 } else {
-                    showToast(res.error, 'error');
+                    statusDiv.style.backgroundColor = '#f8d7da';
+                    statusDiv.style.color = '#721c24';
+                    statusDiv.style.border = '1px solid #f5c6cb';
+                    statusDiv.innerHTML = `<strong>❌ Error:</strong> ${res.error}`;
+                    showToast('Error en la importación', 'error');
                 }
             })
             .catch(err => {

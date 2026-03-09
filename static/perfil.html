@@ -7,40 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/css/theme.css">
     <style>
-        :root {
-            --primary: #003366;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #f0f4f8;
-            margin: 0;
-            padding: 20px;
-            color: var(--dark);
-            min-height: 100vh;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            margin-bottom: 40px;
-        }
-
+        /* Custom offsets for profile page */
         .header-bar {
             display: flex;
             align-items: center;
@@ -301,6 +270,7 @@
 
         <div class="header-bar">
             <h1 class="h1-title">📘 Expediente del Alumno</h1>
+            <a href="/alumnos" class="btn-back">⬅️ Volver al Listado</a>
         </div>
 
         <div class="profile-grid">

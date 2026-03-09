@@ -13,7 +13,7 @@ def obtener_programacion():
 
     # 1. Fetch from programacion_diaria
     sql = """
-        SELECT id, fecha, actividad, tipo, observaciones, color, sda_id
+        SELECT id, fecha, actividad, tipo, observaciones, color, sda_id, evaluable, criterio_id
         FROM programacion_diaria
         WHERE 1=1
     """
@@ -39,14 +39,16 @@ def obtener_programacion():
             "extendedProps": {
                 "tipo": r["tipo"],
                 "observaciones": r["observaciones"] or "",
-                "sda_id": r["sda_id"]
+                "sda_id": r["sda_id"],
+                "evaluable": r["evaluable"],
+                "criterio_id": r["criterio_id"]
             }
         })
         
     # 2. Fetch from sesiones_actividad (Actualizado a programacion_diaria segun el nuevo esquema)
     # Sin embargo, para mantener compatibilidad con el frontend que espera sesiones de actividades_sda:
     sql_sesiones = """
-        SELECT sa.id, sa.fecha, sa.descripcion, sa.numero_sesion, sa.actividad_id, act.nombre as act_nombre, sda.nombre as sda_nombre, sda.id as sda_id
+        SELECT sa.id, sa.fecha, sa.descripcion, sa.numero_sesion, sa.actividad_id, act.nombre as act_nombre, sda.nombre as sda_nombre, sda.id as sda_id, sa.evaluable, sa.criterio_id
         FROM programacion_diaria sa
         JOIN actividades_sda act ON sa.actividad_id = act.id
         JOIN sda ON act.sda_id = sda.id
@@ -80,7 +82,9 @@ def obtener_programacion():
                 "sda_id": r["sda_id"],
                 "actividad_id": r["actividad_id"],
                 "sesion_id": r["id"],
-                "numero_sesion": r["numero_sesion"]
+                "numero_sesion": r["numero_sesion"],
+                "evaluable": r["evaluable"],
+                "criterio_id": r["criterio_id"]
             }
         })
         
@@ -93,9 +97,9 @@ def guardar_evento():
     cur = conn.cursor()
     try:
         cur.execute("""
-            INSERT INTO programacion_diaria (fecha, actividad, tipo, observaciones, color, sda_id)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), d.get("sda_id") or None))
+            INSERT INTO programacion_diaria (fecha, actividad, tipo, observaciones, color, sda_id, evaluable, criterio_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), d.get("sda_id") or None, d.get("evaluable", 0), d.get("criterio_id") or None))
         new_id = cur.lastrowid
         conn.commit()
         return jsonify({"ok": True, "id": new_id})
@@ -111,9 +115,9 @@ def actualizar_evento(event_id):
     try:
         cur.execute("""
             UPDATE programacion_diaria
-            SET fecha = ?, actividad = ?, tipo = ?, observaciones = ?, color = ?, sda_id = ?
+            SET fecha = ?, actividad = ?, tipo = ?, observaciones = ?, color = ?, sda_id = ?, evaluable = ?, criterio_id = ?
             WHERE id = ?
-        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), d.get("sda_id") or None, event_id))
+        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), d.get("sda_id") or None, d.get("evaluable", 0), d.get("criterio_id") or None, event_id))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:

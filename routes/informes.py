@@ -188,7 +188,7 @@ def informe_pdf_individual():
     # Structure: Area (avg) → SDA 1 → Criterio 1, Criterio 2... → SDA 2 → ...
     
     area_sda_map = {}  # {area_name: {sda_name: [(criterio, nota, escala), ...]}}
-    for area, sda, crit_cod, crit_desc, nota, escala in notas_criterios:
+    for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
         if area not in area_sda_map:
             area_sda_map[area] = {}
         if sda not in area_sda_map[area]:
@@ -867,6 +867,16 @@ def informe_pdf_todos():
     
     grupo_id = session.get('active_group_id')
     
+    # Comprobar si es un grupo de Infantil
+    cur.execute("""
+        SELECT a.tipo_escala 
+        FROM grupos g
+        JOIN areas a ON g.etapa_id = a.etapa_id
+        WHERE g.id = ? AND a.tipo_escala = 'INFANTIL_NI_EP_C'
+        LIMIT 1
+    """, (grupo_id,))
+    es_infantil = cur.fetchone() is not None
+
     # Promoción (Suspensos)
     cur.execute("""
         SELECT a.nombre, COUNT(*) as num_suspensos
@@ -977,6 +987,29 @@ def informe_pdf_todos():
         return f"{round(n * 100 / evaluados_infantil, 1)}%" if evaluados_infantil > 0 else "0%"
 
     if es_infantil:
+        # Calcular los datos infantiles en caso de ser necesario
+        periodo = f"T{trimestre}"
+        cur.execute("""
+            SELECT ec.alumno_id, ec.nota
+            FROM evaluacion_criterios ec
+            JOIN alumnos a ON ec.alumno_id = a.id
+            WHERE ec.periodo = ? AND a.grupo_id = ?
+        """, (periodo, grupo_id))
+        notas_inf = cur.fetchall()
+        evaluados_infantil = 0
+        infantil_map = {'C': 0, 'EP': 0, 'NI': 0}
+        alumnos_medias = {}
+        for row in notas_inf:
+            aid = row["alumno_id"]
+            if aid not in alumnos_medias: alumnos_medias[aid] = []
+            alumnos_medias[aid].append(row["nota"])
+        for aid, notas in alumnos_medias.items():
+            media_alumno = sum(notas) / len(notas)
+            evaluados_infantil += 1
+            if media_alumno >= 2.5: infantil_map['C'] += 1
+            elif media_alumno >= 1.5: infantil_map['EP'] += 1
+            else: infantil_map['NI'] += 1
+
         data_prom = [
             ["Conseguido (C)", f"{infantil_map['C']} ({calc_pct_inf(infantil_map['C'])})"],
             ["En Proceso (EP)", f"{infantil_map['EP']} ({calc_pct_inf(infantil_map['EP'])})"],
@@ -1131,7 +1164,7 @@ def informe_pdf_todos():
         elements.append(Paragraph("Rendimiento Académico", styles['Heading3']))
         
         area_sda_map = {}  # {area_name: {sda_name: [(criterio, nota, escala), ...]}}
-        for area, sda, crit_cod, crit_desc, nota, escala in notas_criterios:
+        for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
             if area not in area_sda_map:
                 area_sda_map[area] = {}
             if sda not in area_sda_map[area]:

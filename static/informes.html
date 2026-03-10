@@ -130,24 +130,45 @@
         </div>
         <!-- SECCIÓN INDIVIDUAL -->
         <div id="tabIndividual" class="tab-content active">
-            <div class="report-section"><label for="alumno"><strong>Seleccionar
-                        Alumno:</strong></label><select id="alumno"
-                    style="padding: 5px; min-width: 200px;"></select><label for="trimestreIndividual"
-                    style="margin-left: 20px;"><strong>Trimestre:</strong></label><select id="trimestreIndividual"
-                    style="padding: 5px;">
-                    <option value="1">1º Trimestre</option>
-                    <option value="2" selected>2º Trimestre</option>
-                    <option value="3">3º Trimestre</option>
-                </select>
-                <label for="tutorName" style="margin-left: 20px;"><strong>Tutor/a:</strong></label>
-                <input type="text" id="tutorName" placeholder="Nombre del Tutor/a" style="padding: 5px; width: 200px;"
-                    onchange="localStorage.setItem('tutorName', this.value)">
-                <button onclick="generarPDFIndividual()"
-                    style="margin-left: 20px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">📄
-                    Descargar PDF Individual</button><button onclick="generarPDFGeneral()"
-                    style="margin-left: 10px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">📑
-                    Generar todos los PDFs</button>
+            
+            <!-- Barra de Controles y Descargas Superior -->
+            <div class="report-section" style="display:flex; flex-direction:column; gap:20px; border-left: 5px solid var(--primary);">
+                
+                <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
+                    <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:200px;">
+                        <label for="alumno" style="font-weight:600; color:var(--dark);">Seleccionar Alumno:</label>
+                        <select id="alumno" style="padding: 10px; border-radius:6px; border:1px solid #ccc;"></select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px; width:150px;">
+                        <label for="trimestreIndividual" style="font-weight:600; color:var(--dark);">Trimestre:</label>
+                        <select id="trimestreIndividual" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                            <option value="1">1º Trimestre</option>
+                            <option value="2" selected>2º Trimestre</option>
+                            <option value="3">3º Trimestre</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:250px;">
+                        <label for="tutorName" style="font-weight:600; color:var(--dark);">Tutor/a del Grupo:</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="tutorName" placeholder="Escribe tu nombre..." style="flex:1; padding: 10px; border-radius:6px; border:1px solid #ccc;" oninput="document.getElementById('btnGuardarTutor').style.display='inline-block'">
+                            <button id="btnGuardarTutor" onclick="localStorage.setItem('tutorName', document.getElementById('tutorName').value); this.style.display='none'; this.nextElementSibling.style.display='inline'; setTimeout(()=>this.nextElementSibling.style.display='none',2000);" style="padding: 10px 15px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; display:none;" title="Guardar tutor">💾 Recordar</button>
+                            <span style="display:none; color:#28a745; font-weight:bold; align-self:center;">✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:15px; flex-wrap:wrap; padding-top:15px; border-top:1px solid #eee; justify-content:flex-end;">
+                    <button onclick="generarPDFIndividual()"
+                        style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.2rem;">📄</span> Descargar Informe Individual
+                    </button>
+                    <button onclick="generarPDFGeneral()"
+                        style="padding: 12px 20px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.2rem;">📑</span> Informes de toda la Clase (PDF ZIP)
+                    </button>
+                </div>
             </div>
+
             <div class="grid-container">
                 <div class="report-section">
                     <h3>📘 Medias por Área</h3>
@@ -174,19 +195,24 @@
         </div>
         <!-- SECCIÓN GRUPO -->
         <div id="tabGrupo" class="tab-content">
-            <div class="report-section"><label for="trimestreGrupo"><strong>Seleccionar Trimestre para
-                        el Grupo:</strong></label><select id="trimestreGrupo" style="padding: 5px;"
+            <div class="report-section" style="display:flex; flex-wrap:wrap; gap:20px; border-left: 5px solid var(--primary); justify-content:space-between; align-items:flex-end;">
+                <div style="display:flex; flex-direction:column; gap:5px; min-width:200px;">
+                    <label for="trimestreGrupo" style="font-weight:600; color:var(--dark);">Seleccionar Trimestre para
+                        el Grupo:</label><select id="trimestreGrupo" style="padding: 10px; border-radius:6px; border:1px solid #ccc;"
                     onchange="cargarInformeGrupo()">
                     <option value="1">1º Trimestre</option>
                     <option value="2" selected>2º Trimestre</option>
                     <option value="3">3º Trimestre</option>
                 </select>
-                <button onclick="generarPDFGrupo()"
-                    style="margin-left: 20px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">📄
-                    Descargar Informe Global PDF</button>
-                <button onclick="generarExcelGrupo()"
-                    style="margin-left: 10px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">📊
-                    Descargar Excel de Grupo</button>
+                </div>
+                <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                    <button onclick="generarPDFGrupo()"
+                        style="padding: 12px 20px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.2rem;">📄</span> Descargar Informe Global PDF</button>
+                    <button onclick="generarExcelGrupo()"
+                        style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.2rem;">📊</span> Descargar Excel de Grupo</button>
+                </div>
             </div>
             <div class="report-section" id="resumenGrupoStats"
                 style="background: #e9ecef; border-left: 5px solid #007bff;">

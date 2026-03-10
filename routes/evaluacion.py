@@ -4,6 +4,52 @@ from datetime import date
 
 evaluacion_bp = Blueprint('evaluacion', __name__)
 
+@evaluacion_bp.route("/resumen_areas")
+def resumen_areas_alumno():
+    alumno_id = request.args.get("alumno_id")
+    trimestre = request.args.get("trimestre")
+    periodo = f"T{trimestre}"
+    if not alumno_id or not trimestre:
+        return jsonify([])
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT a.nombre, ROUND(AVG(val.nota), 2) as media, a.tipo_escala
+        FROM (
+            SELECT area_id, nota FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT c.area_id, ec.nota 
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            WHERE ec.alumno_id = ? AND ec.periodo = ?
+        ) val
+        JOIN areas a ON val.area_id = a.id
+        GROUP BY a.id, a.nombre, a.tipo_escala
+        ORDER BY a.nombre
+    """, (alumno_id, trimestre, alumno_id, periodo))
+    rows = cur.fetchall()
+    return jsonify([{"area": r["nombre"], "media": r["media"], "tipo_escala": r["tipo_escala"]} for r in rows])
+
+@evaluacion_bp.route("/resumen_sda_todos")
+def resumen_sda_todos():
+    alumno_id = request.args.get("alumno_id")
+    trimestre = request.args.get("trimestre")
+    if not alumno_id or not trimestre:
+        return jsonify([])
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT a.nombre as area, s.nombre as sda, ROUND(AVG(e.nota), 2) as media, a.tipo_escala
+        FROM evaluaciones e
+        JOIN sda s ON e.sda_id = s.id
+        JOIN areas a ON s.area_id = a.id
+        WHERE e.alumno_id = ? AND e.trimestre = ? AND e.sda_id IS NOT NULL
+        GROUP BY s.id, s.nombre, a.nombre, a.tipo_escala
+        ORDER BY a.nombre, s.nombre
+    """, (alumno_id, trimestre))
+    rows = cur.fetchall()
+    return jsonify([{"area": r["area"], "sda": r["sda"], "media": r["media"], "tipo_escala": r["tipo_escala"]} for r in rows])
+
 @evaluacion_bp.route("/criterio_clase")
 def criterio_clase():
     criterio_id = request.args.get("criterio_id")

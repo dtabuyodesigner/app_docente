@@ -78,10 +78,11 @@ Genera la documentación necesaria al final del trimestre.
 
 ### Informe Individual
 - **PDF Elegante**: Documento profesional con todas las notas y observaciones del alumno.
-- **Gráfica de Rendimiento**: Incluye una gráfica de barras horizontal mostrando las notas por área (verde para aprobado, rojo para suspenso).
+- **Detalle de Rendimiento**: Incluye una gráfica de barras horizontal mostrando las notas por área, y un desglose específico de los Criterios evaluados organizados por Situaciones de Aprendizaje (SDA).
 - **Validación**: El sistema verifica que hayas seleccionado un alumno antes de generar el PDF.
 
 ### Informe Grupal
+- **Autocompletado**: Posibilidad de sugerir una conclusión general y pedagógica del grupo de forma automática según los resultados del trimestre.
 - **PDF Global**: Comparativa de toda la clase con estadísticas de promoción, asistencia y gráficas visuales.
   - Gráfico circular de promoción (aprobados/suspensos)
   - Gráfico de barras de asistencia (faltas justificadas, injustificadas, retrasos)

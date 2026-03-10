@@ -270,13 +270,13 @@
                 </div>
             </div>
             <div id="filtrosGlobales"
-                style="margin-bottom:15px; display:grid; grid-template-columns: auto auto auto auto minmax(0,1fr); gap:15px; align-items:center;">
-                <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
+                style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:15px; align-items:center; background:#fff; padding:15px; border-radius:8px; border:1px solid #ddd; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <label id="labelAlumno" style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
                     <select id="alumno"
                         style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
                 </label>
                 <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Etapa:
-                    <select id="etapaFiltro" onchange="cambiarEtapa(this.value)">
+                    <select id="etapaFiltro" onchange="cambiarEtapa(this.value)" style="margin:0; padding:6px;">
                         <option value="">-- Etapa --</option>
                         <option value="1">Infantil</option>
                         <option value="2">Primaria</option>
@@ -288,44 +288,42 @@
                         style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
                 </label>
                 <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Trimestre:
-                    <select id="trimestre" style="margin:0;">
+                    <select id="trimestre" style="margin:0; padding:6px;">
                         <option value="1">1º Trimestre</option>
                         <option value="2" selected>2º Trimestre</option>
                         <option value="3">3º Trimestre</option>
                     </select>
                 </label>
-                <div id="directControls" style="display:none;">
+                <div id="directControls" style="display:none; flex:1; min-width:200px;">
                     <button onclick="abrirModalPeriodo()"
-                        style="background:var(--primary); color:white; font-size:0.85rem; padding:8px 12px; border-radius:8px;">🎯
+                        style="background:var(--primary); color:white; font-size:0.85rem; padding:8px 12px; border-radius:8px; width:100%; cursor:pointer;">🎯
                         Seleccionar Criterios Periodo</button>
                 </div>
                 <label id="lblSDA"
-                    style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;overflow:hidden;">SDA:
+                    style="display:flex;align-items:center;gap:5px;margin:0; flex:1; min-width:300px;">SDA:
                     <select id="sda"
-                        style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;"></select>
+                        style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;"></select>
                 </label>
             </div>
-            <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
-                <button id="btnModoTabla" class="btn-info" onclick="toggleModoTabla()">📊 Modo Tabla (Rejilla)</button>
-                <a href="/static/cuaderno_evaluacion.html" class="btn-info" style="text-decoration:none; display:inline-flex; align-items:center; background:#6366f1; color:white;">📔 Cuaderno Completo</a>
-                <a href="/static/progreso_clase.html" class="btn-info" style="text-decoration:none; display:inline-flex; align-items:center;">📈 Progreso de Clase</a>
-                <a href="/static/evaluar_todo.html" class="btn-info" style="text-decoration:none; display:inline-flex; align-items:center; background:#28a745; color:white;">🚀 Evaluar Todo</a>
-            </div>
-            <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
+            <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap; padding:12px; background:#f8f9fa; border-radius:8px; border:1px solid #e9ecef; align-items:center;">
+                <button id="btnModoTablaToggle" onclick="toggleModoTabla()"
+                    style="background:var(--primary); color:white; font-weight:bold; padding:8px 15px; border-radius:5px; border:none; cursor:pointer; min-width:220px;">👥 Ver a todos los alumnos</button>
+
+                <!-- Controles de evaluación rápida -->
                 <button id="btnRellenar3" onclick="rellenarTodos(3)"
-                    style="background:#007bff; color:white; display:none;">⚡ Rellenar Visible a 3</button>
+                    style="background:#007bff; color:white; display:none; border:none; border-radius:4px; padding:6px 12px;">⚡ Rellenar Visible a 3</button>
                 <button class="btnRellenarNI" onclick="rellenarTodos(2)"
-                    style="background:#ffc107; color:#333; display:none;">⚡ Rellenar Visible a [EP]</button>
+                    style="background:#ffc107; color:#333; display:none; border:none; border-radius:4px; padding:6px 12px;">⚡ Rellenar Visible a [EP]</button>
                 <button class="btnRellenarC" onclick="rellenarTodos(3)"
-                    style="background:#28a745; color:white; display:none;">⚡ Rellenar Visible a [C]</button>
-                <button onclick="limpiarTodos()" style="background:#dc3545; color:white; border-color:#dc3545;">🗑️
-                    Limpiar
-                    Visible</button>
+                    style="background:#28a745; color:white; display:none; border:none; border-radius:4px; padding:6px 12px;">⚡ Rellenar Visible a [C]</button>
+                <button onclick="limpiarTodos()" style="background:#fff; color:#dc3545; border:1px solid #dc3545; border-radius:4px; padding:6px 12px;">🗑️ Limpiar Visibles</button>
                 <button id="btnCriterioExtra" onclick="abrirModalExtra()"
-                    style="background:#28a745; color:white; border-color:#28a745; font-weight:bold; display:none;">➕
-                    Criterio Extra</button>
-                <button id="btnModoTabla" onclick="toggleModoTabla()"
-                    style="background:var(--primary); color:white; font-weight:bold;">📋 Modo Tabla (Edición Rápida)</button>
+                    style="background:#28a745; color:white; border:none; border-radius:4px; padding:6px 12px; font-weight:bold; display:none;">➕ Criterio Extra</button>
+            </div>
+            <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap;">
+                <a href="/static/cuaderno_evaluacion.html" style="text-decoration:none; display:inline-flex; align-items:center; background:#6366f1; color:white; padding:8px 15px; border-radius:6px; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📔 Cuaderno Completo</a>
+                <a href="/static/progreso_clase.html" style="text-decoration:none; display:inline-flex; align-items:center; background:#17a2b8; color:white; padding:8px 15px; border-radius:6px; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📈 Progreso de Clase</a>
+                <a href="/static/evaluar_todo.html" style="text-decoration:none; display:inline-flex; align-items:center; background:#28a745; color:white; padding:8px 15px; border-radius:6px; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">🚀 Evaluador Masivo</a>
             </div>
             <div id="vistaIndividual">
                 <table>
@@ -1057,24 +1055,25 @@
             }
             window.toggleModoTabla = function() {
                 modoTabla = !modoTabla;
-                const btn = document.getElementById('btnModoTabla');
+                const btn = document.getElementById('btnModoTablaToggle');
                 const vInd = document.getElementById('vistaIndividual');
                 const vTable = document.getElementById('vistaTabla');
-                const filtrosGlobales = document.getElementById('filtrosGlobales');
+                const lblAlumno = document.getElementById('labelAlumno');
+                
                 if (modoTabla) {
-                    btn.innerText = "👤 Volver a Vista Individual";
+                    btn.innerText = "👤 Volver a vista individual";
                     btn.style.background = "#6c757d";
                     vInd.style.display = 'none';
                     vTable.style.display = 'block';
-                    document.querySelector('label[for="alumno"]').style.display = 'none';
+                    if (lblAlumno) lblAlumno.style.display = 'none';
                     alumnoSelect.style.display = 'none';
                     cargarDatosTabla();
                 } else {
-                    btn.innerText = "📋 Modo Tabla (Edición Rápida)";
+                    btn.innerText = "📋 Cambiar a Vista de Rejilla";
                     btn.style.background = "var(--primary)";
                     vInd.style.display = 'block';
                     vTable.style.display = 'none';
-                    document.querySelector('label[for="alumno"]').style.display = 'flex';
+                    if (lblAlumno) lblAlumno.style.display = 'flex';
                     alumnoSelect.style.display = 'inline-block';
                     if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
                 }

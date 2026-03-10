@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Evaluación sencilla</title>
@@ -22,7 +21,6 @@
             --text: #333;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -30,20 +28,16 @@
             padding: 20px;
             color: var(--dark);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
-
         select {
             padding: 8px;
             margin: 5px;
             border-radius: 4px;
             border: 1px solid #ccc;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -51,19 +45,16 @@
             margin-top: 20px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-
         th,
         td {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
         }
-
         th {
             background: #f8f9fa;
             font-weight: bold;
         }
-
         button {
             padding: 6px 12px;
             margin: 2px;
@@ -73,40 +64,33 @@
             border-radius: 4px;
             transition: all 0.2s;
         }
-
         button:hover {
             background: #e2e6ea;
         }
-
         button.selected {
             background-color: #007bff;
             color: white;
             border-color: #007bff;
         }
-
         /* Botones modo Infantil NI/EP/C */
         .btn-nivel[data-label="NI"].selected {
             background: #dc3545;
             border-color: #dc3545;
         }
-
         .btn-nivel[data-label="EP"].selected {
             background: #ffc107;
             border-color: #ffc107;
             color: #333;
         }
-
         .btn-nivel[data-label="C"].selected {
             background: #28a745;
             border-color: #28a745;
         }
-
         /* Rubric Tooltip */
         .rubric-tooltip {
             position: relative;
             display: inline-block;
         }
-
         .rubric-tooltip .tooltiptext {
             visibility: hidden;
             width: 250px;
@@ -128,7 +112,6 @@
             pointer-events: none;
             font-weight: normal;
         }
-
         .rubric-tooltip .tooltiptext::after {
             content: "";
             position: absolute;
@@ -139,12 +122,10 @@
             border-style: solid;
             border-color: #333 transparent transparent transparent;
         }
-
         .rubric-tooltip:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
         }
-
         .modo-badge {
             display: inline-flex;
             align-items: center;
@@ -157,7 +138,6 @@
             font-weight: 600;
             color: #0056a0;
         }
-
         /* Tabs */
         .tab-btn-eval {
             background: #f8f9fa;
@@ -170,11 +150,9 @@
             transition: all 0.2s;
             margin: 0;
         }
-
         .tab-btn-eval:hover {
             background: #e9ecef;
         }
-
         .tab-btn-eval.active {
             background: white;
             border-bottom: 2px solid white;
@@ -183,21 +161,17 @@
             z-index: 2;
             margin-bottom: -1px;
         }
-
         .tab-pane-eval {
             display: none;
         }
-
         .tab-pane-eval.active {
             display: block;
         }
-
         /* Criteria Table Specific Styles */
         .table-crit th,
         .table-crit td {
             text-align: left;
         }
-
         .badge {
             display: inline-block;
             padding: 4px 8px;
@@ -205,21 +179,17 @@
             font-size: 0.8rem;
             font-weight: 600;
         }
-
         .badge-active {
             background: #d4edda;
             color: #155724;
         }
-
         .badge-inactive {
             background: #f8d7da;
             color: #721c24;
         }
-
         .inactive {
             opacity: 0.5;
         }
-
         /* Table View Styles */
         .eval-table-container {
             overflow-x: auto;
@@ -227,13 +197,11 @@
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-
         .eval-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
         }
-
         .eval-table th {
             padding: 12px 8px;
             background: #f1f3f5;
@@ -243,14 +211,12 @@
             top: 0;
             z-index: 10;
         }
-
         .eval-table td {
             padding: 0;
             border: 1px solid #dee2e6;
             min-width: 60px;
             height: 45px;
         }
-
         .eval-table .alumno-name {
             padding: 8px 15px;
             text-align: left;
@@ -261,7 +227,6 @@
             z-index: 5;
             min-width: 200px;
         }
-
         .eval-cell {
             width: 100%;
             height: 100%;
@@ -273,72 +238,51 @@
             font-weight: 800;
             font-size: 1.1rem;
         }
-
         .eval-cell:hover {
             background: #f0f7ff;
         }
-
         .eval-cell.val-1 { background: #fee2e2; color: #991b1b; }
         .eval-cell.val-2 { background: #fef3c7; color: #92400e; }
         .eval-cell.val-3 { background: #d1fae5; color: #065f46; }
         .eval-cell.val-4 { background: #dbeafe; color: #1e40af; }
     </style>
-</head>
 
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
+</head>
 <body>
     <div class="container">
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion" class="active">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-        </div>
-
+        <!-- Unified Navigation injected by navigation.js -->
         <div class="tabs-eval"
             style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px;">
             <button class="tab-btn-eval active" onclick="showEvalTab('eval-pane', this)">📊 Evaluación</button>
             <button class="tab-btn-eval" onclick="showEvalTab('crit-pane', this)">🎯 Gestión de Criterios</button>
         </div>
-
         <div id="eval-pane" class="tab-pane-eval active">
             <div
                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
                 <div style="display:flex; align-items:center; gap:15px;">
                     <h2 style="margin:0;">📊 Evaluación</h2>
-                    <div class="group-selector-container injected-group-selector">
-                        <span style="font-size:1.1rem;">📚</span>
-                        <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                            class="group-selector-select">
-                            <option value="">Cargando grupos...</option>
-                        </select>
+                    <div class="group-selector-container">
                     </div>
                     <div id="modoBadge" class="modo-badge" style="display:none;"></div>
                 </div>
             </div>
-
             <div id="filtrosGlobales"
                 style="margin-bottom:15px; display:grid; grid-template-columns: auto auto auto auto minmax(0,1fr); gap:15px; align-items:center;">
                 <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
                     <select id="alumno"
                         style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
                 </label>
-                <!-- Selector de Etapa: oculto en UI, usado internamente por JS -->
-                <select id="etapaFiltro" onchange="cambiarEtapa(this.value)" style="display:none;">
-                    <option value="">-- Etapa --</option>
-                    <option value="1">Infantil</option>
-                    <option value="2">Primaria</option>
-                    <option value="3">Secundaria</option>
-                </select>
+                <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Etapa:
+                    <select id="etapaFiltro" onchange="cambiarEtapa(this.value)">
+                        <option value="">-- Etapa --</option>
+                        <option value="1">Infantil</option>
+                        <option value="2">Primaria</option>
+                        <option value="3">Secundaria</option>
+                    </select>
+                </label>
                 <label style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Materia/Área:
                     <select id="area"
                         style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
@@ -361,7 +305,12 @@
                         style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;"></select>
                 </label>
             </div>
-
+            <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button id="btnModoTabla" class="btn-info" onclick="toggleModoTabla()">📊 Modo Tabla (Rejilla)</button>
+                <a href="/static/cuaderno_evaluacion.html" class="btn-info" style="text-decoration:none; display:inline-flex; align-items:center; background:#6366f1; color:white;">📔 Cuaderno Completo</a>
+                <a href="/static/progreso_clase.html" class="btn-info" style="text-decoration:none; display:inline-flex; align-items:center;">📈 Progreso de Clase</a>
+                <a href="/static/evaluar_todo.html" class="btn-info" style="text-decoration:none; display:inline-flex; align-items:center; background:#28a745; color:white;">🚀 Evaluar Todo</a>
+            </div>
             <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
                 <button id="btnRellenar3" onclick="rellenarTodos(3)"
                     style="background:#007bff; color:white; display:none;">⚡ Rellenar Visible a 3</button>
@@ -378,14 +327,12 @@
                 <button id="btnModoTabla" onclick="toggleModoTabla()"
                     style="background:var(--primary); color:white; font-weight:bold;">📋 Modo Tabla (Edición Rápida)</button>
             </div>
-
             <div id="vistaIndividual">
                 <table>
                     <thead id="thead"></thead>
                     <tbody id="tbody"></tbody>
                 </table>
             </div>
-
             <div id="vistaTabla" style="display:none;">
                 <div class="eval-table-container">
                     <table class="eval-table">
@@ -394,14 +341,12 @@
                     </table>
                 </div>
             </div>
-
             <div id="mediaSDA" style="margin-top:15px; text-align:right; font-size:18px; font-weight:bold; color:#333;">
                 📊
                 Resultado: —</div>
             <div id="mediaArea"
                 style="margin-top:5px; text-align:right; font-size:18px; font-weight:bold; color:#28a745;">
                 📈 Resultado del Área: —</div>
-
             <div style="margin-top:30px; border-top:2px solid #ddd; padding-top:15px;">
                 <h3>📋 Resumen por Alumno</h3>
                 <div id="resumenAlumno"
@@ -409,15 +354,12 @@
                     <em>Selecciona un alumno para ver su resultado en cada área.</em>
                 </div>
             </div>
-
         </div> <!-- Fin eval-pane -->
-
         <!-- TAB 2: GESTIÓN DE CRITERIOS -->
         <div id="crit-pane" class="tab-pane-eval">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h2 style="margin:0;">🎯 Gestión de Criterios de Evaluación</h2>
             </div>
-
             <div class="toolbar"
                 style="display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
                 <div class="filters"
@@ -445,7 +387,6 @@
                         onclick="abrirModalNuevo()">➕ Nuevo Criterio</button>
                 </div>
             </div>
-
             <table class="table-crit">
                 <thead>
                     <tr>
@@ -463,7 +404,6 @@
                 </tbody>
             </table>
         </div>
-
         <!-- Modal Formulario Criterio -->
         <div id="modalCriterio" class="modal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
@@ -507,7 +447,6 @@
                 </form>
             </div>
         </div>
-
         <!-- Modal Importar CSV -->
         <div id="modalImportar" class="modal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
@@ -520,7 +459,6 @@
                         style="background:#eef2f7; color:var(--primary); font-size:0.85rem; padding:8px 12px; border:1px solid #ddd; cursor:help; position:relative;">📄
                         Descargar Plantilla ℹ️</button>
                 </div>
-
                 <div id="importInitialState">
                     <p style="font-size:0.9rem; color:#666;">El archivo debe usar punto y coma (<code>;</code>) como
                         separador y tener la cabecera exacta.</p>
@@ -537,7 +475,6 @@
                         </div>
                     </form>
                 </div>
-
                 <div id="importResultState" style="display:none;">
                     <div id="importSummary" style="margin-bottom:20px; padding:15px; border-radius:8px;"></div>
                     <div id="importErrorDetails" style="display:none; margin-bottom:15px;">
@@ -556,7 +493,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Modal Seleccionar Criterios Periodo -->
         <div id="modalPeriodo" class="modal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
@@ -565,12 +501,10 @@
                 <h3 style="margin:0 0 15px 0;">🎯 Seleccionar Criterios para el Periodo</h3>
                 <p style="font-size:0.9rem; color:#666; margin-bottom:15px;">Selecciona los criterios que se evaluarán
                     en este trimestre para esta área.</p>
-
                 <div id="periodoCritList"
                     style="max-height:400px; overflow-y:auto; border:1px solid #ddd; padding:10px; border-radius:8px; margin-bottom:20px;">
                     <!-- Lista de criterios con checkboxes -->
                 </div>
-
                 <div style="display:flex; justify-content:flex-end; gap:10px;">
                     <button type="button" onclick="cerrarModalPeriodo()">Cancelar</button>
                     <button type="button" class="btn-primary" onclick="guardarPeriodoCrits()"
@@ -579,19 +513,14 @@
                 </div>
             </div>
         </div>
-
-        <script src="/static/js/global_groups.js"></script>
-        <script src="/static/js/api.js"></script>
         <script>
             let areasData = {};
             let rubricasSDA = {};
             let modoTabla = false;
-
             const alumnoSelect = document.getElementById("alumno");
             const areaSelect = document.getElementById("area");
             const sdaSelect = document.getElementById("sda");
             const trimestreSelect = document.getElementById("trimestre");
-
             const btnRellenar3 = document.getElementById("btnRellenar3");
             const btnRellenarNI = document.querySelector(".btnRellenarNI");
             const btnCriterioExtra = document.getElementById("btnCriterioExtra");
@@ -599,7 +528,6 @@
             const thead = document.getElementById("thead");
             const tbody = document.getElementById("tbody");
             const modoBadge = document.getElementById("modoBadge");
-
             // Helpers Etiqueta/Escala
             // Según spec: NI→nivel 1, EP→nivel 2, C→nivel 3
             function nivelLabel(n) {
@@ -607,14 +535,12 @@
                 if (n === 2) return "EP";
                 return "C";  // nivel 3
             }
-
             // Convierte nota interna (1,2,3) a texto Infantil
             function notaToNivel(nota) {
                 if (nota <= 1) return "NI";
                 if (nota <= 2) return "EP";
                 return "C";
             }
-
             function getColorNota(nota, tipoEscala) {
                 if (tipoEscala === 'INFANTIL_NI_EP_C') {
                     const lab = notaToNivel(nota);
@@ -627,13 +553,11 @@
                 if (nota < 9) return "#28a745";
                 return "#0056a0"; // Sobresaliente 9-10
             }
-
             function formatNota(nota, tipoEscala) {
                 if (!nota) return "—";
                 if (tipoEscala === 'INFANTIL_NI_EP_C') return notaToNivel(nota);
                 return nota;
             }
-
             // Inicialización — auto-detecta etapa desde el grupo activo
             document.addEventListener('DOMContentLoaded', async () => {
                 await cargarAlumnos();
@@ -650,27 +574,23 @@
                 } catch (e) {
                     await cargarAreas();
                 }
-
                 // Check hash to open correct tab
                 if (window.location.hash === '#crit-pane') {
                     const btnCrit = document.querySelector('button[onclick="showEvalTab(\'crit-pane\', this)"]');
                     if (btnCrit) showEvalTab('crit-pane', btnCrit);
                 }
             });
-
             async function cargarAlumnos() {
                 const r = await fetch("/api/alumnos");
                 const datos = await r.json();
                 alumnoSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Alumno --</option>';
                 datos.forEach(a => { alumnoSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
             }
-
             async function cargarAreas(etapa_id_override) {
                 // etapa_id_override: si se pasa, filtra por esa etapa
                 // si no, intenta detectar la etapa del grupo activo
                 let url = '/api/curricular/areas';
                 if (etapa_id_override) url += '?etapa_id=' + etapa_id_override;
-
                 const r = await fetch(url);
                 const datos = await r.json();
                 areaSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Área --</option>';
@@ -678,14 +598,12 @@
                 const critArea = document.getElementById('critArea');
                 filterArea.innerHTML = '<option value="">Todas las Áreas</option>';
                 critArea.innerHTML = '';
-
                 datos.forEach(a => {
                     areasData[a.id] = a;
                     areaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
                     filterArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
                     critArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
                 });
-
                 // Autodetectar etapa del grupo activo y actualizar selector
                 if (!etapa_id_override && datos.length > 0 && datos[0].etapa_id) {
                     const etapaSel = document.getElementById('etapaFiltro');
@@ -694,7 +612,6 @@
                     }
                 }
             }
-
             window.cambiarEtapa = function (etapa_id) {
                 // Al cambiar la etapa, recargar las áreas filtradas
                 areaSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Área --</option>';
@@ -704,19 +621,16 @@
                 if (!etapa_id) return;
                 cargarAreas(etapa_id);
             };
-
             // TAB SWITCHING
             window.showEvalTab = function (tabId, btn) {
                 document.querySelectorAll('.tab-pane-eval').forEach(p => p.classList.remove('active'));
                 document.querySelectorAll('.tab-btn-eval').forEach(b => b.classList.remove('active'));
                 document.getElementById(tabId).classList.add('active');
                 btn.classList.add('active');
-
                 if (tabId === 'crit-pane') {
                     cargarListaCriterios();
                 }
             };
-
             // Filtrado encadenado Etapa → Área en el panel de criterios
             window.filtrarEtapaCrit = async function (etapaNombre) {
                 const filterArea = document.getElementById('filterArea');
@@ -737,33 +651,27 @@
                 }
                 cargarListaCriterios();
             };
-
             // CRITERIA MANAGEMENT LOGIC
             async function cargarListaCriterios() {
                 const area_id = document.getElementById('filterArea').value;
                 const etapa = document.getElementById('filterEtapa').value;
-
                 let url = '/api/criterios?';
                 if (area_id) url += `area_id=${area_id}&`;
                 if (etapa) url += `etapa=${etapa}`;
-
                 try {
                     const r = await fetch(url);
                     const data = await r.json();
                     const tbodyCrit = document.getElementById('listaCriterios');
                     tbodyCrit.innerHTML = '';
-
                     if (!data.length) {
                         tbodyCrit.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#666;">No se encontraron criterios con los filtros actuales.</td></tr>';
                         return;
                     }
-
                     data.forEach(c => {
                         const tr = document.createElement('tr');
                         const badge = c.activo
                             ? `<span class="badge badge-active">Activo</span>`
                             : `<span class="badge badge-inactive">Desactivado</span>`;
-
                         tr.innerHTML = `
                             <td class="${!c.activo ? 'inactive' : ''}"><strong>${c.codigo}</strong></td>
                             <td class="${!c.activo ? 'inactive' : ''}" style="font-size:0.9rem; text-align:left;">${c.descripcion}</td>
@@ -782,7 +690,6 @@
                     console.error(e);
                 }
             }
-
             window.abrirModalNuevo = function () {
                 document.getElementById('critId').value = '';
                 document.getElementById('critCodigo').value = '';
@@ -793,7 +700,6 @@
                 document.getElementById('modalCritTitle').innerText = 'Nuevo Criterio';
                 document.getElementById('modalCriterio').style.display = 'flex';
             };
-
             window.abrirModalEditar = function (c) {
                 document.getElementById('critId').value = c.id;
                 document.getElementById('critCodigo').value = c.codigo;
@@ -804,9 +710,7 @@
                 document.getElementById('modalCritTitle').innerText = 'Editar Criterio';
                 document.getElementById('modalCriterio').style.display = 'flex';
             };
-
             window.cerrarModalCriterio = function () { document.getElementById('modalCriterio').style.display = 'none'; };
-
             window.guardarCriterioConfig = async function (e) {
                 e.preventDefault();
                 const id = document.getElementById('critId').value;
@@ -817,10 +721,8 @@
                     area_id: document.getElementById('critArea').value,
                     activo: document.getElementById('critActivo').checked
                 };
-
                 const url = id ? `/api/criterios/${id}` : '/api/criterios';
                 const method = id ? 'PUT' : 'POST';
-
                 try {
                     const r = await fetch(url, {
                         method: method,
@@ -840,10 +742,8 @@
                     }
                 } catch (err) { alert("Error de conexión"); }
             };
-
             window.eliminarCriterio = async function (id, codigo) {
                 if (!confirm(`¿Estás seguro de que deseas eliminar el criterio "${codigo}"?\n\nEsta acción NO se puede deshacer y fallará si el criterio tiene evaluaciones o está enlazado a una Situación de Aprendizaje.`)) return;
-
                 try {
                     const r = await fetch(`/api/criterios/${id}`, { method: 'DELETE' });
                     const data = await r.json();
@@ -857,39 +757,29 @@
                     alert("Error de conexión al intentar eliminar.");
                 }
             };
-
             window.abrirModalImportar = function () {
                 document.getElementById('csvFile').value = '';
                 document.getElementById('importInitialState').style.display = 'block';
                 document.getElementById('importResultState').style.display = 'none';
                 document.getElementById('modalImportar').style.display = 'flex';
             };
-
             window.cerrarModalImportar = function () { document.getElementById('modalImportar').style.display = 'none'; };
-
             window.descargarPlantilla = function () {
                 window.location.href = '/api/criterios/template';
             };
-
             let lastImportErrors = [];
-
             window.importarCSV = async function (e) {
                 e.preventDefault();
                 const fileInput = document.getElementById('csvFile');
                 if (!fileInput.files.length) return;
-
                 const formData = new FormData();
                 formData.append('file', fileInput.files[0]);
-
                 try {
                     const r = await fetch('/api/criterios/import_csv', { method: 'POST', body: formData });
                     const data = await r.json();
-
                     document.getElementById('importInitialState').style.display = 'none';
                     document.getElementById('importResultState').style.display = 'block';
-
                     const summary = document.getElementById('importSummary');
-
                     if (data.ok) {
                         summary.style.background = '#d4edda';
                         summary.style.color = '#155724';
@@ -901,7 +791,6 @@
                                 <li><strong>${data.errors.length}</strong> filas con errores.</li>
                             </ul>
                         `;
-
                         if (data.errors.length > 0) {
                             lastImportErrors = data.errors;
                             document.getElementById('importErrorDetails').style.display = 'block';
@@ -910,7 +799,6 @@
                         } else {
                             document.getElementById('importErrorDetails').style.display = 'none';
                         }
-
                         cargarListaCriterios();
                         if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
                     } else {
@@ -921,13 +809,10 @@
                     }
                 } catch (err) { alert("Error de conexión durante la importación."); }
             };
-
             window.descargarErroresCSV = function () {
                 if (!lastImportErrors.length) return;
-
                 const header = "Fila;Motivo;Datos originales\n";
                 const rows = lastImportErrors.map(e => `${e.row};${e.reason};"${e.data.join(';')}"`).join('\n');
-
                 const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
@@ -936,13 +821,11 @@
                 link.click();
                 document.body.removeChild(link);
             };
-
             // Lógica de Área
             function getAreaConfig() {
                 if (!areaSelect.value || !areasData[areaSelect.value]) return null;
                 return areasData[areaSelect.value];
             }
-
             areaSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
                 if (!conf) {
@@ -956,7 +839,6 @@
                     document.getElementById("mediaArea").innerText = "📈 Resultado del Área: —";
                     return;
                 }
-
                 // Adjust UI based on area config
                 modoBadge.style.display = 'inline-flex';
                 if (conf.tipo_escala === 'INFANTIL_NI_EP_C') {
@@ -976,7 +858,6 @@
                     btnRellenarNI.style.display = 'none';
                     document.querySelector(".btnRellenarC").style.display = 'none';
                 }
-
                 if (conf.modo_evaluacion === 'POR_SA') {
                     lblSDA.style.display = 'flex';
                     btnCriterioExtra.style.display = 'inline-block';
@@ -988,12 +869,9 @@
                     document.getElementById("directControls").style.display = 'block';
                     cargarCriteriosDirectos();
                 }
-
                 cargarNotasExistentes();
             });
-
             sdaSelect.addEventListener("change", () => cargarCriteriosSA());
-
             trimestreSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
                 if (conf && conf.modo_evaluacion === 'POR_SA') cargarSDA();
@@ -1002,14 +880,12 @@
                     cargarResumenAlumno();
                 }
             });
-
             alumnoSelect.addEventListener("change", () => {
                 areaSelect.value = ""; // Reset de área al cambiar alumno
                 areaSelect.dispatchEvent(new Event('change'));
                 cargarNotasExistentes();
                 cargarResumenAlumno();
             });
-
             async function cargarSDA() {
                 const r = await fetch(`/api/evaluacion/sda/lista?area_id=${areaSelect.value}&trimestre=${trimestreSelect.value}`);
                 const datos = await r.json();
@@ -1023,26 +899,21 @@
                 sdaSelect.selectedIndex = 0;
                 cargarCriteriosSA();
             }
-
             async function cargarCriteriosSA() {
                 if (!sdaSelect.value) { tbody.innerHTML = ""; return; }
                 const r = await fetch(`/api/evaluacion/sda/criterios/${sdaSelect.value}`);
                 const criterios = await r.json();
-
                 rubricasSDA = {};
                 const rubCalls = criterios.map(c =>
                     fetch(`/api/curricular/rubricas/${c.id}`).then(r => r.json()).then(data => { rubricasSDA[c.id] = data; })
                 );
                 await Promise.all(rubCalls);
-
                 renderTabla(criterios);
             }
-
             async function cargarCriteriosDirectos() {
                 const area_id = areaSelect.value;
                 const trimestreVal = trimestreSelect.value;
                 if (!area_id) return;
-
                 // Obtener grupo activo
                 let grupo_id = null;
                 try {
@@ -1050,25 +921,20 @@
                     const gdata = await gr.json();
                     grupo_id = gdata.id;
                 } catch (e) { }
-
                 // Período en formato TEXT: T1, T2, T3
                 const periodo = 'T' + trimestreVal;
-
                 // Obtener criterios del período activados para este grupo+área
                 const cpUrl = `/api/criterios/periodo?grupo_id=${grupo_id}&area_id=${area_id}&periodo=${periodo}`;
                 const cpR = await fetch(cpUrl);
                 const cpData = await cpR.json();
                 const activeIds = new Set(cpData.active_ids || []);
-
                 // Obtener todos los criterios del área activos
                 const critR = await fetch(`/api/criterios?area_id=${area_id}`);
                 const todosLosCriterios = await critR.json();
-
                 // Filtrar: solo los activados para el periodo (si hay activación), si no, mostrar todos activos
                 const criterios = activeIds.size > 0
                     ? todosLosCriterios.filter(c => activeIds.has(c.id) && c.activo)
                     : todosLosCriterios.filter(c => c.activo);
-
                 if (!criterios.length) {
                     thead.innerHTML = "";
                     tbody.innerHTML = `<tr><td colspan="3" style="color:#666;padding:20px; text-align:center;">
@@ -1079,14 +945,11 @@
                 }
                 renderTabla(criterios);
             }
-
             function renderTabla(criterios) {
                 const conf = getAreaConfig();
                 const esInfantil = conf.tipo_escala === 'INFANTIL_NI_EP_C';
-
                 thead.innerHTML = `<tr><th style="width:150px;">Código</th><th>Descripción</th><th style="width:${esInfantil ? 220 : 280}px;">Nivel</th></tr>`;
                 tbody.innerHTML = "";
-
                 criterios.forEach(c => {
                     const tr = document.createElement("tr");
                     tr.id = `row-${c.id}`;
@@ -1115,17 +978,13 @@
                 });
                 cargarNotasExistentes();
             }
-
             function cargarNotasExistentes() {
                 const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
                 if (!alumId || !conf) return;
-
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
                 if (conf.modo_evaluacion === 'POR_SA' && !sdaId) return;
-
                 document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
-
                 if (conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS') {
                     const periodo = 'T' + trimestreSelect.value;
                     fetch(`/api/evaluacion/directa/alumno?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`)
@@ -1149,12 +1008,10 @@
                         });
                 }
             }
-
             function cargarMedia() {
                 const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
                 if (!alumId || !conf) return;
-
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
                 const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
                 fetch(`/api/evaluacion/sda/media?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
@@ -1167,7 +1024,6 @@
                         }
                         el.style.color = d.media ? getColorNota(d.media, conf.tipo_escala) : "#333";
                     });
-
                 fetch(`/api/evaluacion/sda/media_area?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`)
                     .then(r => r.json()).then(d => {
                         const el = document.getElementById("mediaArea");
@@ -1175,7 +1031,6 @@
                         el.style.color = d.media ? getColorNota(d.media, conf.tipo_escala) : "#28a745";
                     });
             }
-
             function cargarResumenAlumno() {
                 const alumId = alumnoSelect.value;
                 if (!alumId) return;
@@ -1188,7 +1043,6 @@
                                 // Buscamos la escala correspondiente a esta área para formatear bien
                                 const confA = Object.values(areasData).find(a => a.nombre === d.area);
                                 const scalaNum = confA ? confA.tipo_escala : 'NUMERICA_1_4';
-
                                 html += `<tr>
                                     <td style="text-align:left;border:none;padding:4px 10px;"><strong>${d.area}:</strong></td>
                                     <td style="text-align:left;border:none;padding:4px 10px;color:${getColorNota(d.media, scalaNum)};font-weight:bold;">
@@ -1201,17 +1055,12 @@
                         document.getElementById("resumenAlumno").innerHTML = html;
                     });
             }
-
-                }
-            };
-
             window.toggleModoTabla = function() {
                 modoTabla = !modoTabla;
                 const btn = document.getElementById('btnModoTabla');
                 const vInd = document.getElementById('vistaIndividual');
                 const vTable = document.getElementById('vistaTabla');
                 const filtrosGlobales = document.getElementById('filtrosGlobales');
-                
                 if (modoTabla) {
                     btn.innerText = "👤 Volver a Vista Individual";
                     btn.style.background = "#6c757d";
@@ -1230,13 +1079,11 @@
                     if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
                 }
             };
-
             async function cargarDatosTabla() {
                 const area_id = areaSelect.value;
                 const sda_id = sdaSelect.value;
                 const trimestre = trimestreSelect.value;
                 if (!area_id) return;
-
                 const url = `/api/evaluacion/sda/tabla?area_id=${area_id}&sda_id=${sda_id}&trimestre=${trimestre}`;
                 try {
                     const r = await fetch(url);
@@ -1246,13 +1093,11 @@
                     console.error("Error cargando tabla:", e);
                 }
             }
-
             function renderModoTabla(data) {
                 const theadT = document.getElementById('theadTabla');
                 const tbodyT = document.getElementById('tbodyTabla');
                 const conf = getAreaConfig();
                 const esInfantil = conf.tipo_escala === 'INFANTIL_NI_EP_C';
-
                 // Header
                 let htmlHead = `<tr><th class="alumno-name">Alumno</th>`;
                 data.criterios.forEach(c => {
@@ -1260,13 +1105,11 @@
                 });
                 htmlHead += `</tr>`;
                 theadT.innerHTML = htmlHead;
-
                 // Body
                 tbodyT.innerHTML = "";
                 data.alumnos.forEach(alum => {
                     const tr = document.createElement('tr');
                     let htmlRow = `<td class="alumno-name">${alum.nombre}</td>`;
-                    
                     data.criterios.forEach(crit => {
                         const val = data.evaluaciones[`${alum.id}_${crit.id}`] || "";
                         const label = esInfantil ? (val === 1 ? "NI" : val === 2 ? "EP" : val === 3 ? "C" : "") : val;
@@ -1280,7 +1123,6 @@
                     tbodyT.appendChild(tr);
                 });
             }
-
             window.siguienteNivel = async function(alumno_id, criterio_id, cell, max) {
                 let current = parseInt(cell.innerText) || 0;
                 if (isNaN(current)) {
@@ -1291,15 +1133,12 @@
                     else if (label === "C") current = 3;
                     else current = 0;
                 }
-                
                 let next = current + 1;
                 if (next > max) next = 0; // Toggle cycle: 0 -> 1 -> 2 -> 3 -> 4 -> 0
-
                 // Update UI immediately
                 cell.className = `eval-cell val-${next}`;
                 const conf = getAreaConfig();
                 const esInfantil = conf.tipo_escala === 'INFANTIL_NI_EP_C';
-                
                 if (next === 0) {
                     cell.innerText = "—";
                     // Delete evaluation
@@ -1313,14 +1152,12 @@
                     const label = esInfantil ? (next === 1 ? "NI" : next === 2 ? "EP" : "C") : next;
                     cell.innerText = label;
                 }
-
                 // Save to backend
                 if (next === 0) {
                     // Optional: call delete if needed, but saving level 0 might be enough if handled
                     // For now, let's just not save or handle it as deletion in a custom way
                     return;
                 }
-
                 const payload = {
                     alumno_id: alumno_id,
                     criterio_id: criterio_id,
@@ -1329,12 +1166,9 @@
                     sda_id: sdaSelect.value || null,
                     trimestre: trimestreSelect.value
                 };
-
                 const isDirecto = getAreaConfig().modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
                 const url = isDirecto ? "/api/evaluacion/directa/" : "/api/evaluacion/sda/";
-                
                 if (isDirecto) payload.periodo = 'T' + trimestreSelect.value;
-
                 try {
                     await fetch(url, {
                         method: "POST",
@@ -1345,12 +1179,10 @@
                     console.error("Error saving evaluation:", e);
                 }
             };
-
             window.guardar = function (criterio_id, nivel) {
                 const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
                 if (!alumId || !conf) { alert("Selecciona un alumno."); return; }
-
                 // Limpiar selección visual (para ambas escalas 1-4 y 1-3)
                 for (let i = 1; i <= 4; i++) {
                     let b = document.getElementById(`btn-${criterio_id}-${i}`);
@@ -1358,9 +1190,7 @@
                 }
                 let b = document.getElementById(`btn-${criterio_id}-${nivel}`);
                 if (b) b.classList.add("selected");
-
                 const esDirecto = conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
-
                 if (esDirecto) {
                     // Modo Directo (Infantil/Sec): guardar en evaluacion_criterios con periodo TEXT
                     const periodo = 'T' + trimestreSelect.value;
@@ -1398,7 +1228,6 @@
                     });
                 }
             };
-
             window.rellenarTodos = function (nivel) {
                 const alumId = alumnoSelect.value;
                 if (!alumId) { alert("Por favor, selecciona un alumno primero."); return; }
@@ -1407,13 +1236,11 @@
                     guardar(tr.id.replace("row-", ""), nivel);
                 });
             };
-
             window.limpiarTodos = function () {
                 const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
                 if (!alumId || !conf) { alert("Por favor, selecciona un alumno primero."); return; }
                 if (!confirm("¿Borrar todas las notas de este alumno en esta selección?")) return;
-
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
                 const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
                 fetch(`/api/evaluacion/sda/?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`, { method: 'DELETE' })
@@ -1426,7 +1253,6 @@
                         } else alert("Error: " + d.error);
                     });
             };
-
             window.abrirModalExtra = function () {
                 if (!areaSelect.value) { alert("Selecciona un Área primero."); return; }
                 document.getElementById('modalExtra').style.display = 'flex';
@@ -1449,9 +1275,7 @@
                     });
                 });
             };
-
             window.cerrarModalExtra = function () { document.getElementById('modalExtra').style.display = 'none'; };
-
             window.vincularCriterioExtra = function (criterio_id) {
                 if (!alumnoSelect.value) { alert("Selecciona un alumno primero."); return; }
                 fetch('/api/evaluacion/criterio_extra', {
@@ -1477,7 +1301,6 @@
                     } else alert("Error: " + data.error);
                 });
             };
-
             // MODAL SELECCION PERIODOS
             window.abrirModalPeriodo = async function () {
                 const area_id = areaSelect.value;
@@ -1485,7 +1308,6 @@
                 document.getElementById('modalPeriodo').style.display = 'flex';
                 const list = document.getElementById('periodoCritList');
                 list.innerHTML = '<p style="text-align:center;">Cargando criterios...</p>';
-
                 // Obtener grupo activo
                 let grupo_id = null;
                 try {
@@ -1493,9 +1315,7 @@
                     const gdata = await gr.json();
                     grupo_id = gdata.id;
                 } catch (e) { }
-
                 const periodo = 'T' + trimestreSelect.value;
-
                 // Obtener todos los criterios del área y los activos del período
                 const [allRes, activeRes] = await Promise.all([
                     fetch(`/api/criterios?area_id=${area_id}&activo=1`),
@@ -1503,7 +1323,6 @@
                 ]);
                 const allCrits = await allRes.json();
                 const activeIds = (await activeRes.json()).active_ids || [];
-
                 list.innerHTML = '';
                 if (allCrits.length === 0) {
                     list.innerHTML = '<p style="text-align:center;">No hay criterios configurados para esta área.</p>';
@@ -1525,14 +1344,11 @@
                     });
                 }
             };
-
             window.cerrarModalPeriodo = () => document.getElementById('modalPeriodo').style.display = 'none';
-
             window.guardarPeriodoCrits = async function () {
                 const area_id = areaSelect.value;
                 const checks = document.querySelectorAll('.periodo-check:checked');
                 const criterio_ids = Array.from(checks).map(c => parseInt(c.value));
-
                 // Obtener grupo activo
                 let grupo_id = null;
                 try {
@@ -1540,9 +1356,7 @@
                     const gdata = await gr.json();
                     grupo_id = gdata.id;
                 } catch (e) { }
-
                 const periodo = 'T' + trimestreSelect.value;
-
                 const r = await fetch('/api/criterios/periodo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1564,5 +1378,4 @@
         </script>
     </div>
 </body>
-
 </html>

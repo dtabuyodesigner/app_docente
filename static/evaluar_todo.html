@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluar Todo - APP_EVALUAR</title>
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        .info-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+        .info-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .student-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .student-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .student-name {
+            font-weight: 600;
+        }
+        .eval-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .eval-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #64748b;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .eval-btn.active[data-level="1"] { background: #fee2e2; border-color: #ef4444; color: #ef4444; }
+        .eval-btn.active[data-level="2"] { background: #fef3c7; border-color: #f59e0b; color: #f59e0b; }
+        .eval-btn.active[data-level="3"] { background: #dcfce7; border-color: #10b981; color: #10b981; }
+        .eval-btn.active[data-level="4"] { background: #e0e7ff; border-color: #6366f1; color: #6366f1; }
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 25px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        .bulk-apply {
+            background: white;
+            border-radius: 12px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
+</head>
+<body>
+<!-- Unified Navigation injected by navigation.js -->
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Evaluar Criterio</h1>
+                <p style="color: #64748b; margin: 5px 0 0 0;">Evaluación masiva para toda la clase</p>
+            </div>
+            <div class="bulk-apply">
+                <span style="font-size: 0.9rem; font-weight: 600;">Aplicar nivel a todos:</span>
+                <div class="eval-buttons">
+                    <button class="eval-btn" onclick="applyToAll(1)" data-level="1">1</button>
+                    <button class="eval-btn" onclick="applyToAll(2)" data-level="2">2</button>
+                    <button class="eval-btn" onclick="applyToAll(3)" data-level="3">3</button>
+                    <button class="eval-btn" onclick="applyToAll(4)" data-level="4">4</button>
+                </div>
+            </div>
+        </div>
+        <div class="info-panel">
+            <div class="info-item">
+                <div class="info-label">Etapa</div>
+                <select id="etapa-select" onchange="loadAreasByEtapa()" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <option value="">Selecciona Etapa</option>
+                </select>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Área</div>
+                <select id="area-select" onchange="onAreaOrTrimChange()" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <option value="">Selecciona Área</option>
+                </select>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Trimestre</div>
+                <select id="periodo-select" onchange="onAreaOrTrimChange()" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <option value="1">Trimestre 1</option>
+                    <option value="2">Trimestre 2</option>
+                    <option value="3">Trimestre 3</option>
+                </select>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Situación de Aprendizaje</div>
+                <select id="sda-select" onchange="loadCriteriosBySDA()" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <option value="">Selecciona SDA</option>
+                    <option value="directo">-- Evaluación Directa --</option>
+                </select>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Criterio</div>
+                <select id="crit-select" onchange="loadData()" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <option value="">Selecciona Criterio</option>
+                </select>
+            </div>
+        </div>
+        <div class="students-grid" id="students-grid">
+            <!-- Students injected here -->
+        </div>
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="window.history.back()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveAll()">Guardar Evaluaciones</button>
+        </div>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        let studentsData = [];
+        async function init() {
+            try {
+                const etapaSelect = document.getElementById('etapa-select');
+                const periodoSelect = document.getElementById('periodo-select');
+                // Load stages
+                const etapaRes = await fetch('/api/etapas');
+                const etapas = await etapaRes.json();
+                etapas.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.id;
+                    opt.textContent = e.nombre;
+                    etapaSelect.appendChild(opt);
+                });
+                // Get active group to pre-select stage
+                const groupRes = await fetch('/api/grupo_activo');
+                const groupData = await groupRes.json();
+                if (groupData.etapa_id) {
+                    etapaSelect.value = groupData.etapa_id;
+                    await loadAreasByEtapa();
+                }
+                // If period is in URL, set it
+                const urlPeriodo = params.get('periodo'); // T1, T2, T3
+                if (urlPeriodo) {
+                    periodoSelect.value = urlPeriodo.replace('T', '');
+                }
+                // If area_id is in URL, try to pre-select
+                const urlAreaId = params.get('area_id');
+                if (urlAreaId) {
+                    document.getElementById('area-select').value = urlAreaId;
+                    await onAreaOrTrimChange();
+                }
+                // If criterio_id is in URL, try to pre-select
+                const urlCritId = params.get('criterio_id');
+                if (urlCritId) {
+                    // This is complex because we don't know the SDA. 
+                    // For now, we'll try to find it in the area's criteria (direct mode).
+                    document.getElementById('sda-select').value = 'directo';
+                    await loadCriteriosBySDA();
+                    document.getElementById('crit-select').value = urlCritId;
+                    await loadData();
+                }
+            } catch (e) {
+                console.error("Error en init:", e);
+            }
+        }
+        async function loadAreasByEtapa() {
+            const etapaId = document.getElementById('etapa-select').value;
+            const areaSelect = document.getElementById('area-select');
+            areaSelect.innerHTML = '<option value="">Selecciona Área</option>';
+            if (!etapaId) return;
+            try {
+                const res = await fetch(`/api/curricular/areas?etapa_id=${etapaId}`);
+                const areas = await res.json();
+                areas.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = a.nombre;
+                    areaSelect.appendChild(opt);
+                });
+            } catch (e) { console.error(e); }
+        }
+        async function onAreaOrTrimChange() {
+            const areaId = document.getElementById('area-select').value;
+            const trim = document.getElementById('periodo-select').value;
+            const sdaSelect = document.getElementById('sda-select');
+            sdaSelect.innerHTML = '<option value="">Selecciona SDA</option><option value="directo">-- Evaluación Directa --</option>';
+            document.getElementById('crit-select').innerHTML = '<option value="">Selecciona Criterio</option>';
+            if (!areaId || !trim) return;
+            try {
+                // Fetch SDAs for this area and trimester
+                // Backend expects area_id and trimester (INT)
+                const res = await fetch(`/api/evaluacion/sda/lista?area_id=${areaId}&trimestre=${trim}`);
+                const sdas = await res.json();
+                sdas.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.nombre;
+                    sdaSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error cargando SDAs:", e);
+            }
+        }
+        async function loadCriteriosBySDA() {
+            const sdaId = document.getElementById('sda-select').value;
+            const areaId = document.getElementById('area-select').value;
+            const critSelect = document.getElementById('crit-select');
+            critSelect.innerHTML = '<option value="">Selecciona Criterio</option>';
+            if (!sdaId) return;
+            try {
+                if (sdaId === 'directo') {
+                    const res = await fetch(`/api/criterios?area_id=${areaId}`);
+                    const crits = await res.json();
+                    crits.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = `${c.codigo}: ${c.descripcion.substring(0, 60)}...`;
+                        critSelect.appendChild(opt);
+                    });
+                } else {
+                    const res = await fetch(`/api/evaluacion/sda/criterios/${sdaId}`);
+                    const crits = await res.json();
+                    crits.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = `${c.codigo}: ${c.descripcion.substring(0, 60)}...`;
+                        critSelect.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error("Error cargando criterios:", e);
+            }
+        }
+        async function loadData() {
+            const critId = document.getElementById('crit-select').value;
+            const trim = document.getElementById('periodo-select').value;
+            const sdaId = document.getElementById('sda-select').value;
+            const grid = document.getElementById('students-grid');
+            if (!critId) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #64748b;">Selecciona un criterio para empezar a evaluar.</p>';
+                return;
+            }
+            try {
+                // Updated backend endpoint supports sda_id
+                const response = await fetch(`/api/evaluacion/criterio_clase?criterio_id=${critId}&periodo=T${trim}&sda_id=${sdaId}`);
+                const data = await response.json();
+                studentsData = data.alumnos.map(a => ({
+                    ...a,
+                    nivel: data.evaluaciones.find(e => e.alumno_id === a.id)?.nivel || null
+                }));
+                renderStudents();
+            } catch (e) {
+                console.error("Error cargando alumnos:", e);
+            }
+        }
+        function renderStudents() {
+            const grid = document.getElementById('students-grid');
+            if (studentsData.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #64748b;">No hay alumnos en el grupo actual.</p>';
+                return;
+            }
+            grid.innerHTML = studentsData.map(s => `
+                <div class="student-card">
+                    <span class="student-name">${s.nombre}</span>
+                    <div class="eval-buttons">
+                        ${[1,2,3,4].map(n => `
+                            <button class="eval-btn ${s.nivel == n ? 'active' : ''}" 
+                                    data-level="${n}" 
+                                    onclick="setNivel(${s.id}, ${n})">${n}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        function setNivel(alumnoId, nivel) {
+            const student = studentsData.find(s => s.id === alumnoId);
+            if (student.nivel === nivel) student.nivel = null;
+            else student.nivel = nivel;
+            renderStudents();
+        }
+        function applyToAll(nivel) {
+            if (studentsData.length === 0) return;
+            if (confirm(`¿Aplicar nivel ${nivel} a todos los alumnos?`)) {
+                studentsData.forEach(s => s.nivel = nivel);
+                renderStudents();
+            }
+        }
+        async function saveAll() {
+            const critId = document.getElementById('crit-select').value;
+            const trim = document.getElementById('periodo-select').value;
+            const sdaId = document.getElementById('sda-select').value;
+            if (!critId) {
+                alert("Selecciona un criterio primero.");
+                return;
+            }
+            try {
+                const payload = {
+                    periodo: `T${trim}`,
+                    evaluaciones: studentsData.map(s => ({
+                        alumno_id: s.id,
+                        criterio_id: critId,
+                        sda_id: sdaId === 'directo' ? null : sdaId,
+                        nivel: s.nivel
+                    }))
+                };
+                const res = await fetch('/api/evaluacion/guardar_masivo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    alert('Evaluaciones guardadas correctamente');
+                } else {
+                    alert('Error al guardar');
+                }
+            } catch (e) {
+                console.error("Error guardando:", e);
+                alert('Error de conexión al guardar');
+            }
+        }
+        init();
+    </script>
+</body>
+</html>

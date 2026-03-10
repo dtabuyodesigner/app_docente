@@ -80,7 +80,7 @@ def informe_pdf_individual():
     # 4. Notas por SDA con Criterios
     cur.execute("""
         SELECT a.nombre as area, s.nombre as sda, c.codigo as criterio_codigo, 
-               c.descripcion as criterio_desc, e.nota, a.tipo_escala
+               c.descripcion as criterio_desc, e.nota, a.tipo_escala, e.nivel, c.comentario_base
         FROM evaluaciones e
         JOIN sda s ON e.sda_id = s.id
         JOIN areas a ON e.area_id = a.id
@@ -90,7 +90,7 @@ def informe_pdf_individual():
         UNION ALL
         
         SELECT a.nombre as area, 'Criterios Directos' as sda, c.codigo as criterio_codigo,
-               c.descripcion as criterio_desc, ec.nota, a.tipo_escala
+               c.descripcion as criterio_desc, ec.nota, a.tipo_escala, ec.nivel, c.comentario_base
         FROM evaluacion_criterios ec
         JOIN criterios c ON ec.criterio_id = c.id
         JOIN areas a ON c.area_id = a.id
@@ -266,11 +266,33 @@ def informe_pdf_individual():
         chart_buf.seek(0)
         plt.close()
         
-        chart_img = RLImage(chart_buf, width=15*cm, height=max(6*cm, len(areas) * 1*cm))
         elements.append(chart_img)
         elements.append(Spacer(1, 15))
     
-    # Signature
+    # 6. Observaciones Pedagógicas (Nuevo)
+    elements.append(Paragraph("Observaciones Pedagógicas", styles['Heading3']))
+    comentarios_pedagogicos = []
+    for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
+        if nivel:
+            comment = ""
+            if nivel == 1: comment = f"<b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
+            elif nivel == 2: comment = f"<b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
+            elif nivel == 3: comment = f"<b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
+            elif nivel == 4: comment = f"<b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
+            
+            if base:
+                comment += f" {base}"
+            comentarios_pedagogicos.append(comment)
+            
+    if comentarios_pedagogicos:
+        for c in comentarios_pedagogicos:
+            elements.append(Paragraph(c, styles['Normal']))
+            elements.append(Spacer(1, 4))
+    else:
+        elements.append(Paragraph("Sin observaciones registradas.", styles['Normal']))
+
+    elements.append(Spacer(1, 15))
+
     elements.append(Spacer(1, 40))
     if tutor_nombre:
         elements.append(Paragraph(f"Fdo: {tutor_nombre}", styles['Normal']))

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>📘 Perfil del Alumno</title>
@@ -18,14 +17,12 @@
             border-bottom: 2px solid #eef2f7;
             padding-bottom: 20px;
         }
-
         .h1-title {
             color: var(--primary);
             margin: 0;
             font-size: 2rem;
             font-weight: 800;
         }
-
         .btn-back {
             background: #eef2f7;
             color: var(--primary);
@@ -35,18 +32,15 @@
             font-weight: 600;
             transition: all 0.2s;
         }
-
         .btn-back:hover {
             background: #dce4ee;
         }
-
         /* Profile Layout Grid */
         .profile-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 30px;
         }
-
         /* Left Column (Info Card) */
         .info-card {
             background: #fdfdfd;
@@ -57,7 +51,6 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
             height: fit-content;
         }
-
         .profile-pic {
             width: 150px;
             height: 150px;
@@ -69,19 +62,16 @@
             display: block;
             background-color: var(--light);
         }
-
         .info-card h2 {
             margin: 0 0 5px;
             color: var(--primary);
             font-size: 1.5rem;
         }
-
         .info-card p.subtitle {
             margin: 0 0 20px;
             color: #6c757d;
             font-size: 0.9rem;
         }
-
         .ficha-list {
             list-style: none;
             padding: 0;
@@ -89,18 +79,15 @@
             text-align: left;
             font-size: 0.95rem;
         }
-
         .ficha-list li {
             padding: 10px 0;
             border-bottom: 1px dashed #eee;
             display: flex;
             flex-direction: column;
         }
-
         .ficha-list li:last-child {
             border-bottom: none;
         }
-
         .ficha-list strong {
             color: var(--primary);
             font-size: 0.8rem;
@@ -108,24 +95,20 @@
             letter-spacing: 0.5px;
             margin-bottom: 3px;
         }
-
         .ficha-list span.val {
             color: #333;
             font-weight: 500;
         }
-
         /* Right Column (Tabs/Content) */
         .main-content {
             background: white;
             border-radius: 16px;
         }
-
         .tab-box {
             display: flex;
             border-bottom: 2px solid #eef2f7;
             margin-bottom: 25px;
         }
-
         .tab-btn {
             background: none;
             border: none;
@@ -138,11 +121,9 @@
             position: relative;
             transition: color 0.2s;
         }
-
         .tab-btn.active {
             color: var(--primary);
         }
-
         .tab-btn.active::after {
             content: '';
             position: absolute;
@@ -153,28 +134,23 @@
             background: var(--primary);
             border-radius: 3px 3px 0 0;
         }
-
         .tab-pane {
             display: none;
             animation: fadeIn 0.3s ease;
         }
-
         .tab-pane.active {
             display: block;
         }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(5px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-
         /* Generic Boxes inside Tabs */
         .box-section {
             background: #fdfdfd;
@@ -183,7 +159,6 @@
             padding: 20px;
             margin-bottom: 20px;
         }
-
         .box-header {
             font-size: 1.1rem;
             font-weight: 700;
@@ -192,7 +167,6 @@
             padding-bottom: 10px;
             border-bottom: 1px solid #eee;
         }
-
         /* Historial List Items */
         .historial-item {
             padding: 15px;
@@ -201,7 +175,6 @@
             margin-bottom: 10px;
             background: white;
         }
-
         .historial-item .meta {
             font-size: 0.8rem;
             color: #888;
@@ -209,13 +182,11 @@
             display: flex;
             justify-content: space-between;
         }
-
         .historial-item .body-text {
             font-size: 0.95rem;
             line-height: 1.5;
             color: #333;
         }
-
         .tag-area {
             background: var(--info);
             color: white;
@@ -224,8 +195,6 @@
             font-size: 0.75rem;
             font-weight: 600;
         }
-
-
         /* Responsive */
         @media (max-width: 850px) {
             .profile-grid {
@@ -233,53 +202,26 @@
             }
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
-
 <body>
-
     <div class="container">
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos" class="active">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
+        <!-- Unified Navigation injected by navigation.js -->
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         </div>
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;"
-            class="injected-group-selector">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div
-                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
         <div class="header-bar">
             <h1 class="h1-title">📘 Expediente del Alumno</h1>
             <a href="/alumnos" class="btn-back">⬅️ Volver al Listado</a>
         </div>
-
         <div class="profile-grid">
             <!-- Left Side: Mini Ficha -->
             <div class="info-card">
                 <img id="imgAvatar" class="profile-pic" src="/static/placeholder.jpg" alt="Foto">
                 <h2 id="lblNombre">Cargando...</h2>
                 <p class="subtitle" id="lblComedor">Comedor: No</p>
-
                 <ul class="ficha-list">
                     <li>
                         <strong>Fecha de Nacimiento</strong>
@@ -307,7 +249,6 @@
                     </li>
                 </ul>
             </div>
-
             <!-- Right Side: Interaction History -->
             <div class="main-content">
                 <div class="tab-box">
@@ -315,7 +256,6 @@
                     <button class="tab-btn" onclick="switchTab('tab-observaciones', this)">📓 Observaciones</button>
                     <button class="tab-btn" onclick="switchTab('tab-reuniones', this)">👨‍👩‍👧‍👦 Reuniones</button>
                 </div>
-
                 <!-- TAB 1: PROGRESS -->
                 <div id="tab-progreso" class="tab-pane active">
                     <div class="box-section">
@@ -325,7 +265,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- TAB 2: OBSERVACIONES -->
                 <div id="tab-observaciones" class="tab-pane">
                     <div class="box-section">
@@ -335,7 +274,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- TAB 3: REUNIONES -->
                 <div id="tab-reuniones" class="tab-pane">
                     <div class="box-section">
@@ -345,37 +283,30 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
-
     <script>
         // Extract ID from URL (e.g., /perfil/id or ?id=1)
         const urlParams = new URLSearchParams(window.location.search);
         let alumnoId = urlParams.get('id');
-
         // If using path routing like /perfil/1 instead of query string:
         const pathParts = window.location.pathname.split('/');
         if (pathParts[pathParts.length - 1] && !isNaN(pathParts[pathParts.length - 1]) && pathParts[pathParts.length - 1].trim() !== '') {
             alumnoId = pathParts[pathParts.length - 1];
         }
-
         // Tab Script
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
             btn.classList.add('active');
             document.getElementById(tabId).classList.add('active');
         }
-
         async function loadProfile() {
             if (!alumnoId) {
                 alert("No se especificó alumno.");
                 return;
             }
-
             try {
                 // Load Base Data & Ficha (Combining endpoints logic for simplicity here or using specific API)
                 const [resAlumnos, resFicha, resProgreso, resObs, resReuniones] = await Promise.all([
@@ -385,16 +316,12 @@
                     fetch(`/api/observaciones/${alumnoId}`),
                     fetch(`/api/reuniones?tipo=PADRES`) // We will filter by alumno_id client side if needed, or better build a specific endpoint. Ideally backend should do this.
                 ]);
-
                 const alumnos = await resAlumnos.json();
                 const me = alumnos.find(a => a.id == alumnoId);
-
                 if (!me) throw new Error("Alumno no encontrado");
-
                 // LEFT COLUMN (General Info)
                 document.getElementById('lblNombre').innerText = me.nombre;
                 document.getElementById('imgAvatar').src = me.foto ? `/static/uploads/${me.foto}` : '/static/placeholder.jpg';
-
                 let comedorText = me.no_comedor ? 'No asiste' : 'Todos los días';
                 if (!me.no_comedor && me.comedor_dias) {
                     // translate 0,1,2,3,4 to Mon, Tue...
@@ -402,25 +329,19 @@
                     comedorText = "Días: " + me.comedor_dias.split(',').map(d => dMap[d]).join(', ');
                 }
                 document.getElementById('lblComedor').innerText = "Comedor: " + comedorText;
-
                 // Ficha
                 const f = await resFicha.json();
                 document.getElementById('lblFechaNac').innerText = f.fecha_nacimiento ? f.fecha_nacimiento.split("-").reverse().join("/") : 'Sin dato';
                 document.getElementById('lblDireccion').innerText = f.direccion || 'Sin dato';
-
                 const mText = [f.madre_nombre, f.madre_telefono, f.madre_email].filter(Boolean).join(" | ");
                 document.getElementById('lblMadre').innerText = mText || 'Sin dato';
-
                 const pText = [f.padre_nombre, f.padre_telefono, f.padre_email].filter(Boolean).join(" | ");
                 document.getElementById('lblPadre').innerText = pText || 'Sin dato';
-
                 document.getElementById('lblAutorizados').innerText = f.personas_autorizadas || 'Sin dato';
                 document.getElementById('lblObsFicha').innerText = f.observaciones_generales || 'Ninguna';
-
                 // TAB PROGRESO
                 const p_data = await resProgreso.json(); // returns {1: [{area, media}...], 2: [...], 3: [...]}
                 renderProgresoChart(p_data);
-
                 // TAB OBSERVACIONES
                 const obs_data = await resObs.json();
                 const cObs = document.getElementById('containerObservaciones');
@@ -436,12 +357,10 @@
                     </div>
                 `).join('');
                 }
-
                 // TAB REUNIONES
                 let reuniones = await resReuniones.json();
                 reuniones = reuniones.filter(r => r.alumno_id == alumnoId);
                 const cReus = document.getElementById('containerReuniones');
-
                 if (reuniones.length === 0) {
                     cReus.innerHTML = '<p style="color:#999; font-style:italic;">No hay reuniones de padres/madres registradas para este alumno.</p>';
                 } else {
@@ -457,13 +376,11 @@
                     </div>
                  `).join('');
                 }
-
             } catch (e) {
                 console.error("Error cargando perfil", e);
                 alert("No se pudo cargar el perfil del alumno.");
             }
         }
-
         function renderProgresoChart(dataT) {
             // Collect all unique areas
             const areasSet = new Set();
@@ -472,13 +389,11 @@
                     dataT[t].forEach(a => areasSet.add(a.area));
                 }
             });
-
             const areas = Array.from(areasSet);
             if (areas.length === 0) {
                 document.getElementById('progresoChart').parentNode.innerHTML = "<p style='padding: 20px; color: #666; text-align:center;'>Aún no hay calificaciones para graficar.</p>";
                 return;
             }
-
             const createDataset = (trimestre, colorBg, colorBorder) => {
                 const values = areas.map(area => {
                     const arr = dataT[trimestre] || [];
@@ -494,13 +409,11 @@
                     borderRadius: 4
                 };
             };
-
             const datasets = [
                 createDataset(1, 'rgba(55, 136, 216, 0.7)', 'rgb(55, 136, 216)'), // Blue
                 createDataset(2, 'rgba(40, 167, 69, 0.7)', 'rgb(40, 167, 69)'),    // Green
                 createDataset(3, 'rgba(255, 193, 7, 0.7)', 'rgb(255, 193, 7)')     // Yellow
             ].filter(d => d.data.some(val => val !== null)); // Remove empty trimesters
-
             const ctx = document.getElementById('progresoChart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
@@ -521,12 +434,7 @@
                 }
             });
         }
-
         document.addEventListener('DOMContentLoaded', loadProfile);
     </script>
-    <script src="/static/js/api.js"></script>
-
-    <script src="/static/js/global_groups.js"></script>
 </body>
-
 </html>

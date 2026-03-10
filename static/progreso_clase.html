@@ -2,236 +2,224 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Cuaderno del Tutor - Progreso de Clase</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progreso de Clase - APP_EVALUAR</title>
     <link rel="stylesheet" href="/static/css/theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --primary: #003366;
-            --secondary: #007bff;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --bg: #f0f2f5;
-        }
-
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--gray-100);
             margin: 0;
-            padding: 20px;
+            padding: 0;
         }
-
         .container {
             max-width: 1100px;
             margin: 0 auto;
+            padding: 20px;
         }
-
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
         .card {
             background: white;
             padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-
-        h2 { color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 10px; }
-
-        .filters {
+        .full-width {
+            grid-column: span 2;
+        }
+        h2 { margin-top: 0; font-size: 1.2rem; color: #475569; }
+        .progress-list {
             display: flex;
+            flex-direction: column;
             gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            background: #f8faff;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
         }
-
-        label { font-weight: 700; font-size: 0.9rem; color: #555; }
-        select { padding: 10px; border-radius: 8px; border: 1px solid #ddd; min-width: 150px; }
-
-        .grid-charts {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
-        }
-
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
-            background: #f8fbff;
-            padding: 15px;
-            border-radius: 10px;
-            border-bottom: 3px solid var(--secondary);
-            text-align: center;
-        }
-
-        .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
-        .stat-label { font-size: 0.8rem; color: #666; text-transform: uppercase; }
-
-        .btn-back {
-            text-decoration: none;
-            color: var(--primary);
-            font-weight: 600;
-            display: inline-flex;
+        .progress-item {
+            display: flex;
             align-items: center;
-            gap: 5px;
-            margin-bottom: 20px;
+            gap: 15px;
+        }
+        .crit-code {
+            width: 80px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .bar-container {
+            flex: 1;
+            height: 12px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .bar {
+            height: 100%;
+            background: linear-gradient(90deg, #818cf8, #6366f1);
+            border-radius: 10px;
+        }
+        .avg-val {
+            width: 40px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        select {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            outline: none;
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
+<!-- Unified Navigation injected by navigation.js -->
     <div class="container">
-        <a href="/static/evaluacion.html" class="btn-back">⬅️ Volver a Evaluación</a>
-        
-        <div class="card">
-            <h2>📊 Resumen de Progreso de Clase</h2>
-            
-            <div class="filters">
-                <div>
-                    <label>Área:</label><br>
-                    <select id="areaSelect"></select>
-                </div>
-                <div>
-                    <label>Trimestre:</label><br>
-                    <select id="trimestreSelect">
-                        <option value="1">1º Trimestre</option>
-                        <option value="2">2º Trimestre</option>
-                        <option value="3">3º Trimestre</option>
-                    </select>
-                </div>
-                <div style="flex-grow:1; display:flex; align-items:flex-end; justify-content:flex-end;">
-                    <button onclick="cargarDatos()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">🔄 Actualizar</button>
-                </div>
+        <div class="header">
+            <div>
+                <h1>Progreso de Clase</h1>
+                <p style="color: #64748b; margin: 0;">Análisis por criterios de evaluación</p>
             </div>
-
-            <div id="statsContainer" class="stats-summary" style="display:none;">
-                <div class="stat-card">
-                    <div id="statMedia" class="stat-val">—</div>
-                    <div class="stat-label">Media Global</div>
-                </div>
-                <div class="stat-card">
-                    <div id="statCrits" class="stat-val">—</div>
-                    <div class="stat-label">Criterios Evaluados</div>
-                </div>
+            <div style="display: flex; gap: 10px;">
+                <select id="etapa-select" onchange="loadAreasByEtapa()">
+                    <option value="">Selecciona Etapa</option>
+                </select>
+                <select id="area-select" onchange="loadStats()"></select>
+                <select id="periodo-select" onchange="loadStats()">
+                    <option value="T1">T1</option>
+                    <option value="T2">T2</option>
+                    <option value="T3">T3</option>
+                </select>
             </div>
-
-            <div class="chart-container" style="margin-top:30px;">
-                <canvas id="progressChart"></canvas>
+        </div>
+        <div class="dashboard-grid">
+            <div class="card full-width">
+                <h2>Media General por Criterio</h2>
+                <canvas id="mainChart" height="100"></canvas>
+            </div>
+            <div class="card">
+                <h2>Criterios con menor progreso</h2>
+                <div id="lowest-list" class="progress-list"></div>
+            </div>
+            <div class="card">
+                <h2>Criterios destacados</h2>
+                <div id="highest-list" class="progress-list"></div>
             </div>
         </div>
     </div>
-
     <script>
         let chart = null;
-
         async function init() {
-            // Cargar áreas
-            const ra = await fetch('/api/curricular/areas');
-            const areas = await ra.json();
-            const areaSelect = document.getElementById('areaSelect');
-            areas.forEach(a => {
-                const opt = document.createElement('option');
-                opt.value = a.id;
-                opt.textContent = a.nombre;
-                areaSelect.appendChild(opt);
-            });
-
-            if (areas.length > 0) cargarDatos();
-        }
-
-        async function cargarDatos() {
-            const area_id = document.getElementById('areaSelect').value;
-            const trimestre = document.getElementById('trimestreSelect').value;
-            
-            if (!area_id) return;
-
-            const r = await fetch(`/api/evaluacion/sda/resumen_clase?area_id=${area_id}&trimestre=${trimestre}`);
-            const data = await r.json();
-
-            renderChart(data);
-            updateStats(data);
-        }
-
-        function updateStats(data) {
-            if (!data || data.length === 0) {
-                document.getElementById('statsContainer').style.display = 'none';
-                return;
+            try {
+                // Cargar nombre del grupo activo para detectar etapa
+                const groupRes = await fetch('/api/grupo_activo');
+                const groupData = await groupRes.json();
+                // Cargar etapas
+                const etapaRes = await fetch('/api/etapas');
+                const etapas = await etapaRes.json();
+                const etapaSelect = document.getElementById('etapa-select');
+                etapas.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.id;
+                    opt.textContent = e.nombre;
+                    etapaSelect.appendChild(opt);
+                });
+                if (groupData.etapa_id) {
+                    etapaSelect.value = groupData.etapa_id;
+                    await loadAreasByEtapa();
+                }
+                if (document.getElementById('area-select').options.length > 0) loadStats();
+            } catch (e) {
+                console.error("Error en init:", e);
             }
-            document.getElementById('statsContainer').style.display = 'grid';
-            
-            const total = data.reduce((acc, curr) => acc + curr.media, 0);
-            const avg = (total / data.length).toFixed(2);
-            
-            document.getElementById('statMedia').innerText = avg;
-            document.getElementById('statCrits').innerText = data.length;
         }
-
+        async function loadAreasByEtapa() {
+            const etapaId = document.getElementById('etapa-select').value;
+            const areaSelect = document.getElementById('area-select');
+            areaSelect.innerHTML = '<option value="">Selecciona Área</option>';
+            if (!etapaId) return;
+            try {
+                const res = await fetch(`/api/curricular/areas?etapa_id=${etapaId}`);
+                const areas = await res.json();
+                areas.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = a.nombre;
+                    areaSelect.appendChild(opt);
+                });
+                // Si hay áreas, cargar estadísticas para la primera
+                if (areas.length > 0) loadStats();
+            } catch (e) {
+                console.error("Error cargando áreas:", e);
+            }
+        }
+        async function loadStats() {
+            const areaId = document.getElementById('area-select').value;
+            const periodo = document.getElementById('periodo-select').value;
+            try {
+                const res = await fetch(`/api/evaluacion/resumen_clase?area_id=${areaId}&periodo=${periodo}`);
+                const data = await res.json();
+                renderChart(data);
+                renderLists(data);
+            } catch (e) {}
+        }
         function renderChart(data) {
-            const ctx = document.getElementById('progressChart').getContext('2d');
-            
+            const ctx = document.getElementById('mainChart').getContext('2d');
             if (chart) chart.destroy();
-
-            if (data.length === 0) {
-                ctx.font = "20px Inter";
-                ctx.textAlign = "center";
-                ctx.fillText("No hay datos suficientes para generar el gráfico", ctx.canvas.width/2, ctx.canvas.height/2);
-                return;
-            }
-
-            const labels = data.map(d => d.criterio);
-            const values = data.map(d => d.media);
-            const colors = values.map(v => v < 2 ? '#dc3545' : v < 3 ? '#ffc107' : '#28a745');
-
             chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: data.map(d => d.codigo),
                     datasets: [{
-                        label: 'Media de la Clase',
-                        data: values,
-                        backgroundColor: colors,
-                        borderRadius: 8,
-                        borderWidth: 0
+                        label: 'Media de Clase (1-4)',
+                        data: data.map(d => d.media),
+                        backgroundColor: '#6366f1',
+                        borderRadius: 8
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 4,
-                            ticks: { stepSize: 1 }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `Media: ${context.raw}`
-                            }
-                        }
+                        y: { beginAtZero: true, max: 4 }
                     }
                 }
             });
         }
-
+        function renderLists(data) {
+            const sorted = [...data].sort((a,b) => a.media - b.media);
+            const lowList = document.getElementById('lowest-list');
+            const highList = document.getElementById('highest-list');
+            lowList.innerHTML = sorted.slice(0, 3).map(d => `
+                <div class="progress-item">
+                    <span class="crit-code">${d.codigo}</span>
+                    <div class="bar-container"><div class="bar" style="width: ${(d.media/4)*100}%; background: #ef4444;"></div></div>
+                    <span class="avg-val">${d.media.toFixed(1)}</span>
+                </div>
+            `).join('');
+            highList.innerHTML = [...sorted].reverse().slice(0, 3).map(d => `
+                <div class="progress-item">
+                    <span class="crit-code">${d.codigo}</span>
+                    <div class="bar-container"><div class="bar" style="width: ${(d.media/4)*100}%; background: #10b981;"></div></div>
+                    <span class="avg-val">${d.media.toFixed(1)}</span>
+                </div>
+            `).join('');
+        }
         init();
     </script>
 </body>

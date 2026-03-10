@@ -41,7 +41,9 @@ class ApiClient {
     }
 }
 
-// Intercept global fetch
-window.originalFetch = window.fetch;
-window.apiClient = new ApiClient();
-window.fetch = (url, options) => window.apiClient.fetch(url, options);
+// Intercept global fetch only once to prevent infinite recursion
+if (!window.originalFetch) {
+    window.originalFetch = window.fetch;
+    window.apiClient = new ApiClient();
+    window.fetch = (url, options) => window.apiClient.fetch(url, options);
+}

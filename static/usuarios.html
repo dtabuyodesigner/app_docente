@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Usuarios - Cuaderno del Tutor</title>
@@ -17,32 +16,27 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         .header-actions {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-
         th,
         td {
             text-align: left;
             padding: 12px;
             border-bottom: 1px solid #eee;
         }
-
         th {
             background-color: #f8f9fa;
             font-weight: 600;
         }
-
         .role-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -50,17 +44,14 @@
             font-size: 0.85rem;
             font-weight: bold;
         }
-
         .role-admin {
             background: #ffebee;
             color: #c62828;
         }
-
         .role-profesor {
             background: #e3f2fd;
             color: #1565c0;
         }
-
         button {
             cursor: pointer;
             padding: 6px 12px;
@@ -68,27 +59,22 @@
             border-radius: 4px;
             font-size: 0.9rem;
         }
-
         .btn-danger {
             background: #dc3545;
             color: white;
         }
-
         .btn-primary {
             background: #007bff;
             color: white;
         }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: 600;
         }
-
         .form-group input,
         .form-group select {
             width: 100%;
@@ -98,26 +84,13 @@
             border-radius: 4px;
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
-
 <body>
-    <div class="nav">
-        <a href="/">🏠 Inicio</a>
-        <a href="/alumnos">👥 Alumnos</a>
-        <a href="/asistencia">📋 Pasar lista</a>
-        <a href="/diario">📓 Diario</a>
-        <a href="/programacion">📅 Programación</a>
-        <a href="/horario">⏰ Horario</a>
-        <a href="/evaluacion">📊 Evaluación</a>
-        <a href="/rubricas">📝 Rúbricas</a>
-        <a href="/informes">📜 Informes</a>
-        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-        <a href="/biblioteca">📚 Biblioteca</a>
-        <a href="/material">📦 Material</a>
-        <a href="/tareas">✅ Tareas</a>
-        <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-    </div>
-
+    <!-- Unified Navigation injected by navigation.js -->
     <div class="container">
         <div class="header-actions">
             <div style="display: flex; align-items: center; gap: 15px;">
@@ -129,7 +102,6 @@
             <button class="btn-primary" onclick="document.getElementById('newUserForm').style.display='block'">+
                 Crear Usuario</button>
         </div>
-
         <div id="newUserForm"
             style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
             <h3>Crear Nuevo Acceso</h3>
@@ -154,7 +126,6 @@
                     onclick="document.getElementById('newUserForm').style.display='none'">Cancelar</button>
             </form>
         </div>
-
         <table>
             <thead>
                 <tr>
@@ -172,10 +143,8 @@
             </tbody>
         </table>
     </div>
-
     <script>
         document.addEventListener("DOMContentLoaded", loadUsuarios);
-
         async function loadUsuarios() {
             try {
                 const res = await fetch('/api/usuarios');
@@ -186,7 +155,6 @@
                 }
                 const data = await res.json();
                 const tbody = document.getElementById("usersList");
-
                 tbody.innerHTML = data.map(u => `
                     <tr>
                         <td>#${u.id}</td>
@@ -199,25 +167,21 @@
                         </td>
                     </tr>
                 `).join('');
-
             } catch (err) {
                 console.error(err);
             }
         }
-
         async function crearUsuario(e) {
             e.preventDefault();
             const username = document.getElementById('newUsername').value;
             const password = document.getElementById('newPassword').value;
             const role = document.getElementById('newRole').value;
-
             try {
                 const res = await fetch('/api/usuarios', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password, role })
                 });
-
                 const data = await res.json();
                 if (data.ok) {
                     document.getElementById('newUsername').value = '';
@@ -231,14 +195,11 @@
                 alert("Error de conexión");
             }
         }
-
         async function borrarUsuario(id, name) {
             if (!confirm(`¿Estás SEGURO de revocar el acceso a "${name}"?`)) return;
-
             try {
                 const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
                 const data = await res.json();
-
                 if (data.ok) {
                     loadUsuarios();
                 } else {
@@ -248,24 +209,20 @@
                 alert("Error de conexión");
             }
         }
-
         async function resetearClave(id, username) {
             const newPassword = prompt(`Introduce la nueva contraseña para el usuario "${username}":`);
             if (!newPassword || newPassword.trim() === '') {
                 return; // Cancelled or empty
             }
-
             if (!confirm(`¿Estás seguro de establecer esta nueva contraseña para "${username}"?`)) {
                 return;
             }
-
             try {
                 const res = await fetch(`/api/usuarios/${id}/reset_password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ new_password: newPassword.trim() })
                 });
-
                 const data = await res.json();
                 if (data.ok) {
                     alert(`✅ Contraseña de "${username}" actualizada correctamente.`);
@@ -277,9 +234,5 @@
             }
         }
     </script>
-    <script src="/static/js/api.js"></script>
-
-    <script src="/static/js/global_groups.js"></script>
 </body>
-
 </html>

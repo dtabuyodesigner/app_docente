@@ -43,6 +43,7 @@ from routes.evaluacion_sda import evaluacion_sda_bp
 from routes.evaluacion_directa import evaluacion_directa_bp
 from routes.eventos import eventos_bp
 from routes.observaciones import observaciones_bp
+from routes.evaluacion import evaluacion_bp
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
@@ -67,6 +68,7 @@ app.register_blueprint(criterios_bp)
 app.register_blueprint(curricular_bp, url_prefix='/api/curricular')
 app.register_blueprint(evaluacion_sda_bp, url_prefix='/api/evaluacion/sda')
 app.register_blueprint(evaluacion_directa_bp, url_prefix='/api/evaluacion/directa')
+app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion')
 app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
 

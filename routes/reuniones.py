@@ -100,13 +100,40 @@ def borrar_reunion(rid):
     try:
         cur.execute("DELETE FROM reuniones WHERE id = ?", (rid,))
         conn.commit()
+        return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
         print("Error en borrar_reunion:", str(e))
         return jsonify({"ok": False, "error": "Error interno al borrar la reunión."}), 500
-    finally:
-        pass
-    return jsonify({"ok": True})
+    
+@reuniones_bp.route("/api/reuniones/<int:rid>", methods=["PATCH"])
+def patch_reunion(rid):
+    d = request.json
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Construir consulta dinámica basada en los campos proporcionados
+    fields = []
+    params = []
+    for key in ["fecha", "asistentes", "temas", "acuerdos", "alumno_id", "ciclo_id"]:
+        if key in d:
+            fields.append(f"{key} = ?")
+            params.append(d[key])
+            
+    if not fields:
+        return jsonify({"ok": False, "error": "No hay campos para actualizar"}), 400
+        
+    params.append(rid)
+    sql = f"UPDATE reuniones SET {', '.join(fields)} WHERE id = ?"
+    
+    try:
+        cur.execute(sql, params)
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        print("Error en patch_reunion:", str(e))
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 # --- CICLO CONFIGURATION ENDPOINTS ---

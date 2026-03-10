@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Ayuda y Documentación</title>
@@ -16,13 +15,10 @@
             padding: 20px;
             color: var(--dark);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
-
         /* Documentation styles */
         .help-layout {
             display: grid;
@@ -30,7 +26,6 @@
             gap: 30px;
             align-items: start;
         }
-
         .help-menu {
             background: white;
             border-radius: 12px;
@@ -39,7 +34,6 @@
             position: sticky;
             top: 20px;
         }
-
         .help-menu h3 {
             margin: 0 20px 15px 20px;
             color: var(--primary);
@@ -47,13 +41,11 @@
             padding-bottom: 10px;
             font-size: 1.1rem;
         }
-
         .help-menu ul {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-
         .help-menu li a {
             display: block;
             padding: 12px 20px;
@@ -63,20 +55,17 @@
             transition: all 0.2s;
             border-left: 4px solid transparent;
         }
-
         .help-menu li a:hover {
             background: #f8f9fa;
             color: var(--primary);
             border-left-color: #d0e1f9;
         }
-
         .help-menu li a.active {
             background: #e8f0fe;
             color: var(--primary);
             border-left-color: var(--primary);
             font-weight: 600;
         }
-
         .help-content-area {
             background: white;
             border-radius: 12px;
@@ -84,16 +73,13 @@
             padding: 40px;
             min-height: 60vh;
         }
-
         .help-section {
             display: none;
             animation: fadeIn 0.3s ease-in-out;
         }
-
         .help-section.active {
             display: block;
         }
-
         .help-section h1 {
             color: var(--primary);
             margin-top: 0;
@@ -105,18 +91,15 @@
             border-bottom: 3px solid #f0f0f0;
             padding-bottom: 15px;
         }
-
         .help-section h2 {
             color: #444;
             margin-top: 35px;
             font-size: 1.4rem;
         }
-
         .help-section h3 {
             color: #666;
             font-size: 1.2rem;
         }
-
         .help-section p,
         .help-section li {
             line-height: 1.6;
@@ -124,13 +107,11 @@
             font-size: 1.05rem;
             margin-bottom: 12px;
         }
-
         .help-section ul,
         .help-section ol {
             margin-bottom: 20px;
             padding-left: 20px;
         }
-
         .highlight-box {
             background: #f8f9fa;
             border-left: 4px solid var(--secondary);
@@ -138,23 +119,19 @@
             border-radius: 0 8px 8px 0;
             margin: 25px 0;
         }
-
         .highlight-box.warning {
             border-left-color: var(--warning);
             background: #fffcf0;
         }
-
         .highlight-box.success {
             border-left-color: var(--success);
             background: #f0fdf4;
         }
-
         .highlight-box strong {
             display: block;
             margin-bottom: 8px;
             color: #333;
         }
-
         .img-placeholder {
             background: #e9ecef;
             border: 1px dashed #ced4da;
@@ -165,7 +142,6 @@
             margin: 20px 0;
             font-size: 0.9rem;
         }
-
         .btn-action {
             display: inline-flex;
             align-items: center;
@@ -179,12 +155,10 @@
             margin-top: 15px;
             transition: all 0.2s;
         }
-
         .btn-action:hover {
             background: #002244;
             transform: translateY(-2px);
         }
-
         code {
             background: #f1f3f5;
             padding: 3px 6px;
@@ -193,7 +167,6 @@
             color: #e83e8c;
             font-size: 0.9em;
         }
-
         pre {
             background: #212529;
             color: #f8f9fa;
@@ -203,53 +176,34 @@
             font-size: 0.9rem;
             line-height: 1.5;
         }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-
         @media (max-width: 900px) {
             .help-layout {
                 grid-template-columns: 1fr;
             }
-
             .help-menu {
                 position: static;
                 margin-bottom: 20px;
             }
         }
     </style>
-</head>
 
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
+</head>
 <body>
     <div class="container">
-        <!-- Navegación principal -->
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Config.</a>
-            <a href="/ayuda" class="active">💡 Ayuda</a>
-        </div>
-
+        <!-- Unified Navigation injected by navigation.js -->
         <div class="help-layout">
             <!-- Menú lateral -->
             <nav class="help-menu">
@@ -259,29 +213,25 @@
                     </li>
                     <li><a href="#alumnos" onclick="showSection('alumnos')">👥 Alumnos y Asistencia</a></li>
                     <li><a href="#diario" onclick="showSection('diario')">📓 Diario y Calendario</a></li>
+                    <li><a href="#flujo" onclick="showSection('flujo')">🚀 Flujo de Evaluación (PASO A PASO)</a></li>
                     <li><a href="#evaluacion" onclick="showSection('evaluacion')">📊 Cómo Evaluar</a></li>
                     <li><a href="#criterios" onclick="showSection('criterios')">🎯 Gestión de Criterios</a></li>
                     <li><a href="#sda" onclick="showSection('sda')">🧩 Situaciones de Aprendizaje (SDA)</a></li>
-                    <li><a href="#rubricas" onclick="showSection('rubricas')">📝 Rúbricas</a></li>
-                    <li><a href="#informes" onclick="showSection('informes')">📜 Informes</a></li>
-                    <li><a href="#configuracion" onclick="showSection('configuracion')">⚙️ Configuración y Grupos</a>
-                    </li>
+                    <li><a href="#dashboard" onclick="showSection('dashboard')">📈 Panel de Control (Dashboard)</a></li>
+                    <li><a href="#biblioteca" onclick="showSection('biblioteca')">📚 Biblioteca y Préstamos</a></li>
+                    <li><a href="#configuracion" onclick="showSection('configuracion')">⚙️ Configuración y Grupos</a></li>
                 </ul>
             </nav>
-
             <!-- Contenido -->
             <main class="help-content-area">
-
                 <!-- SECCIÓN INFO INICIO -->
                 <section id="inicio" class="help-section active">
                     <h1>🏠 Resumen del Cuaderno del Docente</h1>
                     <p>¡Bienvenido/a al Cuaderno del Docente! Esta aplicación está diseñada para centralizar todo tu
                         trabajo de aula, desde pasar lista hasta la generación de informes trimestrales.</p>
-
                     <p>El sistema se organiza entorno a diferentes módulos accesibles desde la barra superior de
                         navegación. Toda la información está estructurada según tus <strong>Grupos de clase</strong>.
                     </p>
-
                     <div class="highlight-box">
                         <strong>📌 Concepto Clave: El Selector de Grupos</strong>
                         La mayoría de las pantallas de la aplicación cuentan con un menú desplegable en la parte
@@ -289,32 +239,26 @@
                         Primaria" o "Infantil 4 años"). Al cambiar de grupo, todos los alumnos de la vista se
                         actualizarán automáticamente.
                     </div>
-
                     <h2>Módulos principales</h2>
+                    </ul>
+                    <h2>📈 El Panel de Control (Dashboard)</h2>
+                    <p>Al acceder a la aplicación, lo primero que verás es un resumen visual de la situación actual. Este panel incluye:</p>
                     <ul>
-                        <li><strong>Alumnos y Asistencia:</strong> Gestión del listado de la clase, incidencias diarias
-                            y registro de faltas.</li>
-                        <li><strong>Diario de Clase:</strong> Para anotar lo ocurrido en cada sesión vinculando fechas y
-                            materias.</li>
-                        <li><strong>Evaluación y Criterios:</strong> El núcleo oficial para poner notas en base a
-                            escalas numéricas (Primaria/Secundaria) o escalas cualitativas (NC/EP/C para Infantil)
-                            basándose en los criterios vigentes.</li>
-                        <li><strong>Informes:</strong> Generación automática de boletines en PDF para entregar a las
-                            familias, que agrupan las notas y observaciones añadidas durante el trimestre.</li>
+                        <li><strong>Últimas Reuniones:</strong> Listado de reuniones de ciclo o con padres previstas para hoy o días pasados.</li>
+                        <li><strong>Alertas de Rendimiento:</strong> Avisos automáticos si un alumno tiene una media suspensa en algún área.</li>
+                        <li><strong>Próximas Actividades:</strong> Las tareas más cercanas según tu programación del calendario.</li>
+                        <li><strong>Ranking de Lectura:</strong> Visualización de los alumnos que más libros están leyendo.</li>
                     </ul>
                 </section>
-
                 <!-- SECCIÓN ALUMNOS -->
                 <section id="alumnos" class="help-section">
                     <h1>👥 Alumnos y Asistencia</h1>
-
                     <h2>Gestión de Alumnos</h2>
                     <p>En el apartado de Alumnos puedes registrar a todos los estudiantes vinculados a un grupo. Al
                         crear un nuevo alumno debes escribir su nombre completo e indicar su grupo correspondiente.</p>
                     <p>Dentro de esta vista también podrás anotar <strong>Positivos (+)</strong> o <strong>Negativos
                             (-)</strong> para cuestiones de comportamiento, que quedarán registrados en su ficha e
                         informe si así lo deseas.</p>
-
                     <h2>Pasar Lista</h2>
                     <p>La pestaña 📋 <strong>Pasar Lista</strong> está diseñada para la rapidez del día a día:</p>
                     <ol>
@@ -327,32 +271,55 @@
                             y la falta desaparecerá.</li>
                     </ol>
                 </section>
-
                 <!-- SECCIÓN DIARIO -->
                 <section id="diario" class="help-section">
                     <h1>📓 Diario y Calendario</h1>
-
                     <p>El diario te permite mantener un registro cronológico de lo que haces en el aula.</p>
-
                     <h2>Crear una entrada de diario</h2>
                     <p>Selecciona la pestaña de Diario y asegúrate de elegir tu Grupo actual.</p>
                     <p>Aparecerá un editor donde puedes relatar qué se ha trabajado, qué página del libro, anotaciones
                         de cómo ha ido la clase, etc. Este diario se guarda vinculado a la fecha solicitada.</p>
-
                     <div class="highlight-box success">
                         <strong>💡 Integración:</strong>
                         Lo que apuntes en el Diario puedes aprovecharlo luego vinculándolo mentalmente a la Evaluación
                         del día o de los Criterios que estás impartiendo.
                     </div>
                 </section>
-
+                <!-- SECCIÓN FLUJO DE EVALUACIÓN -->
+                <section id="flujo" class="help-section">
+                    <h1>🚀 Flujo de Evaluación: ¿Cómo empezar?</h1>
+                    <p>Para que las herramientas de evaluación funcionen, el sistema debe conocer la relación entre lo que enseñas y los criterios oficiales.</p>
+                    <div class="highlight-box">
+                        <strong>🔗 La Jerarquía Correcta:</strong>
+                        1. <strong>Criterios:</strong> Los objetivos oficiales (ej: "Lee con fluidez").<br>
+                        2. <strong>SDA:</strong> Tu unidad didáctica (ej: "Unidad 1: Los animales").<br>
+                        3. <strong>Actividades:</strong> Tareas dentro de la SDA (ej: "Lectura grupal").<br>
+                        4. <strong>Sesiones:</strong> Cuándo ocurre cada actividad en el calendario.
+                    </div>
+                    <h2>¿Cómo activar cada función?</h2>
+                    <h3>⭐ Clase de Hoy (Dashboard)</h3>
+                    <p>Solo aparecerá información si el sistema detecta una <strong>Sesión programada para la fecha actual</strong> que tenga asignado un <strong>Criterio</strong>.</p>
+                    <ul>
+                        <li>Ve a Programación -> Actividades de la SDA.</li>
+                        <li>Crea una sesión para <strong>HOY</strong>.</li>
+                        <li>Asegúrate de que la actividad de esa sesión tiene un criterio seleccionado.</li>
+                    </ul>
+                    <h3>📊 Evaluar Todo (Desde el Dashboard)</h3>
+                    <p>Esta opción te lleva directamente al <strong>Cuaderno de Evaluación</strong>. Para que salgan datos:</p>
+                    <ul>
+                        <li>Debes tener un <strong>Grupo seleccionado</strong>.</li>
+                        <li>Debes tener <strong>Criterios "Activos"</strong> para el trimestre actual en el área correspondiente.</li>
+                    </ul>
+                    <h3>📒 Cuaderno de Evaluación</h3>
+                    <p>Es la tabla donde ves a todos los alumnos y todos los criterios a la vez. Se rellena automáticamente conforme evalúas desde "Clase de Hoy" o de forma directa en la tabla.</p>
+                    <h3>📈 Progreso de Clase</h3>
+                    <p>Genera gráficas basadas en las notas que has puesto. Si la gráfica está vacía, es que aún no has guardado ninguna evaluación para ese área y trimestre.</p>
+                </section>
                 <!-- SECCIÓN EVALUACIÓN -->
                 <section id="evaluacion" class="help-section">
                     <h1>📊 Cómo Evaluar</h1>
-
                     <p>El módulo de evaluación es muy potente y te permite evaluar directamente los criterios oficiales
                         que impone el gobierno (LOMLOE).</p>
-
                     <h2>1. Conceptos Básicos</h2>
                     <ul>
                         <li><strong>Escalas:</strong> Infantil se evalúa con la escala Ni/EP/C (No Iniciado, En Proceso,
@@ -363,7 +330,6 @@
                             criterio de forma directa ("Modo Directo"), o puedes evaluar agrupando los saberes dentro de
                             un proyecto o unidad llamado "SA" ("Modo por SA").</li>
                     </ul>
-
                     <h2>2. Evaluando en la Tabla Central</h2>
                     <ol>
                         <li>En Evaluación, primero escoge el <strong>Grupo</strong> (botón superior derecho).</li>
@@ -375,23 +341,17 @@
                             (C). Pincha en el nivel de logro para asignarlo al alumno. El sistema lo guardará
                             instantáneamente y calculará la nota media de ese Área.</li>
                     </ol>
-
-                    <div class="highlight-box warning">
-                        <strong>⚠️ Selección Rápida "Rellenar"</strong>
-                        Verás botones que dicen "Rellenar Visible a [C]". Si has observado que el alumno lo tiene todo
-                        conseguido en esa materia, puedes pulsar el botón y mágicamente te rellenará todas las filas
-                        vacías a ese nivel (Conseguido) de golpe.
+                    <div class="highlight-box success">
+                        <strong>🚀 Panel "Clase de Hoy" (Recomendado)</strong>
+                        Para evaluar con rapidez, usa el botón "Clase de Hoy" en el Dashboard. Te mostrará directamente los alumnos y el criterio de la sesión para que pongas las notas con un solo clic mientras das la clase.
                     </div>
                 </section>
-
                 <!-- SECCIÓN CRITERIOS -->
                 <section id="criterios" class="help-section">
                     <h1>🎯 Gestión de Criterios</h1>
-
                     <p>Para poder evaluar, la base de datos necesita conocer los Criterios de Evaluación oficiales. En
                         vez de escribirlos a mano uno a uno, el sistema permite importarlos de forma masiva en la
                         pestaña adjunta de la sección Evaluación ("Gestión de Criterios").</p>
-
                     <h2>1. Cómo descargar la plantilla CSV</h2>
                     <p>Si aún no tienes criterios, lo mejor es bajarte el Excel (CSV) base:</p>
                     <ol>
@@ -400,7 +360,6 @@
                         <li>Haz clic en el botón verde <strong>"📥 Importar CSV"</strong>.</li>
                         <li>Arriba a la derecha, pincha en <strong>"📄 Descargar Plantilla ℹ️"</strong>.</li>
                     </ol>
-
                     <h2>2. Cómo rellenar la plantilla Excel / CSV</h2>
                     <p>El archivo <code>plantilla_criterios.csv</code> se puede abrir con Excel, Google Sheets, Calc o
                         bloc de notas.</p>
@@ -413,7 +372,6 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                         <li><strong>Area/Materia:</strong> Pon el área genérica y la materia (que se usará para
                             agruparlo en los despegables).</li>
                     </ul>
-
                     <div class="highlight-box">
                         <strong>💡 Uso de Inteligencia Artificial (ChatGPT, Claude, etc)</strong>
                         Lo más rápido es coger el BOE o BOCYL de tu comunidad con el PDF oficial y decirle a una
@@ -421,20 +379,16 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                             punto y coma (;) con estas columnas exactas..."</em> para crear tu archivo final sin
                         escribirlo a mano.
                     </div>
-
                     <h2>3. Importar tus criterios</h2>
                     <p>Vuelve a pinchar en <strong>"📥 Importar CSV"</strong>, elige el archivo que has guardado e
                         impórtalo. La página te dirá inmediatamente cuántos han sido insertados y podrás empezar a
                         evaluarlos al instante.</p>
                 </section>
-
                 <!-- SECCIÓN SDA -->
                 <section id="sda" class="help-section">
                     <h1>🧩 Situaciones de Aprendizaje (SDA)</h1>
-
                     <p>Las Situaciones de Aprendizaje permiten organizar tu programación por unidades o proyectos,
                         vinculando los criterios de evaluación a actividades y sesiones de clase de forma unificada.</p>
-
                     <h2>1. Estructura de la Programación</h2>
                     <p>El nuevo importador permite crear toda la estructura curricular de una vez:</p>
                     <ul>
@@ -442,7 +396,6 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                         <li><strong>Criterios:</strong> Vinculación de criterios y su activación automática para la evaluación.</li>
                         <li><strong>Actividades y Sesiones:</strong> Tareas específicas que se integran en el diario de clase y calendario.</li>
                     </ul>
-
                     <div class="highlight-box success">
                         <strong>🚀 Importación Completa (Recomendado)</strong>
                         Ahora puedes importar un archivo CSV que contiene todo lo anterior. El sistema se encarga de:
@@ -453,7 +406,6 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                             <li>Generar las actividades y las sesiones de programación diaria.</li>
                         </ol>
                     </div>
-
                     <h2>2. Paso a paso para importar</h2>
                     <ol>
                         <li>Ve a la vista <strong>Programación</strong>.</li>
@@ -461,7 +413,6 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                         <li>Rellena el archivo con tu programación. Es importante mantener las cabeceras intactas.</li>
                         <li>Usa el botón <strong>"📤 Importar SDA desde CSV"</strong> para subir tu archivo.</li>
                     </ol>
-
                     <h2>3. Formato del Archivo</h2>
                     <p>La plantilla incluye columnas para: <code>Etapa, Area, Trimestre, SDA_ID, SDA_Titulo, Duracion_Semanas, Criterio_Codigo, Criterio_Descriptor, Competencia_Codigo, Competencia_Descriptor, Saberes_Basicos, Actividad_ID, Actividad_Titulo, Actividad_Descripcion, Actividad_Sesiones, Sesion_Numero, Sesion_Titulo...</code></p>
                     <p>Al rellenarlo, asegúrate de:</p>
@@ -470,14 +421,12 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                         <li><strong>Etapa:</strong> Debe ser Infantil, Primaria или Secundaria.</li>
                         <li><strong>Trimestre:</strong> Usa el formato T1, T2 o T3.</li>
                     </ul>
-
                     <div class="highlight-box">
                         <strong>🤖 Uso de Inteligencia Artificial</strong>
                         Puedes pasarle tu programación en PDF o Word a una IA y decirle:
                         <pre>"Genera un CSV (separado por comas) con estas columnas: Etapa, Area, Trimestre, SDA_ID, SDA_Titulo, Criterio_Codigo, Criterio_Descriptor, Actividad_ID, Sesion_Numero, Sesion_Titulo. Pásame los datos de mi programación así..."</pre>
                     </div>
                 </section>
-
                 <!-- SECCIÓN RÚBRICAS E INFORMES -->
                 <section id="rubricas" class="help-section">
                     <h1>📝 Rúbricas</h1>
@@ -487,12 +436,10 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                         pinchando en la tabla que se te genera. La media de esos apartados pasará a formar la nota del
                         alumno.</p>
                 </section>
-
                 <section id="informes" class="help-section">
                     <h1>📜 Informes de Evaluación</h1>
                     <p>El generador de informes recoge automáticamente todas las notas ("Conseguido", "8", etc.) por
                         área y las incidencias del alumno de ese trimestre.</p>
-
                     <ol>
                         <li>En la sección Informes, escoge al alumno.</li>
                         <li>Escribe las Observaciones cualitativas (texto libre) finales o de comportamiento usando el
@@ -502,35 +449,54 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                             valoraciones finales y una tabla limpia.</li>
                     </ol>
                 </section>
-
+                <section id="dashboard" class="help-section">
+                    <h1>📈 Panel de Control (Dashboard)</h1>
+                    <p>El Panel de Control es tu centro de mando. Al entrar, verás de un vistazo lo más importante:</p>
+                    <h2>1. Últimas Reuniones</h2>
+                    <p>Muestra las reuniones recientes o próximas vinculadas a tus alumnos o a tu nivel (Ciclo). Si no ves una reunión, asegúrate de que tiene la fecha correcta y está asignada a tu grupo.</p>
+                    <h2>2. Alertas de Rendimiento</h2>
+                    <p>El sistema analiza automáticamente las notas de tus alumnos. Si la media de un área cae por debajo de 5 (o "No Iniciado" en Infantil), aparecerá un aviso aquí para que puedas actuar a tiempo.</p>
+                    <h2>3. Ranking de Lectura</h2>
+                    <p>Una gráfica visual que muestra quiénes son los lectores más activos de tu clase, basándose en los préstamos de la biblioteca.</p>
+                </section>
+                <section id="biblioteca" class="help-section">
+                    <h1>📚 Biblioteca y Préstamos</h1>
+                    <p>Gestiona el fondo de libros y controla los préstamos a tus alumnos de forma sencilla.</p>
+                    <h2>1. Registrar un Préstamo</h2>
+                    <ol>
+                        <li>Ve a la pestaña 📋 <strong>Préstamos</strong>.</li>
+                        <li>Selecciona el grupo y busca al alumno.</li>
+                        <li>Busca el libro por título o autor.</li>
+                        <li>Pulsa en <strong>Registrar Préstamo</strong>. La página se actualizará automáticamente para reflejar el cambio en el inventario.</li>
+                    </ol>
+                    <h2>2. Devoluciones</h2>
+                    <p>En el listado de préstamos activos, pulsa el botón de <strong>Devolver</strong>. Puedes añadir observaciones sobre el estado del libro al recibirlo.</p>
+                    <div class="highlight-box info">
+                        <strong>💡 Consejo:</strong>
+                        Usa la pestaña 📖 <strong>Catálogo</strong> para ver el stock disponible de cada título. Si un libro no tiene unidades libres, el sistema te avisará al intentar prestarlo.
+                    </div>
+                </section>
                 <!-- SECCIÓN CONFIGURACIÓN -->
                 <section id="configuracion" class="help-section">
                     <h1>⚙️ Configuración y Grupos</h1>
-
                     <p>Esta es la base de todo tu cuaderno. Aquí defines qué grupos virtuales impartes.</p>
-
                     <h2>1. Administración de Centro</h2>
                     <p>En **Centro** indicas el nombre oficial del colegio, tu nombre como Tutor que saldrá en los
                         boletines, y algunos parámetros por defecto para bibliotecas o comedor.</p>
-
                     <h2>2. Gestión de Grupos</h2>
                     <p>Aquí creas "Infantil 4 años" o "1º B Primaria". Si borras un grupo, ¡cuidado!, borrarás también a
                         todos sus alumnos y sus calificaciones asociadas a él.</p>
-
                     <h2>3. Usuarios</h2>
                     <p>Si eres administrador, puedes invitar a otros compañeros o especialistas dando de alta su nombre
                         de usuario (email) y contraseña. Útil si queréis compartir el cuaderno en la red del cole.</p>
-
                     <h2>4. Áreas</h2>
                     <p>Te permite crear nuevas "asignaturas" no oficiales, por ejemplo "Taller de Robótica", que no
                         estén en el currículum base. Deberás asignarles también una etapa y una escala de notas para que
                         el cuaderno sepa cómo tratarlas.</p>
                 </section>
-
             </main>
         </div>
     </div>
-
     <!-- Script para cambiar pestañas internamente -->
     <script>
         function showSection(id) {
@@ -538,19 +504,15 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
             document.querySelectorAll('.help-section').forEach(sec => {
                 sec.classList.remove('active');
             });
-
             // Quitar clase activa a todos los links del menú
             document.querySelectorAll('.help-menu a').forEach(link => {
                 link.classList.remove('active');
             });
-
             // Activar la sección actual
             document.getElementById(id).classList.add('active');
-
             // Activar el link
             document.querySelector(`.help-menu a[onclick="showSection('${id}')"]`).classList.add('active');
         }
-
         // Leer el hash al cargar por si entran en /ayuda#evaluacion
         window.onload = function () {
             const hash = window.location.hash.replace('#', '');
@@ -560,5 +522,4 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
         };
     </script>
 </body>
-
 </html>

@@ -9,10 +9,12 @@ from utils.db import get_db
 
 google_cal_bp = Blueprint('google_cal', __name__)
 
-# Config (Should ideally come from .env or app config)
+# Config
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-CREDENTIALS_FILE = 'credentials.json'
-TOKEN_FILE = 'token.json'
+# Rutas absolutas para evitar problemas con el directorio de trabajo
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CREDENTIALS_FILE = os.path.join(BASE_DIR, 'credentials.json')
+TOKEN_FILE = os.path.join(BASE_DIR, 'token.json')
 
 # Allow insecure transport for local development (OAuth2 requires HTTPS otherwise)
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -24,7 +26,9 @@ def google_authorize():
 
     flow = Flow.from_client_secrets_file(
         CREDENTIALS_FILE, scopes=SCOPES)
-    flow.redirect_uri = url_for('google_cal.oauth2callback', _external=True)
+    # Forzar la URL de redirección basada en la petición actual para evitar discrepancias
+    parts = request.url_root.rstrip('/')
+    flow.redirect_uri = f"{parts}/oauth2callback"
     
     authorization_url, state = flow.authorization_url(
         access_type='offline',
@@ -40,7 +44,8 @@ def oauth2callback():
     
     flow = Flow.from_client_secrets_file(
         CREDENTIALS_FILE, scopes=SCOPES, state=state)
-    flow.redirect_uri = url_for('google_cal.oauth2callback', _external=True)
+    parts = request.url_root.rstrip('/')
+    flow.redirect_uri = f"{parts}/oauth2callback"
     
     authorization_response = request.url
     flow.fetch_token(authorization_response=authorization_response)
@@ -67,11 +72,19 @@ def import_calendar():
         creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
         
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-            with open(TOKEN_FILE, 'w') as token:
-                token.write(creds.to_json())
+            try:
+                creds.refresh(Request())
+                with open(TOKEN_FILE, 'w') as token:
+                    token.write(creds.to_json())
+            except Exception as e:
+                print(f"Error refreshing token: {e}")
+                if os.path.exists(TOKEN_FILE):
+                    os.remove(TOKEN_FILE)
+                return jsonify({"ok": False, "error": "La sesión de Google ha expirado de forma permanente. Por favor, vuelve a Conectar con Google Calendar."}), 401
 
         if not creds or not creds.valid:
+            if os.path.exists(TOKEN_FILE):
+                os.remove(TOKEN_FILE)
             return jsonify({"ok": False, "error": "Credenciales inválidas, vuelve a conectar Google Calendar"}), 401
 
         service = build('calendar', 'v3', credentials=creds)
@@ -101,13 +114,13 @@ def import_calendar():
             descripcion = event.get('description', '')
             
             try:
-                # Check if exists
-                cur.execute("SELECT id FROM programacion_diaria WHERE fecha = ? AND actividad = ?", (fecha, titulo))
+                # Check if exists (Using descripcion as title)
+                cur.execute("SELECT id FROM programacion_diaria WHERE fecha = ? AND descripcion = ?", (fecha, titulo))
                 if not cur.fetchone():
                     cur.execute("""
-                        INSERT INTO programacion_diaria (fecha, actividad, observaciones, tipo, color)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (fecha, titulo, descripcion, 'general', '#3788d8'))
+                        INSERT INTO programacion_diaria (fecha, descripcion, tipo, color)
+                        VALUES (?, ?, ?, ?)
+                    """, (fecha, titulo, 'general', '#3788d8'))
                     imported += 1
             except Exception as e:
                 print(f"Error importing event {titulo}: {e}")
@@ -118,7 +131,10 @@ def import_calendar():
         return jsonify({"ok": True, "imported": imported, "count": imported})
     except Exception as e:
         print(f"Global error in import_calendar: {e}")
-        return jsonify({"ok": False, "error": "Error interno al importar calendario."}), 500
+        error_msg = str(e)
+        if "invalid_grant" in error_msg:
+            return jsonify({"ok": False, "error": "La sesión de Google ha expirado. Por favor, vuelve a Conectar con Google Calendar."}), 401
+        return jsonify({"ok": False, "error": f"Error al importar calendario: {error_msg}"}), 500
 
 @google_cal_bp.route("/api/calendar/sync", methods=['POST'])
 def sync_calendar():
@@ -130,23 +146,31 @@ def sync_calendar():
         creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
 
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-            with open(TOKEN_FILE, 'w') as token:
-                token.write(creds.to_json())
+            try:
+                creds.refresh(Request())
+                with open(TOKEN_FILE, 'w') as token:
+                    token.write(creds.to_json())
+            except Exception as e:
+                print(f"Error refreshing token in sync: {e}")
+                if os.path.exists(TOKEN_FILE):
+                    os.remove(TOKEN_FILE)
+                return jsonify({"ok": False, "error": "La sesión de Google ha expirado de forma permanente. Por favor, vuelve a Conectar con Google Calendar."}), 401
 
         if not creds or not creds.valid:
+            if os.path.exists(TOKEN_FILE):
+                os.remove(TOKEN_FILE)
             return jsonify({"ok": False, "error": "Credenciales inválidas, vuelve a conectar Google Calendar"}), 401
             
         service = build('calendar', 'v3', credentials=creds)
         
         conn = get_db()
         cur = conn.cursor()
-        cur.execute("SELECT fecha, actividad, observaciones FROM programacion_diaria")
+        cur.execute("SELECT fecha, descripcion FROM programacion_diaria")
         local_events = cur.fetchall()
         
         pushed = 0
         for le in local_events:
-            if not le['fecha'] or not le['actividad']:
+            if not le['fecha'] or not le['descripcion']:
                 continue
                 
             # Check if already in GC (basic title check to avoid duplicates)
@@ -154,21 +178,24 @@ def sync_calendar():
             time_max = le['fecha'] + "T23:59:59Z"
             
             try:
-                existing = service.events().list(calendarId='primary', timeMin=time_min, timeMax=time_max, q=le['actividad']).execute()
+                existing = service.events().list(calendarId='primary', timeMin=time_min, timeMax=time_max, q=le['descripcion']).execute()
                 if not existing.get('items'):
                     event_body = {
-                        'summary': le['actividad'],
-                        'description': le['observaciones'] or "",
+                        'summary': le['descripcion'],
+                        'description': "",
                         'start': {'date': le['fecha']},
                         'end': {'date': le['fecha']}
                     }
                     service.events().insert(calendarId='primary', body=event_body).execute()
                     pushed += 1
             except Exception as e:
-                print(f"Error syncing event {le['actividad']}: {e}")
+                print(f"Error syncing event {le['descripcion']}: {e}")
                 continue
                 
         return jsonify({"ok": True, "synced": pushed, "pushed": pushed})
     except Exception as e:
         print(f"Global error in sync_calendar: {e}")
-        return jsonify({"ok": False, "error": "Error interno al sincronizar con Google Calendar."}), 500
+        error_msg = str(e)
+        if "invalid_grant" in error_msg:
+             return jsonify({"ok": False, "error": "La sesión de Google ha expirado. Por favor, vuelve a Conectar con Google Calendar."}), 401
+        return jsonify({"ok": False, "error": f"Error al sincronizar con Google Calendar: {error_msg}"}), 500

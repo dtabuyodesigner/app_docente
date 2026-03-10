@@ -36,16 +36,10 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
 
-    // Las peticiones a la API siempre van a la red (nunca cachear datos vivos)
+    // Las peticiones a la API siempre van a la red
     if (url.pathname.startsWith('/api/')) {
-        event.respondWith(
-            fetch(event.request).catch(() =>
-                new Response(JSON.stringify({ ok: false, error: 'Sin conexión' }), {
-                    headers: { 'Content-Type': 'application/json' }
-                })
-            )
-        );
-        return;
+        // Temporalmente deshabilitado para depurar problemas de conexión
+        return; 
     }
 
     // Para el resto: intenta red primero, si falla devuelve caché

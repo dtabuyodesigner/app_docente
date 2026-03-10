@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Diario e Incidencias</title>
@@ -20,7 +19,6 @@
             --bg: #f0f2f5;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -28,13 +26,10 @@
             padding: 20px;
             color: var(--dark);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
-
         /* Controls */
         .controls {
             background: white;
@@ -46,20 +41,17 @@
             align-items: center;
             margin-bottom: 20px;
         }
-
         input[type="date"] {
             padding: 8px;
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 1rem;
         }
-
         /* List */
         .student-list {
             display: grid;
             gap: 15px;
         }
-
         .student-card {
             background: white;
             padding: 15px;
@@ -70,14 +62,12 @@
             gap: 15px;
             align-items: start;
         }
-
         .student-name {
             font-weight: bold;
             font-size: 1.1rem;
             color: var(--primary);
             padding-top: 10px;
         }
-
         textarea {
             width: 100%;
             height: 60px;
@@ -87,13 +77,11 @@
             resize: vertical;
             font-family: inherit;
         }
-
         textarea:focus {
             outline: none;
             border-color: var(--secondary);
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
-
         .status-indicator {
             text-align: right;
             font-size: 0.9rem;
@@ -102,11 +90,9 @@
             transition: opacity 0.3s;
             padding-top: 10px;
         }
-
         .status-indicator.visible {
             opacity: 1;
         }
-
         .student-photo {
             width: 50px;
             height: 50px;
@@ -114,7 +100,6 @@
             object-fit: cover;
             border: 2px solid #eee;
         }
-
         .attendance-tag {
             font-size: 0.75rem;
             padding: 2px 6px;
@@ -123,27 +108,22 @@
             margin-top: 5px;
             display: inline-block;
         }
-
         .attendance-tag.presente {
             background: #e8f5e9;
             color: #2e7d32;
         }
-
         .attendance-tag.retraso {
             background: #fff3e0;
             color: #ef6c00;
         }
-
         .attendance-tag.falta_justificada {
             background: #e3f2fd;
             color: #1565c0;
         }
-
         .attendance-tag.falta_no_justificada {
             background: #ffebee;
             color: #c62828;
         }
-
         .contact-info {
             font-size: 0.8rem;
             color: #666;
@@ -153,7 +133,6 @@
             border-radius: 6px;
             display: none;
         }
-
         .btn-contact {
             background: none;
             border: none;
@@ -164,18 +143,15 @@
             text-decoration: underline;
             margin-top: 5px;
         }
-
         @media (max-width: 600px) {
             .student-card {
                 grid-template-columns: 1fr;
                 gap: 5px;
             }
-
             .status-indicator {
                 text-align: left;
             }
         }
-
         /* Preview Modal */
         .modal {
             display: none;
@@ -188,7 +164,6 @@
             background-color: rgba(0, 0, 0, 0.5);
             overflow-y: auto;
         }
-
         .modal-content {
             background-color: white;
             margin: 5% auto;
@@ -199,7 +174,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             position: relative;
         }
-
         .close {
             position: absolute;
             right: 20px;
@@ -209,23 +183,19 @@
             cursor: pointer;
             color: #aaa;
         }
-
         .close:hover {
             color: black;
         }
-
         .preview-header {
             border-bottom: 2px solid #f0f2f5;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
-
         .preview-date-group {
             margin-bottom: 20px;
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
         }
-
         .preview-date {
             font-weight: bold;
             color: var(--primary);
@@ -233,12 +203,10 @@
             margin-bottom: 10px;
             display: block;
         }
-
         .preview-obs {
             margin-bottom: 5px;
             line-height: 1.4;
         }
-
         .btn-print {
             background: var(--success);
             color: white;
@@ -250,7 +218,6 @@
             display: block;
             margin: 20px auto 0;
         }
-
         .preview-textarea {
             width: 100%;
             border: 1px solid transparent;
@@ -262,12 +229,10 @@
             transition: all 0.2s;
             border-radius: 4px;
         }
-
         .preview-textarea:hover {
             border-color: #ddd;
             background: #fff;
         }
-
         .preview-textarea:focus {
             outline: none;
             border-color: var(--secondary);
@@ -275,41 +240,14 @@
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
-
 <body>
-
     <div class="container">
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario" class="active">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-        </div>
-        <div
-            style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div class="group-selector-container injected-group-selector">
-                    <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        class="group-selector-select">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-
+        <!-- Unified Navigation injected by navigation.js -->
         <div class="controls">
             <h2 style="margin:0;">📓 Diario e Incidencias</h2>
             <div style="display: flex; gap: 15px; align-items: center;">
@@ -324,12 +262,9 @@
                 </div>
             </div>
         </div>
-
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
         <div id="studentList" class="student-list"></div>
-
     </div>
-
     <!-- Preview Modal -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
@@ -344,35 +279,30 @@
             </div>
         </div>
     </div>
-
     <script>
         const datePicker = document.getElementById('datePicker');
         const areaSelect = document.getElementById('areaSelect');
         const studentList = document.getElementById('studentList');
         const loading = document.getElementById('loading');
-
         // Set today
         datePicker.valueAsDate = new Date();
-
         datePicker.addEventListener('change', loadData);
         areaSelect.addEventListener('change', loadData);
-
-        // Load Areas
-        fetch('/api/evaluacion/areas').then(r => r.json()).then(areas => {
+        // Load Areas (endpoint correcto: /api/curricular/areas)
+        fetch('/api/curricular/areas').then(r => r.json()).then(areas => {
+            if (!Array.isArray(areas)) return;
             areas.forEach(a => {
                 const opt = document.createElement('option');
                 opt.value = a.id;
                 opt.textContent = a.nombre;
                 areaSelect.appendChild(opt);
             });
-        });
-
+        }).catch(err => console.warn('[Diario] No se pudieron cargar las áreas:', err));
         function loadData() {
             const fecha = datePicker.value;
             const areaId = areaSelect.value;
             loading.style.display = 'block';
             studentList.innerHTML = '';
-
             fetch(`/api/observaciones/dia?fecha=${fecha}&area_id=${areaId}`)
                 .then(r => r.json())
                 .then(data => {
@@ -384,50 +314,45 @@
                     loading.innerText = "Error al cargar datos";
                 });
         }
-
         function renderStudents(students) {
+            if (!Array.isArray(students)) {
+                studentList.innerHTML = '<div style="text-align:center; padding:20px; color:#dc3545;">Error al cargar datos. Recarga la página.</div>';
+                return;
+            }
             if (students.length === 0) {
                 studentList.innerHTML = '<div style="text-align:center; padding:20px;">No hay alumnos registrados.</div>';
                 return;
             }
-
             students.forEach(s => {
                 const card = document.createElement('div');
                 card.className = 'student-card';
-
                 // Photo + Name info
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'student-name';
                 nameDiv.style.display = 'flex';
                 nameDiv.style.gap = '12px';
                 nameDiv.style.alignItems = 'flex-start';
-
                 const photoPath = s.foto ? `/static/uploads/${s.foto}` : 'https://via.placeholder.com/50';
-
                 const attendanceLabels = {
                     'presente': 'Presente',
                     'retraso': 'Retraso',
                     'falta_justificada': 'Falta Justif.',
                     'falta_no_justificada': 'No Justif.'
                 };
-
                 nameDiv.innerHTML = `
                     <img src="${photoPath}" class="student-photo" onerror="this.src='https://via.placeholder.com/50'">
                     <div style="flex-grow:1;">
                         <div style="font-size:1rem; line-height:1.2;">${s.nombre}</div>
                         <div class="attendance-tag ${s.asistencia}">${attendanceLabels[s.asistencia] || s.asistencia}</div>
-                        <div style="margin-top:8px;">
-                            <button onclick="openPreview(${s.id})" style="background:none; border:none; cursor:pointer; font-size:1.2rem; padding:0;" title="Vista previa">👁️</button>
-                            <button class="btn-contact" onclick="this.parentElement.nextElementSibling.style.display = (this.parentElement.nextElementSibling.style.display === 'block' ? 'none' : 'block')">📞 Contacto</button>
+                        <div style="margin-top:6px; font-size:0.8rem; color:#555; display:flex; flex-direction:column; gap:2px;">
+                            ${s.madre_tel ? `<span>👩 ${s.madre_tel}</span>` : ''}
+                            ${s.padre_tel ? `<span>👨 ${s.padre_tel}</span>` : ''}
                         </div>
-                        <div class="contact-info">
-                            ${s.madre_tel ? `<div>👩 <b>Madre:</b> ${s.madre_tel} <br> <span style="font-size:0.7rem;">${s.madre_email}</span></div>` : ''}
-                            ${s.padre_tel ? `<div style="margin-top:5px;">👨 <b>Padre:</b> ${s.padre_tel} <br> <span style="font-size:0.7rem;">${s.padre_email}</span></div>` : ''}
-                            ${!s.madre_tel && !s.padre_tel ? 'No hay info de contacto' : ''}
+                        <div style="margin-top:6px;">
+                            <button onclick="openPreview(${s.id})" style="background:none; border:none; cursor:pointer; font-size:1.2rem; padding:0;" title="Vista previa">👁️</button>
                         </div>
                     </div>
                 `;
-
                 // Textarea
                 const txt = document.createElement('textarea');
                 txt.placeholder = areaSelect.value ? "Escribe una observación para este área..." : "Escribe una incidencia o comentario general...";
@@ -435,18 +360,14 @@
                 txt.style.minHeight = "80px";
                 txt.style.fontSize = "0.95rem";
                 txt.style.lineHeight = "1.5";
-
                 // Auto-expand function
                 const autoExpand = (el) => {
                     el.style.height = 'auto';
                     el.style.height = el.scrollHeight + 'px';
                 };
-
                 // Initial expand
                 setTimeout(() => autoExpand(txt), 0);
-
                 txt.addEventListener('input', () => autoExpand(txt));
-
                 // Save on blur
                 txt.addEventListener('blur', () => {
                     if (txt.value !== s.observacion) {
@@ -454,24 +375,20 @@
                         s.observacion = txt.value; // Update local model
                     }
                 });
-
                 // Status
                 const statusDiv = document.createElement('div');
                 statusDiv.className = 'status-indicator';
                 statusDiv.textContent = '💾 Guardado';
-
                 card.appendChild(nameDiv);
                 card.appendChild(txt);
                 card.appendChild(statusDiv);
                 studentList.appendChild(card);
             });
         }
-
         function saveObservation(alumnoId, texto, statusDiv) {
             statusDiv.textContent = "Guardando...";
             statusDiv.classList.add('visible');
             statusDiv.style.color = "#666";
-
             // This will now use the UPSERT logic we are adding to backend
             fetch('/api/observaciones', {
                 method: 'POST',
@@ -506,7 +423,6 @@
                     statusDiv.style.color = "var(--danger)";
                 });
         }
-
         // Init
         loadData();
         function openPreview(alumnoId) {
@@ -514,11 +430,9 @@
             const nameEl = document.getElementById('previewStudentName');
             const bodyEl = document.getElementById('previewBody');
             const printBtn = document.getElementById('modalPrintBtn');
-
             bodyEl.innerHTML = '<p style="text-align:center;">Cargando vista previa...</p>';
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-
             fetch(`/api/informe/preview_diario/${alumnoId}`)
                 .then(r => r.json())
                 .then(data => {
@@ -526,15 +440,12 @@
                         bodyEl.innerHTML = `<p style="color:red; text-align:center;">Error: ${data.error}</p>`;
                         return;
                     }
-
                     nameEl.textContent = data.nombre_alumno;
                     printBtn.onclick = () => window.open(`/api/informe/pdf_diario/${alumnoId}`, '_blank');
-
                     if (data.data.length === 0) {
                         bodyEl.innerHTML = '<p style="text-align:center; padding:20px;">No hay observaciones registradas para este alumno.</p>';
                         return;
                     }
-
                     let html = '';
                     data.data.forEach(group => {
                         html += `
@@ -562,7 +473,6 @@
                         `;
                     });
                     bodyEl.innerHTML = html;
-
                     // Initial auto-expand
                     document.querySelectorAll('.preview-textarea').forEach(el => {
                         el.style.height = 'auto';
@@ -574,18 +484,14 @@
                     bodyEl.innerHTML = '<p style="color:red; text-align:center;">Error al cargar la vista previa.</p>';
                 });
         }
-
         async function savePreviewEdit(obsId, textarea, fecha, area) {
             const statusEl = document.getElementById(`status-${obsId}`);
             const nuevoTexto = textarea.value;
-
             // Only save if changed (simple check)
             if (textarea.dataset.lastValue === nuevoTexto) return;
-
             statusEl.textContent = "⏳ Guardando...";
             statusEl.style.color = "#666";
             statusEl.style.fontWeight = "bold";
-
             try {
                 console.log(`Guardando edición de obs ${obsId}...`);
                 const res = await fetch(`/api/observaciones/${obsId}`, {
@@ -598,7 +504,6 @@
                     statusEl.textContent = "✅ Guardado";
                     statusEl.style.color = "var(--success)";
                     textarea.dataset.lastValue = nuevoTexto;
-
                     if (data.deleted) {
                         statusEl.textContent = "🗑️ Eliminado";
                         setTimeout(() => {
@@ -610,7 +515,6 @@
                             if (statusEl.textContent === "✅ Guardado") statusEl.textContent = "";
                         }, 3000);
                     }
-
                     // Refresh background list softly
                     if (datePicker.value === fecha) {
                         // Debounce or just call it
@@ -626,10 +530,8 @@
                 statusEl.style.color = "var(--danger)";
             }
         }
-
         async function deleteObservationPreview(obsId, btn) {
             if (!confirm("¿Borrar esta nota para siempre?")) return;
-
             try {
                 const res = await fetch(`/api/observaciones/${obsId}`, { method: 'DELETE' });
                 const data = await res.json();
@@ -648,12 +550,10 @@
                 alert("Error de conexión");
             }
         }
-
         function closePreview() {
             document.getElementById('previewModal').style.display = 'none';
             document.body.style.overflow = '';
         }
-
         window.onclick = function (event) {
             const modal = document.getElementById('previewModal');
             if (event.target == modal) {
@@ -661,10 +561,5 @@
             }
         }
     </script>
-
-
-    <script src="/static/js/global_groups.js"></script>
-    <script src="/static/js/api.js"></script>
 </body>
-
 </html>

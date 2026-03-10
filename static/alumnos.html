@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Alumnos</title>
@@ -8,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
-
     <style>
         :root {
             --primary: #003366;
@@ -23,7 +21,6 @@
             --text: #333;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -31,32 +28,25 @@
             padding: 20px;
             color: var(--dark);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
-
         a {
             text-decoration: none;
             color: #333;
         }
-
         .volver {
             margin-bottom: 15px;
             display: inline-block;
             font-weight: bold;
         }
-
         .contenedor {
             display: grid;
             grid-template-columns: 420px 1fr;
             gap: 20px;
         }
-
         /* ===== LISTADO ===== */
-
         .lista {
             background: white;
             border-radius: 12px;
@@ -66,11 +56,9 @@
             box-shadow: var(--shadow);
             border: 1px solid #eef2f7;
         }
-
         .lista h3 {
             margin-top: 0;
         }
-
         .alumno-item {
             padding: 10px 12px;
             border-radius: 8px;
@@ -83,47 +71,38 @@
             align-items: center;
             gap: 10px;
         }
-
         .alumno-item:hover {
             background: #f0f4f8;
             color: var(--primary);
         }
-
         .alumno-item.activo {
             background: var(--primary);
             color: white;
             font-weight: 600;
         }
-
         /* ===== FICHA ===== */
-
         .ficha {
             background: white;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
         }
-
         .ficha h2 {
             margin-top: 0;
         }
-
         input,
         textarea {
             width: 100%;
             padding: 6px;
             margin-bottom: 10px;
         }
-
         textarea {
             height: 80px;
         }
-
         button {
             padding: 8px 14px;
             cursor: pointer;
         }
-
         .modal-overlay {
             display: none;
             position: fixed;
@@ -136,7 +115,6 @@
             justify-content: center;
             align-items: center;
         }
-
         .modal {
             background: white;
             padding: 25px;
@@ -148,56 +126,30 @@
             position: relative;
             box-shadow: var(--shadow);
         }
-
         /* Mobile tweaks */
         @media (max-width: 768px) {
             .contenedor {
                 grid-template-columns: 1fr;
             }
-
             .lista {
                 height: 300px;
                 margin-bottom: 20px;
             }
-
-            .nav {
-                justify-content: center;
-            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
 
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
+</head>
 <body>
     <div class="container">
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos" class="active">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-        </div>
-
+        <!-- Unified Navigation injected by navigation.js -->
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <h2 style="margin:0;">👦 Alumnos</h2>
-                <div class="group-selector-container injected-group-selector">
-                    <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        class="group-selector-select">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <button class="nav-btn" onclick="mostrarModalNuevo()"
@@ -213,9 +165,7 @@
                     📤 Importar CSV
                 </button>
                 <input type="file" id="csvInput" hidden accept=".csv" onchange="importarCSV(this)">
-
                 <div style="flex-grow: 1;"></div>
-
                 <button onclick="exportarData('json')"
                     style="background:#f8f9fa; border:1px solid #ddd; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">
                     📥 Exportar JSON
@@ -226,9 +176,7 @@
                 </button>
             </div>
         </div>
-
         <div class="contenedor">
-
             <!-- LISTADO -->
             <div class="lista">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -250,11 +198,9 @@
                 </div>
                 <div id="listaAlumnos"></div>
             </div>
-
             <!-- FICHA -->
             <div class="ficha">
                 <h2 id="nombreAlumno">Selecciona un alumno</h2>
-
                 <!-- TABS SUPERIORES -->
                 <div class="profile-tabs"
                     style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
@@ -268,15 +214,12 @@
                         style="background:none; border:none; padding:8px 15px; cursor:pointer; font-weight:bold; color: #666;">📖
                         Préstamos</button>
                 </div>
-
                 <!-- CONTENIDO: DATOS -->
                 <div id="sectionDatos">
                     <label>Fecha nacimiento</label>
                     <input type="date" id="fecha_nacimiento">
-
                     <label>Dirección</label>
                     <input type="text" id="direccion">
-
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                         <div>
                             <label>Madre (Nombre)</label>
@@ -303,19 +246,15 @@
                             <input type="email" id="padre_email">
                         </div>
                     </div>
-
                     <label>Observaciones generales</label>
                     <textarea id="observaciones_generales"></textarea>
-
                     <label>Personas Autorizadas</label>
                     <textarea id="personas_autorizadas" placeholder="Lista de personas autorizadas..."></textarea>
-
                     <div style="margin-top:15px; text-align:right;">
                         <button onclick="limpiarFicha()"
                             style="background:#ddd; border-radius: 4px; border: 1px solid #ccc;">
                             🧹 Limpiar ficha
                         </button>
-
                         <button onclick="guardarFicha()"
                             style="background:#2ecc71; color:white; border-radius: 4px; border: none; font-weight: bold;">
                             💾 Guardar ficha
@@ -325,7 +264,6 @@
                         ✔ Ficha guardada
                     </div>
                 </div>
-
                 <!-- CONTENIDO: PROGRESO -->
                 <div id="sectionProgreso" style="display:none; padding: 20px 0;">
                     <div style="display: flex; flex-direction: column; gap: 30px;">
@@ -339,7 +277,6 @@
                                 <canvas id="chartT1"></canvas>
                             </div>
                         </div>
-
                         <!-- T2 -->
                         <div class="chart-container-box"
                             style="background: #f8fbff; border-radius: 12px; padding: 20px; border: 1px solid #eef2f7;">
@@ -350,7 +287,6 @@
                                 <canvas id="chartT2"></canvas>
                             </div>
                         </div>
-
                         <!-- T3 -->
                         <div class="chart-container-box"
                             style="background: #f8fbff; border-radius: 12px; padding: 20px; border: 1px solid #eef2f7;">
@@ -367,7 +303,6 @@
                             registradas.</em>
                     </p>
                 </div>
-
                 <!-- CONTENIDO: PRÉSTAMOS -->
                 <div id="sectionPrestamos" style="display:none; padding: 20px 0;">
                     <div id="prestamosAlumnoContainer">
@@ -376,9 +311,7 @@
                     </div>
                 </div>
             </div>
-
         </div>
-
         <!-- MODAL NUEVO/EDITAR ALUMNO -->
         <div id="modalAlumno"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
@@ -388,14 +321,12 @@
                     style="margin-top:0; color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px;">
                     Nuevo Alumno</h3>
                 <input type="hidden" id="modalAlumnoId">
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
                     <div style="grid-column: span 2;">
                         <label style="font-weight:bold; display:block; margin-bottom:5px;">Nombre y Apellidos</label>
                         <input type="text" id="modalNombre" placeholder="Nombre completo"
                             style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
                     </div>
-
                     <div>
                         <label style="font-weight:bold; display:block; margin-bottom:5px;">Fecha Nacimiento</label>
                         <input type="date" id="modalFechaNac"
@@ -406,13 +337,11 @@
                         <input type="file" id="modalFotoFile" accept="image/*"
                             style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box; font-size: 0.8rem;">
                     </div>
-
                     <div style="grid-column: span 2;">
                         <label style="font-weight:bold; display:block; margin-bottom:5px;">Dirección</label>
                         <input type="text" id="modalDireccion" placeholder="Calle, número, piso..."
                             style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
                     </div>
-
                     <div>
                         <label style="font-weight:bold; display:block; margin-bottom:5px;">Nombre Madre</label>
                         <input type="text" id="modalMadreNom"
@@ -428,7 +357,6 @@
                         <input type="email" id="modalMadreEmail"
                             style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
                     </div>
-
                     <div>
                         <label style="font-weight:bold; display:block; margin-bottom:5px;">Nombre Padre</label>
                         <input type="text" id="modalPadreNom"
@@ -444,14 +372,12 @@
                         <input type="email" id="modalPadreEmail"
                             style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
                     </div>
-
                     <div style="grid-column: span 2;">
                         <label style="font-weight:bold; display:block; margin-bottom:5px;">Personas Autorizadas / Otras
                             Notas</label>
                         <textarea id="modalAutorizados" placeholder="Otras personas que pueden recoger al alumno..."
                             style="width:100%; height:60px; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box; font-family: inherit;"></textarea>
                     </div>
-
                     <div
                         style="grid-column: span 2; background:#f8f9fa; padding:15px; border-radius:8px; border: 1px solid #eef2f7;">
                         <label style="font-weight:bold; display:block; margin-bottom:10px;">🍽️ Días de Comedor:</label>
@@ -472,7 +398,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div
                     style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px; border-top: 2px solid #eee; padding-top: 20px;">
                     <button onclick="cerrarModal()"
@@ -484,19 +409,16 @@
                 </div>
             </div>
         </div>
-
         <!-- Modal Transferir Alumno -->
         <div class="modal-overlay" id="transferModal">
             <div class="modal" style="max-width: 400px;">
                 <h3 style="margin-top:0; color:var(--primary);">🔄 Transferir Alumno</h3>
                 <p>Mover a <strong id="transferNombreAlumno"></strong> al grupo:</p>
                 <input type="hidden" id="transferAlumnoId">
-
                 <select id="transferGroupSelect"
                     style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; margin-bottom: 20px;">
                     <option value="">Cargando grupos...</option>
                 </select>
-
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button onclick="document.getElementById('transferModal').style.display='none'"
                         style="background: #eef2f7; color: #333; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">
@@ -509,10 +431,8 @@
                 </div>
             </div>
         </div>
-
         <script>
             let alumnoActual = null;
-
             /* ===== CARGAR LISTADO ===== */
             function cargarAlumnos() {
                 fetch("/api/alumnos")
@@ -520,19 +440,16 @@
                     .then(alumnos => {
                         const lista = document.getElementById("listaAlumnos");
                         lista.innerHTML = "";
-
                         alumnos.forEach(a => {
                             const div = document.createElement("div");
                             div.className = "alumno-item";
                             if (alumnoActual == a.id) div.classList.add("activo");
-
                             // Contenedor principal flex
                             const content = document.createElement("div");
                             content.style.display = "flex";
                             content.style.justifyContent = "space-between";
                             content.style.alignItems = "center";
                             content.style.width = "100%";
-
                             // Nombre (Clickable para seleccionar)
                             // Container de info principal (Foto + Nombre)
                             const divInfo = document.createElement("div");
@@ -541,7 +458,6 @@
                             divInfo.style.gap = "10px";
                             divInfo.style.flexGrow = "1";
                             divInfo.onclick = () => seleccionarAlumno(a.id, a.nombre, div); // Mover el click aquí
-
                             // Checkbox
                             const cb = document.createElement("input");
                             cb.type = "checkbox";
@@ -553,7 +469,6 @@
                                 e.stopPropagation();
                                 updateBatchButtons();
                             };
-
                             // Foto
                             const img = document.createElement("img");
                             img.style.width = "40px";
@@ -567,42 +482,36 @@
                                 // Placeholder emoji o imagen por defecto
                                 img.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>👤</text></svg>";
                             }
-
                             const spanNombre = document.createElement("span");
                             spanNombre.style.fontWeight = "600";
                             spanNombre.innerText = a.nombre;
-
                             const divText = document.createElement("div");
                             divText.style.display = "flex";
                             divText.style.flexDirection = "column";
                             divText.appendChild(spanNombre);
-
                             if (a.madre_telefono || a.padre_telefono) {
                                 const divTels = document.createElement("div");
                                 divTels.style.fontSize = "0.8em";
                                 divTels.style.color = "#666";
                                 divTels.style.display = "flex";
-                                divTels.style.gap = "8px";
+                                divTels.style.flexDirection = "column";
+                                divTels.style.gap = "2px";
                                 divTels.style.marginTop = "2px";
-
                                 if (a.madre_telefono) {
-                                    divTels.innerHTML += `<span title="Mamá: ${a.madre_telefono}">👩‍🦱 ${a.madre_telefono}</span>`;
+                                    divTels.innerHTML += `<span style="white-space:nowrap" title="Mamá: ${a.madre_telefono}">👩 ${a.madre_telefono}</span>`;
                                 }
                                 if (a.padre_telefono) {
-                                    divTels.innerHTML += `<span title="Papá: ${a.padre_telefono}">👨 ${a.padre_telefono}</span>`;
+                                    divTels.innerHTML += `<span style="white-space:nowrap" title="Papá: ${a.padre_telefono}">👨 ${a.padre_telefono}</span>`;
                                 }
                                 divText.appendChild(divTels);
                             }
-
                             divInfo.appendChild(cb);
                             divInfo.appendChild(img);
                             divInfo.appendChild(divText);
-
                             // Botones acciones
                             const divAcciones = document.createElement("div");
                             divAcciones.style.display = "flex";
                             divAcciones.style.gap = "5px";
-
                             // Botón Editar
                             const btnEdit = document.createElement("button");
                             btnEdit.innerHTML = "✏️";
@@ -615,7 +524,6 @@
                                 e.stopPropagation();
                                 mostrarModalEditar(a);
                             };
-
                             // Botón Ver Perfil
                             const btnView = document.createElement("button");
                             btnView.innerHTML = "👀";
@@ -628,7 +536,6 @@
                                 e.stopPropagation();
                                 window.location.href = `/perfil/${a.id}`;
                             };
-
                             // Botón Borrar
                             const btnDel = document.createElement("button");
                             btnDel.innerHTML = "🗑️";
@@ -641,7 +548,6 @@
                                 e.stopPropagation();
                                 borrarAlumno(a.id, a.nombre);
                             };
-
                             // Botón Transferir
                             const btnTransfer = document.createElement("button");
                             btnTransfer.innerHTML = "🔄";
@@ -654,24 +560,19 @@
                                 e.stopPropagation();
                                 abrirModalTransferir(a.id, a.nombre);
                             };
-
                             divAcciones.appendChild(btnView);
                             divAcciones.appendChild(btnEdit);
                             divAcciones.appendChild(btnTransfer);
                             divAcciones.appendChild(btnDel);
-
                             content.appendChild(divInfo); // Cambio: info completa (foto+nombre)
                             content.appendChild(divAcciones);
-
                             div.appendChild(content);
                             lista.appendChild(div);
                         });
                     });
             }
-
             // Inicio
             cargarAlumnos();
-
             /* ===== HISTORIAL PRÉSTAMOS ===== */
             async function cargarPrestamosAlumno(alumnoId) {
                 const cont = document.getElementById('prestamosAlumnoContainer');
@@ -706,17 +607,13 @@
                     cont.innerHTML = '<p style="color:#dc3545;">Error al cargar préstamos.</p>';
                 }
             }
-
             function seleccionarAlumno(id, nombre, div) {
                 alumnoActual = id;
-
                 document.querySelectorAll(".alumno-item").forEach(e =>
                     e.classList.remove("activo")
                 );
                 div.classList.add("activo");
-
                 document.getElementById("nombreAlumno").innerText = nombre;
-
                 fetch(`/api/alumnos/ficha/${id}`)
                     .then(r => r.json())
                     .then(d => {
@@ -731,13 +628,11 @@
                         document.getElementById("observaciones_generales").value = d.observaciones_generales || "";
                         document.getElementById("personas_autorizadas").value = d.personas_autorizadas || "";
                     });
-
                 // Si estamos en la pestaña de progreso, cargar el gráfico
                 if (document.getElementById("sectionProgreso").style.display === "block") {
                     renderProgressChart(id);
                 }
             }
-
             /* ===== TABS DE PERFIL ===== */
             function changeProfileTab(tab) {
                 const sectionDatos = document.getElementById("sectionDatos");
@@ -746,11 +641,9 @@
                 const btnDatos = document.getElementById("btnTabDatos");
                 const btnProgreso = document.getElementById("btnTabProgreso");
                 const btnPrestamos = document.getElementById("btnTabPrestamos");
-
                 // Reset all
                 [sectionDatos, sectionProgreso, sectionPrestamos].forEach(s => s.style.display = 'none');
                 [btnDatos, btnProgreso, btnPrestamos].forEach(b => { b.style.borderBottom = '3px solid transparent'; b.style.color = '#666'; });
-
                 if (tab === 'datos') {
                     sectionDatos.style.display = 'block';
                     btnDatos.style.borderBottom = '3px solid #003366'; btnDatos.style.color = '#003366';
@@ -764,9 +657,7 @@
                     if (alumnoActual) cargarPrestamosAlumno(alumnoActual);
                 }
             }
-
             let charts = { T1: null, T2: null, T3: null };
-
             function renderProgressChart(id) {
                 fetch(`/api/alumnos/progreso/${id}`)
                     .then(r => r.json())
@@ -776,17 +667,14 @@
                         createTrimesterChart('chartT3', datos["3"], 'T3', '#ffc107');
                     });
             }
-
             function createTrimesterChart(canvasId, items, chartKey, color) {
                 const ctx = document.getElementById(canvasId).getContext('2d');
                 if (charts[chartKey]) charts[chartKey].destroy();
-
                 // Si no hay datos, mostrar placeholder o limpiar
                 if (!items || items.length === 0) {
                     // Podríamos pintar algo opcional, por ahora vaciamos
                     return;
                 }
-
                 charts[chartKey] = new Chart(ctx, {
                     type: 'bar',
                     data: {
@@ -833,11 +721,9 @@
                     }
                 });
             }
-
             /* ===== GUARDAR FICHA ===== */
             function guardarFicha() {
                 if (!alumnoActual) return;
-
                 fetch("/api/alumnos/ficha", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -857,18 +743,14 @@
                 }).then(() => {
                     const msg = document.getElementById("mensajeGuardado");
                     msg.style.display = "block";
-
                     setTimeout(() => {
                         msg.style.display = "none";
                     }, 1500);
                 });
             }
-
-
             /* ===== LIMPIAR FICHA===== */
             function limpiarFicha() {
                 if (!alumnoActual) return;
-
                 fetch(`/api/alumnos/ficha/${alumnoActual}`, {
                     method: "DELETE"
                 }).then(() => {
@@ -884,18 +766,15 @@
                     document.getElementById("personas_autorizadas").value = "";
                 });
             }
-
             /* ===== GESTIÓN DE ALUMNOS (MODAL) ===== */
             const modal = document.getElementById("modalAlumno");
             const modalTitulo = document.getElementById("modalTitulo");
             const modalId = document.getElementById("modalAlumnoId");
             const modalNombre = document.getElementById("modalNombre");
             // const modalNoComedor = document.getElementById("modalNoComedor"); // Removed
-
             function toggleDias(check) {
                 document.querySelectorAll(".chk-dia").forEach(c => c.checked = check);
             }
-
             function mostrarModalNuevo() {
                 modalTitulo.innerText = "Nuevo Alumno";
                 modalId.value = "";
@@ -915,13 +794,11 @@
                 document.body.style.overflow = "hidden";
                 modalNombre.focus();
             }
-
             async function mostrarModalEditar(alumno) {
                 modalTitulo.innerText = "Editar Alumno";
                 modalId.value = alumno.id;
                 modalNombre.value = alumno.nombre;
                 document.getElementById("modalFotoFile").value = "";
-
                 // Cargar datos adicionales de la ficha
                 try {
                     const r = await fetch(`/api/alumnos/ficha/${alumno.id}`);
@@ -938,7 +815,6 @@
                 } catch (e) {
                     console.error("Error al cargar ficha para editar", e);
                 }
-
                 if (alumno.comedor_dias) {
                     const dias = alumno.comedor_dias.split(",");
                     document.querySelectorAll(".chk-dia").forEach(c => {
@@ -948,36 +824,29 @@
                     const come = (alumno.no_comedor === 0);
                     toggleDias(come);
                 }
-
                 modal.style.display = "flex";
                 document.body.style.overflow = "hidden";
                 modalNombre.focus();
             }
-
             function cerrarModal() {
                 modal.style.display = "none";
                 document.body.style.overflow = "";
             }
-
             async function deleteActiveGroup() {
                 const globalSelect = document.getElementById('globalGroupSelect');
                 const groupId = globalSelect.value;
                 const groupName = globalSelect.options[globalSelect.selectedIndex].text;
-
                 if (!groupId) {
                     alert("No hay ningún grupo seleccionado para eliminar.");
                     return;
                 }
-
                 if (!confirm("¿Estás 100% seguro de que quieres eliminar el grupo '" + groupName + "'? ¡Esta acción borrará el grupo para siempre! (Solo se puede borrar si no contiene alumnos)")) {
                     return;
                 }
-
                 try {
                     const res = await fetch('/api/grupos/' + groupId, {
                         method: 'DELETE'
                     });
-
                     const data = await res.json();
                     if (data.ok) {
                         alert("🗑️ Grupo eliminado con éxito.");
@@ -990,31 +859,24 @@
                     console.error(err);
                 }
             }
-
             function guardarAlumnoModal() {
                 const nombre = modalNombre.value.trim();
-
                 // Get selected days
                 const diasSeleccionados = Array.from(document.querySelectorAll(".chk-dia:checked"))
                     .map(c => c.value);
-
                 // Logic compatible with DB:
                 // comedor_dias = "0,1,2..."
                 // no_comedor = 1 if list is empty, 0 otherwise (legacy fallback)
-
                 const comedor_dias = diasSeleccionados.join(",");
                 const no_comedor = (diasSeleccionados.length > 0) ? 0 : 1;
-
                 if (!nombre) {
                     alert("El nombre no puede estar vacío");
                     return;
                 }
-
                 // 1. Guardar datos básicos
                 const id = modalId.value;
                 const url = id ? `/api/alumnos/${id}` : "/api/alumnos/nuevo";
                 const method = id ? "PUT" : "POST";
-
                 const payload = {
                     nombre,
                     no_comedor,
@@ -1029,7 +891,6 @@
                     padre_email: document.getElementById("modalPadreEmail").value,
                     personas_autorizadas: document.getElementById("modalAutorizados").value
                 };
-
                 fetch(url, {
                     method: method,
                     headers: { "Content-Type": "application/json" },
@@ -1041,11 +902,9 @@
                             // 2. Si hay foto nueva, subirla
                             const fileInput = document.getElementById("modalFotoFile");
                             const newId = id || res.id; // Si era nuevo, usamos el ID devuelto
-
                             if (fileInput.files.length > 0) {
                                 const formData = new FormData();
                                 formData.append("foto", fileInput.files[0]);
-
                                 fetch(`/api/alumnos/${newId}/foto`, {
                                     method: 'POST',
                                     body: formData
@@ -1079,12 +938,10 @@
                     })
                     .catch(err => alert("Error de red: " + err));
             }
-
             function borrarAlumno(id, nombre) {
                 if (!confirm(`¿Estás SEGURO de que quieres borrar a ${nombre}?\n\n⚠️ ESTA ACCIÓN BORRARÁ TODOS SUS DATOS (Notas, Asistencia, etc) Y NO SE PUEDE DESHACER.`)) {
                     return;
                 }
-
                 fetch(`/api/alumnos/${id}`, {
                     method: "DELETE"
                 })
@@ -1102,49 +959,38 @@
                         }
                     });
             }
-
             async function abrirModalTransferir(id, nombre) {
                 document.getElementById('transferAlumnoId').value = id;
                 document.getElementById('transferNombreAlumno').innerText = nombre;
-
                 // Fetch groups
                 try {
                     const res = await fetch('/api/grupos');
                     const groups = await res.json();
                     const select = document.getElementById('transferGroupSelect');
-
                     const activeGroupId = document.getElementById('globalGroupSelect').value;
-
                     if (groups.length <= 1) {
                         alert("No tienes otros grupos a los que transferir este alumno (solo existe 1 grupo actualmente).");
                         return;
                     }
-
                     const filtered = groups.filter(g => g.id.toString() !== activeGroupId.toString());
                     if (filtered.length === 0) {
                         alert("No hay otros grupos disponibles (el alumno ya está en el único grupo que existe).");
                         return;
                     }
-
                     select.innerHTML = filtered.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
-
                     document.getElementById('transferModal').style.display = 'flex';
                 } catch (e) {
                     alert("Error cargando la lista de grupos: " + e.message);
                     console.error("Error cargando grupos", e);
                 }
             }
-
             async function ejecutarTransferencia() {
                 const alumnoId = document.getElementById('transferAlumnoId').value;
                 const nuevoGrupoId = document.getElementById('transferGroupSelect').value;
-
                 if (!nuevoGrupoId || !alumnoId) return;
-
                 const ids = alumnoId.split(',');
                 let successCount = 0;
                 let errorCount = 0;
-
                 for (let id of ids) {
                     try {
                         const res = await fetch(`/api/alumnos/${id}/transferir`, {
@@ -1152,7 +998,6 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ nuevo_grupo_id: nuevoGrupoId })
                         });
-
                         const text = await res.text();
                         let data;
                         try {
@@ -1162,7 +1007,6 @@
                             errorCount++;
                             continue;
                         }
-
                         if (data.ok) {
                             successCount++;
                         } else {
@@ -1174,26 +1018,21 @@
                         errorCount++;
                     }
                 }
-
                 document.getElementById('transferModal').style.display = 'none';
-
                 if (ids.length > 1) {
                     alert(`Transferencia completada.\n✅ Transferidos: ${successCount}\n❌ Errores: ${errorCount}`);
                 } else if (errorCount > 0) {
                     alert('Error al transferir al alumno. Revisa la consola para más detalles.');
                 }
-
                 // Limpieza de UI
                 const chkAll = document.getElementById('selectAllCheckbox');
                 if (chkAll) chkAll.checked = false;
                 if (typeof updateBatchButtons === 'function') updateBatchButtons();
-
                 cargarAlumnos();
                 limpiarFichaUI();
                 document.getElementById("nombreAlumno").innerText = "Selecciona un alumno";
                 alumnoActual = null;
             }
-
             function limpiarFichaUI() {
                 document.getElementById("fecha_nacimiento").value = "";
                 document.getElementById("direccion").value = "";
@@ -1209,28 +1048,23 @@
                 if (charts.T2) charts.T2.destroy();
                 if (charts.T3) charts.T3.destroy();
             }
-
             function exportarData(tipo) {
                 window.location.href = `/api/alumnos/exportar/${tipo}`;
             }
             function descargarPlantilla() {
                 window.location.href = "/api/alumnos/plantilla";
             }
-
             async function importarCSV(input) {
                 if (!input.files || input.files.length === 0) return;
-
                 const file = input.files[0];
                 const formData = new FormData();
                 formData.append("file", file);
-
                 try {
                     const response = await fetch("/api/alumnos/importar", {
                         method: "POST",
                         body: formData
                     });
                     const res = await response.json();
-
                     if (res.ok) {
                         let msg = `✅ Importados: ${res.importados} alumno(s).`;
                         if (res.omitidos > 0) msg += `\n⚠️ Omitidos: ${res.omitidos}.`;
@@ -1245,22 +1079,18 @@
                 } catch (error) {
                     alert("Error de red al importar CSV.");
                 }
-
                 input.value = ""; // Limpiar el input
             }
-
             // --- BATCH ACTIONS LOGIC ---
             function toggleSelectAll(el) {
                 const checkboxes = document.querySelectorAll('.alumno-checkbox');
                 checkboxes.forEach(cb => cb.checked = el.checked);
                 updateBatchButtons();
             }
-
             function updateBatchButtons() {
                 const checked = document.querySelectorAll('.alumno-checkbox:checked');
                 const btnT = document.getElementById('btnBatchTransfer');
                 const btnD = document.getElementById('btnBatchDelete');
-
                 if (checked.length > 0) {
                     btnT.style.display = 'inline-block';
                     btnD.style.display = 'inline-block';
@@ -1270,16 +1100,12 @@
                     document.getElementById('selectAllCheckbox').checked = false;
                 }
             }
-
             async function batchDelete() {
                 const checked = Array.from(document.querySelectorAll('.alumno-checkbox:checked'));
                 if (checked.length === 0) return;
-
                 if (!confirm(`¿Estás SEGURO de que quieres borrar a los ${checked.length} alumnos seleccionados?\n\nEsta acción los archivará.`)) return;
-
                 let successCount = 0;
                 let errorCount = 0;
-
                 for (const cb of checked) {
                     try {
                         const res = await fetch(`/api/alumnos/${cb.value}`, { method: "DELETE" });
@@ -1290,7 +1116,6 @@
                         errorCount++;
                     }
                 }
-
                 alert(`Proceso completado.\n✅ Borrados: ${successCount}\n❌ Errores: ${errorCount}`);
                 document.getElementById('selectAllCheckbox').checked = false;
                 updateBatchButtons();
@@ -1301,20 +1126,14 @@
                     limpiarFichaUI();
                 }
             }
-
             async function batchTransfer() {
                 const checked = Array.from(document.querySelectorAll('.alumno-checkbox:checked'));
                 if (checked.length === 0) return;
-
                 // We reuse the transfer modal, but pass multiple IDs
                 const ids = checked.map(c => c.value).join(',');
                 const label = `los ${checked.length} alumnos seleccionados`;
                 abrirModalTransferir(ids, label);
             }
-
         </script>
-        <script src="/static/js/api.js"></script>
-        <script src="/static/js/global_groups.js"></script>
 </body>
-
 </html>

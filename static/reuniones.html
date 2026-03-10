@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Reuniones con Padres</title>
@@ -23,7 +22,6 @@
             --bg: #f0f2f5;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -31,20 +29,16 @@
             padding: 20px;
             color: var(--dark);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
-
         /* Tabs */
         .tabs {
             display: flex;
             margin-bottom: 20px;
             border-bottom: 2px solid #ddd;
         }
-
         .tab {
             padding: 10px 20px;
             cursor: pointer;
@@ -53,12 +47,10 @@
             border-bottom: 2px solid transparent;
             margin-bottom: -2px;
         }
-
         .tab.active {
             color: var(--primary);
             border-bottom: 2px solid var(--primary);
         }
-
         /* Controls */
         .controls {
             background: white;
@@ -70,7 +62,6 @@
             align-items: center;
             margin-bottom: 20px;
         }
-
         select {
             padding: 8px;
             border-radius: 5px;
@@ -78,7 +69,6 @@
             font-size: 1rem;
             min-width: 250px;
         }
-
         .btn-new,
         .btn-config {
             background-color: var(--success);
@@ -92,25 +82,20 @@
             align-items: center;
             gap: 5px;
         }
-
         .btn-config {
             background-color: var(--secondary);
         }
-
         .btn-new:hover {
             background-color: #218838;
         }
-
         .btn-config:hover {
             background-color: #0069d9;
         }
-
         /* Meetings List */
         .meeting-list {
             display: grid;
             gap: 15px;
         }
-
         .meeting-card {
             background: white;
             padding: 20px;
@@ -119,11 +104,9 @@
             border-left: 5px solid var(--secondary);
             position: relative;
         }
-
         .meeting-card.cycle {
             border-left-color: var(--warning);
         }
-
         .meeting-header {
             display: flex;
             justify-content: space-between;
@@ -131,24 +114,20 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
         }
-
         .meeting-date {
             font-weight: bold;
             color: var(--primary);
             font-size: 1.1rem;
         }
-
         .meeting-attendees {
             color: #666;
             font-size: 0.9rem;
         }
-
         .meeting-body h4 {
             margin: 10px 0 5px;
             color: #444;
             font-size: 0.95rem;
         }
-
         .meeting-text {
             white-space: pre-wrap;
             color: #333;
@@ -158,13 +137,11 @@
             margin-bottom: 15px;
             font-size: 0.9rem;
         }
-
         .meeting-actions {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
         }
-
         .btn-edit {
             background: #ffc107;
             border: none;
@@ -173,7 +150,6 @@
             cursor: pointer;
             color: #333;
         }
-
         .btn-delete {
             background: #dc3545;
             border: none;
@@ -182,7 +158,6 @@
             cursor: pointer;
             color: white;
         }
-
         .btn-pdf {
             background: #17a2b8;
             border: none;
@@ -191,7 +166,6 @@
             cursor: pointer;
             color: white;
         }
-
         /* Modal */
         .modal {
             display: none;
@@ -204,7 +178,6 @@
             background-color: rgba(0, 0, 0, 0.5);
             overflow-y: auto;
         }
-
         .modal-content {
             background-color: white;
             margin: 5% auto;
@@ -215,7 +188,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             position: relative;
         }
-
         .close {
             position: absolute;
             right: 20px;
@@ -225,22 +197,18 @@
             cursor: pointer;
             color: #aaa;
         }
-
         .close:hover {
             color: black;
         }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
         }
-
         .form-control {
             width: 100%;
             padding: 8px;
@@ -248,12 +216,10 @@
             border-radius: 5px;
             font-family: inherit;
         }
-
         textarea.form-control {
             resize: vertical;
             height: 100px;
         }
-
         .btn-save {
             background: var(--primary);
             color: white;
@@ -265,7 +231,6 @@
             width: 100%;
             margin-top: 10px;
         }
-
         .attendees-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -276,31 +241,26 @@
             border: 1px solid #eee;
             margin-top: 5px;
         }
-
         .attendee-item {
             display: flex;
             align-items: center;
             gap: 8px;
             font-size: 0.9rem;
         }
-
         /* Mobile tweaks */
         @media (max-width: 768px) {
             .nav {
                 justify-content: center;
             }
-
             .controls {
                 flex-direction: column;
                 gap: 15px;
                 align-items: stretch;
             }
-
             select {
                 width: 100%;
                 min-width: auto;
             }
-
             .btn-new,
             .btn-config {
                 width: 100%;
@@ -308,46 +268,21 @@
             }
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
-
 <body>
-
     <div class="container">
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones" class="active">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-        </div>
+        <!-- Unified Navigation injected by navigation.js -->
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div class="group-selector-container injected-group-selector">
-                    <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        class="group-selector-select">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
-            </div>
         </div>
-
-
         <div class="tabs">
             <div class="tab active" onclick="setMode('PADRES')" id="tabPadres">👨‍👩‍👧‍👦 Reuniones con Familias</div>
             <div class="tab" onclick="setMode('CICLO')" id="tabCiclo">🏫 Reuniones de Ciclo</div>
         </div>
-
         <div class="controls" style="display: flex; flex-direction: column; gap: 15px; align-items: stretch;">
             <!-- Fila Superior: Título y Selectores -->
             <div
@@ -361,7 +296,6 @@
                         <option value="">-- Seleccionar Ciclo --</option>
                     </select>
                 </div>
-
                 <!-- Botones de Acción Globales -->
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button class="btn-config" onclick="exportarReunionesCSV()" style="background: #28a745;">📥 Exportar
@@ -373,7 +307,6 @@
                     <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
                 </div>
             </div>
-
             <!-- Fila Inferior: Configuración del Tutor -->
             <div
                 style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
@@ -387,49 +320,39 @@
                 </div>
             </div>
         </div>
-
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
-
         <!-- Vista Calendario (Nueva Función) -->
         <div id="calendarContainer"
             style="background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 20px;">
             <div id='calendar'></div>
         </div>
-
         <h3 style="margin-top: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px;">📋 Listado Detallado</h3>
         <div id="meetingList" class="meeting-list"></div>
-
     </div>
-
     <!-- Modal -->
     <div id="meetingModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h2 id="modalTitle">Nueva Reunión</h2>
-
             <input type="hidden" id="editingId">
             <input type="hidden" id="meetingType">
             <input type="hidden" id="editingAlumnoId">
-
             <div class="form-group" id="mCycleGroup" style="display:none;">
                 <label>Ciclo</label>
                 <select id="mCycleSelect" class="form-control" onchange="renderCycleAttendees()">
                     <option value="">-- Seleccionar Ciclo --</option>
                 </select>
             </div>
-
             <div class="form-group" id="mAlumnoGroup">
                 <label>Alumno/a</label>
                 <select id="mAlumnoSelect" class="form-control">
                     <option value="">-- Seleccionar Alumno/a --</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label>Fecha y Hora</label>
                 <input type="datetime-local" id="mFecha" class="form-control">
             </div>
-
             <div class="form-group" id="groupAsistentes">
                 <label>Asistentes</label>
                 <select id="mAsistentesSelect" class="form-control" onchange="toggleOtherAssistants()">
@@ -445,7 +368,6 @@
                 <input type="text" id="mAsistentesOtro" class="form-control"
                     placeholder="Especificar quién ha asistido..." style="display:none; margin-top: 5px;">
             </div>
-
             <div class="form-group" id="groupAsistentesCiclo" style="display:none;">
                 <label>Asistentes (Ciclo)</label>
                 <div id="cycleAttendeesCheckboxes" class="attendees-grid">
@@ -455,21 +377,17 @@
                     placeholder="Otros asistentes (separados por comas)..."
                     style="height: 60px; margin-top: 8px;"></textarea>
             </div>
-
             <div class="form-group">
                 <label>Temas Tratados</label>
                 <textarea id="mTemas" class="form-control" placeholder="Puntos principales de la reunión..."></textarea>
             </div>
-
             <div class="form-group">
                 <label>Acuerdos / Conclusiones</label>
                 <textarea id="mAcuerdos" class="form-control" placeholder="Acuerdos llegados..."></textarea>
             </div>
-
             <button class="btn-save" onclick="saveMeeting()">Guardar Reunión</button>
         </div>
     </div>
-
     <!-- Cycle Config Modal -->
     <div id="configModal" class="modal">
         <div class="modal-content">
@@ -488,10 +406,8 @@
             <button class="btn-save" onclick="saveCycleConfig()">Guardar Configuración</button>
         </div>
     </div>
-
     <script>
         let currentMode = 'PADRES'; // PADRES or CICLO
-
         const studentSelect = document.getElementById('studentSelect');
         const cycleSelect = document.getElementById('cycleSelect');
         const listContainer = document.getElementById('meetingList');
@@ -500,13 +416,11 @@
         const tabPadres = document.getElementById('tabPadres');
         const tabCiclo = document.getElementById('tabCiclo');
         const btnConfig = document.getElementById('btnConfig');
-
         // Config Modal elements
         const configModal = document.getElementById('configModal');
         const configCycleName = document.getElementById('configCycleName');
         const configCycleId = document.getElementById('configCycleId');
         const configMembers = document.getElementById('configMembers');
-
         // Modal elements
         const modal = document.getElementById('meetingModal');
         const mFecha = document.getElementById('mFecha');
@@ -515,7 +429,6 @@
         const mAsistentesCiclo = document.getElementById('mAsistentesCiclo');
         const groupAsistentes = document.getElementById('groupAsistentes');
         const groupAsistentesCiclo = document.getElementById('groupAsistentesCiclo');
-
         const mTemas = document.getElementById('mTemas');
         const mAcuerdos = document.getElementById('mAcuerdos');
         const editingId = document.getElementById('editingId');
@@ -526,12 +439,10 @@
         const mCycleGroup = document.getElementById('mCycleGroup');
         const mAlumnoSelect = document.getElementById('mAlumnoSelect');
         const mAlumnoGroup = document.getElementById('mAlumnoGroup');
-
         // Initial Load
         // Load Tutor Name
         const savedTutor = localStorage.getItem('tutorName') || "";
         tutorNameInput.value = savedTutor;
-
         // Load Students
         fetch('/api/alumnos').then(r => r.json()).then(data => {
             data.forEach(s => {
@@ -545,7 +456,6 @@
             });
             loadMeetings(); // Load initial view
         });
-
         // Load Cycles
         fetch('/api/ciclos').then(r => r.json()).then(data => {
             cyclesData = data;
@@ -553,24 +463,19 @@
             cycleSelect.innerHTML = '<option value="">-- Ver Todos los Ciclos --</option>';
             // Modal select
             mCycleSelect.innerHTML = '<option value="">-- Seleccionar Ciclo --</option>';
-
             data.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c.id;
                 opt.textContent = c.nombre;
                 cycleSelect.appendChild(opt);
-
                 const opt2 = opt.cloneNode(true);
                 mCycleSelect.appendChild(opt2);
             });
         });
-
         studentSelect.addEventListener('change', loadMeetings);
         cycleSelect.addEventListener('change', loadMeetings);
-
         let cyclesData = [];
         let calendar = null;
-
         function setMode(mode) {
             currentMode = mode;
             if (mode === 'PADRES') {
@@ -590,7 +495,6 @@
             }
             loadMeetings();
         }
-
         // Fetch Cycles and store data
         function fetchCycles() {
             return fetch('/api/ciclos').then(r => r.json()).then(data => {
@@ -605,15 +509,12 @@
             });
         }
         fetchCycles();
-
         let meetingsData = [];
-
         function renderCalendar() {
             const calendarEl = document.getElementById('calendar');
             if (calendar) {
                 calendar.destroy();
             }
-
             // Create events array
             const events = meetingsData.map(m => {
                 let title = "";
@@ -622,7 +523,6 @@
                 } else if (m.tipo === 'CICLO') {
                     title = "🏫 Ciclo";
                 }
-
                 return {
                     id: m.id,
                     title: title,
@@ -633,7 +533,6 @@
                     allDay: !m.fecha.includes('T')
                 };
             });
-
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'es',
@@ -649,10 +548,14 @@
                 },
                 events: events,
                 height: 500,
+                editable: true, // Habilitar arrastrar y soltar
                 eventClick: function (info) {
                     // Open edit modal directly
                     const id = parseInt(info.event.id);
                     openEdit(id);
+                },
+                eventDrop: function (info) {
+                    reprogramarReunion(info.event);
                 },
                 // Permite seleccionar un hueco para crear nueva reunión
                 selectable: true,
@@ -661,7 +564,6 @@
                     openModal();
                     // info.startStr includes Time if in timeGridWeek view
                     let d = new Date(info.startStr);
-
                     // Si es en vista mes, pone la hora a las 16:00
                     if (!info.startStr.includes('T')) {
                         d.setHours(16, 0);
@@ -681,59 +583,47 @@
             });
             calendar.render();
         }
-
         function loadMeetings() {
             loading.style.display = 'block';
             listContainer.innerHTML = '';
-
             let url = `/api/reuniones?tipo=${currentMode}`;
             if (currentMode === 'PADRES' && studentSelect.value) {
                 url += `&alumno_id=${studentSelect.value}`;
             } else if (currentMode === 'CICLO' && cycleSelect.value) {
                 url += `&ciclo_id=${cycleSelect.value}`;
             }
-
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     meetingsData = data; // Store for edit access
                     loading.style.display = 'none';
-
                     renderCalendar();
-
                     if (data.length === 0) {
                         listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No hay reuniones registradas.</div>';
                         return;
                     }
-
                     data.forEach(m => {
                         const card = document.createElement('div');
                         card.className = `meeting-card ${m.tipo === 'CICLO' ? 'cycle' : ''}`;
-
                         // Format datetime
                         let hasTime = m.fecha.includes('T');
                         let dateStr = "";
                         let gcalDstart = "";
                         let gcalDend = "";
-
                         try {
                             let d = hasTime ? new Date(m.fecha) : new Date(m.fecha + "T16:00:00");
                             dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
                             if (hasTime) {
                                 dateStr += " " + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
                             }
-
                             // Prepare Google Calendar payload
                             let endD = new Date(d);
                             endD.setHours(endD.getHours() + 1); // 1 hr default
-
                             gcalDstart = d.toISOString().replace(/-|:|\.\d\d\d/g, "");
                             gcalDend = endD.toISOString().replace(/-|:|\.\d\d\d/g, "");
-
                         } catch (e) {
                             dateStr = m.fecha; // fallback
                         }
-
                         let headerTitle = m.asistentes;
                         let rawTitleObj = "Reunión";
                         if (m.tipo === 'PADRES' && m.alumno_nombre) {
@@ -743,12 +633,9 @@
                             headerTitle = `🏫 ${m.asistentes || 'Reunión de Ciclo'}`;
                             rawTitleObj = `Reunión de Ciclo`;
                         }
-
                         // Generate GCal Link
                         let gUrlDetails = `Asistentes: ${m.asistentes}\nTemas:\n${m.temas}`;
                         let gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(rawTitleObj)}&dates=${gcalDstart}/${gcalDend}&details=${encodeURIComponent(gUrlDetails)}`;
-
-
                         card.innerHTML = `
                             <div class="meeting-header">
                                 <span class="meeting-date">📅 ${dateStr}</span>
@@ -757,7 +644,6 @@
                             <div class="meeting-body">
                                 <h4>📝 Temas Tratados</h4>
                                 <div class="meeting-text">${m.temas}</div>
-                                
                                 ${m.acuerdos ? `<h4>🤝 Acuerdos</h4><div class="meeting-text">${m.acuerdos}</div>` : ''}
                             </div>
                             <div class="meeting-actions">
@@ -773,22 +659,17 @@
                     });
                 });
         }
-
-
         // ... (Modal functions)
-
         function openEdit(id) {
             const meeting = meetingsData.find(m => m.id === id);
             if (!meeting) return;
             editMeeting(meeting);
         }
-
         function editMeeting(m) {
             modal.style.display = "block";
             document.body.style.overflow = "hidden";
             modalTitle.innerText = "Editar Reunión";
             editingId.value = m.id;
-
             // Handle datetime-local prepopulation (needs YYYY-MM-DDTHH:MM)
             if (m.fecha.includes('T')) {
                 // If it already has time, just slice it to HH:MM precision if longer
@@ -797,19 +678,16 @@
                 // Legacy date without time, assume 16:00
                 mFecha.value = m.fecha + "T16:00";
             }
-
             mTemas.value = m.temas;
             mAcuerdos.value = m.acuerdos || "";
             mAsistentesOtro.value = "";
             mAsistentesCiclo.value = "";
-
             if (currentMode === 'PADRES') {
                 groupAsistentes.style.display = 'block';
                 groupAsistentesCiclo.style.display = 'none';
                 mCycleGroup.style.display = 'none';
                 mAlumnoGroup.style.display = 'block';
                 mAlumnoSelect.value = m.alumno_id;
-
                 const commonOptions = ["Madre", "Padre", "Padre y Madre", "Tutores", "Abuelo", "Abuela"];
                 if (commonOptions.includes(m.asistentes)) {
                     mAsistentesSelect.value = m.asistentes;
@@ -828,7 +706,6 @@
                 renderCycleAttendees(m.asistentes);
             }
         }
-
         function toggleOtherAssistants() {
             if (mAsistentesSelect.value === "Otro") {
                 mAsistentesOtro.style.display = 'block';
@@ -836,7 +713,6 @@
                 mAsistentesOtro.style.display = 'none';
             }
         }
-
         function saveTutorName() {
             const name = tutorNameInput.value.trim();
             if (name) {
@@ -844,13 +720,11 @@
                 alert("Nombre del tutor guardado.");
             }
         }
-
         function openModal() {
             modal.style.display = "block";
             document.body.style.overflow = "hidden";
             modalTitle.innerText = "Nueva Reunión";
             editingId.value = "";
-
             // Clear fields (use ISO format and slice off seconds to match datetime-local)
             let now = new Date();
             let localNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
@@ -860,7 +734,6 @@
             mAsistentesCiclo.value = "";
             mTemas.value = "";
             mAcuerdos.value = "";
-
             if (currentMode === 'PADRES') {
                 groupAsistentes.style.display = 'block';
                 groupAsistentesCiclo.style.display = 'none';
@@ -878,28 +751,23 @@
                 renderCycleAttendees();
             }
         }
-
         function renderCycleAttendees(selectedAsistentes = "") {
             const cycleId = parseInt(mCycleSelect.value);
             const cycle = cyclesData.find(c => c.id === cycleId);
             const container = document.getElementById('cycleAttendeesCheckboxes');
             container.innerHTML = '';
-
             if (!cycleId) {
                 container.innerHTML = '<div style="grid-column: 1/-1; color: #888; font-size: 0.8rem;">Selecciona un ciclo para ver los miembros.</div>';
                 return;
             }
-
             if (!cycle || !cycle.asistentes_defecto || cycle.asistentes_defecto === "[]") {
                 container.innerHTML = '<div style="grid-column: 1/-1; color: #888; font-size: 0.8rem;">No hay miembros configurados para este ciclo.</div>';
                 return;
             }
-
             try {
                 let members = JSON.parse(cycle.asistentes_defecto);
                 let selectedList = [];
                 let isEditWithData = false;
-
                 if (selectedAsistentes) {
                     isEditWithData = true;
                     if (selectedAsistentes.startsWith('[') && selectedAsistentes.endsWith(']')) {
@@ -909,7 +777,6 @@
                         selectedList = selectedAsistentes.split(',').map(a => a.trim());
                     }
                 }
-
                 members.forEach(m => {
                     const div = document.createElement('div');
                     div.className = 'attendee-item';
@@ -924,7 +791,6 @@
                 console.error("Error parsing members", e);
             }
         }
-
         function openConfigModal() {
             const cycleId = parseInt(cycleSelect.value);
             if (!cycleId) {
@@ -934,27 +800,22 @@
             const cycle = cyclesData.find(c => c.id === cycleId);
             configCycleName.value = cycle.nombre;
             configCycleId.value = cycle.id;
-
             try {
                 const members = JSON.parse(cycle.asistentes_defecto || '[]');
                 configMembers.value = members.join('\n');
             } catch (e) {
                 configMembers.value = "";
             }
-
             configModal.style.display = "block";
             document.body.style.overflow = "hidden";
         }
-
         function closeConfigModal() {
             configModal.style.display = "none";
             document.body.style.overflow = "";
         }
-
         function saveCycleConfig() {
             const id = configCycleId.value;
             const members = configMembers.value.split('\n').map(m => m.trim()).filter(m => m);
-
             fetch(`/api/ciclos/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -974,28 +835,23 @@
                 }
             });
         }
-
         function closeModal() {
             modal.style.display = "none";
             document.body.style.overflow = "";
         }
-
         function editMeeting(m) {
             modal.style.display = "block";
             modalTitle.innerText = "Editar Reunión";
             editingId.value = m.id;
-
             mFecha.value = m.fecha;
             mTemas.value = m.temas;
             mAcuerdos.value = m.acuerdos;
-
             if (currentMode === 'PADRES') {
                 groupAsistentes.style.display = 'block';
                 groupAsistentesCiclo.style.display = 'none';
                 mCycleGroup.style.display = 'none';
                 mAlumnoGroup.style.display = 'block';
                 mAlumnoSelect.value = m.alumno_id || "";
-
                 // Try to map assistants
                 const options = Array.from(mAsistentesSelect.options).map(o => o.value);
                 if (options.includes(m.asistentes)) {
@@ -1016,12 +872,10 @@
                 mAsistentesCiclo.value = "";
             }
         }
-
         function saveMeeting() {
             const id = editingId.value;
             const method = id ? 'PUT' : 'POST';
             const url = id ? `/api/reuniones/${id}` : '/api/reuniones';
-
             let asistentes = "";
             if (currentMode === 'PADRES') {
                 if (mAsistentesSelect.value === "Otro") {
@@ -1035,7 +889,6 @@
                 const extras = mAsistentesCiclo.value.split(',').map(a => a.trim()).filter(a => a);
                 asistentes = JSON.stringify([...checkedNames, ...extras]);
             }
-
             const data = {
                 fecha: mFecha.value,
                 asistentes: asistentes,
@@ -1045,7 +898,6 @@
                 alumno_id: currentMode === 'PADRES' ? mAlumnoSelect.value : null,
                 ciclo_id: currentMode === 'CICLO' ? mCycleSelect.value : null
             };
-
             if (currentMode === 'PADRES' && !data.alumno_id) {
                 alert("Por favor, selecciona un alumno primero.");
                 return;
@@ -1054,7 +906,6 @@
                 alert("Por favor, selecciona un ciclo primero.");
                 return;
             }
-
             fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -1070,22 +921,45 @@
                     }
                 });
         }
-
         function generatePDF(id) {
             const tutor = localStorage.getItem('tutorName') || "El Tutor/a";
             window.open(`/api/reuniones/${id}/pdf?tutor=${encodeURIComponent(tutor)}`, '_blank');
         }
-
+        async function reprogramarReunion(event) {
+            const id = event.id;
+            // FullCalendar event.start is a Date object. Convert to ISO string for backend.
+            // We need to handle time if it's there.
+            let newDate = event.start.toISOString();
+            // Adjust to local time before slicing if needed, but the backend handles ISO.
+            // However, datetime-local usually expects YYYY-MM-DDTHH:MM
+            const offset = event.start.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(event.start - offset)).toISOString().slice(0, 16);
+            try {
+                const res = await fetch(`/api/reuniones/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fecha: localISOTime })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    // Success! Reload list to match calendar
+                    loadMeetings();
+                } else {
+                    alert("Error al reprogramar: " + data.error);
+                    calendar.refetchEvents();
+                }
+            } catch (e) {
+                console.error("Error patching meeting:", e);
+                alert("Error de conexión al reprogramar.");
+                calendar.refetchEvents();
+            }
+        }
         function exportarReunionesCSV() {
             window.location.href = `/api/reuniones/exportar/csv?tipo=${currentMode}`;
         }
-
         function exportarReunionesICal() {
             window.location.href = `/api/reuniones/exportar/ical?tipo=${currentMode}`;
         }
     </script>
-    <script src="/static/js/global_groups.js"></script>
-    <script src="/static/js/api.js"></script>
 </body>
-
 </html>

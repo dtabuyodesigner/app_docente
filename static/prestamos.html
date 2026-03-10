@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>📋 Préstamos - Cuaderno del Tutor</title>
@@ -19,11 +18,9 @@
             --info: #17a2b8;
             --light: #f8f9fa;
         }
-
         * {
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background: #f0f4f8;
@@ -31,8 +28,6 @@
             padding: 0;
             color: #343a40;
         }
-
-
         .container {
             max-width: 1100px;
             margin: 0 auto;
@@ -41,7 +36,6 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
         }
-
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -50,13 +44,11 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-
         .page-header h1 {
             margin: 0;
             color: var(--primary);
             font-size: 1.8rem;
         }
-
         .back-link {
             text-decoration: none;
             color: var(--primary);
@@ -66,11 +58,9 @@
             border-radius: 8px;
             border: 1px solid #ddd;
         }
-
         .back-link:hover {
             background: #e9ecef;
         }
-
         .card {
             background: white;
             border: 1px solid #eef2f7;
@@ -79,7 +69,6 @@
             margin-bottom: 22px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
         }
-
         .card-title {
             font-size: 1rem;
             font-weight: 800;
@@ -89,7 +78,6 @@
             align-items: center;
             gap: 8px;
         }
-
         .tabs {
             display: flex;
             gap: 5px;
@@ -97,7 +85,6 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-
         .tab-btn {
             padding: 9px 16px;
             border: none;
@@ -110,20 +97,16 @@
             font-size: .9rem;
             transition: all .2s;
         }
-
         .tab-btn.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
         }
-
         .tab-panel {
             display: none;
         }
-
         .tab-panel.active {
             display: block;
         }
-
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr auto;
@@ -131,19 +114,16 @@
             align-items: end;
             margin-bottom: 12px;
         }
-
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
-
         .form-group label {
             font-size: .8rem;
             font-weight: 700;
             color: #555;
         }
-
         .form-group select,
         .form-group input {
             padding: 10px 12px;
@@ -152,13 +132,11 @@
             font-size: .9rem;
             font-family: inherit;
         }
-
         .form-group select:focus,
         .form-group input:focus {
             outline: none;
             border-color: var(--primary);
         }
-
         .btn {
             padding: 10px 18px;
             border: none;
@@ -168,52 +146,42 @@
             font-size: .9rem;
             transition: all .2s;
         }
-
         .btn-primary {
             background: var(--primary);
             color: white;
         }
-
         .btn-primary:hover {
             background: #002244;
         }
-
         .btn-success {
             background: var(--success);
             color: white;
         }
-
         .btn-success:hover {
             background: #218838;
         }
-
         .btn-danger {
             background: var(--danger);
             color: white;
         }
-
         .btn-danger:hover {
             background: #b02a37;
         }
-
         .btn-sm {
             padding: 6px 12px;
             font-size: .8rem;
         }
-
         .table {
             width: 100%;
             border-collapse: collapse;
             font-size: .9rem;
         }
-
         .table th,
         .table td {
             text-align: left;
             padding: 10px 12px;
             border-bottom: 1px solid #f0f0f0;
         }
-
         .table th {
             background: var(--light);
             font-weight: 700;
@@ -222,11 +190,9 @@
             text-transform: uppercase;
             letter-spacing: .4px;
         }
-
         .table tr:hover {
             background: #fafafa;
         }
-
         .badge {
             display: inline-block;
             padding: 3px 9px;
@@ -234,27 +200,22 @@
             font-size: .75rem;
             font-weight: 700;
         }
-
         .badge-success {
             background: #e8f5e9;
             color: #2e7d32;
         }
-
         .badge-warning {
             background: #fff3e0;
             color: #e65100;
         }
-
         .badge-danger {
             background: #ffebee;
             color: #c62828;
         }
-
         .badge-info {
             background: #e3f2fd;
             color: #1565c0;
         }
-
         .days-badge {
             display: inline-block;
             padding: 3px 8px;
@@ -263,52 +224,43 @@
             font-weight: 700;
             color: white;
         }
-
         .days-ok {
             background: var(--success);
         }
-
         .days-late {
             background: var(--danger);
         }
-
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
             font-size: .9rem;
             margin-bottom: 12px;
         }
-
         .alert-success {
             background: #e8f5e9;
             color: #2e7d32;
             border-left: 4px solid var(--success);
         }
-
         .alert-danger {
             background: #ffebee;
             color: #c62828;
             border-left: 4px solid var(--danger);
         }
-
         .empty-state {
             text-align: center;
             padding: 40px 20px;
             color: #999;
         }
-
         .empty-state .icon {
             font-size: 3rem;
             margin-bottom: 8px;
         }
-
         .stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 15px;
             margin-bottom: 22px;
         }
-
         .stat-card {
             background: var(--light);
             border-radius: 12px;
@@ -316,21 +268,18 @@
             text-align: center;
             border: 1px solid #eef2f7;
         }
-
         .stat-card p {
             margin: 0;
             font-size: 1.6rem;
             font-weight: 800;
             color: var(--primary);
         }
-
         .stat-card small {
             color: #666;
             font-size: .72rem;
             text-transform: uppercase;
             letter-spacing: .4px;
         }
-
         .search-input {
             width: 100%;
             max-width: 300px;
@@ -340,7 +289,6 @@
             font-size: .9rem;
             margin-bottom: 14px;
         }
-
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -354,7 +302,6 @@
             z-index: 1000;
             padding: 20px;
         }
-
         .modal {
             background: white;
             border-radius: 16px;
@@ -363,52 +310,26 @@
             max-width: 420px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, .2);
         }
-
         .modal h2 {
             margin: 0 0 20px;
             color: var(--primary);
         }
-
         @media(max-width:600px) {
             .form-row {
                 grid-template-columns: 1fr;
             }
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
-
 <body>
-    <nav class="nav">
-        <a href="/">🏠 Inicio</a>
-        <a href="/alumnos">👥 Alumnos</a>
-        <a href="/asistencia">📋 Pasar lista</a>
-        <a href="/diario">📓 Diario</a>
-        <a href="/programacion">📅 Programación</a>
-        <a href="/horario">⏰ Horario</a>
-        <a href="/evaluacion">📊 Evaluación</a>
-        <a href="/rubricas">📝 Rúbricas</a>
-        <a href="/informes">📜 Informes</a>
-        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-        <a href="/biblioteca">📚 Biblioteca</a>
-        <a href="/material">📦 Material</a>
-        <a href="/tareas">✅ Tareas</a>
-        <a href="/configuracion">⚙️ Configuración</a>
-    </nav>
+    <!-- Unified Navigation injected by navigation.js -->
     <div class="container">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;"
-            class="injected-group-selector">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div
-                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
-            </div>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         </div>
-
         <div class="page-header">
             <h1>📋 Préstamos de Libros</h1>
             <div style="display:flex;gap:10px;">
@@ -417,7 +338,6 @@
                 <a href="/" class="back-link">🏠 Inicio</a> <a href="/ayuda">💡 Ayuda</a>
             </div>
         </div>
-
         <div class="stats-row">
             <div class="stat-card">
                 <p id="st-activos">-</p><small>Préstamos Activos</small>
@@ -429,7 +349,6 @@
                 <p id="st-total">-</p><small>Total Histórico</small>
             </div>
         </div>
-
         <!-- Config plazo -->
         <div
             style="background:#f8f9fa; border-radius:10px; padding:12px 18px; display:flex; align-items:center; gap:14px; margin-bottom:18px; border:1px solid #e0e0e0;">
@@ -447,7 +366,6 @@
             <span style="font-size:0.85rem; color:#666;">Los préstamos que superen este plazo aparecen como
                 retraso.</span>
         </div>
-
         <!-- New Loan -->
         <div class="card">
             <div class="card-title">📚 Registrar Nuevo Préstamo</div>
@@ -472,14 +390,12 @@
             </div>
             <button class="btn btn-success" onclick="registrarPrestamo()">✅ Registrar Préstamo</button>
         </div>
-
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('tab-activos',this)">📖 Préstamos Activos</button>
             <button class="tab-btn" onclick="showTab('tab-retrasos',this)">⚠️ Con Retraso</button>
             <button class="tab-btn" onclick="showTab('tab-historial',this)">📜 Historial</button>
         </div>
-
         <!-- Tab Activos -->
         <div id="tab-activos" class="tab-panel active">
             <div id="activosContainer">
@@ -489,7 +405,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Tab Retrasos -->
         <div id="tab-retrasos" class="tab-panel">
             <div id="retrasosContainer">
@@ -499,7 +414,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Tab Historial -->
         <div id="tab-historial" class="tab-panel">
             <input class="search-input" id="searchHistorial" placeholder="🔍 Buscar en historial..."
@@ -512,7 +426,6 @@
             </div>
         </div>
     </div>
-
     <!-- Devolucion Modal -->
     <div class="modal-overlay" id="devolucionModal" onclick="if(event.target===this)closeModal()">
         <div class="modal">
@@ -534,29 +447,22 @@
             </div>
         </div>
     </div>
-
-    <script src="/static/js/api.js"></script>
     <script>
         let todosHistorial = [];
-
         function showTab(id, btn) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             btn.classList.add('active');
         }
-
         // Init date to today
         document.getElementById('sel-fecha').value = new Date().toISOString().split('T')[0];
         document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
-
         async function loadAll() {
             await Promise.all([loadAlumnos(), loadLibros(), loadActivos(), loadRetrasos(), loadHistorial()]);
             updateStats();
         }
-
         let tsAlumno, tsLibro;
-
         async function loadAlumnos() {
             const r = await fetch('/api/alumnos');
             if (!r.ok) return;
@@ -566,7 +472,6 @@
             (alumnos.alumnos || alumnos).forEach(a => {
                 sel.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
             });
-
             if (tsAlumno) tsAlumno.destroy();
             tsAlumno = new TomSelect('#sel-alumno', {
                 create: false,
@@ -574,7 +479,6 @@
                 placeholder: 'Buscar alumno...'
             });
         }
-
         async function loadLibros() {
             const libros = await (await fetch('/api/libros')).json();
             const sel = document.getElementById('sel-libro');
@@ -582,7 +486,6 @@
             libros.filter(l => l.cantidad_disponible > 0).forEach(l => {
                 sel.innerHTML += `<option value="${l.id}">${l.titulo} (${l.cantidad_disponible} disp.)</option>`;
             });
-
             if (tsLibro) tsLibro.destroy();
             tsLibro = new TomSelect('#sel-libro', {
                 create: false,
@@ -590,7 +493,6 @@
                 placeholder: 'Buscar libro...'
             });
         }
-
         async function loadActivos() {
             const cfg0 = await (await fetch('/api/lectura/config')).json();
             const plazoActivos = cfg0.max_dias_prestamo || 7;
@@ -607,7 +509,6 @@
         <td><button class="btn btn-primary btn-sm" onclick="openDevolucion(${p.id},'${p.alumno_nombre.replace(/'/g, "\\'")}','${p.libro_titulo.replace(/'/g, "\\'")}','${p.fecha_prestamo}')">📥 Devolver</button></td>
     </tr>`).join('')}</tbody></table>`;
         }
-
         async function loadRetrasos() {
             // Lee el plazo de la BD (default 7)
             const cfg = await (await fetch('/api/lectura/config')).json();
@@ -625,12 +526,10 @@
         <td><button class="btn btn-danger btn-sm" onclick="openDevolucion(${p.id},'${p.nombre.replace(/'/g, "\\'")}','${p.titulo.replace(/'/g, "\\'")}','${p.fecha_prestamo}')">📥 Devolver</button></td>
     </tr>`).join('')}</tbody></table>`;
         }
-
         async function loadHistorial() {
             todosHistorial = await (await fetch('/api/prestamos/historial')).json();
             renderHistorial(todosHistorial);
         }
-
         function filterHistorial() {
             const q = document.getElementById('searchHistorial').value.toLowerCase();
             renderHistorial(todosHistorial.filter(p =>
@@ -638,7 +537,6 @@
                 (p.libro_titulo || '').toLowerCase().includes(q)
             ));
         }
-
         function renderHistorial(data) {
             const cont = document.getElementById('historialContainer');
             if (!data.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Sin registros.</p></div>'; return; }
@@ -657,7 +555,6 @@
         </tr>`;
             }).join('')}</tbody></table>`;
         }
-
         async function updateStats() {
             try {
                 const d = await (await fetch('/api/estadisticas/lectura')).json();
@@ -674,13 +571,11 @@
                 else document.getElementById('st-retrasos').style.color = 'var(--success)';
             } catch (e) { }
         }
-
         async function registrarPrestamo() {
             let alumno_id = document.getElementById('sel-alumno').value;
             let libro_id = document.getElementById('sel-libro').value;
             if (tsAlumno) alumno_id = tsAlumno.getValue();
             if (tsLibro) libro_id = tsLibro.getValue();
-
             const fecha_prestamo = document.getElementById('sel-fecha').value;
             const alertEl = document.getElementById('loanAlert');
             if (!alumno_id || !libro_id) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Selecciona un alumno y un libro</div>'; return; }
@@ -688,11 +583,9 @@
             if (d.ok) {
                 alertEl.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`;
                 setTimeout(() => alertEl.innerHTML = '', 3000);
-
                 // Clear selection
                 if (tsAlumno) tsAlumno.clear();
                 if (tsLibro) tsLibro.clear();
-
                 // Actualizar todo inmediatamente tras el préstamo
                 await Promise.all([loadLibros(), loadActivos(), loadRetrasos(), loadHistorial()]);
                 await updateStats();
@@ -700,7 +593,6 @@
                 alertEl.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
             }
         }
-
         function openDevolucion(id, alumno, libro, fechaPrestamo) {
             document.getElementById('dev-id').value = id;
             document.getElementById('dev-fecha').value = new Date().toISOString().split('T')[0];
@@ -708,7 +600,6 @@
             document.getElementById('devInfo').innerHTML = `<strong>${alumno}</strong><br>📖 <em>${libro}</em><br><small>Prestado: ${fechaPrestamo}</small>`;
             document.getElementById('devolucionModal').style.display = 'flex';
         }
-
         async function confirmarDevolucion() {
             const id = document.getElementById('dev-id').value;
             const body = { fecha_devolucion: document.getElementById('dev-fecha').value, observaciones: document.getElementById('dev-obs').value };
@@ -720,9 +611,7 @@
                 await updateStats();
             } else alert(`Error: ${d.error}`);
         }
-
         function closeModal() { document.getElementById('devolucionModal').style.display = 'none'; }
-
         function guardarPlazo(dias) {
             // Guarda en la BD
             fetch('/api/lectura/config', {
@@ -735,16 +624,11 @@
                 updateStats();
             });
         }
-
         // Inicializa el selector desde la BD
         fetch('/api/lectura/config').then(r => r.json()).then(cfg => {
             document.getElementById('plazo-dias').value = cfg.max_dias_prestamo || 7;
         });
-
         loadAll();
     </script>
-
-    <script src="/static/js/global_groups.js"></script>
 </body>
-
 </html>

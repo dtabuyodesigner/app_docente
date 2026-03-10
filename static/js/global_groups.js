@@ -1,26 +1,54 @@
 // --- GLOBAL GROUP SELECTOR LOGIC ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if we have the select element in the DOM
-    if (document.getElementById('globalGroupSelect')) {
-        loadGroupSelectorData();
-    }
+    // Attempt load, but the header might be dynamic
+    checkAndLoadSelector();
 });
 
+function checkAndLoadSelector(attempts = 0) {
+    if (document.getElementById('globalGroupSelect')) {
+        loadGroupSelectorData();
+    } else if (attempts < 10) {
+        // Retry for up to 2 seconds (header injection might have a slight delay)
+        setTimeout(() => checkAndLoadSelector(attempts + 1), 200);
+    }
+}
+
 async function loadGroupSelectorData() {
-    console.log("Loading global groups...");
+    console.log("[Groups] Iniciando carga...");
+    const select = document.getElementById('globalGroupSelect');
+    if (!select) return;
+
     try {
-        // Fetch active group
+        select.innerHTML = '<option value="">⚙️ Req 1...</option>';
         const activeRes = await fetch('/api/grupo_activo');
-        if (!activeRes.ok) throw new Error(`HTTP error! status: ${activeRes.status}`);
+        select.innerHTML = '<option value="">⚙️ Req 2...</option>';
+
+        // Parseo seguro: si no es JSON (ej: HTML de error/login), abortar
+        const activeContentType = activeRes.headers.get('content-type') || '';
+        if (!activeRes.ok || !activeContentType.includes('application/json')) {
+            console.warn("[Groups] /api/grupo_activo no devolvió JSON. ¿Sesión expirada?");
+            select.innerHTML = '<option value="">⚠️ Sesión no activa</option>';
+            return;
+        }
         const activeData = await activeRes.json();
 
-        // Fetch all groups
+        select.innerHTML = '<option value="">⚙️ Req 3...</option>';
         const groupsRes = await fetch('/api/grupos');
-        if (!groupsRes.ok) throw new Error(`HTTP error! status: ${groupsRes.status}`);
+        select.innerHTML = '<option value="">⚙️ Req 4...</option>';
+
+        const groupsContentType = groupsRes.headers.get('content-type') || '';
+        if (!groupsRes.ok || !groupsContentType.includes('application/json')) {
+            console.warn("[Groups] /api/grupos no devolvió JSON. ¿Sesión expirada?");
+            select.innerHTML = '<option value="">⚠️ Error de sesión</option>';
+            return;
+        }
+
         const groups = await groupsRes.json();
 
-        const select = document.getElementById('globalGroupSelect');
-        if (!select) {
+        // VALIDACIÓN CRÍTICA: El Service Worker podría devolver un objeto de error en lugar de un array
+        if (!Array.isArray(groups)) {
+            console.error("[Groups] La API no devolvió un array:", groups);
+            select.innerHTML = `<option value="">⚠️ ${groups.error || 'Error de datos'}</option>`;
             return;
         }
 
@@ -32,14 +60,16 @@ async function loadGroupSelectorData() {
 
         select.innerHTML = groups.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
 
-        if (activeData.id) {
+        if (activeData && activeData.id) {
             select.value = activeData.id;
         }
+        console.log("[Groups] Selector cargado con éxito.");
     } catch (e) {
-        console.error("Error loading groups:", e);
+        console.error("[Groups] Error cargando grupos:", e);
+        if (select) {
+            select.innerHTML = '<option value="">⚠️ Error de conexión</option>';
+        }
     }
-
-
 }
 
 async function changeActiveGroup(groupId) {

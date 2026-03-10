@@ -249,25 +249,210 @@ def datos_tabla_evaluacion():
         "evaluaciones": eval_map
     })
 
-@evaluacion_sda_bp.route("/resumen_clase")
-def resumen_clase():
+@evaluacion_sda_bp.route("/cuaderno", methods=["GET"])
+def obtener_cuaderno():
+    grupo_id = request.args.get("grupo_id") or session.get('active_group_id')
     area_id = request.args.get("area_id")
-    trimestre = request.args.get("trimestre")
+    periodo = request.args.get("periodo") # e.g., 'T1'
+
+    if not grupo_id or not area_id or not periodo:
+        return jsonify({"error": "Faltan parámetros"}), 400
+
+    trimestre = int(periodo.replace('T', ''))
+    db = get_db()
+    cur = db.cursor()
+
+    alumnos = cur.execute("""
+        SELECT id, nombre
+        FROM alumnos
+        WHERE grupo_id = ?
+        ORDER BY nombre
+    """, (grupo_id,)).fetchall()
+
+    criterios = cur.execute("""
+        SELECT c.id, c.codigo
+        FROM criterios c
+        JOIN criterios_periodo cp ON cp.criterio_id = c.id
+        WHERE cp.periodo = ? AND c.area_id = ? AND cp.grupo_id = ? AND cp.activo = 1
+    """, (periodo, area_id, grupo_id)).fetchall()
+
+    evaluaciones = cur.execute("""
+        SELECT alumno_id, criterio_id, nivel
+        FROM evaluaciones
+        WHERE area_id = ? AND trimestre = ? AND sda_id IS NULL
+    """, (area_id, trimestre)).fetchall()
+
+    return jsonify({
+        "alumnos": [dict(a) for a in alumnos],
+        "criterios": [dict(c) for c in criterios],
+        "evaluaciones": [dict(e) for e in evaluaciones]
+    })
+
+@evaluacion_sda_bp.route("/guardar", methods=["POST"])
+def guardar_evaluacion_rapida():
+    data = request.json
+    alumno_id = data["alumno_id"]
+    criterio_id = data["criterio_id"]
+    periodo = data["periodo"]
+    nivel = data.get("nivel")
+    
+    trimestre = int(periodo.replace('T', ''))
+    nota = nivel_a_nota(nivel) if nivel is not None else None
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Get area_id for the criterion
+    cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+    row = cur.fetchone()
+    if not row:
+        return jsonify({"error": "Criterio no encontrado"}), 404
+    area_id = row["area_id"]
+
+    try:
+        cur.execute("BEGIN")
+        cur.execute("""
+            INSERT INTO evaluaciones (alumno_id, criterio_id, area_id, trimestre, sda_id, nivel, nota)
+            VALUES (?, ?, ?, ?, NULL, ?, ?)
+            ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
+            DO UPDATE SET nivel=excluded.nivel, nota=excluded.nota
+        """, (alumno_id, criterio_id, area_id, trimestre, nivel, nota))
+        db.commit()
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@evaluacion_sda_bp.route("/resumen_clase")
+def resumen_clase_v2():
+    area_id = request.args.get("area_id")
+    periodo = request.args.get("periodo") # e.g. 'T1'
     grupo_id = session.get('active_group_id')
     
-    conn = get_db()
-    cur = conn.cursor()
-    
-    # Calcular media por criterio para el grupo y trimestre
-    cur.execute("""
-        SELECT c.codigo as criterio, ROUND(AVG(e.nivel), 2) as media
+    if not periodo or not area_id:
+        return jsonify([])
+
+    trimestre = int(periodo.replace('T', ''))
+    db = get_db()
+    cur = db.cursor()
+
+    rows = cur.execute("""
+        SELECT c.codigo, AVG(e.nivel) as media
         FROM evaluaciones e
-        JOIN criterios c ON e.criterio_id = c.id
+        JOIN criterios c ON c.id = e.criterio_id
         JOIN alumnos a ON e.alumno_id = a.id
-        WHERE a.grupo_id = ? AND e.area_id = ? AND e.trimestre = ?
-        GROUP BY e.criterio_id
-        ORDER BY c.codigo
-    """, (grupo_id, area_id, trimestre))
-    
-    rows = cur.fetchall()
+        WHERE c.area_id = ? AND e.trimestre = ? AND a.grupo_id = ?
+        GROUP BY c.codigo
+    """, (area_id, trimestre, grupo_id)).fetchall()
+
     return jsonify([dict(r) for r in rows])
+
+@evaluacion_sda_bp.route("/criterio_clase")
+def criterio_clase():
+    criterio_id = request.args.get("criterio_id")
+    grupo_id = request.args.get("grupo_id") or session.get('active_group_id')
+    periodo = request.args.get("periodo")
+    
+    if not criterio_id or not grupo_id or not periodo:
+        return jsonify({"error": "Faltan parámetros"}), 400
+
+    trimestre = int(periodo.replace('T', ''))
+    db = get_db()
+    cur = db.cursor()
+
+    alumnos = cur.execute("""
+        SELECT id, nombre
+        FROM alumnos
+        WHERE grupo_id = ?
+        ORDER BY nombre
+    """, (grupo_id,)).fetchall()
+
+    evaluaciones = cur.execute("""
+        SELECT alumno_id, nivel
+        FROM evaluaciones
+        WHERE criterio_id = ? AND trimestre = ? AND sda_id IS NULL
+    """, (criterio_id, trimestre)).fetchall()
+
+    return jsonify({
+        "alumnos": [dict(a) for a in alumnos],
+        "evaluaciones": [dict(e) for e in evaluaciones]
+    })
+
+@evaluacion_sda_bp.route("/guardar_masivo", methods=["POST"])
+def guardar_masivo():
+    data = request.json
+    periodo = data["periodo"]
+    trimestre = int(periodo.replace('T', ''))
+    
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        cur.execute("BEGIN")
+        for item in data["evaluaciones"]:
+            nivel = item.get("nivel")
+            if nivel is None: continue
+            
+            nota = nivel_a_nota(nivel)
+            alumno_id = item["alumno_id"]
+            criterio_id = item["criterio_id"]
+            
+            # Obtener area_id del criterio si no se tiene
+            cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+            row = cur.fetchone()
+            if not row: continue
+            area_id = row["area_id"]
+
+            cur.execute("""
+                INSERT INTO evaluaciones (alumno_id, criterio_id, area_id, trimestre, sda_id, nivel, nota)
+                VALUES (?, ?, ?, ?, NULL, ?, ?)
+                ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
+                DO UPDATE SET nivel=excluded.nivel, nota=excluded.nota
+            """, (alumno_id, criterio_id, area_id, trimestre, nivel, nota))
+        
+        db.commit()
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@evaluacion_sda_bp.route("/aplicar_general", methods=["POST"])
+def aplicar_general():
+    data = request.json
+    grupo_id = data["grupo_id"]
+    criterio_id = data["criterio_id"]
+    periodo = data["periodo"]
+    nivel = data["nivel"]
+    
+    trimestre = int(periodo.replace('T', ''))
+    nota = nivel_a_nota(nivel)
+    
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        cur.execute("BEGIN")
+        
+        # Obtener area_id
+        cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+        row = cur.fetchone()
+        if not row:
+            return jsonify({"error": "Criterio no encontrado"}), 404
+        area_id = row["area_id"]
+
+        # Obtener todos los alumnos del grupo
+        alumnos = cur.execute("SELECT id FROM alumnos WHERE grupo_id = ?", (grupo_id,)).fetchall()
+
+        for alumno in alumnos:
+            cur.execute("""
+                INSERT INTO evaluaciones (alumno_id, criterio_id, area_id, trimestre, sda_id, nivel, nota)
+                VALUES (?, ?, ?, ?, NULL, ?, ?)
+                ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
+                DO UPDATE SET nivel=excluded.nivel, nota=excluded.nota
+            """, (alumno["id"], criterio_id, area_id, trimestre, nivel, nota))
+
+        db.commit()
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500

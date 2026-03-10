@@ -1,90 +1,58 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-    <title>Informes</title>
+    <title>Informes - Cuaderno del Tutor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
-
     <style>
-        :root {
-            --primary: #003366;
-            --secondary: #007bff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --bg: #f0f2f5;
-            --text: #333;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
         }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            margin: 0;
-            padding: 20px;
-            color: var(--dark);
+        .report-section {
+            background: white;
+            padding: 25px;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .report-section h3 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 1.25rem;
+            border-bottom: 2px solid var(--gray-100);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
-
-
-        select {
-            padding: 8px;
-            margin: 5px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            margin-top: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
         }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 10px;
+        th, td {
+            border: 1px solid var(--gray-200);
+            padding: 12px;
             text-align: left;
         }
-
         th {
-            background: #f8f9fa;
-            font-weight: bold;
+            background: var(--gray-100);
+            font-weight: 700;
+            color: var(--primary);
         }
-
-        .report-section {
-            background: white;
-            padding: 20px;
-            margin-top: 20px;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .report-section h3 {
-            margin-top: 0;
-            color: #333;
-        }
-
-
-
         /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 2000;
             left: 0;
             top: 0;
             width: 100%;
@@ -92,86 +60,57 @@
             background-color: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(4px);
         }
-
         .modal-content {
             background-color: white;
             margin: 5% auto;
             padding: 25px;
-            border-radius: 12px;
-            width: 50%;
+            border-radius: 15px;
+            width: 90%;
             max-width: 600px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-lg);
             max-height: 80vh;
             overflow-y: auto;
         }
-
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid var(--gray-100);
             margin-bottom: 15px;
             padding-bottom: 10px;
         }
-
         .close {
             color: #aaa;
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
         }
-
         .close:hover {
             color: black;
         }
-
         .stat-clickable {
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 4px;
             transition: all 0.2s;
         }
-
         .stat-clickable:hover {
             background: rgba(0, 0, 0, 0.05);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transform: translateY(-1px);
         }
     </style>
-</head>
 
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
+</head>
 <body>
     <div class="container">
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes" class="active">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-        </div>
+        <!-- Unified Navigation injected by navigation.js -->
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div
-                    style="background: white; padding: 6px 12px; border-radius: 8px; border: 1px solid #ddd; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        style="border:none; background:transparent; font-weight:600; font-size:0.9rem; color:var(--primary, #003366); cursor:pointer; outline:none; width:140px; margin:0; padding:2px 5px; text-overflow:ellipsis;">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
-            </div>
         </div>
-
         <h1>📜 Gestión de Informes</h1>
         <!-- PESTAÑAS -->
         <div class="tab-container" style="margin-bottom: 20px;"><button class="tab-button active"
@@ -203,7 +142,6 @@
                 <label for="tutorName" style="margin-left: 20px;"><strong>Tutor/a:</strong></label>
                 <input type="text" id="tutorName" placeholder="Nombre del Tutor/a" style="padding: 5px; width: 200px;"
                     onchange="localStorage.setItem('tutorName', this.value)">
-
                 <button onclick="generarPDFIndividual()"
                     style="margin-left: 20px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">📄
                     Descargar PDF Individual</button><button onclick="generarPDFGeneral()"
@@ -294,27 +232,22 @@
                 border-radius: 8px 8px 0 0;
                 font-weight: bold;
             }
-
             .tab-button.active {
                 background: #fff;
                 color: #007bff;
                 border-bottom: 2px solid #007bff;
             }
-
             .tab-content {
                 display: none;
             }
-
             .tab-content.active {
                 display: block;
             }
-
             select,
             textarea {
                 border: 1px solid #ccc;
                 border-radius: 4px;
             }
-
             .stat-card {
                 display: inline-block;
                 background: white;
@@ -324,28 +257,23 @@
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
         </style>
-
         <script>
             let alumnoSelect = document.getElementById("alumno");
             let trimInd = document.getElementById("trimestreIndividual");
             let trimGrp = document.getElementById("trimestreGrupo");
-
             function switchTab(tabId, checkGroup = false) {
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
                 document.getElementById(tabId).classList.add('active');
-
                 // Use event target if triggered by click, else handle manually if needed (not strict requirement here)
                 if (event && event.currentTarget) {
                     event.currentTarget.classList.add('active');
                 } else if (tabId === 'tabGrupo') {
                     document.querySelector('.tab-button[onclick*="tabGrupo"]').classList.add('active');
                 }
-
                 if (tabId === 'tabGrupo' && checkGroup) cargarInformeGrupo();
                 else if (tabId === 'tabIndividual') cargarInforme();
             }
-
             // Cargar alumnos Inicial
             fetch("/api/alumnos")
                 .then(r => r.json())
@@ -356,16 +284,13 @@
                     });
                     // cargarInforme(); // Don't auto-load
                 });
-
             alumnoSelect.addEventListener("change", cargarInforme);
             trimInd.addEventListener("change", cargarInforme);
-
             function getColorNota(nota) {
                 if (nota < 5) return "#dc3545";
                 if (nota < 7) return "#ffc107";
                 return "#28a745";
             }
-
             function formatNotaText(nota, escala) {
                 if (escala === 'INFANTIL_NI_EP_C') {
                     const rnd = Math.round(nota);
@@ -376,7 +301,6 @@
                 }
                 return nota.toFixed(2);
             }
-
             function getColorNotaEscala(nota, escala) {
                 if (escala === 'INFANTIL_NI_EP_C') {
                     if (nota < 2) return "#dc3545"; // NI
@@ -387,12 +311,10 @@
                 if (nota < 7) return "#ffc107";
                 return "#28a745";
             }
-
             function cargarInforme() {
                 if (!alumnoSelect.value) return;
                 const alumnoId = alumnoSelect.value;
                 const trimestre = trimInd.value;
-
                 fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(datos => {
@@ -404,7 +326,6 @@
                         });
                         document.getElementById("mediasAreas").innerHTML = html + "</table>";
                     });
-
                 fetch(`/api/evaluacion/resumen_sda_todos?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(datos => {
@@ -415,11 +336,9 @@
                         });
                         document.getElementById("mediasSDA").innerHTML = html + "</table>";
                     });
-
                 fetch(`/api/informe/observacion?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(d => document.getElementById("observacionesTexto").value = d.texto || "");
-
                 fetch(`/api/informe/asistencia_alumno?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(d => {
@@ -433,10 +352,8 @@
                     `;
                     });
             }
-
             function cargarInformeGrupo() {
                 const trimestre = trimGrp.value;
-
                 // Cargar Observaciones y Conclusion
                 fetch(`/api/informe/grupo_obs?trimestre=${trimestre}`)
                     .then(r => r.json())
@@ -445,7 +362,6 @@
                         document.getElementById("grupoPropuestas").value = d.propuestas_mejora || "";
                         document.getElementById("grupoConclusion").value = d.conclusion || "";
                     });
-
                 // Cargar Dashboard rápido
                 fetch(`/api/informe/grupo_data?trimestre=${trimestre}`)
                     .then(r => r.json())
@@ -453,15 +369,12 @@
                         const g = d.generales;
                         const a = d.asistencia;
                         const p = d.promocion;
-
                         let mediaHtml = '';
                         let promocionHtml = '';
-
                         if (g.is_infantil) {
                             const valText = formatNotaText(g.media_general, 'INFANTIL_NI_EP_C');
                             const valColor = getColorNotaEscala(g.media_general, 'INFANTIL_NI_EP_C');
                             mediaHtml = `<b style="color:${valColor}">${valText}</b>`;
-
                             promocionHtml = `
                                 <tr><td>✅ Conseguido (C):</td><td><b>${p.C.num}</b> (${p.C.pct}%)</td></tr>
                                 <tr><td>⚠️ En Proceso (EP):</td><td><b>${p.EP.num}</b> (${p.EP.pct}%)</td></tr>
@@ -477,7 +390,6 @@
                                 <tr><td>🚫 +2 Suspensos:</td><td><b>${p.mas_de_dos.num}</b> (${p.mas_de_dos.pct}%)</td></tr>
                             `;
                         }
-
                         document.getElementById("resumenGrupoStats").innerHTML = `
                         <div style="padding: 10px;">
                             <strong>Dashboard T${trimestre}:</strong> 
@@ -500,7 +412,6 @@
                     `;
                     });
             }
-
             function guardarObservaciones() {
                 const alumnoId = alumnoSelect.value;
                 const trimestre = trimInd.value;
@@ -517,13 +428,11 @@
                     }
                 });
             }
-
             function guardarGrupoObs() {
                 const trimestre = trimGrp.value;
                 const obs = document.getElementById("grupoObservaciones").value;
                 const prop = document.getElementById("grupoPropuestas").value;
                 const conc = document.getElementById("grupoConclusion").value;
-
                 fetch("/api/informe/grupo_obs", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -536,7 +445,6 @@
                     }
                 });
             }
-
             function sugerirConclusionIA() {
                 const trimestre = trimGrp.value;
                 fetch(`/api/informe/grupo_data?trimestre=${trimestre}`)
@@ -548,17 +456,13 @@
                         if (media >= 7) c += "El grupo muestra una actitud muy positiva y un alto grado de consecución de objetivos. ";
                         else if (media >= 5) c += "El grupo progresa adecuadamente, aunque existen áreas con margen de mejora. ";
                         else c += "Se detectan dificultades significativas que requieren un plan de acción conjunto. ";
-
                         c += `Un ${prom}% del alumnado ha superado satisfactoriamente todas las áreas. `;
                         c += "Como conclusión, el grupo muestra una evolución adecuada acorde a su nivel educativo, con aspectos positivos en la implicación y participación.";
-
                         document.getElementById("grupoConclusion").value = c;
                     });
             }
-
             // Inicializar Tutor
             document.getElementById("tutorName").value = localStorage.getItem("tutorName") || "";
-
             function generarPDFIndividual() {
                 if (!alumnoSelect.value) {
                     alert("Por favor,selecciona un alumno primero.");
@@ -567,34 +471,27 @@
                 const tutor = document.getElementById("tutorName").value;
                 window.open(`/api/informe/pdf_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}`, '_blank');
             }
-
             function generarPDFGeneral() {
                 const tutor = document.getElementById("tutorName").value;
                 window.open(`/api/informe/pdf_general?trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}`, '_blank');
             }
-
             function generarPDFGrupo() {
                 window.open(`/api/informe/pdf_grupo?trimestre=${trimGrp.value}`, '_blank');
             }
-
             function generarExcelGrupo() {
                 window.open(`/api/informe/excel_grupo?trimestre=${trimGrp.value}`, '_blank');
             }
-
             // FUNCIONES MODAL ASISTENCIA
             function mostrarDetalleAsistencia(estado) {
                 const modal = document.getElementById("modalAsistencia");
                 const title = document.getElementById("modalTitle");
                 const body = document.getElementById("modalBody");
                 const trimestre = trimGrp.value;
-
                 let label = estado === 'falta_justificada' ? 'Faltas Justificadas' :
                     estado === 'falta_no_justificada' ? 'Faltas Injustificadas' : 'Retrasos';
-
                 title.innerText = `Detalle: ${label} (Trimestre ${trimestre})`;
                 body.innerHTML = "<p>Cargando detalles...</p>";
                 modal.style.display = "block";
-
                 fetch(`/api/informe/asistencia_detalle?trimestre=${trimestre}&estado=${estado}`)
                     .then(r => r.json())
                     .then(datos => {
@@ -602,7 +499,6 @@
                             body.innerHTML = "<p>No hay registros para este tipo de incidencia.</p>";
                             return;
                         }
-
                         let html = `<table style="margin-top:10px;">
                                     <tr><th>Fecha</th><th>Alumno</th></tr>`;
                         datos.forEach(d => {
@@ -612,11 +508,9 @@
                         body.innerHTML = html;
                     });
             }
-
             function cerrarModal() {
                 document.getElementById("modalAsistencia").style.display = "none";
             }
-
             // Cerrar al pulsar fuera
             window.onclick = function (event) {
                 const modal = document.getElementById("modalAsistencia");
@@ -626,9 +520,5 @@
             }
         </script>
     </div>
-
-    <script src="/static/js/global_groups.js"></script>
-    <script src="/static/js/api.js"></script>
 </body>
-
 </html>

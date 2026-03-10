@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Generador de Rúbricas</title>
@@ -17,7 +16,6 @@
             --bg: #f0f2f5;
             --text: #333;
         }
-
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -25,13 +23,10 @@
             padding: 20px;
             color: var(--text);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
-
         .card {
             background: white;
             padding: 25px;
@@ -39,65 +34,54 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             margin-bottom: 20px;
         }
-
         h2 {
             color: var(--primary);
             margin-top: 0;
         }
-
         .grid-selects {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
-
         label {
             display: block;
             font-weight: bold;
             margin-bottom: 5px;
         }
-
         select {
             width: 100%;
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #ddd;
         }
-
         .rubric-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-top: 15px;
         }
-
         .level-card {
             padding: 15px;
             border-radius: 10px;
             border: 1px solid #eee;
         }
-
         .level-1 {
             background: #ffebee;
             border-top: 4px solid #dc3545;
         }
-
         .level-2 {
             background: #fff3cd;
             border-top: 4px solid #ffc107;
         }
-
         .level-3 {
             background: #e0f7fa;
             border-top: 4px solid #17a2b8;
         }
-
         .level-4 {
             background: #e8f5e9;
             border-top: 4px solid #28a745;
         }
-
         textarea {
             width: 100%;
             height: 120px;
@@ -107,7 +91,6 @@
             resize: vertical;
             font-family: inherit;
         }
-
         button.btn {
             background: var(--primary);
             color: white;
@@ -118,45 +101,24 @@
             cursor: pointer;
             margin-top: 20px;
         }
-
         button.btn:hover {
             filter: brightness(1.1);
         }
     </style>
-</head>
 
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
+</head>
 <body>
     <div class="container">
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas" class="active">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-        </div>
+        <!-- Unified Navigation injected by navigation.js -->
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div class="group-selector-container injected-group-selector">
-                    <span style="font-size: 1.1rem;">📚</span>
-                    <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                        class="group-selector-select">
-                        <option value="">Cargando grupos...</option>
-                    </select>
-                </div>
+                
             </div>
         </div>
-
-
         <div class="card">
             <h2>🛠️ Creador de Rúbricas</h2>
             <div class="grid-selects">
@@ -173,17 +135,14 @@
                     <select id="criterio" onchange="loadRubrica()"></select>
                 </div>
             </div>
-
             <div style="text-align: right;">
                 <button class="btn" style="background: #6c757d;" onclick="generatePDF()">📄 Descargar PDF de la
                     SDA</button>
             </div>
         </div>
-
         <div class="card" id="editor" style="display:none;">
             <h3 id="criterioTitle">Editar Descriptores</h3>
             <p id="criterioDesc" style="color:#666; font-style:italic; margin-bottom:20px;"></p>
-
             <div class="rubric-grid">
                 <div class="level-card level-1">
                     <strong>1. Insuficiente</strong>
@@ -202,7 +161,6 @@
                     <textarea id="desc-4" placeholder="El alumno domina completamente..."></textarea>
                 </div>
             </div>
-
             <div style="text-align: right; margin-top: 15px;">
                 <button class="btn" style="background: #dc3545; margin-right: 10px;" onclick="deleteRubrica()">🗑️
                     Borrar Todo</button>
@@ -210,17 +168,13 @@
             </div>
         </div>
     </div>
-
     <script>
         // Init
         // ... (existing code)
-
         // ... existing functions ...
-
         function deleteRubrica() {
             const critId = document.getElementById('criterio').value;
             if (!confirm("¿Seguro que quieres borrar la rúbrica de este criterio?")) return;
-
             fetch(`/api/rubricas/${critId}`, { method: 'DELETE' })
                 .then(r => r.json())
                 .then(res => {
@@ -233,33 +187,28 @@
                     }
                 });
         }
-
         // Init
         fetch('/api/evaluacion/areas').then(r => r.json()).then(areas => {
             const s = document.getElementById('area');
             s.innerHTML = '<option value="">-- Selecciona Área --</option>';
             areas.forEach(a => s.innerHTML += `<option value="${a.id}">${a.nombre}</option>`);
         });
-
         function loadSDAs() {
             const areaId = document.getElementById('area').value;
             const s = document.getElementById('sda');
             s.innerHTML = '<option value="">-- Selecciona SDA --</option>';
             document.getElementById('criterio').innerHTML = '';
             document.getElementById('editor').style.display = 'none';
-
             if (!areaId) return;
             fetch(`/api/evaluacion/sda/${areaId}`).then(r => r.json()).then(sdas => {
                 sdas.forEach(sda => s.innerHTML += `<option value="${sda.id}">${sda.nombre}</option>`);
             });
         }
-
         function loadCriterios() {
             const sdaId = document.getElementById('sda').value;
             const s = document.getElementById('criterio');
             s.innerHTML = '<option value="">-- Selecciona Criterio --</option>';
             document.getElementById('editor').style.display = 'none';
-
             if (!sdaId) return;
             fetch(`/api/evaluacion/criterios/${sdaId}`).then(r => r.json()).then(crits => {
                 crits.forEach(c => {
@@ -271,7 +220,6 @@
                 });
             });
         }
-
         function loadRubrica() {
             const critSelect = document.getElementById('criterio');
             const critId = critSelect.value;
@@ -279,29 +227,24 @@
                 document.getElementById('editor').style.display = 'none';
                 return;
             }
-
             const desc = critSelect.options[critSelect.selectedIndex].dataset.desc;
             document.getElementById('criterioTitle').innerText = `Rúbrica para ${critSelect.options[critSelect.selectedIndex].text}`;
             document.getElementById('criterioDesc').innerText = desc;
             document.getElementById('editor').style.display = 'block';
-
             // Clear inputs
             [1, 2, 3, 4].forEach(n => document.getElementById(`desc-${n}`).value = "");
-
             fetch(`/api/rubricas/${critId}`).then(r => r.json()).then(data => {
                 for (const [nivel, text] of Object.entries(data)) {
                     document.getElementById(`desc-${nivel}`).value = text;
                 }
             });
         }
-
         function saveRubrica() {
             const critId = document.getElementById('criterio').value;
             const descriptores = {};
             [1, 2, 3, 4].forEach(n => {
                 descriptores[n] = document.getElementById(`desc-${n}`).value;
             });
-
             fetch('/api/rubricas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -311,16 +254,11 @@
                 else alert("❌ Error: " + res.error);
             });
         }
-
         function generatePDF() {
             const sdaId = document.getElementById('sda').value;
             if (!sdaId) return alert("Selecciona una SDA primero");
             window.location.href = `/api/rubricas/pdf/${sdaId}`;
         }
     </script>
-
-    <script src="/static/js/global_groups.js"></script>
-    <script src="/static/js/api.js"></script>
 </body>
-
 </html>

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from utils.db import get_db
 
 eventos_bp = Blueprint('eventos', __name__)
@@ -13,7 +13,7 @@ def obtener_programacion():
 
     # 1. Fetch from programacion_diaria
     sql = """
-        SELECT id, fecha, actividad, tipo, observaciones, color, sda_id, evaluable, criterio_id
+        SELECT id, fecha, descripcion, tipo, color, sda_id, evaluable, criterio_id
         FROM programacion_diaria
         WHERE 1=1
     """
@@ -33,12 +33,11 @@ def obtener_programacion():
     for r in rows:
         events.append({
             "id": r["id"],
-            "title": r["actividad"],
+            "title": r["descripcion"] or "(Sin título)",
             "start": r["fecha"],
             "color": r["color"] or "#3788d8",
             "extendedProps": {
                 "tipo": r["tipo"],
-                "observaciones": r["observaciones"] or "",
                 "sda_id": r["sda_id"],
                 "evaluable": r["evaluable"],
                 "criterio_id": r["criterio_id"]
@@ -96,11 +95,42 @@ def guardar_evento():
     conn = get_db()
     cur = conn.cursor()
     try:
+        cur.execute("BEGIN")
         cur.execute("""
-            INSERT INTO programacion_diaria (fecha, actividad, tipo, observaciones, color, sda_id, evaluable, criterio_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), d.get("sda_id") or None, d.get("evaluable", 0), d.get("criterio_id") or None))
+            INSERT INTO programacion_diaria (fecha, descripcion, tipo, color, sda_id, evaluable, criterio_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (d["fecha"], d.get("actividad") or d.get("descripcion"), d.get("tipo", "general"), d.get("color", "#3788d8"), d.get("sda_id") or None, d.get("evaluable", 0), d.get("criterio_id") or None))
         new_id = cur.lastrowid
+        
+        # Auto-generate evaluations if evaluable
+        if d.get("evaluable") == 1 and d.get("criterio_id"):
+            grupo_id = request.args.get("grupo_id") or session.get('active_group_id')
+            criterio_id = d["criterio_id"]
+            sda_id = d.get("sda_id")
+            
+            # Determine area_id and trimestre
+            if sda_id:
+                cur.execute("SELECT area_id, trimestre FROM sda WHERE id = ?", (sda_id,))
+                sda_row = cur.fetchone()
+                area_id = sda_row["area_id"]
+                trimestre = sda_row["trimestre"]
+            else:
+                cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+                area_id = cur.fetchone()["area_id"]
+                # Derive trimester from date if no SDA
+                mes = int(d["fecha"].split('-')[1])
+                trimestre = 1 if mes >= 9 or mes <= 12 else (2 if mes >= 1 and mes <= 3 else 3)
+                if mes >= 1 and mes <= 3: trimestre = 2
+                elif mes >= 4 and mes <= 6: trimestre = 3
+                else: trimestre = 1
+
+            cur.execute("""
+                INSERT OR IGNORE INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
+                SELECT id, ?, ?, ?, ?, NULL, NULL
+                FROM alumnos
+                WHERE grupo_id = ?
+            """, (area_id, trimestre, sda_id or None, criterio_id, grupo_id))
+
         conn.commit()
         return jsonify({"ok": True, "id": new_id})
     except Exception as e:
@@ -113,11 +143,54 @@ def actualizar_evento(event_id):
     conn = get_db()
     cur = conn.cursor()
     try:
+        cur.execute("BEGIN")
         cur.execute("""
             UPDATE programacion_diaria
-            SET fecha = ?, actividad = ?, tipo = ?, observaciones = ?, color = ?, sda_id = ?, evaluable = ?, criterio_id = ?
+            SET fecha = ?, descripcion = ?, tipo = ?, color = ?, sda_id = ?, evaluable = ?, criterio_id = ?
             WHERE id = ?
-        """, (d["fecha"], d["actividad"], d.get("tipo", "general"), d.get("observaciones", ""), d.get("color", "#3788d8"), d.get("sda_id") or None, d.get("evaluable", 0), d.get("criterio_id") or None, event_id))
+        """, (d["fecha"], d.get("actividad") or d.get("descripcion"), d.get("tipo", "general"), d.get("color", "#3788d8"), d.get("sda_id") or None, d.get("evaluable", 0), d.get("criterio_id") or None, event_id))
+        
+        # Auto-generate evaluations if changed to evaluable
+        if d.get("evaluable") == 1 and d.get("criterio_id"):
+            grupo_id = request.args.get("grupo_id") or session.get('active_group_id')
+            criterio_id = d["criterio_id"]
+            sda_id = d.get("sda_id")
+            
+            # Determine area_id and trimestre
+            if sda_id:
+                cur.execute("SELECT area_id, trimestre FROM sda WHERE id = ?", (sda_id,))
+                sda_row = cur.fetchone()
+                area_id = sda_row["area_id"]
+                trimestre = sda_row["trimestre"]
+            else:
+                cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+                area_id = cur.fetchone()["area_id"]
+                mes = int(d["fecha"].split('-')[1])
+                if mes >= 9 or mes <= 12: trimestre = 1
+                if mes >= 1 and mes <= 3: trimestre = 2
+                elif mes >= 4 and mes <= 6: trimestre = 3
+                else: trimestre = 1
+
+            cur.execute("""
+                INSERT OR IGNORE INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
+                SELECT id, ?, ?, ?, ?, NULL, NULL
+                FROM alumnos
+                WHERE grupo_id = ?
+            """, (area_id, trimestre, sda_id or None, criterio_id, grupo_id))
+
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@eventos_bp.route("/api/programacion/<int:event_id>/completado", methods=["PATCH"])
+def patch_evento_completado(event_id):
+    d = request.json
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE programacion_diaria SET completado = ? WHERE id = ?", (d.get("completado", 1), event_id))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
@@ -134,4 +207,15 @@ def borrar_evento(event_id):
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
-    return jsonify({"ok": True})
+@eventos_bp.route("/api/actividades/<int:act_id>/sesiones")
+def api_sesiones_actividad(act_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT sa.id, sa.fecha, sa.descripcion, sa.numero_sesion, sa.actividad_id, sa.evaluable, sa.criterio_id
+        FROM programacion_diaria sa
+        WHERE sa.actividad_id = ?
+        ORDER BY sa.numero_sesion
+    """, (act_id,))
+    rows = cur.fetchall()
+    return jsonify([dict(r) for r in rows])

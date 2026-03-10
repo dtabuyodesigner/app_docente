@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Configuración Centralizada</title>
@@ -19,7 +18,6 @@
             --bg: #f0f2f5;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -27,13 +25,10 @@
             padding: 20px;
             color: var(--dark);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
-
         .card {
             background: white;
             padding: 25px;
@@ -41,7 +36,6 @@
             box-shadow: var(--shadow);
             margin-bottom: 20px;
         }
-
         h2 {
             margin-top: 0;
             color: var(--primary);
@@ -49,18 +43,15 @@
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         label {
             display: block;
             font-weight: 600;
             margin-bottom: 5px;
             color: #555;
         }
-
         input,
         select,
         textarea {
@@ -72,14 +63,12 @@
             box-sizing: border-box;
             font-family: inherit;
         }
-
         input:focus,
         select:focus {
             outline: none;
             border-color: var(--secondary);
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
-
         .btn-save {
             background: var(--success);
             color: white;
@@ -93,13 +82,11 @@
             transition: all 0.2s;
             margin-top: 10px;
         }
-
         .btn-save:hover {
             background: #218838;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         }
-
         .status-msg {
             text-align: center;
             padding: 10px;
@@ -107,13 +94,11 @@
             margin-top: 15px;
             display: none;
         }
-
         .status-success {
             background: #d4edda;
             color: #155724;
             display: block;
         }
-
         .section-title {
             font-size: 0.9rem;
             text-transform: uppercase;
@@ -123,7 +108,6 @@
             margin-top: 25px;
             font-weight: 800;
         }
-
         /* Modal Styles */
         .modal-overlay {
             display: none;
@@ -138,7 +122,6 @@
             align-items: center;
             backdrop-filter: blur(3px);
         }
-
         .modal {
             background: white;
             padding: 25px;
@@ -150,7 +133,6 @@
             position: relative;
             box-shadow: var(--shadow);
         }
-
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -159,7 +141,6 @@
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
-
         .modal-close {
             background: none;
             border: none;
@@ -170,34 +151,18 @@
             padding: 0;
             line-height: 1;
         }
-
         .modal-close:hover {
             color: var(--danger);
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
-
 <body>
-
     <div class="container">
-        <div class="nav">
-            <a href="/">🏠 Inicio</a>
-            <a href="/alumnos">👥 Alumnos</a>
-            <a href="/asistencia">📋 Pasar lista</a>
-            <a href="/diario">📓 Diario</a>
-            <a href="/programacion">📅 Programación</a>
-            <a href="/horario">⏰ Horario</a>
-            <a href="/evaluacion">📊 Evaluación</a>
-            <a href="/rubricas">📝 Rúbricas</a>
-            <a href="/informes">📜 Informes</a>
-            <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-            <a href="/biblioteca">📚 Biblioteca</a>
-            <a href="/material">📦 Material</a>
-            <a href="/tareas">✅ Tareas</a>
-            <a href="/configuracion" class="active">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-        </div>
-
-
+        <!-- Unified Navigation injected by navigation.js -->
         <div class="card"
             style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
             <h2
@@ -237,11 +202,9 @@
             </div>
         </div>
     </div>
-
     <!-- The Centro Configuration UI -->
     <div id="centroConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: block;">
         <h2 style="color: var(--primary);">🏫 Datos del Centro y Tutoría</h2>
-
         <div style="margin-top: 15px; text-align: left;">
             <div class="section-title">Datos del Centro y Curso</div>
             <div class="form-group">
@@ -252,19 +215,16 @@
                 <label>Curso Escolar:</label>
                 <input type="text" id="curso_escolar" placeholder="Ej: 2025/2026">
             </div>
-
             <div class="section-title">Datos del Tutor/a</div>
             <div class="form-group">
                 <label>Nombre del Tutor/a:</label>
                 <input type="text" id="nombre_tutor" placeholder="Tu nombre">
             </div>
-
             <div class="section-title">Biblioteca</div>
             <div class="form-group">
                 <label>Días máximos de préstamo:</label>
                 <input type="number" id="max_dias_prestamo" min="1" max="90">
             </div>
-
             <div class="section-title">Comedor</div>
             <div class="form-group">
                 <label>Tipo de Gestión:</label>
@@ -273,25 +233,20 @@
                     <option value="externa">Gestión Externa (Empresa)</option>
                 </select>
             </div>
-
             <button class="btn-save" onclick="saveConfig()">💾 Guardar Configuración</button>
             <div id="status" class="status-msg"></div>
         </div>
     </div>
-
     <!-- The Groups Configuration UI -->
     <div id="gruposConfigSection" class="card config-section" style="max-width: 600px; margin: 0 auto; display: none;">
         <h2 style="color: var(--primary); text-align: center; margin-bottom: 25px;">⚙️ Ajustes de Grupos</h2>
-
         <div style="margin-top: 20px; text-align: left;">
-
             <div style="margin-bottom: 30px;">
                 <h4 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top:0;">Mis Grupos</h4>
                 <div id="ajustesGruposList">
                     <p style="color: #666; font-style: italic;">Cargando grupos...</p>
                 </div>
             </div>
-
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
                 <h4 style="margin-top: 0; color:var(--primary);">➕ Crear Nuevo Grupo</h4>
                 <div style="margin-bottom: 15px;">
@@ -334,22 +289,18 @@
                     Guardar Grupo
                 </button>
             </div>
-
         </div>
     </div>
-
     <script>
         async function loadConfig() {
             const res = await fetch('/api/configuracion');
             const data = await res.json();
-
             // Fill inputs if keys exist
             for (const [key, value] of Object.entries(data)) {
                 const el = document.getElementById(key);
                 if (el) el.value = value;
             }
         }
-
         async function saveConfig() {
             const keys = ['nombre_centro', 'curso_escolar', 'nombre_tutor', 'max_dias_prestamo', 'tipo_comedor'];
             const data = {};
@@ -357,12 +308,10 @@
                 const el = document.getElementById(k);
                 if (el) data[k] = el.value;
             });
-
             const status = document.getElementById('status');
             status.innerText = "Guardando...";
             status.className = "status-msg";
             status.style.display = "block";
-
             try {
                 const res = await fetch('/api/configuracion', {
                     method: 'POST',
@@ -383,23 +332,19 @@
                 status.style.color = "red";
             }
         }
-
         async function abrirAjustesGrupos() {
             document.getElementById('ajustesGruposModal').style.display = 'flex';
             loadGruposAjustes();
         }
-
         async function loadGruposAjustes() {
             const listDiv = document.getElementById('ajustesGruposList');
             try {
                 const res = await fetch('/api/grupos');
                 const grupos = await res.json();
-
                 if (grupos.length === 0) {
                     listDiv.innerHTML = '<p style="color: #666; font-style: italic;">No tienes grupos creados aún.</p>';
                     return;
                 }
-
                 listDiv.innerHTML = grupos.map(g => `
                     <div style="background: white; border: 1px solid #ddd; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -412,27 +357,22 @@
                         </div>
                     </div>
                 `).join('');
-
             } catch (e) {
                 listDiv.innerHTML = '<p style="color: red;">Error cargando grupos.</p>';
             }
         }
-
         async function createNewGroup() {
             const stage = document.getElementById('newGroupStage').value;
             const line = document.getElementById('newGroupLine').value;
             const stageText = document.getElementById('newGroupStage').options[document.getElementById('newGroupStage').selectedIndex].text;
-
             let finalName = stageText;
             if (line) finalName += ` - ${line}`;
-
             try {
                 const res = await fetch('/api/grupos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre: finalName })
                 });
-
                 if (res.ok) {
                     // Limpiar y recargar
                     document.getElementById('newGroupLine').value = "";
@@ -446,10 +386,8 @@
                 alert("Error de conexión");
             }
         }
-
         async function borrarGrupo(id, nombre) {
             if (!confirm(`⚠️ ATENCIÓN: Al borrar el grupo "${nombre}" se eliminarán TODOS sus alumnos, asistencias y evaluaciones. ¿Estás absolutamente SEGURO?`)) return;
-
             try {
                 const res = await fetch(`/api/grupos/${id}`, { method: 'DELETE' });
                 if (res.ok) {
@@ -462,30 +400,24 @@
                 alert("Error de conexión al borrar.");
             }
         }
-
         function preRenombrarGrupo(id, nombre) {
             document.getElementById('renameGroupId').value = id;
             document.getElementById('renombrarGrupoModal').style.display = 'flex';
             // No autocompleta los dropdowns por simplicidad, los obliga a elegir la nueva combinación
         }
-
         async function ejecutarRenombrarGrupo() {
             const id = document.getElementById('renameGroupId').value;
             const stageText = document.getElementById('renameGroupStage').options[document.getElementById('renameGroupStage').selectedIndex].text;
             const line = document.getElementById('renameGroupLine').value;
-
             let newName = stageText;
             if (line) newName += ` - ${line}`;
-
             if (!confirm(`¿Cambiar el nombre del grupo a "${newName}"?`)) return;
-
             try {
                 const res = await fetch(`/api/grupos/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre: newName })
                 });
-
                 if (res.ok) {
                     document.getElementById('renombrarGrupoModal').style.display = 'none';
                     loadGruposAjustes();
@@ -497,12 +429,10 @@
                 alert("Error de conexión al intentar renombrar.");
             }
         }
-
         window.onload = () => {
             loadConfig();
             loadGruposAjustes();
         };
-
         function mostrarSeccion(seccionId) {
             document.querySelectorAll('.config-section').forEach(el => el.style.display = 'none');
             const target = document.getElementById(seccionId + 'ConfigSection');
@@ -511,9 +441,6 @@
             }
         }
     </script>
-
-
-
     <!-- Renombrar Grupo Modal -->
     <div class="modal-overlay" id="renombrarGrupoModal" style="z-index: 1010; display: none; align-items: center;">
         <div class="modal" style="max-width: 600px;">
@@ -566,9 +493,5 @@
             </div>
         </div>
     </div>
-
-    <script src="/static/js/global_groups.js"></script>
-    <script src="/static/js/api.js"></script>
 </body>
-
 </html>

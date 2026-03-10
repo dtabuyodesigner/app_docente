@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>📦 Listado de Material - Cuaderno del Tutor</title>
@@ -18,7 +17,6 @@
             --dark: #343a40;
             --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background: #f0f4f8;
@@ -26,32 +24,27 @@
             padding: 20px;
             color: var(--dark);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-
         .premium-card {
             background: white;
             padding: 30px;
             border-radius: 20px;
             box-shadow: var(--shadow);
         }
-
         h1 {
             color: var(--primary);
             text-align: center;
             margin-bottom: 30px;
         }
-
         .section {
             margin-bottom: 40px;
             padding: 20px;
             border: 1px solid #eef2f7;
             border-radius: 12px;
         }
-
         .section-title {
             font-size: 1.25rem;
             font-weight: 700;
@@ -61,24 +54,20 @@
             align-items: center;
             gap: 10px;
         }
-
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         label {
             display: block;
             font-weight: 600;
             margin-bottom: 5px;
             color: #555;
         }
-
         input,
         select,
         textarea {
@@ -89,7 +78,6 @@
             font-size: 0.95rem;
             box-sizing: border-box;
         }
-
         .btn {
             padding: 10px 20px;
             border: none;
@@ -101,52 +89,42 @@
             align-items: center;
             gap: 8px;
         }
-
         .btn-primary {
             background: var(--primary);
             color: white;
         }
-
         .btn-success {
             background: var(--success);
             color: white;
         }
-
         .btn-info {
             background: var(--info);
             color: white;
         }
-
         .btn-danger {
             background: var(--danger);
             color: white;
         }
-
         .btn:hover {
             opacity: 0.9;
             transform: translateY(-1px);
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
         }
-
         th,
         td {
             text-align: left;
             padding: 12px;
             border-bottom: 1px solid #eee;
         }
-
         th {
             background: var(--light);
             color: var(--primary);
             font-weight: 700;
         }
-
-
         .import-export {
             display: flex;
             justify-content: space-between;
@@ -156,7 +134,6 @@
             padding: 15px;
             border-radius: 12px;
         }
-
         /* Modal classes */
         .modal-overlay {
             position: fixed;
@@ -170,7 +147,6 @@
             align-items: center;
             z-index: 1000;
         }
-
         .modal {
             background: white;
             padding: 25px;
@@ -179,26 +155,21 @@
             max-width: 500px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
-
         /* Visibility helpers */
         .only-print {
             display: none !important;
         }
-
         @media print {
             .no-print {
                 display: none !important;
             }
-
             .only-print {
                 display: block !important;
             }
-
             body {
                 background: white;
                 padding: 0;
             }
-
             .container {
                 box-shadow: none;
                 border-radius: 0;
@@ -208,7 +179,6 @@
                 padding: 0;
             }
         }
-
         /* Tabs styling */
         .tabs {
             display: flex;
@@ -217,7 +187,6 @@
             padding-bottom: 0;
             align-items: center;
         }
-
         .tab-btn {
             padding: 10px 20px;
             border: none;
@@ -227,12 +196,10 @@
             color: #666;
             border-radius: 8px;
         }
-
         .tab-btn.active {
             background: var(--primary);
             color: white;
         }
-
         .student-selector {
             margin-bottom: 20px;
             padding: 15px;
@@ -242,7 +209,6 @@
             align-items: center;
             gap: 15px;
         }
-
         .checklist-item {
             display: flex;
             align-items: center;
@@ -250,21 +216,17 @@
             padding: 10px;
             border-bottom: 1px solid #eee;
         }
-
         .checklist-item:last-child {
             border-bottom: none;
         }
-
         .checklist-item input[type="checkbox"] {
             width: 20px;
             height: 20px;
             cursor: pointer;
         }
-
         .student-item:hover {
             background-color: #f0f4f8 !important;
         }
-
         .checklist-item {
             display: flex;
             align-items: center;
@@ -273,11 +235,9 @@
             border-bottom: 1px solid #eee;
             background: #fff;
         }
-
         .checklist-item:hover {
             background: #f9f9f9;
         }
-
         .checklist-item input[type="checkbox"] {
             width: 22px;
             height: 22px;
@@ -285,40 +245,20 @@
             accent-color: var(--primary);
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
-
 <div class="container">
-    <div class="nav no-print">
-        <a href="/">🏠 Inicio</a>
-        <a href="/alumnos">👥 Alumnos</a>
-        <a href="/asistencia">📋 Pasar lista</a>
-        <a href="/diario">📓 Diario</a>
-        <a href="/programacion">📅 Programación</a>
-        <a href="/horario">⏰ Horario</a>
-        <a href="/evaluacion">📊 Evaluación</a>
-        <a href="/rubricas">📝 Rúbricas</a>
-        <a href="/informes">📜 Informes</a>
-        <a href="/reuniones">👨‍👩‍👧‍👦 Reuniones</a>
-        <a href="/biblioteca">📚 Biblioteca</a>
-        <a href="/material" class="active">📦 Material</a>
-        <a href="/tareas">✅ Tareas</a>
-        <a href="/configuracion">⚙️ Configuración</a> <a href="/ayuda">💡 Ayuda</a>
-    </div>
+    <!-- Unified Navigation injected by navigation.js -->
     <div class="premium-card">
-
         <div class="no-print"
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; margin-top: 10px; border-bottom: 2px solid #eef2f7; padding-bottom: 12px;">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <h2 style="margin:0;">📦 Listado de Material</h2>
-                    <div class="group-selector-container injected-group-selector">
-                        <span style="font-size: 1.1rem;">📚</span>
-                        <select id="globalGroupSelect" onchange="changeActiveGroup(this.value)"
-                            class="group-selector-select">
-                            <option value="">Cargando grupos...</option>
-                        </select>
-                    </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                     <div class="tabs no-print"
@@ -340,7 +280,6 @@
                     </button>
                 </div>
             </div>
-
             <div id="print-header" class="only-print"
                 style="margin-bottom: 30px; text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">
                 <h1 style="margin:0; color: var(--primary);">Listado de Material del Alumnado</h1>
@@ -350,7 +289,6 @@
                     <span id="print-curso"></span>
                 </div>
             </div>
-
             <!-- Material Definition View (initially hidden) -->
             <div id="view-config" style="display: none;">
                 <div class="import-export no-print">
@@ -363,7 +301,6 @@
                     </div>
                     <button onclick="window.print()" class="btn btn-success">🖨️ Imprimir Listado</button>
                 </div>
-
                 <!-- Group Configuration section inside Material Definition -->
                 <div class="section no-print" style="background: #f8fbff; border: 1px dashed #c0d1e6;">
                     <div style="display: flex; gap: 20px; align-items: center;">
@@ -380,7 +317,6 @@
                             onchange="saveGeneralInfo()" style="padding: 8px 12px; font-size: 0.9rem;"></textarea>
                     </div>
                 </div>
-
                 <!-- Help Materials Section -->
                 <div class="section">
                     <div class="section-title">
@@ -399,7 +335,6 @@
                         <tbody></tbody>
                     </table>
                 </div>
-
                 <!-- All Students Materials Section -->
                 <div class="section">
                     <div class="section-title">
@@ -422,7 +357,6 @@
                     <button onclick="switchTab('con-ayuda')" class="btn btn-primary">Volver al Registro</button>
                 </div>
             </div>
-
             <!-- TAB 2: DELIVERY CONTROL (AYUDA) - DEFAULT -->
             <div id="view-con-ayuda">
                 <div style="display: grid; grid-template-columns: 350px 1fr; gap: 25px; margin-top: 20px;">
@@ -441,7 +375,6 @@
                             <!-- Alumnos loaded here -->
                         </div>
                     </div>
-
                     <!-- Checklist for selected student -->
                     <div id="checklist-con-ayuda" class="section"
                         style="margin-bottom:0; min-height: 400px; background: #fffcf5;">
@@ -456,7 +389,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- TAB 3: DELIVERY CONTROL (SIN AYUDA) -->
             <div id="view-sin-ayuda" style="display: none;">
                 <div style="display: grid; grid-template-columns: 350px 1fr; gap: 25px; margin-top: 20px;">
@@ -475,7 +407,6 @@
                             <!-- Alumnos loaded here -->
                         </div>
                     </div>
-
                     <!-- Checklist for selected student -->
                     <div id="checklist-sin-ayuda" class="section" style="margin-bottom:0; min-height: 400px;">
                         <div id="checklist-sin-ayuda-header"
@@ -489,7 +420,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- TAB 4: AID MANAGEMENT (CHECKLIST) -->
             <div id="view-ayuda-gestion" style="display: none;">
                 <div class="section" style="margin-top: 20px;">
@@ -498,26 +428,22 @@
                     </div>
                     <p style="margin-bottom: 20px; color: #666;">Marca a los alumnos que <strong>reciben ayuda de
                             material</strong>. Esto determinará qué lista de materiales se les asigna.</p>
-
                     <div style="position: relative; margin-bottom: 20px; max-width: 400px;">
                         <input type="text" placeholder="Buscar alumno para gestionar ayuda..." id="search-gestion-ayuda"
                             oninput="renderAidManagementList()"
                             style="padding-left: 35px; border-radius: 30px; background: #f8f9fa;">
                         <span style="position: absolute; left: 12px; top: 10px; color: #999;">🔍</span>
                     </div>
-
                     <div id="aidManagementListContent"
                         style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fdfdfd; max-height: 600px; overflow-y: auto;">
                         <!-- Alumnos with checkboxes loaded here -->
                     </div>
-
                     <div style="text-align: center; margin-top: 30px;">
                         <button onclick="switchTab('con-ayuda')" class="btn btn-primary">Guardar y Volver</button>
                     </div>
                 </div>
             </div>
         </div>
-
         <!-- Add/Edit Modal -->
         <div id="materialModal" class="modal-overlay">
             <div class="modal">
@@ -538,47 +464,38 @@
                 </div>
             </div>
         </div>
-
-        <script src="/static/js/api.js"></script>
         <script>
             let currentMaterial = [];
             let currentStudents = [];
             let materialStatus = {}; // { student_id: {entregados, total} }
             let selectedStudentId = null;
-
             function normalizeString(str) {
                 if (!str) return '';
                 return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             }
-
             async function loadData() {
                 try {
                     const response = await fetch('/api/material');
                     const data = await response.json();
-
                     // Fill info for display and print
                     const info = data.info || {};
                     const centroEl = document.getElementById('print-centro');
                     const cursoEl = document.getElementById('print-curso');
                     if (centroEl) centroEl.textContent = info.centro || '';
                     if (cursoEl) cursoEl.textContent = info.curso_escolar || '';
-
                     const nivelEl = document.getElementById('infoNivelCurso');
                     const obsEl = document.getElementById('infoObservaciones');
                     if (nivelEl) nivelEl.value = info.nivel_curso || '';
                     if (obsEl) obsEl.value = info.observaciones || '';
-
                     currentMaterial = data.material || [];
                     renderTables();
                     await loadStudents();
-
                     // Show default tab
                     switchTab('con-ayuda');
                 } catch (e) {
                     console.error("Error loading material:", e);
                 }
             }
-
             async function loadStudents() {
                 try {
                     console.log("Fetching students and status...");
@@ -586,59 +503,45 @@
                         fetch('/api/alumnos'),
                         fetch('/api/material/estado_grupo')
                     ]);
-
                     currentStudents = await stuRes.json();
                     materialStatus = await statusRes.json();
-
                     console.log("Students loaded:", currentStudents.length);
                     renderStudentLists();
                 } catch (e) { console.error("Error loading students:", e); }
             }
-
             function renderStudentLists() {
                 console.log("Rendering student lists...");
                 const listAyuda = document.getElementById('list-ayuda');
                 const listNoAyuda = document.getElementById('list-sin-ayuda');
                 if (!listAyuda || !listNoAyuda) return;
-
                 const searchAyudaInput = document.getElementById('search-ayuda');
                 const searchNoAyudaInput = document.getElementById('search-no-ayuda');
-
                 const qAyuda = normalizeString(searchAyudaInput ? searchAyudaInput.value : '');
                 const qNoAyuda = normalizeString(searchNoAyudaInput ? searchNoAyudaInput.value : '');
-
                 const filteredAyuda = currentStudents.filter(a => a.tiene_ayuda_material && normalizeString(a.nombre).includes(qAyuda));
                 const filteredNoAyuda = currentStudents.filter(a => !a.tiene_ayuda_material && normalizeString(a.nombre).includes(qNoAyuda));
-
                 // Update counters based on ALL students (not filtered by search for the count, or maybe search count is better?)
                 // User said "niños que reciben ayuda y los que no", usually global count is better or visible count?
                 // Let's do global counts for the category.
                 const totalAyuda = currentStudents.filter(a => a.tiene_ayuda_material).length;
                 const totalSinAyuda = currentStudents.filter(a => !a.tiene_ayuda_material).length;
-
                 const countAyudaEl = document.getElementById('count-ayuda');
                 const countSinAyudaEl = document.getElementById('count-sin-ayuda');
                 if (countAyudaEl) countAyudaEl.textContent = `(${totalAyuda})`;
                 if (countSinAyudaEl) countSinAyudaEl.textContent = `(${totalSinAyuda})`;
-
                 console.log(`Filtered: Ayuda=${filteredAyuda.length}, Sin=${filteredNoAyuda.length}`);
-
                 listAyuda.innerHTML = filteredAyuda.map(a => renderStudentItem(a)).join('');
                 listNoAyuda.innerHTML = filteredNoAyuda.map(a => renderStudentItem(a)).join('');
-
                 if (filteredAyuda.length === 0) listAyuda.innerHTML = '<p style="color:#999; text-align:center; padding:10px;">Sin alumnos en esta lista</p>';
                 if (filteredNoAyuda.length === 0) listNoAyuda.innerHTML = '<p style="color:#999; text-align:center; padding:10px;">Sin alumnos en esta lista</p>';
             }
-
             function renderStudentItem(a) {
                 const isActive = selectedStudentId === a.id;
                 const status = materialStatus[a.id] || { entregados: 0, total: 0 };
                 const isComplete = status.total > 0 && status.entregados === status.total;
                 const progressColor = isComplete ? '#28a745' : '#666';
-
                 const aidBadge = a.tiene_ayuda_material ?
                     `<span style="color:#e65100; font-size:0.65rem; background:#fff3e0; padding:2px 6px; border-radius:10px; margin-left:5px; font-weight:bold; border:1px solid #ffe0b2;">AYUDA</span>` : '';
-
                 return `
                 <div onclick="selectStudent(${a.id})" class="student-item" 
                      style="padding:12px 15px; cursor:pointer; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; ${isActive ? 'background:#eef2f7; border-left:4px solid var(--primary);' : 'background:white;'}">
@@ -658,12 +561,9 @@
                 </div>
             `;
             }
-
-
             function filterStudentLists() {
                 renderStudentLists();
             }
-
             async function toggleAidStatus(event, alumnoId, nuevoEstado) {
                 event.stopPropagation();
                 try {
@@ -680,23 +580,18 @@
                     }
                 } catch (e) { console.error(e); }
             }
-
             async function selectStudent(alumnoId) {
                 selectedStudentId = alumnoId;
                 const stu = currentStudents.find(s => s.id === alumnoId);
                 if (!stu) return;
-
                 renderStudentLists();
-
                 const prefix = stu.tiene_ayuda_material ? 'con-ayuda' : 'sin-ayuda';
                 const header = document.getElementById(`checklist-${prefix}-header`);
                 const itemsCont = document.getElementById(`items-${prefix}`);
                 if (!header || !itemsCont) return;
-
                 const otherPrefix = stu.tiene_ayuda_material ? 'sin-ayuda' : 'con-ayuda';
                 document.getElementById(`items-${otherPrefix}`).innerHTML = '<p style="color:#999; text-align:center; padding: 40px;">Usa la lista de la izquierda para gestionar la entrega.</p>';
                 document.getElementById(`checklist-${otherPrefix}-header`).innerHTML = '<h3 style="margin:0; color:#999;">Selecciona un alumno/a</h3>';
-
                 header.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; color: ${stu.tiene_ayuda_material ? '#e65100' : 'var(--primary)'};">✅ ${stu.nombre}</h3>
@@ -706,12 +601,10 @@
                 </div>
             `;
                 itemsCont.innerHTML = '<p style="text-align:center; padding:20px;">Cargando...</p>';
-
                 try {
                     const response = await fetch(`/api/material/estado/${alumnoId}`);
                     let material = await response.json();
                     if (!stu.tiene_ayuda_material) material = material.filter(m => m.categoria === 'TODO');
-
                     if (material.length === 0) {
                         itemsCont.innerHTML = '<p style="color:#999; text-align:center; padding:40px;">No hay materiales requeridos.</p>';
                     } else {
@@ -727,7 +620,6 @@
                     }
                 } catch (e) { console.error(e); }
             }
-
             async function toggleStatus(alumnoId, materialId, entregado) {
                 try {
                     const res = await fetch('/api/material/estado', {
@@ -750,16 +642,13 @@
                     }
                 } catch (e) { console.error(e); }
             }
-
             function switchTab(tabId) {
                 const views = ['view-con-ayuda', 'view-sin-ayuda', 'view-config', 'view-ayuda-gestion'];
                 views.forEach(v => {
                     const el = document.getElementById(v);
                     if (el) el.style.display = 'none';
                 });
-
                 document.getElementById('view-' + tabId).style.display = 'block';
-
                 // Update active tab button
                 const buttons = {
                     'con-ayuda': 'tab-ayuda',
@@ -767,15 +656,12 @@
                     'config': 'tab-config',
                     'ayuda-gestion': 'tab-ayuda-gestion'
                 };
-
                 Object.values(buttons).forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('active');
                 });
-
                 const activeBtn = document.getElementById(buttons[tabId]);
                 if (activeBtn) activeBtn.classList.add('active');
-
                 if (tabId === 'ayuda-gestion') {
                     renderAidManagementList();
                 } else if (tabId === 'config') {
@@ -784,14 +670,11 @@
                     renderStudentLists();
                 }
             }
-
             function renderAidManagementList() {
                 const listCont = document.getElementById('aidManagementListContent');
                 if (!listCont) return;
-
                 const q = normalizeString(document.getElementById('search-gestion-ayuda').value);
                 const filtered = currentStudents.filter(a => normalizeString(a.nombre).includes(q));
-
                 listCont.innerHTML = filtered.map(a => `
                     <div style="padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; background: white; transition: background 0.2s;">
                         <input type="checkbox" id="aid-gestion-check-${a.id}" ${a.tiene_ayuda_material ? 'checked' : ''} 
@@ -801,12 +684,10 @@
                         <span style="font-size: 1.4rem;">${a.tiene_ayuda_material ? '🎁' : '🎒'}</span>
                     </div>
                 `).join('');
-
                 if (filtered.length === 0) {
                     listCont.innerHTML = '<div style="padding: 30px; text-align: center; color: #999;">No se encontraron alumnos</div>';
                 }
             }
-
             async function toggleAidStatusInView(alumnoId, nuevoEstado) {
                 try {
                     const res = await fetch('/api/material/ayuda_alumno', {
@@ -823,14 +704,11 @@
                     }
                 } catch (e) { console.error(e); }
             }
-
             function renderTables() {
                 const tableAyuda = document.querySelector('#tableAyuda tbody');
                 const tableTodo = document.querySelector('#tableTodo tbody');
-
                 tableAyuda.innerHTML = '';
                 tableTodo.innerHTML = '';
-
                 currentMaterial.forEach(item => {
                     const row = `
                     <tr>
@@ -850,12 +728,10 @@
                         tableTodo.innerHTML += row;
                     }
                 });
-
                 // Add empty rows for printing if list is short (to match user's template look)
                 fillEmptyRows('tableAyuda', 5);
                 fillEmptyRows('tableTodo', 5);
             }
-
             function fillEmptyRows(tableId, minRows) {
                 const tbody = document.querySelector(`#${tableId} tbody`);
                 if (!tbody) return;
@@ -864,13 +740,11 @@
                     tbody.innerHTML += `<tr><td>&nbsp;</td><td>&nbsp;</td><td class="no-print">&nbsp;</td></tr>`;
                 }
             }
-
             async function saveGeneralInfo() {
                 const info = {
                     nivel_curso: document.getElementById('infoNivelCurso').value,
                     observaciones: document.getElementById('infoObservaciones').value
                 };
-
                 try {
                     const res = await fetch('/api/material/info', {
                         method: 'POST',
@@ -887,7 +761,6 @@
                     }
                 } catch (e) { console.error(e); }
             }
-
             function openAddModal(categoria) {
                 document.getElementById('modalTitle').innerText = "Añadir Material";
                 document.getElementById('materialId').value = "";
@@ -896,11 +769,9 @@
                 document.getElementById('materialNombre').value = "";
                 document.getElementById('materialModal').style.display = 'flex';
             }
-
             function openEditModal(id) {
                 const item = currentMaterial.find(m => m.id === id);
                 if (!item) return;
-
                 document.getElementById('modalTitle').innerText = "Editar Material";
                 document.getElementById('materialId').value = id;
                 document.getElementById('materialCategoria').value = item.categoria;
@@ -908,11 +779,9 @@
                 document.getElementById('materialNombre').value = item.material;
                 document.getElementById('materialModal').style.display = 'flex';
             }
-
             function closeModal() {
                 document.getElementById('materialModal').style.display = 'none';
             }
-
             async function saveMaterial() {
                 const id = document.getElementById('materialId').value;
                 const item = {
@@ -920,10 +789,8 @@
                     unidades: document.getElementById('materialUnidades').value,
                     material: document.getElementById('materialNombre').value
                 };
-
                 const method = id ? 'PUT' : 'POST';
                 const url = id ? `/api/material/${id}` : '/api/material';
-
                 try {
                     const res = await fetch(url, {
                         method: method,
@@ -939,7 +806,6 @@
                     } else alert("Error: " + data.error);
                 } catch (e) { console.error(e); }
             }
-
             async function deleteItem(id) {
                 if (!confirm("¿Seguro que quieres borrar este material?")) return;
                 try {
@@ -950,13 +816,11 @@
                     if (data.ok) loadData();
                 } catch (e) { console.error(e); }
             }
-
             async function importarCSV(input) {
                 if (!input.files || input.files.length === 0) return;
                 const file = input.files[0];
                 const formData = new FormData();
                 formData.append('archivo', file);
-
                 try {
                     const res = await fetch('/api/material/importar', {
                         method: 'POST',
@@ -970,12 +834,9 @@
                 } catch (e) { console.error(e); }
                 input.value = ""; // Reset
             }
-
             window.onload = loadData;
         </script>
     </div>
 </div>
-<script src="/static/js/global_groups.js"></script>
 </body>
-
 </html>

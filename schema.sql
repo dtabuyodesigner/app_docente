@@ -51,6 +51,7 @@ CREATE TABLE criterios (
     area_id INTEGER NOT NULL,
     activo INTEGER DEFAULT 1,
     oficial INTEGER DEFAULT 1,
+    comentario_base TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (area_id) REFERENCES areas(id)
@@ -168,6 +169,24 @@ CREATE TABLE evaluaciones (
     nota REAL NOT NULL,
     fecha DATE DEFAULT CURRENT_DATE,
     UNIQUE(alumno_id, criterio_id, sda_id, trimestre),
+    FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+    FOREIGN KEY(area_id) REFERENCES areas(id),
+    FOREIGN KEY(sda_id) REFERENCES sda(id) ON DELETE SET NULL,
+    FOREIGN KEY(criterio_id) REFERENCES criterios(id)
+);
+
+CREATE TABLE evaluaciones_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    area_id INTEGER NOT NULL,
+    trimestre INTEGER NOT NULL CHECK(trimestre BETWEEN 1 AND 3),
+    sda_id INTEGER,
+    criterio_id INTEGER NOT NULL,
+    nivel INTEGER NOT NULL CHECK(nivel BETWEEN 1 AND 4),
+    nota REAL NOT NULL,
+    fecha DATE DEFAULT CURRENT_DATE,
+    comentario TEXT,
+    UNIQUE(alumno_id, criterio_id, sda_id, trimestre, fecha),
     FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
     FOREIGN KEY(area_id) REFERENCES areas(id),
     FOREIGN KEY(sda_id) REFERENCES sda(id) ON DELETE SET NULL,

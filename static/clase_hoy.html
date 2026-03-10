@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase de Hoy - APP_EVALUAR</title>
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--gray-100);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .session-card {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
+        }
+        .session-card.no-session {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .session-card h1 { margin: 0; font-size: 1.8rem; }
+        .session-card p { opacity: 0.9; margin: 10px 0 0 0; font-size: 1.1rem; }
+        .list-card {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .student-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .student-info { display: flex; align-items: center; gap: 15px; }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e2e8f0;
+        }
+        .status-presente { background: #10b981; }
+        .status-falta { background: #ef4444; }
+        .eval-dots { display: flex; gap: 8px; }
+        .dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #94a3b8;
+        }
+        .dot.active[data-n="1"] { background: #fee2e2; border-color: #ef4444; color: #ef4444; }
+        .dot.active[data-n="2"] { background: #fef3c7; border-color: #f59e0b; color: #f59e0b; }
+        .dot.active[data-n="3"] { background: #dcfce7; border-color: #10b981; color: #10b981; }
+        .dot.active[data-n="4"] { background: #e0e7ff; border-color: #6366f1; color: #6366f1; }
+        .attendance-toggle {
+            cursor: pointer;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .presente { color: #10b981; background: #dcfce7; }
+        .falta { color: #ef4444; background: #fee2e2; }
+    </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
+</head>
+<body>
+<!-- Unified Navigation injected by navigation.js -->
+    <div class="container">
+        <div class="session-card" id="session-info">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <h1>Clase de Hoy</h1>
+                <span id="clase-fecha" style="font-weight:600; background:rgba(255,255,255,0.2); padding:5px 12px; border-radius:10px;">--/--/----</span>
+            </div>
+            <p id="actividad-nombre">Investigando sesiones...</p>
+            <div id="criterio-tag" style="display:inline-block; margin-top:15px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 10px; font-size: 0.9rem; max-width: 100%;">
+                Criterio: ---
+            </div>
+        </div>
+        <div class="list-card">
+            <h2 style="margin-top:0; font-size: 1.2rem; color: #1e293b;">Alumnos de la clase</h2>
+            <div id="student-list">
+                <!-- Students injected here -->
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentData = null;
+        async function loadToday() {
+            try {
+                const res = await fetch('/api/evaluacion/clase_hoy');
+                const data = await res.json();
+                currentData = data;
+                if (data.fecha) {
+                    const [y, m, d] = data.fecha.split('-');
+                    document.getElementById('clase-fecha').innerText = `${d}/${m}/${y}`;
+                }
+                if (data.sesion) {
+                    document.getElementById('actividad-nombre').innerText = data.sesion.actividad;
+                    let critText = `<strong>${data.sesion.criterio_codigo || 'N/A'}</strong>`;
+                    if (data.sesion.criterio_desc) {
+                        critText += `: ${data.sesion.criterio_desc}`;
+                    }
+                    document.getElementById('criterio-tag').innerHTML = `Criterio: ${critText}`;
+                    document.getElementById('session-info').classList.remove('no-session');
+                } else {
+                    document.getElementById('actividad-nombre').innerText = 'Sin actividad evaluable hoy';
+                    document.getElementById('criterio-tag').innerText = 'Criterio: ---';
+                    document.getElementById('session-info').classList.add('no-session');
+                }
+                renderList();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        function renderList() {
+            if (!currentData || !currentData.alumnos) return;
+            const list = document.getElementById('student-list');
+            list.innerHTML = currentData.alumnos.map(s => `
+                <div class="student-item">
+                    <div class="student-info">
+                        <div class="status-dot ${s.asistencia === 'presente' ? 'status-presente' : (s.asistencia ? 'status-falta' : '')}" 
+                             onclick="toggleAttendance(${s.id}, '${s.asistencia}')" style="cursor:pointer;" title="Cambiar asistencia"></div>
+                        <span style="font-weight:600;">${s.nombre}</span>
+                        <span class="attendance-toggle ${s.asistencia || 'falta'}" onclick="toggleAttendance(${s.id}, '${s.asistencia}')">
+                            ${s.asistencia === 'presente' ? 'Presente' : (s.asistencia ? s.asistencia.replace('_', ' ') : 'Sin pasar')}
+                        </span>
+                    </div>
+                    <div class="eval-dots" style="${!currentData.sesion ? 'opacity:0.3; pointer-events:none;' : ''}">
+                        ${[1,2,3,4].map(n => `
+                            <div class="dot ${s.nivel == n ? 'active' : ''}" 
+                                 data-n="${n}" 
+                                 onclick="quickEval(${s.id}, ${n})">${n}</div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        async function toggleAttendance(alumnoId, actual) {
+            const nuevoEstado = actual === 'presente' ? 'falta_no_justificada' : 'presente';
+            try {
+                const res = await fetch('/api/asistencia', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        alumno_id: alumnoId,
+                        estado: nuevoEstado,
+                        fecha: new Date().toISOString().split('T')[0]
+                    })
+                });
+                if (res.ok) {
+                    const student = currentData.alumnos.find(a => a.id === alumnoId);
+                    student.asistencia = nuevoEstado;
+                    renderList();
+                }
+            } catch (e) {}
+        }
+        async function quickEval(alumnoId, nivel) {
+            const student = currentData.alumnos.find(a => a.id === alumnoId);
+            const finalNivel = student.nivel === nivel ? null : nivel;
+            try {
+                console.log("[DEBUG] Enviando evaluación:", { alumnoId, nivel, finalNivel, criterio_id: currentData.sesion.criterio_id });
+                const res = await fetch('/api/evaluacion/guardar_masivo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        periodo: `T${currentData.trimestre}`,
+                        evaluaciones: [{
+                            alumno_id: alumnoId,
+                            criterio_id: currentData.sesion.criterio_id,
+                            nivel: finalNivel
+                        }]
+                    })
+                });
+                if (res.ok) {
+                    student.nivel = finalNivel;
+                    renderList();
+                } else {
+                    const errorData = await res.json();
+                    console.error("[ERROR] Fallo al guardar evaluación:", errorData);
+                    alert("Error al guardar: " + (errorData.error || "Desconocido"));
+                }
+            } catch (e) {
+                console.error("[ERROR] Excepción en quickEval:", e);
+                alert("Error de conexión al guardar evaluación.");
+            }
+        }
+        loadToday();
+    </script>
+</body>
+</html>

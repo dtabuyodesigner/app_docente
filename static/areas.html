@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Áreas - Cuaderno del Tutor</title>
@@ -18,24 +17,20 @@
             border-radius: 16px;
             box-shadow: var(--shadow-sm);
         }
-
         .management-grid {
             display: grid;
             grid-template-columns: 350px 1fr;
             gap: 20px;
         }
-
         .card {
             background: white;
             padding: 25px;
             border-radius: 16px;
             box-shadow: var(--shadow-sm);
         }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         .form-group label {
             display: block;
             font-weight: 600;
@@ -43,7 +38,6 @@
             font-size: 0.9rem;
             color: var(--primary);
         }
-
         .form-control {
             width: 100%;
             padding: 10px;
@@ -53,11 +47,9 @@
             outline: none;
             transition: border-color 0.2s;
         }
-
         .form-control:focus {
             border-color: var(--primary);
         }
-
         .area-list-item {
             display: flex;
             justify-content: space-between;
@@ -66,21 +58,17 @@
             border-bottom: 1px solid #eee;
             transition: background 0.2s;
         }
-
         .area-list-item:hover {
             background: #f8fbff;
         }
-
         .area-info h4 {
             margin: 0;
             font-size: 1rem;
             color: var(--primary);
         }
-
         .area-info small {
             color: #666;
         }
-
         .badge {
             padding: 4px 8px;
             border-radius: 6px;
@@ -88,32 +76,31 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-
         .badge-primary {
             background: #e3f2fd;
             color: #1976d2;
         }
-
         .badge-success {
             background: #e8f5e9;
             color: #2e7d32;
         }
-
         .badge-warning {
             background: #fffde7;
             color: #fbc02d;
         }
-
         .btn-group {
             display: flex;
             gap: 5px;
         }
     </style>
+
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
-
 <body>
+    <!-- Unified Navigation injected by navigation.js -->
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-
         <div class="page-header">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <a href="/configuracion" class="btn-outline" style="text-decoration: none; padding: 8px 15px;">⬅️ Volver
@@ -122,7 +109,6 @@
             </div>
             <div id="userRoleBadge"></div>
         </div>
-
         <div class="management-grid">
             <!-- Form Card -->
             <div class="card">
@@ -165,7 +151,6 @@
                     </div>
                 </form>
             </div>
-
             <!-- List Card -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -182,17 +167,13 @@
             </div>
         </div>
     </div>
-
-    <script src="/static/js/api.js"></script>
     <script>
         let stages = [];
         let areas = [];
-
         async function init() {
             await loadStages();
             await loadAreas();
         }
-
         async function loadStages() {
             const r = await fetch('/api/etapas');
             stages = await r.json();
@@ -206,22 +187,18 @@
                 s.value = currentVal;
             });
         }
-
         async function loadAreas() {
             const etapa_id = document.getElementById('filterEtapa').value;
             let url = '/api/areas';
             if (etapa_id) url += `?etapa_id=${etapa_id}`;
-
             const r = await fetch(url);
             areas = await r.json();
             const list = document.getElementById('areasList');
             list.innerHTML = '';
-
             if (areas.length === 0) {
                 list.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No hay áreas registradas.</p>';
                 return;
             }
-
             areas.forEach(a => {
                 const item = document.createElement('div');
                 item.className = 'area-list-item';
@@ -239,7 +216,6 @@
                 list.appendChild(item);
             });
         }
-
         document.getElementById('areaForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('areaId').value;
@@ -250,10 +226,8 @@
                 tipo_escala: document.getElementById('tipo_escala').value,
                 activa: document.getElementById('activa').checked ? 1 : 0
             };
-
             const url = id ? `/api/areas/${id}` : '/api/areas';
             const method = id ? 'PUT' : 'POST';
-
             const r = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -267,7 +241,6 @@
                 alert("Error: " + res.error);
             }
         };
-
         function editArea(id) {
             const a = areas.find(x => x.id === id);
             if (!a) return;
@@ -278,10 +251,8 @@
             document.getElementById('modo_evaluacion').value = a.modo_evaluacion;
             document.getElementById('tipo_escala').value = a.tipo_escala;
             document.getElementById('activa').checked = !!a.activa;
-
             // Note: server-side handles restricted fields if evals exist
         }
-
         async function deleteArea(id) {
             if (!confirm("¿Estás seguro de que deseas eliminar esta área? Sólo se permite si no tiene criterios ni evaluaciones.")) return;
             const r = await fetch(`/api/areas/${id}`, { method: 'DELETE' });
@@ -289,18 +260,13 @@
             if (res.ok) loadAreas();
             else alert("Error: " + res.error);
         }
-
         function resetForm() {
             document.getElementById('formTitle').innerText = "Nueva Área";
             document.getElementById('areaId').value = "";
             document.getElementById('areaForm').reset();
             document.getElementById('activa').checked = true;
         }
-
         init();
     </script>
-
-    <script src="/static/js/global_groups.js"></script>
 </body>
-
 </html>

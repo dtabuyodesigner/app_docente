@@ -384,3 +384,27 @@ def guardar_evaluacion_criterio():
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@criterios_bp.route("/api/criterios/sugerir")
+def sugerir_criterio():
+    texto = request.args.get("texto", "").lower()
+    if not texto:
+        return jsonify(None)
+
+    db = get_db()
+    palabras = texto.split()
+
+    for palabra in palabras:
+        # Buscamos una coincidencia exacta de keyword
+        criterio = db.execute("""
+            SELECT c.id, c.codigo, c.descripcion
+            FROM criterios_keywords k
+            JOIN criterios c ON c.id = k.criterio_id
+            WHERE k.keyword = ?
+            LIMIT 1
+        """, (palabra,)).fetchone()
+
+        if criterio:
+            return jsonify(dict(criterio))
+
+    return jsonify(None)

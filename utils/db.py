@@ -1,8 +1,42 @@
 import sqlite3
 import os
+import sys
 from flask import g
 
-DB_PATH = "app_evaluar.db"
+def get_app_data_dir():
+    """Devuelve el directorio base para guardar los datos de la aplicación de forma persistente."""
+    if sys.platform == "win32":
+        # Windows: C:\Users\<Usuario>\AppData\Roaming\CuadernoDelTutor
+        base_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
+        app_dir = os.path.join(base_dir, "CuadernoDelTutor")
+    elif sys.platform == "darwin":
+        # macOS: ~/Library/Application Support/CuadernoDelTutor
+        base_dir = os.path.expanduser("~/Library/Application Support")
+        app_dir = os.path.join(base_dir, "CuadernoDelTutor")
+    else:
+        # Linux / Otros: ~/.cuadernodeltutor
+        app_dir = os.path.expanduser("~/.cuadernodeltutor")
+        
+    os.makedirs(app_dir, exist_ok=True)
+    return app_dir
+
+# For retrocompatibility during migration, we look first in the project folder
+# Then we fallback to the persistent app data dir
+_LEGACY_DB = os.path.join(os.path.dirname(os.path.dirname(__file__)), "app_evaluar.db")
+_NEW_DB = os.path.join(get_app_data_dir(), "app_evaluar.db")
+
+# Move legacy DB to new location if it exists
+if os.path.exists(_LEGACY_DB) and not os.path.exists(_NEW_DB):
+    try:
+        import shutil
+        shutil.copy2(_LEGACY_DB, _NEW_DB)
+        print(f"Migrando base de datos de {_LEGACY_DB} a {_NEW_DB}")
+        # We rename the old one just in case as backup
+        os.rename(_LEGACY_DB, _LEGACY_DB + ".bak")
+    except Exception as e:
+        print(f"Error migrando BD: {e}")
+
+DB_PATH = _NEW_DB if os.path.exists(_NEW_DB) or not os.path.exists(_LEGACY_DB) else _LEGACY_DB
 
 def init_db_if_not_exists():
     """Initializes the SQLite database from schema.sql if it doesn't exist yet."""

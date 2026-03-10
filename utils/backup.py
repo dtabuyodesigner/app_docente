@@ -6,9 +6,14 @@ import glob
 import logging
 
 # Configuración de logs para integridad y backups
-LOG_FILE = "/home/danito73/Documentos/APP_EVALUAR/logs/integrity.log"
-BACKUP_DIR = "/home/danito73/Documentos/APP_EVALUAR/backups"
-DB_PATH = "/home/danito73/Documentos/APP_EVALUAR/app_evaluar.db"
+from utils.db import get_app_data_dir, DB_PATH
+
+_app_dir = get_app_data_dir()
+LOG_FILE = os.path.join(_app_dir, "logs", "integrity.log")
+BACKUP_DIR = os.path.join(_app_dir, "backups")
+
+os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+os.makedirs(BACKUP_DIR, exist_ok=True)
 
 logging.basicConfig(
     filename=LOG_FILE,

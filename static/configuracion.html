@@ -199,6 +199,18 @@
                     onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                     <span style="font-size: 2rem;">📌</span> Criterios
                 </a>
+                <a href="#" onclick="abrirMiCuenta(); return false;"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span style="font-size: 2rem;">🔐</span> Mi Cuenta
+                </a>
+                <a href="#" onclick="openBackups(); return false;"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span style="font-size: 2rem;">💾</span> Backups
+                </a>
             </div>
         </div>
     </div>
@@ -440,6 +452,164 @@
                 target.style.display = 'block';
             }
         }
+    </script>
+
+    <!-- Gestión de Backups Modal -->
+    <div class="modal-overlay" id="backupsModal" style="z-index: 1020;">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 style="color: var(--primary); margin: 0;">💾 Gestión de Backups e Integridad</h3>
+                <button class="modal-close" onclick="document.getElementById('backupsModal').style.display='none'">&times;</button>
+            </div>
+            <div style="margin-top: 20px; text-align: left;">
+                <div id="integrityStatus" style="padding: 10px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid #ddd;">Verificando integridad...</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="margin: 0;">Listado de Copias de Seguridad</h4>
+                    <button onclick="createManualBackup()" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">➕ Crear Backup Ahora</button>
+                </div>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead style="background: #f8f9fa; position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Archivo</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Fecha</th>
+                                <th style="padding: 12px; text-align: right; border-bottom: 2px solid #dee2e6;">Tamaño</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="backupsListTable">
+                            <tr><td colspan="4" style="padding: 20px; text-align: center; color: #666;">Cargando lista...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 15px; background: #fffde7; padding: 10px; border-radius: 4px; border: 1px solid #fff9c4;">
+                    ⚠️ <strong>Atención:</strong> Restaurar un backup reemplazará todos los datos actuales. La aplicación se reiniciará automáticamente después de la restauración exitosa.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mi Cuenta Modal -->
+    <div class="modal-overlay" id="miCuentaModal" style="z-index: 1030;">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 style="color: var(--primary); margin: 0;">🔐 Mi Cuenta</h3>
+                <button class="modal-close" onclick="document.getElementById('miCuentaModal').style.display='none'">&times;</button>
+            </div>
+            <div style="margin-top: 20px; text-align: left;">
+                <form id="miCuentaForm" onsubmit="guardarMiCuenta(event)">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Contraseña (Opcional):</label>
+                        <input type="password" id="miCuentaPwd" placeholder="Dejar en blanco para no cambiar..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Pregunta de Seguridad:</label>
+                        <input type="text" id="miCuentaPregunta" placeholder="Ej: Nombre de mi primera mascota" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                        <small style="color: #666;">Te servirá para recuperar la contraseña si la olvidas.</small>
+                    </div>
+                    <div style="margin-bottom: 25px;">
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Respuesta de Seguridad:</label>
+                        <input type="text" id="miCuentaRespuesta" placeholder="Ej: Toby" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                        <small style="color: #666;">(Si dejas la respuesta en blanco, no se modificará la actual)</small>
+                    </div>
+                    <button type="submit" style="width:100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">Actualizar Datos</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function getCsrfTokenManual() {
+            const r = await fetch('/api/csrf-token');
+            const d = await r.json();
+            return d.csrf_token;
+        }
+        async function openBackups() {
+            document.getElementById('backupsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            // Verificar integridad
+            try {
+                const ri = await fetch('/api/admin/integrity');
+                const di = await ri.json();
+                const div = document.getElementById('integrityStatus');
+                if (di.ok) { div.style.background = '#d4edda'; div.style.color = '#155724'; div.style.borderColor = '#c3e6cb'; div.innerText = '✅ ' + di.message; }
+                else { div.style.background = '#f8d7da'; div.style.color = '#721c24'; div.style.borderColor = '#f5c6cb'; div.innerText = '⚠️ ERROR DE INTEGRIDAD DETECTADO. Se recomienda restaurar un backup.'; }
+            } catch(e) { document.getElementById('integrityStatus').innerText = 'No se pudo verificar la integridad.'; }
+            await loadBackups();
+        }
+        async function loadBackups() {
+            const tbody = document.getElementById('backupsListTable');
+            try {
+                const r = await fetch('/api/admin/backups');
+                const backups = await r.json();
+                if (!backups.length) { tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:#666;">No hay copias de seguridad.</td></tr>'; return; }
+                tbody.innerHTML = backups.map(b => `<tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px; font-size:0.85rem;">${b.name}</td>
+                    <td style="padding:10px; font-size:0.85rem;">${b.date}</td>
+                    <td style="padding:10px; text-align:right; font-size:0.85rem;">${b.size}</td>
+                    <td style="padding:10px; text-align:center;">
+                        <a href="/api/admin/backup/download/${b.name}" style="font-size:0.8rem; color:var(--primary); font-weight:bold; margin-right:8px;">⬇ Descargar</a>
+                        <button onclick="restoreBackup('${b.name}')" style="padding:4px 10px; background:#fff; color:#d32f2f; border:1px solid #ffcdd2; border-radius:4px; cursor:pointer; font-size:0.8rem;">Restaurar</button>
+                    </td>
+                </tr>`).join('');
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:red;">Error al cargar backups.</td></tr>'; }
+        }
+        async function createManualBackup() {
+            if (!confirm('¿Crear una copia de seguridad manual ahora?')) return;
+            try {
+                const csrf = await getCsrfTokenManual();
+                const r = await fetch('/api/admin/backup/manual', { method: 'POST', headers: { 'X-CSRFToken': csrf } });
+                const d = await r.json();
+                if (d.ok) { alert('Backup manual creado con éxito.'); await loadBackups(); localStorage.setItem('ultimo_backup_ts', Date.now()); }
+                else alert('Error al crear backup: ' + (d.error || 'Desconocido'));
+            } catch(e) { alert('Error de conexión.'); }
+        }
+        async function restoreBackup(filename) {
+            if (!confirm(`¿Restaurar el backup "${filename}"? Se perderán los cambios posteriores.`)) return;
+            if (!confirm('CONFIRMACIÓN FINAL: ¿Estás absolutamente seguro?')) return;
+            try {
+                const csrf = await getCsrfTokenManual();
+                const r = await fetch(`/api/admin/backup/restore/${filename}`, { method: 'POST', headers: { 'X-CSRFToken': csrf } });
+                const d = await r.json();
+                if (d.ok) { alert('Backup restaurado. La aplicación se reiniciará.'); window.location.href = '/'; }
+                else alert('Error al restaurar: ' + (d.error || 'Desconocido'));
+            } catch(e) { alert('Error de conexión.'); }
+        }
+        async function abrirMiCuenta() {
+            try {
+                const res = await fetch('/api/perfil/seguridad');
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('miCuentaPregunta').value = data.pregunta_seguridad || '';
+                    document.getElementById('miCuentaPwd').value = '';
+                    document.getElementById('miCuentaRespuesta').value = '';
+                    document.getElementById('miCuentaModal').style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+            } catch(e) { alert("Error de conexión al cargar 'Mi Cuenta'."); }
+        }
+        async function guardarMiCuenta(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('miCuentaPwd').value.trim();
+            const pregunta = document.getElementById('miCuentaPregunta').value.trim();
+            const respuesta = document.getElementById('miCuentaRespuesta').value.trim();
+            if (!pregunta) { alert('La pregunta de seguridad es obligatoria.'); return; }
+            try {
+                const csrf = await getCsrfTokenManual();
+                const res = await fetch('/api/perfil/seguridad', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+                    body: JSON.stringify({ password: pwd || null, pregunta_seguridad: pregunta, respuesta_seguridad: respuesta || null })
+                });
+                const data = await res.json();
+                if (data.ok) { alert('Datos actualizados correctamente.'); document.getElementById('miCuentaModal').style.display = 'none'; document.body.style.overflow = ''; }
+                else alert('Error: ' + (data.error || 'Desconocido'));
+            } catch(e) { alert('Error de conexión.'); }
+        }
+        // Cerrar modales al hacer clic fuera
+        ['backupsModal', 'miCuentaModal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', e => { if (e.target.id === id) { e.target.style.display = 'none'; document.body.style.overflow = ''; } });
+        });
     </script>
     <!-- Renombrar Grupo Modal -->
     <div class="modal-overlay" id="renombrarGrupoModal" style="z-index: 1010; display: none; align-items: center;">

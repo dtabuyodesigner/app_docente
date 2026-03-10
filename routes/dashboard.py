@@ -50,10 +50,16 @@ def dashboard_resumen():
 
     try:
         # 1. Asistencia
+        # Las faltas de tipo 'horas' son ausencias PARCIALES: el alumno sí vino, solo faltó unas horas.
+        # Se cuentan como presentes. Solo cuenta como falta si tipo_ausencia = 'dia' (o NULL).
         cur.execute("""
             SELECT 
-                SUM(CASE WHEN COALESCE(asist.estado, 'presente') IN ('presente', 'retraso') THEN 1 ELSE 0 END) as presentes,
-                SUM(CASE WHEN asist.estado IN ('falta_justificada', 'falta_no_justificada') THEN 1 ELSE 0 END) as faltas
+                SUM(CASE WHEN COALESCE(asist.estado, 'presente') IN ('presente', 'retraso')
+                              OR (asist.estado IN ('falta_justificada','falta_no_justificada') AND asist.tipo_ausencia = 'horas')
+                         THEN 1 ELSE 0 END) as presentes,
+                SUM(CASE WHEN asist.estado IN ('falta_justificada', 'falta_no_justificada')
+                              AND COALESCE(asist.tipo_ausencia, 'dia') != 'horas'
+                         THEN 1 ELSE 0 END) as faltas
             FROM alumnos a
             LEFT JOIN asistencia asist ON asist.alumno_id = a.id AND asist.fecha = ?
             WHERE a.grupo_id = ? AND a.deleted_at IS NULL
@@ -103,7 +109,9 @@ def dashboard_resumen():
         for f in fechas:
             cur.execute("""
                 SELECT a.nombre FROM asistencia ast JOIN alumnos a ON a.id = ast.alumno_id
-                WHERE ast.fecha = ? AND ast.estado IN ('falta_justificada', 'falta_no_justificada') AND a.grupo_id = ?
+                WHERE ast.fecha = ? AND ast.estado IN ('falta_justificada', 'falta_no_justificada')
+                  AND COALESCE(ast.tipo_ausencia, 'dia') != 'horas'
+                  AND a.grupo_id = ?
             """, (f, grupo_id))
             nombres_faltan = [r[0] for r in cur.fetchall()]
             faltas = len(nombres_faltan)
@@ -135,9 +143,9 @@ def dashboard_resumen():
             for r in cur.fetchall(): dist[r['rango']] = r['count']
             if dist: res["distribucion_notas"][area_nombre] = dist
 
-        # 7. Alertas
+        # 7. Alertas (solo faltas de día completo, no de horas)
         mes_actual = date.today().strftime("%Y-%m")
-        cur.execute("SELECT a.nombre, COUNT(*) as count FROM asistencia ast JOIN alumnos a ON a.id = ast.alumno_id WHERE strftime('%Y-%m', ast.fecha) = ? AND ast.estado IN ('falta_justificada', 'falta_no_justificada') AND a.grupo_id = ? GROUP BY a.id, a.nombre HAVING COUNT(*) >= 3", (mes_actual, grupo_id))
+        cur.execute("SELECT a.nombre, COUNT(*) as count FROM asistencia ast JOIN alumnos a ON a.id = ast.alumno_id WHERE strftime('%Y-%m', ast.fecha) = ? AND ast.estado IN ('falta_justificada', 'falta_no_justificada') AND COALESCE(ast.tipo_ausencia, 'dia') != 'horas' AND a.grupo_id = ? GROUP BY a.id, a.nombre HAVING COUNT(*) >= 3", (mes_actual, grupo_id))
         for row in cur.fetchall(): res["alertas"].append(f"⚠️ {row['nombre']} tiene {row['count']} faltas este mes.")
         cur.execute("SELECT a.nombre, AVG(e.nota) as media FROM evaluaciones e JOIN alumnos a ON a.id = e.alumno_id WHERE e.trimestre = ? AND a.grupo_id = ? GROUP BY a.id, a.nombre HAVING AVG(e.nota) < 5", (ultimo_tri, grupo_id))
         for row in cur.fetchall(): res["alertas"].append(f"📉 {row['nombre']} tiene media suspensa ({round(row['media'], 1)}).")
@@ -173,8 +181,21 @@ def dashboard_resumen():
         cur.execute("SELECT valor FROM config WHERE clave = 'max_dias_prestamo'")
         row_cfg = cur.fetchone() or (cur.execute("SELECT valor FROM configuracion WHERE clave = 'max_dias_prestamo'").fetchone())
         dias_limite = int(row_cfg["valor"]) if row_cfg else 7
-        cur.execute("SELECT COUNT(*) as count FROM prestamos_libros pl JOIN alumnos a ON a.id = pl.alumno_id WHERE a.grupo_id = ? AND pl.estado = 'activo' AND (julianday(date('now')) - julianday(pl.fecha_prestamo)) > ?", (grupo_id, dias_limite))
-        res["libros_retrasados"] = cur.fetchone()[0] or 0
+        cur.execute("""
+            SELECT a.nombre, l.titulo, CAST(julianday(date('now')) - julianday(pl.fecha_prestamo) AS INTEGER) as dias
+            FROM prestamos_libros pl
+            JOIN alumnos a ON a.id = pl.alumno_id
+            JOIN libros l ON l.id = pl.libro_id
+            WHERE a.grupo_id = ? AND pl.estado = 'activo'
+              AND (julianday(date('now')) - julianday(pl.fecha_prestamo)) > ?
+            ORDER BY dias DESC
+        """, (grupo_id, dias_limite))
+        libros_rows = cur.fetchall()
+        res["libros_retrasados"] = len(libros_rows)
+        res["libros_retrasados_lista"] = [
+            {"nombre": r["nombre"], "titulo": r["titulo"], "dias": r["dias"]}
+            for r in libros_rows
+        ]
 
     except Exception as e:
         print(f"Error en dashboard_resumen: {e}")

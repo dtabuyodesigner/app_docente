@@ -334,6 +334,37 @@
             margin: 2px;
             color: #fff;
         }
+        .stat-card .tooltip-libros {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1b4b;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: left;
+            min-width: 200px;
+            max-width: 280px;
+            white-space: normal;
+        }
+        .stat-card .tooltip-libros::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #1e1b4b;
+        }
+        .stat-card:hover .tooltip-libros {
+            display: block;
+        }
         .tag.retraso {
             background: var(--warning);
             color: #333;
@@ -353,18 +384,8 @@
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div style="margin-bottom: 30px;">
             <h1 style="margin: 0;">📘 Panel de Control</h1>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <button onclick="abrirMiCuenta()" title="Mi Cuenta y Seguridad"
-                    style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
-                    🔐 Mi Cuenta
-                </button>
-                <button onclick="openBackups()" title="Gestión de copias de seguridad e integridad"
-                    style="background: #17a2b8; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
-                    💾 Gestión Backups
-                </button>
-            </div>
         </div>
         <div id="birthdayAlert" class="birthday-card">
             <div>
@@ -475,10 +496,14 @@
                 <p id="statsMaterial" style="color: #9900cc;">-</p>
                 <div style="font-size: 0.75rem; color: #660099; opacity: 0.8;">Alumnos con material por entregar</div>
             </div>
-            <div class="stat-card" style="border-top: 4px solid #8b5cf6; background: #f5f3ff;">
+            <div class="stat-card" style="border-top: 4px solid #8b5cf6; background: #f5f3ff; position: relative; cursor: default;">
                 <h4 style="color: #5b21b6;">📚 Libros con Retraso</h4>
                 <p id="statsLibros" style="color: #6d28d9;">-</p>
                 <div style="font-size: 0.75rem; color: #5b21b6; opacity: 0.8;">Préstamos fuera de plazo</div>
+                <div class="tooltip-libros" id="tooltipLibros" style="display:none;">
+                    <strong style="color:#a5b4fc;">📚 Pendientes de devolución:</strong>
+                    <div id="tooltipLibrosLista" style="margin-top:6px;"></div>
+                </div>
             </div>
             <!-- Priority Lists Row (Moved Up) -->
             <div class="list-container" style="border-left: 4px solid #f59e0b; background: #fffcf0;">
@@ -771,6 +796,8 @@
         let gradesChart = null;
         async function loadDashboard() {
             try {
+                const grupoId = window._activeGroupId || '';
+                const response = await fetch(`/api/dashboard/resumen${grupoId ? '?grupo_id=' + grupoId : ''}`);
                 if (!response.ok) return;
                 const data = await response.json();
                 if (data.ok === false) {
@@ -782,6 +809,21 @@
                 document.getElementById('totalComedor').innerText = data.comedor ?? 0;
                 document.getElementById('statsMaterial').innerText = data.material_pendiente ?? 0;
                 document.getElementById('statsLibros').innerText = data.libros_retrasados ?? 0;
+                // Tooltip libros retrasados
+                const tooltipLibros = document.getElementById('tooltipLibros');
+                const tooltipLista = document.getElementById('tooltipLibrosLista');
+                if (data.libros_retrasados_lista && data.libros_retrasados_lista.length > 0) {
+                    tooltipLista.innerHTML = data.libros_retrasados_lista.map(l =>
+                        `<div style="padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <strong>${l.nombre}</strong><br>
+                            <span style="color:#c4b5fd; font-size:0.75rem;">📖 ${l.titulo}</span>
+                            <span style="color:#f87171; font-size:0.75rem; margin-left:6px;">${l.dias}d</span>
+                        </div>`
+                    ).join('');
+                    tooltipLibros.style.removeProperty('display');
+                } else {
+                    tooltipLibros.style.display = 'none';
+                }
                 const presentes = data.asistencia?.presentes ?? 0;
                 const faltas = data.asistencia?.faltas ?? 0;
                 const totalAlumnos = presentes + faltas;

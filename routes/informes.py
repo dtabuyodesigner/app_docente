@@ -187,13 +187,13 @@ def informe_pdf_individual():
     # Group Criterios by Area and SDA
     # Structure: Area (avg) → SDA 1 → Criterio 1, Criterio 2... → SDA 2 → ...
     
-    area_sda_map = {}  # {area_name: {sda_name: [(criterio, nota, escala), ...]}}
+    area_sda_map = {}  # {area_name: {sda_name: [(criterio, desc, nota, escala), ...]}}
     for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
         if area not in area_sda_map:
             area_sda_map[area] = {}
         if sda not in area_sda_map[area]:
             area_sda_map[area][sda] = []
-        area_sda_map[area][sda].append((f"{crit_cod}", nota, escala))
+        area_sda_map[area][sda].append((f"{crit_cod}", crit_desc or "", nota, escala))
         
     data_notas = [["Área", "Nota Media", "Detalle SDA y Criterios"]]
     for aid, area_nombre, nota_media, tipo_escala in notas_area:
@@ -202,11 +202,12 @@ def informe_pdf_individual():
         detail_lines = []
         for sda_name, criterios in sda_dict.items():
             # Calculate SDA average
-            sda_avg = round(sum(c[1] for c in criterios) / len(criterios), 2) if criterios else 0
+            sda_avg = round(sum(c[2] for c in criterios) / len(criterios), 2) if criterios else 0
             fmt_sda_avg = format_nota(sda_avg, tipo_escala)
             detail_lines.append(f"<b>{sda_name}</b>: {fmt_sda_avg}")
-            for crit_cod, nota, escala in criterios:
-                detail_lines.append(f"  • {crit_cod}: {format_nota(nota, escala)}")
+            for crit_cod, crit_desc, nota, escala in criterios:
+                desc_txt = f" – {crit_desc}" if crit_desc else ""
+                detail_lines.append(f"  • {crit_cod}{desc_txt}: {format_nota(nota, escala)}")
         
         detail_str = "<br/>".join(detail_lines) if detail_lines else "Sin datos"
         data_notas.append([
@@ -266,27 +267,32 @@ def informe_pdf_individual():
         chart_buf.seek(0)
         plt.close()
         
-        elements.append(chart_img)
+        elements.append(RLImage(chart_buf, width=6*cm, height=max(3, len(areas) * 0.5)*cm))
         elements.append(Spacer(1, 15))
     
     # 6. Observaciones Pedagógicas (Nuevo)
     elements.append(Paragraph("Observaciones Pedagógicas", styles['Heading3']))
-    comentarios_pedagogicos = []
+    comentarios_por_area = {}
     for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
         if nivel:
             comment = ""
-            if nivel == 1: comment = f"<b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
-            elif nivel == 2: comment = f"<b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
-            elif nivel == 3: comment = f"<b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
-            elif nivel == 4: comment = f"<b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
+            if nivel == 1: comment = f"• <b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
+            elif nivel == 2: comment = f"• <b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
+            elif nivel == 3: comment = f"• <b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
+            elif nivel == 4: comment = f"• <b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
             
             if base:
                 comment += f" {base}"
-            comentarios_pedagogicos.append(comment)
+                
+            if area not in comentarios_por_area:
+                comentarios_por_area[area] = []
+            comentarios_por_area[area].append(comment)
             
-    if comentarios_pedagogicos:
-        for c in comentarios_pedagogicos:
-            elements.append(Paragraph(c, styles['Normal']))
+    if comentarios_por_area:
+        for area, comentarios in comentarios_por_area.items():
+            elements.append(Paragraph(f"<b><u>{area}</u></b>", styles['Normal']))
+            for c in comentarios:
+                elements.append(Paragraph(c, styles['Normal']))
             elements.append(Spacer(1, 4))
     else:
         elements.append(Paragraph("Sin observaciones registradas.", styles['Normal']))
@@ -658,11 +664,17 @@ def grupo_data():
         
         # 3. PROMOCION (Alumnos con 0, 1, 2, +2 suspensos)
         cur.execute("""
-            SELECT e.alumno_id, COUNT(*)
-            FROM evaluaciones e
-            JOIN alumnos a ON a.id = e.alumno_id
-            WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
-            GROUP BY e.alumno_id
+            SELECT alumno_id, COUNT(area_id) as num_suspensos
+            FROM (
+                SELECT alumno_id, area_id, AVG(nota) as media_area
+                FROM evaluaciones
+                WHERE trimestre = ?
+                GROUP BY alumno_id, area_id
+                HAVING media_area < 5
+            ) val
+            JOIN alumnos a ON val.alumno_id = a.id
+            WHERE a.grupo_id = ?
+            GROUP BY alumno_id
         """, (trimestre, grupo_id))
         suspensos_map = dict(cur.fetchall()) # {alumno_id: num_suspensos}
         
@@ -878,12 +890,20 @@ def informe_pdf_todos():
     es_infantil = cur.fetchone() is not None
 
     # Promoción (Suspensos)
+    # Contamos cuántas áreas tiene suspensas cada alumno (media < 5)
     cur.execute("""
-        SELECT a.nombre, COUNT(*) as num_suspensos
-        FROM evaluaciones e
-        JOIN alumnos a ON a.id = e.alumno_id
-        WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
+        SELECT a.nombre, COUNT(val.area_id) as num_suspensos
+        FROM alumnos a
+        LEFT JOIN (
+            SELECT alumno_id, area_id, AVG(nota) as media_area
+            FROM evaluaciones
+            WHERE trimestre = ?
+            GROUP BY alumno_id, area_id
+            HAVING media_area < 5
+        ) val ON a.id = val.alumno_id
+        WHERE a.grupo_id = ?
         GROUP BY a.id, a.nombre
+        HAVING num_suspensos > 0
     """, (trimestre, grupo_id))
     suspensos_data = cur.fetchall()
     
@@ -1087,7 +1107,7 @@ def informe_pdf_todos():
         # Notas SDA con Criterios
         cur.execute("""
             SELECT a.nombre as area, s.nombre as sda, c.codigo as criterio_codigo,
-                   c.descripcion as criterio_desc, e.nota, a.tipo_escala
+                   c.descripcion as criterio_desc, e.nota, a.tipo_escala, e.nivel, c.comentario_base
             FROM evaluaciones e
             JOIN sda s ON e.sda_id = s.id
             JOIN areas a ON e.area_id = a.id
@@ -1097,7 +1117,7 @@ def informe_pdf_todos():
             UNION ALL
             
             SELECT a.nombre as area, 'Criterios Directos' as sda, c.codigo as criterio_codigo,
-                   c.descripcion as criterio_desc, ec.nota, a.tipo_escala
+                   c.descripcion as criterio_desc, ec.nota, a.tipo_escala, ec.nivel, c.comentario_base
             FROM evaluacion_criterios ec
             JOIN criterios c ON ec.criterio_id = c.id
             JOIN areas a ON c.area_id = a.id
@@ -1163,24 +1183,25 @@ def informe_pdf_todos():
         # Tabla Notas
         elements.append(Paragraph("Rendimiento Académico", styles['Heading3']))
         
-        area_sda_map = {}  # {area_name: {sda_name: [(criterio, nota, escala), ...]}}
+        area_sda_map = {}  # {area_name: {sda_name: [(criterio, desc, nota, escala), ...]}}
         for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
             if area not in area_sda_map:
                 area_sda_map[area] = {}
             if sda not in area_sda_map[area]:
                 area_sda_map[area][sda] = []
-            area_sda_map[area][sda].append((f"{crit_cod}", nota, escala))
+            area_sda_map[area][sda].append((f"{crit_cod}", crit_desc or "", nota, escala))
             
         data_notas = [["Área", "Nota Media", "Detalle SDA y Criterios"]]
         for aid, area_nombre, nota_media, tipo_escala in notas_area:
             sda_dict = area_sda_map.get(area_nombre, {})
             detail_lines = []
             for sda_name, criterios in sda_dict.items():
-                sda_avg = round(sum(c[1] for c in criterios) / len(criterios), 2) if criterios else 0
+                sda_avg = round(sum(c[2] for c in criterios) / len(criterios), 2) if criterios else 0
                 fmt_sda_avg = format_nota(sda_avg, tipo_escala)
                 detail_lines.append(f"<b>{sda_name}</b>: {fmt_sda_avg}")
-                for crit_cod, nota, escala in criterios:
-                    detail_lines.append(f"  • {crit_cod}: {format_nota(nota, escala)}")
+                for crit_cod, crit_desc, nota, escala in criterios:
+                    desc_txt = f" – {crit_desc}" if crit_desc else ""
+                    detail_lines.append(f"  • {crit_cod}{desc_txt}: {format_nota(nota, escala)}")
             detail_str = "<br/>".join(detail_lines) if detail_lines else "Sin datos"
             data_notas.append([
                 Paragraph(area_nombre, styles['Normal']), 
@@ -1200,6 +1221,34 @@ def informe_pdf_todos():
              elements.append(Spacer(1, 12))
              elements.append(Paragraph("<b>Observaciones:</b>", styles['Heading3']))
              elements.append(Paragraph(obs_text, styles['Normal']))
+
+        # 6. Observaciones Pedagógicas (Nuevo)
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph("Observaciones Pedagógicas", styles['Heading3']))
+        comentarios_por_area = {}
+        for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
+            if nivel:
+                comment = ""
+                if nivel == 1: comment = f"• <b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
+                elif nivel == 2: comment = f"• <b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
+                elif nivel == 3: comment = f"• <b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
+                elif nivel == 4: comment = f"• <b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
+                
+                if base:
+                    comment += f" {base}"
+                    
+                if area not in comentarios_por_area:
+                    comentarios_por_area[area] = []
+                comentarios_por_area[area].append(comment)
+                
+        if comentarios_por_area:
+            for area, comentarios in comentarios_por_area.items():
+                elements.append(Paragraph(f"<b><u>{area}</u></b>", styles['Normal']))
+                for c in comentarios:
+                    elements.append(Paragraph(c, styles['Normal']))
+                elements.append(Spacer(1, 4))
+        else:
+            elements.append(Paragraph("Sin observaciones registradas.", styles['Normal']))
 
         # Signature
         elements.append(Spacer(1, 40))
@@ -1258,12 +1307,20 @@ def excel_grupo():
     df_grupo = pd.DataFrame(grupo_data)
 
     # 3. Promoción (Suspensos)
+    # Contamos cuántas áreas tiene suspensas cada alumno (media < 5)
     cur.execute("""
-        SELECT a.nombre, COUNT(*) as Num_Suspensos
-        FROM evaluaciones e
-        JOIN alumnos a ON a.id = e.alumno_id
-        WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
+        SELECT a.nombre, COUNT(val.area_id) as Num_Suspensos
+        FROM alumnos a
+        LEFT JOIN (
+            SELECT alumno_id, area_id, AVG(nota) as media_area
+            FROM evaluaciones
+            WHERE trimestre = ?
+            GROUP BY alumno_id, area_id
+            HAVING media_area < 5
+        ) val ON a.id = val.alumno_id
+        WHERE a.grupo_id = ?
         GROUP BY a.id, a.nombre
+        HAVING Num_Suspensos > 0
     """, (trimestre, grupo_id))
     susp_data = cur.fetchall()
     
@@ -1503,11 +1560,18 @@ def pdf_grupo():
     else:
         # Promoción (Suspensos)
         cur.execute("""
-            SELECT a.nombre, COUNT(*) as num_suspensos
-            FROM evaluaciones e
-            JOIN alumnos a ON a.id = e.alumno_id
-            WHERE e.trimestre = ? AND e.nota < 5 AND a.grupo_id = ?
+            SELECT a.nombre, COUNT(val.area_id) as num_suspensos
+            FROM alumnos a
+            LEFT JOIN (
+                SELECT alumno_id, area_id, AVG(nota) as media_area
+                FROM evaluaciones
+                WHERE trimestre = ?
+                GROUP BY alumno_id, area_id
+                HAVING media_area < 5
+            ) val ON a.id = val.alumno_id
+            WHERE a.grupo_id = ?
             GROUP BY a.id, a.nombre
+            HAVING num_suspensos > 0
         """, (trimestre, grupo_id))
         suspensos_data = cur.fetchall()
         

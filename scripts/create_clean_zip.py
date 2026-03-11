@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_NAME = f"APP_EVALUAR_Limpio_{datetime.now().strftime('%Y%m%d')}.zip"
 OUTPUT_PATH = os.path.join(BASE_DIR, OUTPUT_NAME)
 
-# Lista de carpetas o archivos a exclusir o ignorar
+# Lista de carpetas o archivos a excluir o ignorar
 EXCLUDES = [
     ".git",
     "venv",
@@ -22,18 +22,38 @@ EXCLUDES = [
     "app_evaluar.db.bak",       # Backup de BD actual
     "app.db",                   # BD temporal antigua
     "notebook.db",              # DB temporal
+    "database.db",              # DB temporal
+    "evaluacion.db",            # DB temporal
     "logs",                     # Logs de sesión actuales
-    "backups",                  # Backups locales (ahora van fuera, pero por si acaso)
+    "app.log",                  # Log principal
+    "security.log",             # Log de seguridad
+    "backups",                  # Backups locales
+    "PROGRAMACIONES",            # Documentos del usuario
+    "static/uploads",           # Fotos de alumnos, etc.
+    "CRITERIOS_EVALUACION_INFANTIL", # Criterios específicos cargados
+    "CRITERIOS_EVALUACION_PRIMARIA",  # Criterios específicos cargados
     OUTPUT_NAME,
-    "APP_EVALUAR_20260310.zip", # Zips anteriores
     ".history"
 ]
 
 def should_exclude(curr_path):
-    path_parts = curr_path.replace(BASE_DIR, "").strip(os.path.sep).split(os.path.sep)
+    # Ruta relativa para comparar
+    rel_path = os.path.relpath(curr_path, BASE_DIR)
+    path_parts = rel_path.split(os.path.sep)
+    
+    # Comprobar si alguna parte del path está en EXCLUDES
     for part in path_parts:
-        if part in EXCLUDES or part.endswith('.pyc') or part.endswith('.zip') or part.endswith('.sqlite3'):
+        if part in EXCLUDES:
             return True
+            
+    # También comprobar el path completo relativo (para casos como static/uploads)
+    if rel_path.replace("\\", "/") in EXCLUDES:
+        return True
+
+    # Extensiones prohibidas
+    if curr_path.endswith(('.pyc', '.zip', '.sqlite3', '.log')):
+        return True
+        
     return False
 
 def create_zip():

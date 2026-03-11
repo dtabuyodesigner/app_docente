@@ -625,6 +625,12 @@ def importar_libros_csv():
                     except Exception:
                         cantidad_total = 1
 
+                # Evitar duplicados: mismo título y autor (activos)
+                cur.execute("SELECT id FROM libros WHERE titulo = ? AND autor = ? AND activo = 1", (titulo, autor))
+                if cur.fetchone():
+                    errores.append(f"Fila {idx}: El libro '{titulo}' ya existe")
+                    continue
+
                 cur.execute("""
                     INSERT INTO libros
                     (titulo, autor, isbn, editorial, año_publicacion, nivel_lectura,
@@ -649,6 +655,52 @@ def importar_libros_csv():
         return jsonify({"ok": False, "error": f"Error al procesar archivo: {str(e)}"}), 500
 
 
+@lectura_bp.route("/libros/borrar-duplicados", methods=["POST"])
+def borrar_libros_duplicados():
+    """Identifica libros con mismo título y autor y deja solo el más antiguo."""
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        # Encontrar grupos de (titulo, autor) con más de una entrada activa
+        cur.execute("""
+            SELECT titulo, autor, COUNT(*) as n
+            FROM libros
+            WHERE activo = 1
+            GROUP BY titulo, autor
+            HAVING n > 1
+        """)
+        dups = cur.fetchall()
+        borrados = 0
+        
+        for d in dups:
+            # Para cada duplicado, buscar todos sus IDs ordenados por fecha_creacion
+            cur.execute("""
+                SELECT id FROM libros 
+                WHERE titulo = ? AND autor = ? AND activo = 1
+                ORDER BY fecha_creacion ASC
+            """, (d["titulo"], d["autor"]))
+            ids = [row["id"] for row in cur.fetchall()]
+            
+            # El primero es el que mantenemos (más antiguo)
+            # Los demás se marcan como inactivos (o se borran si no tienen préstamos)
+            ids_a_borrar = ids[1:]
+            for lid in ids_a_borrar:
+                # Verificar si tiene préstamos antes de borrar físicamente? 
+                # De momento hacemos soft-delete por seguridad, igual que delete_libro
+                cur.execute("UPDATE libros SET activo = 0 WHERE id = ?", (lid,))
+                borrados += 1
+                
+        conn.commit()
+        return jsonify({
+            "ok": True, 
+            "mensaje": f"Se han desactivado {borrados} libros duplicados",
+            "duplicados_procesados": len(dups)
+        })
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 @lectura_bp.route("/libros/descargar-plantilla", methods=["GET"])
 def descargar_plantilla():
     return send_from_directory('templates', 'plantilla_libros.csv', as_attachment=True)
@@ -657,6 +709,27 @@ def descargar_plantilla():
 # ====================================================
 # GOOGLE BOOKS API
 # ====================================================
+
+@lectura_bp.route("/libros/bulk-delete", methods=["POST"])
+def bulk_delete_libros():
+    """Desactiva múltiples libros a la vez."""
+    data = request.get_json(silent=True) or {}
+    ids = data.get("ids", [])
+    if not ids:
+        return jsonify({"ok": False, "error": "No se proporcionaron IDs"}), 400
+    
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        # Usamos placeholders (?,?,?) según la cantidad de IDs
+        placeholders = ",".join(["?"] * len(ids))
+        cur.execute(f"UPDATE libros SET activo = 0 WHERE id IN ({placeholders})", ids)
+        conn.commit()
+        return jsonify({"ok": True, "mensaje": f"Se han eliminado {len(ids)} libros correctamente"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 
 @lectura_bp.route("/libros/buscar-google", methods=["GET"])
 def buscar_google_books():

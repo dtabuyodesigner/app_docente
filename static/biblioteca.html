@@ -193,7 +193,7 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 10px 14px;
+            padding: 10px 14px 10px 45px;
             border-radius: 10px;
         }
         .books-list .book-cover {
@@ -466,12 +466,15 @@
             background: #fafafa;
         }
         .drop-zone {
+            display: block;
+            width: 100%;
             border: 2px dashed #ccc;
             border-radius: 12px;
             padding: 35px;
             text-align: center;
-            transition: border-color .2s;
+            transition: all .2s;
             cursor: pointer;
+            box-sizing: border-box;
         }
         .drop-zone:hover,
         .drop-zone.dragover {
@@ -547,6 +550,37 @@
         .empty-state .icon {
             font-size: 3.5rem;
             margin-bottom: 10px;
+        }
+        /* SELECTION STYLES */
+        .book-checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 5;
+        }
+        .books-list .book-checkbox {
+            left: 14px;
+            right: auto;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .book-card { position: relative; } /* Ensure checkbox is positioned correctly */
+        .selection-bar {
+            position: sticky;
+            top: 70px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,.2);
         }
         @media (max-width:600px) {
             .form-grid {
@@ -670,6 +704,13 @@
             </div>
             <!-- sub-panel: Listado -->
             <div id="cat-libros" class="cat-panel active">
+                <div class="selection-bar" id="selectionBar">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)" style="width:18px; height:18px;">
+                        <span id="selectionCount">0 seleccionados</span>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="deleteSelectedBooks()" style="background:#fff; color:var(--danger); border:none; padding: 6px 12px; font-size: .85rem;">🗑️ Eliminar seleccionados</button>
+                </div>
                 <div class="toolbar">
                     <input id="searchInput" class="search-input" placeholder="🔍 Buscar por título o autor..."
                         oninput="filterBooks()">
@@ -777,9 +818,12 @@
                         style="float:right;background:none;border:none;cursor:pointer;color:#888;">✕</button>
                 </div>
                 <div id="csvAlert" style="margin-top:12px;"></div>
-                <button class="btn btn-success" onclick="importCSV()" id="csvBtn"
-                    style="margin-top:12px;display:none">📤
-                    Importar Libros</button>
+                <div style="display:flex; gap:10px; margin-top:12px;">
+                    <button class="btn btn-success" onclick="importCSV()" id="csvBtn"
+                        style="display:none;">📤 Importar Libros</button>
+                    <button class="btn btn-outline" onclick="cleanupDuplicates()" id="cleanupBtn"
+                        title="Elimina libros con mismo título y autor">🧹 Limpiar Duplicados</button>
+                </div>
             </div>
             <!-- sub-panel: Google -->
             <div id="cat-google" class="cat-panel">
@@ -1227,6 +1271,66 @@
             cont.querySelectorAll('div[id$="-content"]').forEach(div => div.style.display = expand ? 'block' : 'none');
             cont.querySelectorAll('[id$="-arrow"]').forEach(a => a.style.transform = expand ? 'rotate(90deg)' : '');
         }
+        let selectedBookIds = []; // IDS de libros seleccionados
+
+        function updateSelectionUI() {
+            const bar = document.getElementById('selectionBar');
+            const count = document.getElementById('selectionCount');
+            if (selectedBookIds.length > 0) {
+                bar.style.display = 'flex';
+                count.textContent = `${selectedBookIds.length} seleccionados`;
+            } else {
+                bar.style.display = 'none';
+                document.getElementById('selectAll').checked = false;
+            }
+        }
+
+        function toggleBookSelection(id) {
+            const idx = selectedBookIds.indexOf(id);
+            if (idx > -1) selectedBookIds.splice(idx, 1);
+            else selectedBookIds.push(id);
+            updateSelectionUI();
+        }
+
+        function toggleSelectAll(checked) {
+            if (checked) {
+                // Seleccionar solo los libros actualmente visibles en el catálogo
+                const visibleIds = window._librosActuales.map(b => b.id);
+                selectedBookIds = [...new Set([...selectedBookIds, ...visibleIds])];
+            } else {
+                // Deseleccionar los visibles
+                const visibleIds = window._librosActuales.map(b => b.id);
+                selectedBookIds = selectedBookIds.filter(id => !visibleIds.includes(id));
+            }
+            renderBooks(window._librosActuales);
+            updateSelectionUI();
+        }
+
+        async function deleteSelectedBooks() {
+            if (!selectedBookIds.length) return;
+            if (!confirm(`¿Estás seguro de que quieres eliminar los ${selectedBookIds.length} libros seleccionados?`)) return;
+
+            try {
+                const response = await fetch('/api/libros/bulk-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: selectedBookIds })
+                });
+                const d = await response.json();
+                if (d.ok) {
+                    alert(d.mensaje);
+                    selectedBookIds = [];
+                    updateSelectionUI();
+                    loadBooks();
+                    loadStats();
+                } else {
+                    alert(`Error: ${d.error}`);
+                }
+            } catch (e) {
+                alert(`Error de red: ${e}`);
+            }
+        }
+
         async function loadStats() {
             try {
                 const d = await (await fetch('/api/estadisticas/lectura')).json();
@@ -1267,6 +1371,7 @@
             } else if (sortBy === 'stock_asc') {
                 filtered.sort((a, b) => a.cantidad_disponible - b.cantidad_disponible);
             }
+            window._librosActuales = filtered;
             renderBooks(filtered);
         }
         let currentView = localStorage.getItem('bibliotecaView') || 'grid';
@@ -1288,13 +1393,16 @@
             }
             container.innerHTML = books.map(b => {
                 const agotado = b.cantidad_disponible === 0;
+                const isSelected = selectedBookIds.includes(b.id);
                 const cls = agotado ? 'avail-none' : (b.cantidad_disponible <= 1 ? 'avail-low' : 'avail-ok');
                 const cardCls = agotado ? 'book-card book-card-agotado' : 'book-card';
                 const cover = b.portada
                     ? `<div class="book-cover"><img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.textContent='📖'"></div>`
                     : `<div class="book-cover">📖</div>`;
+                const checkbox = `<input type="checkbox" class="book-checkbox" onchange="toggleBookSelection(${b.id})" ${isSelected ? 'checked' : ''}>`;
                 if (currentView === 'list') {
                     return `<div class="${cardCls}">
+                        ${checkbox}
                         ${cover}
                         <div class="book-info">
                             <div class="book-title">${b.titulo}</div>
@@ -1309,6 +1417,7 @@
                     </div>`;
                 } else {
                     return `<div class="${cardCls}">
+                        ${checkbox}
                         ${cover}
                         <div class="book-title">${b.titulo}</div>
                         <div class="book-author">${b.autor || 'Autor desconocido'}</div>
@@ -1376,6 +1485,27 @@
                 document.getElementById('csvAlert').innerHTML = html;
                 if (d.ok) { csvSelectedFile = null; document.getElementById('fileInfo').style.display = 'none'; document.getElementById('csvFile').value = ''; document.getElementById('csvBtn').style.display = 'none'; loadBooks(); loadStats(); }
             } finally { btn.textContent = '📤 Importar Libros'; btn.disabled = false; }
+        }
+        async function cleanupDuplicates() {
+            if (!confirm('¿Seguro que quieres eliminar libros con el mismo título y autor?\nSe mantendrá solo la copia más antigua.')) return;
+            const btn = document.getElementById('cleanupBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Limpiando...';
+            btn.disabled = true;
+            try {
+                const d = await (await fetch('/api/libros/borrar-duplicados', { method: 'POST' })).json();
+                if (d.ok) {
+                    alert(d.mensaje);
+                    loadBooks(); loadStats();
+                } else {
+                    alert(`Error: ${d.error}`);
+                }
+            } catch (e) {
+                alert(`Error de red: ${e}`);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
         // Google Books
         async function searchGoogleBooks() {

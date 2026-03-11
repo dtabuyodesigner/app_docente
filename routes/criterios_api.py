@@ -127,12 +127,16 @@ def eliminar_area(area_id):
 def listar_criterios():
     if not session.get('logged_in'): return jsonify({"ok": False}), 401
     area_id = request.args.get('area_id')
+    etapa = request.args.get('etapa')
     conn = get_db(); cur = conn.cursor()
     query = "SELECT c.*, a.nombre as area_nombre, e.nombre as etapa_nombre FROM criterios c JOIN areas a ON c.area_id = a.id JOIN etapas e ON a.etapa_id = e.id WHERE 1=1"
     params = []
     if area_id:
         query += " AND c.area_id = ?"
         params.append(area_id)
+    if etapa:
+        query += " AND e.nombre = ?"
+        params.append(etapa)
     query += " ORDER BY c.codigo"
     cur.execute(query, params)
     return jsonify([dict(row) for row in cur.fetchall()])

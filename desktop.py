@@ -21,7 +21,9 @@ def main():
     port = find_free_port()
     url = f"http://127.0.0.1:{port}"
 
-    threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+    # 2 segundos: margen suficiente para que Flask arranque en Windows
+    # (PyInstaller necesita más tiempo que en Linux para descomprimir _MEIPASS)
+    threading.Timer(2.0, lambda: webbrowser.open(url)).start()
 
     app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
 

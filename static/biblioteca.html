@@ -641,6 +641,11 @@
                     <div style="font-size:1.4rem;font-weight:800;margin-bottom:6px;">Préstamos</div>
                 </div>
             </div>
+            <!-- Added "Mantener alumno" checkbox near loans -->
+            <div id="loan-context-options" style="margin-top:20px; display:none; align-items:center; gap:8px; background:#f0f7ff; padding:10px 15px; border-radius:10px; border:1px solid #d0e1f9;">
+                <input type="checkbox" id="keep-student" style="width:16px; height:16px;">
+                <label for="keep-student" style="font-size:.85rem; font-weight:600; color:#003366; cursor:pointer;">Mantener alumno seleccionado tras el préstamo</label>
+            </div>
             <!-- Stats Content: Chart -->
             <div style="display:grid;grid-template-columns:1fr;gap:20px;margin-top:30px;">
                 <!-- Vertical Bar Chart -->
@@ -1102,12 +1107,20 @@
                 <div id="pst-historial-cont">
                     <div class="empty-state">
                         <div class="icon">⏳</div>
-                        <p>Cargando...</p>
+                        <p>Cargando historial...</p>
                     </div>
                 </div>
             </div>
         </div>
     </div><!-- /container -->
+    <!-- NEW: Loan confirmation modal to show success without reload -->
+    <div id="successToast" style="display:none; position:fixed; bottom:20px; right:20px; z-index:2000; background:#28a745; color:white; padding:12px 24px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.15); align-items:center; gap:10px; animation: slideUp 0.3s ease-out;">
+        <span style="font-size:1.2rem;">✅</span>
+        <span id="successToastMsg">Operación completada</span>
+        <style>
+            @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        </style>
+    </div>
     <!-- Devolucion Modal -->
     <div class="modal-overlay" id="devModal" onclick="if(event.target===this)closeDevModal()" style="display:none;">
         <div class="modal">
@@ -1217,6 +1230,11 @@
             document.querySelectorAll('#mainTabs .tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             btn.classList.add('active');
+            // Show/hide loan options based on tab
+            const contextOpts = document.getElementById('loan-context-options');
+            if (contextOpts) {
+                contextOpts.style.display = (id === 'tab-prestamos') ? 'flex' : 'none';
+            }
         }
         function showCatTab(id, btn) {
             document.querySelectorAll('.cat-panel').forEach(p => p.classList.remove('active'));
@@ -1258,18 +1276,6 @@
                         }
                     });
                 });
-        }
-        function filtrarHistorialGral() {
-            const q = normalizeString(document.getElementById('h-search-hist-gral').value);
-            const filtered = _todosHistorial.filter(p =>
-                normalizeString(p.alumno_nombre || '').includes(q) || normalizeString(p.libro_titulo || '').includes(q));
-            _renderHistorial(filtered, 'h-historial-gral-cont', 'gh');
-            if (q) expandirTodoHistorialGral(true); // Auto-expand when searching
-        }
-        function expandirTodoHistorialGral(expand) {
-            const cont = document.getElementById('h-historial-gral-cont');
-            cont.querySelectorAll('div[id$="-content"]').forEach(div => div.style.display = expand ? 'block' : 'none');
-            cont.querySelectorAll('[id$="-arrow"]').forEach(a => a.style.transform = expand ? 'rotate(90deg)' : '');
         }
         let selectedBookIds = []; // IDS de libros seleccionados
 
@@ -1396,9 +1402,9 @@
                 const isSelected = selectedBookIds.includes(b.id);
                 const cls = agotado ? 'avail-none' : (b.cantidad_disponible <= 1 ? 'avail-low' : 'avail-ok');
                 const cardCls = agotado ? 'book-card book-card-agotado' : 'book-card';
-                const cover = b.portada
-                    ? `<div class="book-cover"><img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.textContent='📖'"></div>`
-                    : `<div class="book-cover">📖</div>`;
+                const cover = b.portada && b.portada.startsWith('http')
+                    ? `<div class="book-cover"><img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.innerHTML='📖'"></div>`
+                    : `<div class="book-cover" style="display:flex;align-items:center;justify-content:center;font-size:2rem;background:#f8fafc;">📖</div>`;
                 const checkbox = `<input type="checkbox" class="book-checkbox" onchange="toggleBookSelection(${b.id})" ${isSelected ? 'checked' : ''}>`;
                 if (currentView === 'list') {
                     return `<div class="${cardCls}">
@@ -1435,7 +1441,11 @@
         async function submitBook(e) {
             e.preventDefault();
             const body = { titulo: document.getElementById('f-titulo').value, autor: document.getElementById('f-autor').value, isbn: document.getElementById('f-isbn').value, editorial: document.getElementById('f-editorial').value, año_publicacion: document.getElementById('f-año').value || null, cantidad_total: parseInt(document.getElementById('f-cantidad').value) || 1, nivel_lectura: document.getElementById('f-nivel').value, genero: document.getElementById('f-genero').value, descripcion: document.getElementById('f-desc').value };
-            const d = await (await fetch('/api/libros', { method: 'POST', body: JSON.stringify(body) })).json();
+            const d = await (await fetch('/api/libros', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })).json();
             const el = document.getElementById('formAlert');
             if (d.ok) { el.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`; document.getElementById('bookForm').reset(); document.getElementById('f-cantidad').value = 1; loadBooks(); loadStats(); setTimeout(() => el.innerHTML = '', 3000); }
             else el.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
@@ -1455,7 +1465,11 @@
             e.preventDefault();
             const id = document.getElementById('e-id').value;
             const body = { titulo: document.getElementById('e-titulo').value, autor: document.getElementById('e-autor').value, isbn: document.getElementById('e-isbn').value, editorial: document.getElementById('e-editorial').value, año_publicacion: document.getElementById('e-año').value || null, cantidad_total: parseInt(document.getElementById('e-cantidad').value) || 1, nivel_lectura: document.getElementById('e-nivel').value, genero: document.getElementById('e-genero').value, descripcion: document.getElementById('e-desc').value };
-            const d = await (await fetch(`/api/libros/${id}`, { method: 'PUT', body: JSON.stringify(body) })).json();
+            const d = await (await fetch(`/api/libros/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })).json();
             if (d.ok) { closeModal('editModal'); loadBooks(); loadStats(); }
             else document.getElementById('editAlert').innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
         }
@@ -1535,7 +1549,11 @@
         async function confirmGbImport() {
             if (!selectedGbBook) return;
             const body = { ...selectedGbBook, cantidad_total: parseInt(document.getElementById('gb-cantidad').value) || 1, nivel_lectura: document.getElementById('gb-nivel').value, genero: document.getElementById('gb-genero').value };
-            const d = await (await fetch('/api/libros/importar-google', { method: 'POST', body: JSON.stringify(body) })).json();
+            const d = await (await fetch('/api/libros/importar-google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })).json();
             if (d.ok) { closeModal('gbImportModal'); document.getElementById('gbAlert').innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`; loadBooks(); loadStats(); }
             else alert(`Error: ${d.error}`);
         }
@@ -2047,6 +2065,8 @@
             const libro_id = document.getElementById('p-libro').value;
             const fecha_prestamo = document.getElementById('p-fecha').value;
             const alertEl = document.getElementById('prest-alert');
+            const keepStudent = document.getElementById('keep-student').checked;
+
             if (!alumno_id || !libro_id) {
                 alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Selecciona un alumno y un libro</div>';
                 return;
@@ -2057,15 +2077,32 @@
                 body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
             })).json();
             if (d.ok) {
-                alertEl.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`;
-                setTimeout(() => alertEl.innerHTML = '', 3000);
-                // Clear selections
-                document.getElementById('p-alumno').value = '';
+                showToast(`✅ ${d.mensaje}`);
+                
+                // Partial refresh
+                if (!keepStudent) {
+                    document.getElementById('p-alumno').value = '';
+                    limpiarSeleccionAlumno();
+                }
                 limpiarSeleccionLibro();
-                _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats();
-                setTimeout(() => location.reload(), 800);
+                
+                // Reload data in background
+                _prestamosLoaded = false;
+                initPrestamos(); 
+                loadBooks(); 
+                loadStats();
+                loadRankingChart();
             } else {
                 alertEl.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+            }
+        }
+        function showToast(msg) {
+            const toast = document.getElementById('successToast');
+            const msgEl = document.getElementById('successToastMsg');
+            if (toast && msgEl) {
+                msgEl.textContent = msg;
+                toast.style.display = 'flex';
+                setTimeout(() => { toast.style.display = 'none'; }, 2500);
             }
         }
         function openDevolucion(id, alumno, libro, fechaPrestamo) {
@@ -2083,13 +2120,16 @@
             })).json();
             if (d.ok) {
                 closeDevModal();
+                showToast("✅ Devolución registrada correctamente");
+                
+                // Partial refresh
                 _prestamosLoaded = false;
                 initPrestamos();
                 loadBooks();
                 loadStats();
+                
                 const hSel = document.getElementById('h-alumno');
                 if (hSel && hSel.value) showHistorialAlumno();
-                setTimeout(() => location.reload(), 800);
             }
             else alert(`Error: ${d.error}`);
         }
@@ -2157,18 +2197,20 @@
                     body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
                 })).json();
                 if (d.ok) {
-                    alertEl.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`;
-                    // Refresh data IMMEDIATELY
+                    showToast(`✅ ${d.mensaje}`);
+                    
+                    // Refresh main data in background
                     loadBooks();
                     loadStats();
                     _prestamosLoaded = false;
+                    
+                    // Close modal and refresh loans tab if active
                     setTimeout(() => {
                         closeModal('prestamoRapidoModal');
                         if (document.getElementById('tab-prestamos').classList.contains('active')) {
                             initPrestamos();
                         }
-                        location.reload();
-                    }, 1200);
+                    }, 1000);
                 } else {
                     alertEl.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
                 }

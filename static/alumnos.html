@@ -43,16 +43,17 @@
         }
         .contenedor {
             display: grid;
-            grid-template-columns: 420px 1fr;
+            grid-template-columns: 400px 1fr;
             gap: 20px;
         }
         /* ===== LISTADO ===== */
         .lista {
             background: white;
             border-radius: 12px;
-            padding: 15px;
+            padding: 10px;
             height: calc(100vh - 160px);
             overflow-y: auto;
+            overflow-x: hidden;
             box-shadow: var(--shadow);
             border: 1px solid #eef2f7;
         }
@@ -60,7 +61,7 @@
             margin-top: 0;
         }
         .alumno-item {
-            padding: 10px 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             margin-bottom: 4px;
             cursor: pointer;
@@ -69,7 +70,7 @@
             color: #444;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .alumno-item:hover {
             background: #f0f4f8;
@@ -139,9 +140,9 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
-    <script src="/static/js/global_groups.js?v=1.4"></script>
+    <script src="/static/js/api.js?v=1.6"></script>
+    <script src="/static/js/navigation.js?v=1.6"></script>
+    <script src="/static/js/global_groups.js?v=1.6"></script>
 </head>
 <body>
     <div class="container">
@@ -439,6 +440,8 @@
                     .then(r => r.json())
                     .then(alumnos => {
                         const lista = document.getElementById("listaAlumnos");
+                        console.log("[Alumnos] Datos recibidos:", alumnos);
+                        // alert("RENDERIZANDO " + alumnos.length + " ALUMNOS");
                         lista.innerHTML = "";
                         alumnos.forEach(a => {
                             const div = document.createElement("div");
@@ -446,25 +449,32 @@
                             if (alumnoActual == a.id) div.classList.add("activo");
                             // Contenedor principal flex
                             const content = document.createElement("div");
+                            content.setAttribute('id', 'alumno-row-' + a.id);
                             content.style.display = "flex";
                             content.style.justifyContent = "space-between";
                             content.style.alignItems = "center";
                             content.style.width = "100%";
-                            // Nombre (Clickable para seleccionar)
-                            // Container de info principal (Foto + Nombre)
+                            content.style.padding = "2px 0";
+                            // Contenedor de info principal (Foto + Nombre)
                             const divInfo = document.createElement("div");
                             divInfo.style.display = "flex";
                             divInfo.style.alignItems = "center";
                             divInfo.style.gap = "10px";
-                            divInfo.style.flexGrow = "1";
-                            divInfo.onclick = () => seleccionarAlumno(a.id, a.nombre, div); // Mover el click aquí
+                            divInfo.style.flex = "1";
+                            divInfo.style.overflow = "visible";
+                            divInfo.style.cursor = "pointer";
+                            divInfo.onclick = () => seleccionarAlumno(a.id, a.nombre, div);
                             // Checkbox
                             const cb = document.createElement("input");
                             cb.type = "checkbox";
                             cb.className = "alumno-checkbox";
                             cb.value = a.id;
                             cb.dataset.nombre = a.nombre;
-                            cb.style.transform = "scale(1.2)";
+                            cb.style.width = "18px";
+                            cb.style.height = "18px";
+                            cb.style.cursor = "pointer";
+                            cb.style.flexShrink = "0"; 
+                            cb.style.accentColor = "#007bff"; 
                             cb.onclick = (e) => {
                                 e.stopPropagation();
                                 updateBatchButtons();
@@ -476,42 +486,30 @@
                             img.style.borderRadius = "50%";
                             img.style.objectFit = "cover";
                             img.style.border = "1px solid #ddd";
+                            img.style.flexShrink = "0";
                             if (a.foto) {
                                 img.src = "/static/uploads/" + a.foto;
                             } else {
-                                // Placeholder emoji o imagen por defecto
                                 img.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>👤</text></svg>";
                             }
                             const spanNombre = document.createElement("span");
                             spanNombre.style.fontWeight = "600";
+                            spanNombre.style.color = "#333";
+                            spanNombre.style.fontSize = "0.95rem";
+                            spanNombre.style.lineHeight = "1.2";
+                            spanNombre.style.flex = "1";
+                            spanNombre.style.marginLeft = "10px";
+                            spanNombre.style.marginRight = "10px";
                             spanNombre.innerText = a.nombre;
-                            const divText = document.createElement("div");
-                            divText.style.display = "flex";
-                            divText.style.flexDirection = "column";
-                            divText.appendChild(spanNombre);
-                            if (a.madre_telefono || a.padre_telefono) {
-                                const divTels = document.createElement("div");
-                                divTels.style.fontSize = "0.8em";
-                                divTels.style.color = "#666";
-                                divTels.style.display = "flex";
-                                divTels.style.flexDirection = "column";
-                                divTels.style.gap = "2px";
-                                divTels.style.marginTop = "2px";
-                                if (a.madre_telefono) {
-                                    divTels.innerHTML += `<span style="white-space:nowrap" title="Mamá: ${a.madre_telefono}">👩 ${a.madre_telefono}</span>`;
-                                }
-                                if (a.padre_telefono) {
-                                    divTels.innerHTML += `<span style="white-space:nowrap" title="Papá: ${a.padre_telefono}">👨 ${a.padre_telefono}</span>`;
-                                }
-                                divText.appendChild(divTels);
-                            }
+
                             divInfo.appendChild(cb);
                             divInfo.appendChild(img);
-                            divInfo.appendChild(divText);
+                            divInfo.appendChild(spanNombre);
                             // Botones acciones
                             const divAcciones = document.createElement("div");
                             divAcciones.style.display = "flex";
                             divAcciones.style.gap = "5px";
+                            divAcciones.style.flexShrink = "0";
                             // Botón Editar
                             const btnEdit = document.createElement("button");
                             btnEdit.innerHTML = "✏️";

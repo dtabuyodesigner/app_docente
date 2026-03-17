@@ -1,10 +1,9 @@
 [Desktop Entry]
-Version=1.0
+Name=Cuaderno del Tutor
+Comment=Aplicación para la gestión y evaluación del alumnado
+Exec=/opt/cuaderno-del-tutor/CuadernoDelTutor
+Icon=/usr/share/pixmaps/cuaderno-del-tutor.png
+Terminal=false
 Type=Application
-Name=App Evaluar
-Comment=Arrancar Cuaderno del Tutor
-Exec=/home/danito73/Documentos/APP_EVALUAR/start_app.sh
-Icon=utilities-terminal
-Path=/home/danito73/Documentos/APP_EVALUAR
-Terminal=true
-Categories=Education;Development;
+Categories=Education;
+StartupNotify=true

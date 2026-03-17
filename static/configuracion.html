@@ -247,6 +247,13 @@
             </div>
             <button class="btn-save" onclick="saveConfig()">💾 Guardar Configuración</button>
             <div id="status" class="status-msg"></div>
+
+            <div class="section-title">Actualizaciones de Software</div>
+            <div class="form-group" style="background: #e9ecef; padding: 15px; border-radius: 8px;">
+                <p style="margin-top: 0; color: #555;">La versión actual de sistema es: <strong id="currentAppVersion">Desconocida</strong></p>
+                <button onclick="checkUpdates()" style="padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🔄 Buscar Actualizaciones</button>
+                <div id="updateStatus" style="margin-top: 15px; display: none; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center;"></div>
+            </div>
         </div>
     </div>
     <!-- The Groups Configuration UI -->
@@ -344,6 +351,49 @@
                 status.style.color = "red";
             }
         }
+
+        async function checkUpdates() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Buscando en GitHub...';
+            btn.disabled = true;
+            
+            const statusDiv = document.getElementById('updateStatus');
+            statusDiv.style.display = 'none';
+            
+            try {
+                const res = await fetch('/api/admin/check_updates');
+                const data = await res.json();
+                
+                document.getElementById('currentAppVersion').innerText = data.current_version || "Desconocida";
+                
+                statusDiv.style.display = 'block';
+                if (data.update_available) {
+                    statusDiv.style.background = '#d4edda';
+                    statusDiv.style.color = '#155724';
+                    statusDiv.style.border = '1px solid #c3e6cb';
+                    statusDiv.innerHTML = `
+                        🚀 ¡Nueva versión disponible! (${data.latest_version})<br><br>
+                        <a href="${data.download_url}" target="_blank" style="display: inline-block; padding: 8px 15px; background: #28a745; color: white; text-decoration: none; border-radius: 6px;">⬇️ Descargar e Instalar Actulización</a>
+                    `;
+                } else {
+                    statusDiv.style.background = '#e2e3e5';
+                    statusDiv.style.color = '#383d41';
+                    statusDiv.style.border = '1px solid #d6d8db';
+                    statusDiv.innerHTML = '✅ Ya tienes la versión más reciente (' + data.current_version + ').';
+                }
+            } catch(e) {
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+                statusDiv.style.border = '1px solid #f5c6cb';
+                statusDiv.innerHTML = '❌ Error al comprobar actualizaciones con el servidor. Revisa tu conexión a Internet.';
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
         async function abrirAjustesGrupos() {
             document.getElementById('ajustesGruposModal').style.display = 'flex';
             loadGruposAjustes();
@@ -376,14 +426,20 @@
         async function createNewGroup() {
             const stage = document.getElementById('newGroupStage').value;
             const line = document.getElementById('newGroupLine').value;
-            const stageText = document.getElementById('newGroupStage').options[document.getElementById('newGroupStage').selectedIndex].text;
-            let finalName = stageText;
-            if (line) finalName += ` - ${line}`;
+            
+            if (!stage) {
+                alert("Por favor, selecciona una etapa.");
+                return;
+            }
+
             try {
                 const res = await fetch('/api/grupos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre: finalName })
+                    body: JSON.stringify({ 
+                        etapa_curso: stage, 
+                        linea: line 
+                    })
                 });
                 if (res.ok) {
                     // Limpiar y recargar
@@ -419,23 +475,27 @@
         }
         async function ejecutarRenombrarGrupo() {
             const id = document.getElementById('renameGroupId').value;
-            const stageText = document.getElementById('renameGroupStage').options[document.getElementById('renameGroupStage').selectedIndex].text;
+            const stage = document.getElementById('renameGroupStage').value;
             const line = document.getElementById('renameGroupLine').value;
-            let newName = stageText;
-            if (line) newName += ` - ${line}`;
-            if (!confirm(`¿Cambiar el nombre del grupo a "${newName}"?`)) return;
+            
+            if (!confirm(`¿Confirmas el cambio de nombre/etapa para este grupo?`)) return;
+            
             try {
                 const res = await fetch(`/api/grupos/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre: newName })
+                    body: JSON.stringify({ 
+                        curso: stage,
+                        linea: line
+                    })
                 });
                 if (res.ok) {
                     document.getElementById('renombrarGrupoModal').style.display = 'none';
                     loadGruposAjustes();
                     if (typeof loadGroupSelectorData === 'function') loadGroupSelectorData();
                 } else {
-                    alert("Error al intentar renombrar");
+                    const data = await res.json();
+                    alert("Error al intentar renombrar: " + (data.error || "Error desconocido"));
                 }
             } catch (e) {
                 alert("Error de conexión al intentar renombrar.");
@@ -463,9 +523,13 @@
             </div>
             <div style="margin-top: 20px; text-align: left;">
                 <div id="integrityStatus" style="padding: 10px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid #ddd;">Verificando integridad...</div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap;">
                     <h4 style="margin: 0;">Listado de Copias de Seguridad</h4>
-                    <button onclick="createManualBackup()" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">➕ Crear Backup Ahora</button>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="file" id="externalBackupFile" style="display:none" accept=".db" onchange="uploadExternalBackup()">
+                        <button onclick="document.getElementById('externalBackupFile').click()" style="padding: 8px 16px; background: var(--secondary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">📁 Restaurar Backup Externo</button>
+                        <button onclick="createManualBackup()" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">➕ Crear Backup Ahora</button>
+                    </div>
                 </div>
                 <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
@@ -574,6 +638,44 @@
                 if (d.ok) { alert('Backup restaurado. La aplicación se reiniciará.'); window.location.href = '/'; }
                 else alert('Error al restaurar: ' + (d.error || 'Desconocido'));
             } catch(e) { alert('Error de conexión.'); }
+        }
+        async function uploadExternalBackup() {
+            const fileInput = document.getElementById('externalBackupFile');
+            if (!fileInput.files.length) return;
+            
+            const file = fileInput.files[0];
+            if (!confirm(`¿Restaurar el archivo externo "${file.name}"? Se perderán todos los datos actuales y se reemplazarán por los del archivo.`)) {
+                fileInput.value = '';
+                return;
+            }
+            
+            if (!confirm('CONFIRMACIÓN FINAL: ¿Estás seguro de que quieres sobreescribir tu base de datos con este archivo?')) {
+                fileInput.value = '';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const csrf = await getCsrfTokenManual();
+                const r = await fetch('/api/admin/backup/restore/external', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf },
+                    body: formData
+                });
+                const d = await r.json();
+                if (d.ok) {
+                    alert('Copia externa restaurada con éxito. La aplicación se reiniciará.');
+                    window.location.href = '/';
+                } else {
+                    alert('Error al restaurar: ' + (d.error || 'Desconocido'));
+                }
+            } catch(e) {
+                alert('Error de conexión al subir el archivo.');
+            } finally {
+                fileInput.value = '';
+            }
         }
         async function abrirMiCuenta() {
             try {

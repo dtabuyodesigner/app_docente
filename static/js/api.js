@@ -6,17 +6,23 @@ class ApiClient {
     }
 
     async init() {
-        if (!this.csrfToken) {
-            try {
-                const response = await window.originalFetch('/api/csrf-token');
-                const data = await response.json();
-                if (data.ok) {
-                    this.csrfToken = data.csrf_token;
+        if (this.initPromise) return this.initPromise;
+        
+        this.initPromise = (async () => {
+            if (!this.csrfToken) {
+                try {
+                    const response = await window.originalFetch('/api/csrf-token');
+                    const data = await response.json();
+                    if (data.ok) {
+                        this.csrfToken = data.csrf_token;
+                    }
+                } catch (e) {
+                    console.error('Error fetching CSRF token:', e);
                 }
-            } catch (e) {
-                console.error('Error fetching CSRF token:', e);
             }
-        }
+        })();
+        
+        return this.initPromise;
     }
 
     async fetch(url, options = {}) {

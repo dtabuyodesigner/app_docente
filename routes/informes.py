@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, send_file, session
 from utils.db import get_db, nivel_a_nota
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 import matplotlib
@@ -10,10 +10,85 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from io import BytesIO
 import json
-from datetime import date
-
 import pandas as pd
 from datetime import date, datetime
+import os
+
+# --- AUXILIARES PARA INFORMES ---
+def get_logo_path():
+    """Busca el logotipo de la aplicación."""
+    # Intentar buscar el icono de la PWA como logo por defecto
+    possible_paths = [
+        os.path.join(os.getcwd(), "static", "icon-512.png"),
+        os.path.join(os.path.dirname(__file__), "..", "static", "icon-512.png"),
+        "/opt/cuaderno-del-tutor/static/icon-512.png" # Path en linux instalado
+    ]
+    for p in possible_paths:
+        if os.path.exists(p):
+            return p
+    return None
+
+def add_header(elements, styles, titulo, colegio="", fecha=""):
+    """Añade una cabecera con el nombre del centro, título y fecha."""
+    # Eliminamos el logo según petición del usuario
+    header_table_data = [
+        [Paragraph(f"<b>Centro:</b> {colegio}" if colegio else "", styles['Normal']), 
+         Paragraph(f"<b>Fecha:</b> {fecha}" if fecha else "", styles['Normal'])]
+    ]
+    header_table = Table(header_table_data, colWidths=[10*cm, 6*cm])
+    header_table.setStyle(TableStyle([
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+    ]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(titulo, styles['Title']))
+    elements.append(Spacer(1, 12))
+
+def generar_grafica_rendimiento(notas_area, alumno_nombre, es_infantil):
+    """Genera la gráfica de barras de rendimiento."""
+    if not notas_area:
+        return None
+        
+    areas = [row[1] for row in notas_area]
+    notas = [row[2] for row in notas_area]
+    escalas = [row[3] for row in notas_area]
+    
+    fig, ax = plt.subplots(figsize=(8, max(3, len(areas) * 0.5)))
+    
+    colors_bars = []
+    for n, es in zip(notas, escalas):
+        if es == "INFANTIL_NI_EP_C":
+            if n < 1.5:
+                colors_bars.append('#dc3545') # NI
+            elif n < 2.5:
+                colors_bars.append('#ffc107') # EP
+            else:
+                colors_bars.append('#28a745') # C
+        else:
+            colors_bars.append('#28a745' if n >= 5 else '#dc3545')
+            
+    bars = ax.barh(areas, notas, color=colors_bars)
+    ax.set_xlabel('Nota Media')
+    ax.set_title(f'Rendimiento por Área - {alumno_nombre}')
+    has_num = any(es != "INFANTIL_NI_EP_C" for es in escalas)
+    ax.set_xlim(0, 10 if has_num else 3.5)
+    ax.grid(axis='x', alpha=0.3)
+    
+    # Añadir valores en las barras
+    for i, (bar, nota, es) in enumerate(zip(bars, notas, escalas)):
+        def local_format_nota(n, e):
+            if n is None: return "—"
+            if e == "INFANTIL_NI_EP_C":
+                rnd = round(n)
+                return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(rnd, "—")
+            return f"{n:.2f}"
+        ax.text(nota + 0.2, i, local_format_nota(nota, es), va='center', fontweight='bold')
+    
+    chart_buf = BytesIO()
+    plt.savefig(chart_buf, format='png', bbox_inches='tight', dpi=300) # Alta resolución
+    chart_buf.seek(0)
+    plt.close()
+    return chart_buf
 
 informes_bp = Blueprint('informes', __name__)
 
@@ -28,7 +103,7 @@ def generar_pie_circular(valores, etiquetas, titulo):
     plt.axis('equal') 
     
     img_buffer = BytesIO()
-    plt.savefig(img_buffer, format='png', bbox_inches='tight')
+    plt.savefig(img_buffer, format='png', bbox_inches='tight', dpi=300)
     plt.close()
     img_buffer.seek(0)
     return img_buffer
@@ -47,7 +122,10 @@ def informe_pdf_individual():
     
     # 1. Datos Alumno
     cur.execute("SELECT nombre FROM alumnos WHERE id = ?", (alumno_id,))
-    alumno = cur.fetchone()["nombre"]
+    row_al = cur.fetchone()
+    if not row_al:
+        return "Alumno no encontrado", 404
+    alumno = row_al["nombre"]
     
     # 2. Asistencia
     # (Simplified for brevity, assuming standard logic)
@@ -104,8 +182,13 @@ def informe_pdf_individual():
         if nota is None:
             return "—"
         if tipo_escala == "INFANTIL_NI_EP_C":
-            n = round(nota)
-            return {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
+            # Robust mapping for both 1-3 scale and old 2.5-10 scale
+            n = round(nota) if nota <= 3 else 0
+            if n == 0: # Old scale (2.5, 5, 7.5, 10)
+                if nota <= 3.5: n = 1
+                elif nota <= 6.5: n = 2
+                else: n = 3
+            return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(n, "—")
         return f"{nota:.2f}"
 
     # 5. Detalle de Faltas (Nuevo)
@@ -135,7 +218,7 @@ def informe_pdf_individual():
     elements = []
     styles = getSampleStyleSheet()
     
-    elements.append(Paragraph(f"Informe Trimestral - Trimestre {trimestre}", styles['Title']))
+    add_header(elements, styles, f"Informe Trimestral - Trimestre {trimestre}")
     elements.append(Paragraph(f"Alumno: {alumno}", styles['Heading2']))
     if tutor_nombre:
         elements.append(Paragraph(f"Tutor/a: {tutor_nombre}", styles['Normal']))
@@ -160,11 +243,16 @@ def informe_pdf_individual():
     if faltas_detalle:
         elements.append(Spacer(1, 8))
         fechas_str = []
-        for f, e in faltas_detalle:
+        for row in faltas_detalle:
+            f = row["fecha"]
+            e = row["estado"]
             # Format date DD/MM
-            d_obj = datetime.strptime(f, '%Y-%m-%d')
-            d_str = d_obj.strftime('%d/%m')
-            
+            try:
+                d_obj = datetime.strptime(f, '%Y-%m-%d')
+                d_str = d_obj.strftime('%d/%m')
+            except:
+                d_str = f
+
             if e == 'retraso':
                 color = "#ffc107"
                 tipo = "R"
@@ -174,7 +262,7 @@ def informe_pdf_individual():
             else: # falta_no_justificada
                 color = "#dc3545"
                 tipo = "F"
-                
+
             fechas_str.append(f'<font color="{color}">{d_str}({tipo})</font>')
         
         elements.append(Paragraph("<b>Detalle (Día/Tipo):</b> " + ", ".join(fechas_str), styles['Normal']))
@@ -226,48 +314,11 @@ def informe_pdf_individual():
     elements.append(t_notas)
     elements.append(Spacer(1, 15))
     
-    # Generar gráfica de notas por área
-    if notas_area:
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        from reportlab.platypus import Image as RLImage
-        
-        areas = [row[1] for row in notas_area]
-        notas = [row[2] for row in notas_area]
-        escalas = [row[3] for row in notas_area]
-        
-        fig, ax = plt.subplots(figsize=(8, max(3, len(areas) * 0.5)))
-        
-        colors_bars = []
-        for n, es in zip(notas, escalas):
-            if es == "INFANTIL_NI_EP_C":
-                if n < 2:
-                    colors_bars.append('#dc3545') # NI
-                elif n < 3:
-                    colors_bars.append('#ffc107') # EP
-                else:
-                    colors_bars.append('#28a745') # C
-            else:
-                colors_bars.append('#28a745' if n >= 5 else '#dc3545')
-                
-        bars = ax.barh(areas, notas, color=colors_bars)
-        ax.set_xlabel('Nota Media')
-        ax.set_title(f'Rendimiento por Área - {alumno}')
-        has_num = any(es != "INFANTIL_NI_EP_C" for es in escalas)
-        ax.set_xlim(0, 10 if has_num else 3.5)
-        ax.grid(axis='x', alpha=0.3)
-        
-        # Añadir valores en las barras
-        for i, (bar, nota, es) in enumerate(zip(bars, notas, escalas)):
-            ax.text(nota + 0.2, i, format_nota(nota, es), va='center', fontweight='bold')
-        
-        chart_buf = BytesIO()
-        plt.savefig(chart_buf, format='png', bbox_inches='tight', dpi=150)
-        chart_buf.seek(0)
-        plt.close()
-        
-        elements.append(RLImage(chart_buf, width=6*cm, height=max(3, len(areas) * 0.5)*cm))
+    # --- NUEVO: Gráfica de rendimiento ---
+    from reportlab.platypus import Image as RLImage
+    chart_buf = generar_grafica_rendimiento(notas_area, alumno, es_infantil)
+    if chart_buf:
+        elements.append(RLImage(chart_buf, width=16*cm, height=max(4, len(notas_area) * 0.7)*cm))
         elements.append(Spacer(1, 15))
     
     # 6. Observaciones Pedagógicas (Nuevo)
@@ -382,7 +433,10 @@ def informe_pdf_diario(alumno_id):
     
     # Alumno
     cur.execute("SELECT nombre FROM alumnos WHERE id = ?", (alumno_id,))
-    alumno = cur.fetchone()["nombre"]
+    row_al = cur.fetchone()
+    if not row_al:
+        return "Alumno no encontrado", 404
+    alumno = row_al["nombre"]
     
     # Observaciones
     cur.execute("""
@@ -400,12 +454,30 @@ def informe_pdf_diario(alumno_id):
     elements = []
     styles = getSampleStyleSheet()
     
-    elements.append(Paragraph(f"Diario de Clase: {alumno}", styles['Title']))
+    add_header(elements, styles, f"Diario de Clase: {alumno}")
     elements.append(Spacer(1, 12))
     
+    import re
+    tag_colors = {
+        '#SinMaterial': '#a33636',
+        '#FaltaTarea': '#d47500',
+        '#BuenaActitud': '#28a745',
+        '#MalComportamiento': '#dc3545',
+        '#Participa': '#17a2b8'
+    }
+    
+    def format_tags(text):
+        if not text: return ""
+        def repl(m):
+            t = m.group(0)
+            c = tag_colors.get(t, '#007bff')
+            return f'<font color="{c}"><b>{t}</b></font>'
+        return re.sub(r'#\w+', repl, text)
+
     for fecha, area, texto in obs:
         area_str = f" ({area})" if area else ""
-        elements.append(Paragraph(f"<b>{fecha}{area_str}:</b> {texto}", styles['BodyText']))
+        formatted_text = format_tags(texto)
+        elements.append(Paragraph(f"<b>{fecha}{area_str}:</b> {formatted_text}", styles['BodyText']))
         elements.append(Spacer(1, 6))
         
     doc.build(elements)
@@ -452,7 +524,7 @@ def informe_reunion_pdf(rid):
     else:
         title = f"Acta de reunión con familias"
         
-    elements.append(Paragraph(title, styles['Title']))
+    add_header(elements, styles, title)
     elements.append(Spacer(1, 15))
     
     # Info Table
@@ -572,18 +644,20 @@ def grupo_obs():
         prop = d.get("propuestas_mejora", "")
         conc = d.get("conclusion", "")
         
+        grupo_id = session.get('active_group_id')
         cur.execute("""
-            INSERT INTO informe_grupo (trimestre, observaciones, propuestas_mejora, conclusion)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(trimestre) DO UPDATE SET
+            INSERT INTO informe_grupo (grupo_id, trimestre, observaciones, propuestas_mejora, conclusion)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(grupo_id, trimestre) DO UPDATE SET
                 observaciones = excluded.observaciones,
                 propuestas_mejora = excluded.propuestas_mejora,
                 conclusion = excluded.conclusion
-        """, (trimestre, obs, prop, conc))
+        """, (grupo_id, trimestre, obs, prop, conc))
         conn.commit()
         return jsonify({"ok": True})
     else:
-        cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ?", (trimestre,))
+        grupo_id = session.get('active_group_id')
+        cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ? AND grupo_id = ?", (trimestre, grupo_id))
         row = cur.fetchone()
         if row:
             return jsonify({
@@ -868,18 +942,26 @@ def asistencia_alumno_stats():
 def informe_pdf_todos():
     trimestre = request.args.get("trimestre")
     tutor_nombre = request.args.get("tutor", "")
+    colegio = request.args.get("colegio", "")
+    fecha_inf = request.args.get("fecha_informe", "")
+    area_id = request.args.get("area_id")
     
     conn = get_db()
     cur = conn.cursor()
     
-    # --- 1. DATOS GRUPALES ---
-    # Valoración
-    cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ?", (trimestre,))
-    row_grupo = cur.fetchone()
-    
     grupo_id = session.get('active_group_id')
     
-    # Comprobar si es un grupo de Infantil
+    # Obtener nombre del grupo para el nombre del archivo
+    cur.execute("SELECT nombre FROM grupos WHERE id = ?", (grupo_id,))
+    row_g = cur.fetchone()
+    grupo_nombre = row_g["nombre"] if row_g else "Grupo"
+
+    # --- 1. DATOS GRUPALES ---
+    # Valoración
+    cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ? AND grupo_id = ?", (trimestre, grupo_id))
+    row_grupo = cur.fetchone()
+    
+    # Comprobar si es un grupo de Infantil (basado en el tipo_escala de sus áreas)
     cur.execute("""
         SELECT a.tipo_escala 
         FROM grupos g
@@ -889,22 +971,31 @@ def informe_pdf_todos():
     """, (grupo_id,))
     es_infantil = cur.fetchone() is not None
 
-    # Promoción (Suspensos)
-    # Contamos cuántas áreas tiene suspensas cada alumno (media < 5)
-    cur.execute("""
+    # Promoción (Suspensos) - Filtrado si area_id
+    query_prom = """
         SELECT a.nombre, COUNT(val.area_id) as num_suspensos
         FROM alumnos a
         LEFT JOIN (
             SELECT alumno_id, area_id, AVG(nota) as media_area
             FROM evaluaciones
             WHERE trimestre = ?
+    """
+    params_prom = [trimestre]
+    if area_id:
+        query_prom += " AND area_id = ?"
+        params_prom.append(area_id)
+        
+    query_prom += """
             GROUP BY alumno_id, area_id
             HAVING media_area < 5
         ) val ON a.id = val.alumno_id
         WHERE a.grupo_id = ?
         GROUP BY a.id, a.nombre
         HAVING num_suspensos > 0
-    """, (trimestre, grupo_id))
+    """
+    params_prom.append(grupo_id)
+    
+    cur.execute(query_prom, params_prom)
     suspensos_data = cur.fetchall()
     
     susp_map = {0: 0, 1: 0, 2: 0, 3: 0} # 0, 1, 2, +2
@@ -977,7 +1068,7 @@ def informe_pdf_todos():
     styles = getSampleStyleSheet()
     
     # PORTADA / RESUMEN GRUPAL
-    elements.append(Paragraph(f"Informe Global del Grupo - Trimestre {trimestre}", styles['Title']))
+    add_header(elements, styles, f"Informe Global del Grupo - Trimestre {trimestre}", colegio, fecha_inf)
     if tutor_nombre:
         elements.append(Paragraph(f"Tutor/a: {tutor_nombre}", styles['Heading2']))
     elements.append(Spacer(1, 20))
@@ -985,14 +1076,20 @@ def informe_pdf_todos():
     # 1. Valoración
     if row_grupo:
         if row_grupo["observaciones"]:
+            txt_formatted = row_grupo["observaciones"].replace('\n', '<br/>')
             elements.append(Paragraph("Valoración General:", styles['Heading3']))
-            elements.append(Paragraph(row_grupo["observaciones"], styles['BodyText']))
+            elements.append(Paragraph(txt_formatted, styles['BodyText']))
+            elements.append(Spacer(1, 10))
         if row_grupo["propuestas_mejora"]:
+            txt_formatted = row_grupo["propuestas_mejora"].replace('\n', '<br/>')
             elements.append(Paragraph("Propuestas de Mejora:", styles['Heading3']))
-            elements.append(Paragraph(row_grupo["propuestas_mejora"], styles['BodyText']))
+            elements.append(Paragraph(txt_formatted, styles['BodyText']))
+            elements.append(Spacer(1, 10))
         if row_grupo["conclusion"]:
+            txt_formatted = row_grupo["conclusion"].replace('\n', '<br/>')
             elements.append(Paragraph("Conclusión:", styles['Heading3']))
-            elements.append(Paragraph(row_grupo["conclusion"], styles['BodyText']))
+            elements.append(Paragraph(txt_formatted, styles['BodyText']))
+            elements.append(Spacer(1, 10))
     else:
         elements.append(Paragraph("No hay valoración grupal registrada.", styles['Normal']))
     elements.append(Spacer(1, 15))
@@ -1007,14 +1104,29 @@ def informe_pdf_todos():
         return f"{round(n * 100 / evaluados_infantil, 1)}%" if evaluados_infantil > 0 else "0%"
 
     if es_infantil:
-        # Calcular los datos infantiles en caso de ser necesario
+        # Calcular los datos infantiles filtrando por área si es necesario
         periodo = f"T{trimestre}"
-        cur.execute("""
+        query_inf = """
+            SELECT e.alumno_id, e.nota
+            FROM evaluaciones e
+            JOIN alumnos a ON e.alumno_id = a.id
+            JOIN areas ar ON e.area_id = ar.id
+            WHERE e.trimestre = ? AND a.grupo_id = ?
+            UNION ALL
             SELECT ec.alumno_id, ec.nota
             FROM evaluacion_criterios ec
             JOIN alumnos a ON ec.alumno_id = a.id
+            JOIN criterios c ON ec.criterio_id = c.id
+            JOIN areas ar ON c.area_id = ar.id
             WHERE ec.periodo = ? AND a.grupo_id = ?
-        """, (periodo, grupo_id))
+        """
+        params_inf = [trimestre, grupo_id, periodo, grupo_id]
+        params_inf = [periodo, grupo_id]
+        if area_id:
+            query_inf += " AND ar.id = ?"
+            params_inf.append(area_id)
+            
+        cur.execute(query_inf, params_inf)
         notas_inf = cur.fetchall()
         evaluados_infantil = 0
         infantil_map = {'C': 0, 'EP': 0, 'NI': 0}
@@ -1064,17 +1176,51 @@ def informe_pdf_todos():
         if nota is None:
             return "—"
         if tipo_escala == "INFANTIL_NI_EP_C":
-            n = round(nota)
-            return {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
-        return f"{nota:.2f}"
-
+            # Robust mapping for both 1-3 scale and old 2.5-10 scale
+            n = round(nota) if nota <= 3 else 0
+            if n == 0: # Old scale (2.5, 5, 7.5, 10)
+                if nota <= 3.5: n = 1
+                elif nota <= 6.5: n = 2
+                else: n = 3
+            return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(n, "—")
     periodo = f"T{trimestre}"
 
     for al in alumnos:
-        conn = get_db() # Helper inside loop to be safe or reuse logic
-        cur = conn.cursor()
+        # Notas por criterios - Filtrar por área si necesario
+        query_crit = """
+            SELECT ar.nombre, s.nombre, c.codigo, c.descripcion, e.nota, ar.tipo_escala, e.nivel, null as base
+            FROM evaluaciones e
+            JOIN areas ar ON e.area_id = ar.id
+            JOIN sda s ON e.sda_id = s.id
+            JOIN criterios c ON e.criterio_id = c.id
+            WHERE e.alumno_id = ? AND e.trimestre = ?
+        """
+        params_crit = [al["id"], trimestre]
+        if area_id:
+            query_crit += " AND ar.id = ?"
+            params_crit.append(area_id)
+            
+        query_crit += """
+            UNION ALL
+            SELECT ar.nombre, 'Criterios Directos', c.codigo, c.descripcion, ec.nota, ar.tipo_escala, ec.nivel, ec.observaciones as base
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            JOIN areas ar ON c.area_id = ar.id
+            WHERE ec.alumno_id = ? AND ec.periodo = ?
+        """
+        params_crit.extend([al["id"], periodo])
+        if area_id:
+            query_crit += " AND ar.id = ?"
+            params_crit.append(area_id)
+            
+        # Mostrar alumnos incluso sin datos
+        cur.execute(query_crit, params_crit)
+        notas_criterios = cur.fetchall()
         
-        elements.append(Paragraph(f"Informe Trimestral - Trimestre {trimestre}", styles['Title']))
+        # Saltarse alumno solo si es un caso extremo, pero mejor mostrar "Sin datos" 
+        # para que el profesor sepa que existe pero no está evaluado.
+        
+        add_header(elements, styles, f"Informe Trimestral - Trimestre {trimestre}", colegio, fecha_inf)
         elements.append(Paragraph(f"Alumno: {al['nombre']}", styles['Heading2']))
         if tutor_nombre:
             elements.append(Paragraph(f"Tutor/a: {tutor_nombre}", styles['Normal']))
@@ -1162,10 +1308,15 @@ def informe_pdf_todos():
         # Detalle Faltas
         if faltas_detalle:
             fechas_str = []
-            for f, e in faltas_detalle:
-                d_obj = datetime.strptime(f, '%Y-%m-%d')
-                d_str = d_obj.strftime('%d/%m')
-                
+            for row in faltas_detalle:
+                f = row["fecha"]
+                e = row["estado"]
+                try:
+                    d_obj = datetime.strptime(f, '%Y-%m-%d')
+                    d_str = d_obj.strftime('%d/%m')
+                except:
+                    d_str = f
+
                 if e == 'retraso':
                     color = "#ffc107"
                     tipo = "R"
@@ -1175,7 +1326,7 @@ def informe_pdf_todos():
                 else: # falta_no_justificada
                     color = "#dc3545"
                     tipo = "F"
-                    
+
                 fechas_str.append(f'<font color="{color}">{d_str}({tipo})</font>')
             elements.append(Paragraph("<b>Detalle (Día/Tipo):</b> " + ", ".join(fechas_str), styles['Normal']))
             elements.append(Spacer(1, 12))
@@ -1216,6 +1367,13 @@ def informe_pdf_todos():
             ('BACKGROUND', (0,0), (-1,0), colors.lightgrey)
         ]))
         elements.append(t)
+        
+        # --- NUEVO: Gráfica de rendimiento en Informe General ---
+        from reportlab.platypus import Image as RLImage
+        chart_buf = generar_grafica_rendimiento(notas_area, al['nombre'], es_infantil)
+        if chart_buf:
+            elements.append(Spacer(1, 8))
+            elements.append(RLImage(chart_buf, width=16*cm, height=max(4, len(notas_area) * 0.7)*cm))
         
         if obs_text:
              elements.append(Spacer(1, 12))
@@ -1261,10 +1419,13 @@ def informe_pdf_todos():
     doc.build(elements)
     buffer.seek(0)
     
+    # Sanitize filename
+    filename = f"Informe_General_{grupo_nombre.replace(' ', '_')}_T{trimestre}.pdf"
+    
     return send_file(
         buffer,
         as_attachment=True,
-        download_name=f"Informes_Trimestre_{trimestre}.pdf",
+        download_name=filename,
         mimetype='application/pdf'
     )
 
@@ -1276,24 +1437,105 @@ def excel_grupo():
     from openpyxl.drawing.image import Image as XLImage
     
     trimestre = request.args.get("trimestre")
+    area_id = request.args.get("area_id")
+    
     conn = get_db()
     cur = conn.cursor()
     
     grupo_id = session.get('active_group_id')
+
+    # Obtener nombre del grupo para el nombre del archivo
+    cur.execute("SELECT nombre FROM grupos WHERE id = ?", (grupo_id,))
+    row_g = cur.fetchone()
+    grupo_nombre = row_g["nombre"] if row_g else "Grupo"
+
+    # --- 1. DATOS GRUPALES (Notas filtrables - COMBINED SOURCES) ---
+    # We combine 'evaluaciones' (SDA) and 'evaluacion_criterios' (Direct)
+    # Detectar si el grupo es Infantil (por su etapa o sus áreas)
+    cur.execute("""
+        SELECT a.tipo_escala 
+        FROM grupos g
+        JOIN areas a ON g.etapa_id = a.etapa_id
+        WHERE g.id = ? AND a.tipo_escala = 'INFANTIL_NI_EP_C'
+        LIMIT 1
+    """, (grupo_id,))
+    es_infantil = cur.fetchone() is not None
+
+    periodo = f"T{trimestre}"
+
+    if es_infantil:
+        # En Infantil incluimos criterios directos y no filtramos por sda_id (pueden no tener)
+        query_base = """
+            SELECT e.alumno_id, e.area_id, e.nota
+            FROM evaluaciones e
+            WHERE e.trimestre = ?
+            UNION ALL
+            SELECT ec.alumno_id, c.area_id, ec.nota
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            WHERE ec.periodo = ?
+        """
+    else:
+        # En Primaria/otros, filtramos solo SDAs para evitar duplicados con los criterios directos
+        query_base = """
+            SELECT e.alumno_id, e.area_id, e.nota
+            FROM evaluaciones e
+            WHERE e.trimestre = ? AND e.sda_id IS NOT NULL
+        """
     
-    # 1. Notas por Alumno y Área
-    query = """
-    SELECT al.nombre as Alumno, ar.nombre as Area, ROUND(AVG(e.nota), 2) as Nota
-    FROM evaluaciones e
-    JOIN alumnos al ON e.alumno_id = al.id
-    JOIN areas ar ON e.area_id = ar.id
-    WHERE e.trimestre = ? AND al.grupo_id = ?
-    GROUP BY al.nombre, ar.nombre
-    """
-    df_notas = pd.read_sql_query(query, conn, params=(trimestre, grupo_id))
+    if area_id:
+        query_notas = f"""
+        SELECT al.nombre as Alumno, ar.nombre as Area, AVG(combined.nota) as Nota, ar.tipo_escala
+        FROM alumnos al
+        JOIN areas ar ON ar.id = ?
+        LEFT JOIN ({query_base}) combined ON al.id = combined.alumno_id AND ar.id = combined.area_id
+        WHERE al.grupo_id = ?
+        GROUP BY al.id, al.nombre, ar.id, ar.nombre, ar.tipo_escala
+        ORDER BY al.nombre
+        """
+        if es_infantil:
+            params_notas = [area_id, trimestre, periodo, grupo_id]
+        else:
+            params_notas = [area_id, trimestre, grupo_id]
+    else:
+        query_notas = f"""
+        SELECT al.nombre as Alumno, ar.nombre as Area, AVG(combined.nota) as Nota, ar.tipo_escala
+        FROM alumnos al
+        CROSS JOIN (
+            SELECT id, nombre, tipo_escala 
+            FROM areas 
+            WHERE etapa_id = (SELECT etapa_id FROM grupos WHERE id = ?)
+        ) ar
+        LEFT JOIN ({query_base}) combined ON al.id = combined.alumno_id AND ar.id = combined.area_id
+        WHERE al.grupo_id = ?
+        GROUP BY al.id, al.nombre, ar.id, ar.nombre, ar.tipo_escala
+        ORDER BY al.nombre, ar.nombre
+        """
+        if es_infantil:
+            params_notas = [grupo_id, trimestre, periodo, grupo_id]
+        else:
+            params_notas = [grupo_id, trimestre, grupo_id]
     
+    df_notas = pd.read_sql_query(query_notas, conn, params=params_notas)
+    
+    # Formatear notas para Infantil en Excel
+    if not df_notas.empty:
+        def excel_format_nota(n, e):
+            if pd.isna(n): return "—"
+            if e == "INFANTIL_NI_EP_C":
+                # Robust mapping for both 1-3 scale and old 2.5-10 scale
+                val = round(n) if n <= 3 else 0
+                if val == 0: 
+                    if n <= 3.5: val = 1
+                    elif n <= 6.5: val = 2
+                    else: val = 3
+                return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(val, "—")
+            return round(n, 2)
+        
+        df_notas['Nota_Display'] = df_notas.apply(lambda r: excel_format_nota(r['Nota'], r['tipo_escala']), axis=1)
+
     # 2. Valoración del Grupo
-    cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ?", (trimestre,))
+    cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ? AND grupo_id = ?", (trimestre, grupo_id))
     row_grupo = cur.fetchone()
     
     grupo_data = {
@@ -1306,23 +1548,107 @@ def excel_grupo():
     }
     df_grupo = pd.DataFrame(grupo_data)
 
-    # 3. Promoción (Suspensos)
-    # Contamos cuántas áreas tiene suspensas cada alumno (media < 5)
-    cur.execute("""
+    # 3. Promoción (Suspensos) - Filtrado si hay área
+    query_susp = """
         SELECT a.nombre, COUNT(val.area_id) as Num_Suspensos
         FROM alumnos a
         LEFT JOIN (
             SELECT alumno_id, area_id, AVG(nota) as media_area
             FROM evaluaciones
             WHERE trimestre = ?
+    """
+    params_susp = [trimestre]
+    if area_id:
+        query_susp += " AND area_id = ?"
+        params_susp.append(area_id)
+        
+    query_susp += """
             GROUP BY alumno_id, area_id
             HAVING media_area < 5
         ) val ON a.id = val.alumno_id
         WHERE a.grupo_id = ?
         GROUP BY a.id, a.nombre
         HAVING Num_Suspensos > 0
-    """, (trimestre, grupo_id))
+    """
+    params_susp.append(grupo_id)
+    
+    cur.execute(query_susp, params_susp)
     susp_data = cur.fetchall()
+    df_susp = pd.DataFrame(susp_data) if susp_data else pd.DataFrame(columns=["Alumno", "Num_Suspensos"])
+
+    # 4. Detalle de Evaluación (Criterios y Notas - Combined)
+    def detail_format_nota(row):
+        n = row['Nota']
+        e = row['tipo_escala']
+        if e == "INFANTIL_NI_EP_C":
+            # Robust mapping for both 1-3 scale and old 2.5-10 scale
+            val = round(n) if n <= 3 else 0
+            if val == 0:
+                if n <= 3.5: val = 1
+                elif n <= 6.5: val = 2
+                else: val = 3
+            return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(val, "—")
+        return round(n, 2)
+
+    if es_infantil:
+        query_detalle = f"""
+            SELECT al.nombre as Alumno, ar.nombre as Area, s.nombre as SDA, 
+                   c.codigo as Criterio_Cod, c.descripcion as Criterio_Desc, 
+                   e.nota as Nota, e.nivel as Nivel, ar.tipo_escala
+            FROM alumnos al
+            JOIN evaluaciones e ON al.id = e.alumno_id AND e.trimestre = ?
+            JOIN areas ar ON e.area_id = ar.id
+            JOIN criterios c ON e.criterio_id = c.id
+            JOIN sda s ON e.sda_id = s.id
+            WHERE al.grupo_id = ?
+        """
+        params_det = [trimestre, grupo_id]
+        if area_id:
+            query_detalle += " AND ar.id = ?"
+            params_det.append(area_id)
+            
+        query_detalle += f"""
+            UNION ALL
+            SELECT al.nombre as Alumno, ar.nombre as Area, 'Criterios Directos' as SDA,
+                   c.codigo as Criterio_Cod, c.descripcion as Criterio_Desc,
+                   ec.nota as Nota, ec.nivel as Nivel, ar.tipo_escala
+            FROM alumnos al
+            JOIN evaluacion_criterios ec ON al.id = ec.alumno_id AND ec.periodo = ?
+            JOIN criterios c ON ec.criterio_id = c.id
+            JOIN areas ar ON c.area_id = ar.id
+            WHERE al.grupo_id = ?
+        """
+        params_det.extend([periodo, grupo_id])
+        if area_id:
+            query_detalle += " AND ar.id = ?"
+            params_det.append(area_id)
+    else:
+        query_detalle = f"""
+            SELECT al.nombre as Alumno, ar.nombre as Area, s.nombre as SDA, 
+                   c.codigo as Criterio_Cod, c.descripcion as Criterio_Desc, 
+                   e.nota as Nota, e.nivel as Nivel, ar.tipo_escala
+            FROM alumnos al
+            JOIN evaluaciones e ON al.id = e.alumno_id AND e.trimestre = ?
+            JOIN areas ar ON e.area_id = ar.id
+            JOIN criterios c ON e.criterio_id = c.id
+            JOIN sda s ON e.sda_id = s.id
+            WHERE al.grupo_id = ?
+        """
+        params_det = [trimestre, grupo_id]
+        if area_id:
+            query_detalle += " AND ar.id = ?"
+            params_det.append(area_id)
+
+    query_detalle += " ORDER BY Alumno, Area, SDA, Criterio_Cod"
+    
+    df_detalle = pd.read_sql_query(query_detalle, conn, params=params_det)
+    if not df_detalle.empty:
+        df_detalle['Nota'] = df_detalle.apply(lambda r: detail_format_nota(r), axis=1)
+        df_detalle = df_detalle.drop(columns=['tipo_escala'])
+    
+    # Estadísticas de Promoción para la hoja
+    total_alumnos = pd.read_sql_query("SELECT count(*) FROM alumnos WHERE grupo_id = ?", conn, params=(grupo_id,)).iloc[0,0]
+    
     
     # Calcular estadísticas de promoción
     susp_map = {0: 0, 1: 0, 2: 0, 3: 0}
@@ -1452,7 +1778,7 @@ def excel_grupo():
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         # Sheet 1: Notas Pivot
         if not df_notas.empty:
-            pivot = df_notas.pivot(index='Alumno', columns='Area', values='Nota')
+            pivot = df_notas.pivot(index='Alumno', columns='Area', values='Nota_Display')
             pivot.to_excel(writer, sheet_name=f'Notas_T{trimestre}')
             
         # Sheet 2: Valoración
@@ -1477,6 +1803,10 @@ def excel_grupo():
         # Insertar gráfica de asistencia
         img_asist = XLImage(asist_chart)
         ws_asist.add_image(img_asist, 'E2')
+
+        # Sheet 6: Detalle de Evaluación
+        if not df_detalle.empty:
+            df_detalle.to_excel(writer, sheet_name="Detalle_Evaluacion", index=False)
         
         # Sheet 6: Rendimiento por Área (con gráfica)
         if area_chart:
@@ -1488,26 +1818,37 @@ def excel_grupo():
             ws_areas.add_image(img_areas, 'D2')
         
     output.seek(0)
+    # Sanitize filename
+    filename = f"Informe_Grupo_{grupo_nombre.replace(' ', '_')}_T{trimestre}.xlsx"
+    
     return send_file(
         output,
         as_attachment=True,
-        download_name=f"Resumen_Grupo_T{trimestre}.xlsx",
+        download_name=filename,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
 @informes_bp.route("/api/informe/pdf_grupo")
 def pdf_grupo():
     trimestre = request.args.get("trimestre")
+    colegio = request.args.get("colegio", "")
+    fecha_inf = request.args.get("fecha_informe", "")
+    area_id = request.args.get("area_id")
     
     conn = get_db()
     cur = conn.cursor()
     
+    grupo_id = session.get('active_group_id')
+
+    # Obtener nombre del grupo para el nombre del archivo
+    cur.execute("SELECT nombre FROM grupos WHERE id = ?", (grupo_id,))
+    row_g = cur.fetchone()
+    grupo_nombre = row_g["nombre"] if row_g else "Grupo"
+    
     # --- 1. DATOS GRUPALES ---
     # Valoración
-    cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ?", (trimestre,))
+    cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ? AND grupo_id = ?", (trimestre, grupo_id))
     row_grupo = cur.fetchone()
-    
-    grupo_id = session.get('active_group_id')
     
     # Comprobar si es un grupo de Infantil
     cur.execute("""
@@ -1626,6 +1967,35 @@ def pdf_grupo():
         u_max = max(temp_retrasos, key=temp_retrasos.get)
         max_retrasos = {"nombre": u_max, "num": temp_retrasos[u_max]}
     
+    # Rendimiento por Áreas
+    if es_infantil:
+        cur.execute("""
+            SELECT ar.nombre, AVG(val.nota) as media
+            FROM (
+                SELECT area_id, nota, alumno_id FROM evaluaciones WHERE trimestre = ?
+                UNION ALL
+                SELECT c.area_id, ec.nota, ec.alumno_id 
+                FROM evaluacion_criterios ec
+                JOIN criterios c ON ec.criterio_id = c.id
+                WHERE ec.periodo = ?
+            ) val
+            JOIN areas ar ON val.area_id = ar.id
+            JOIN alumnos al ON val.alumno_id = al.id
+            WHERE al.grupo_id = ?
+            GROUP BY ar.id, ar.nombre
+            ORDER BY media DESC
+        """, (trimestre, periodo, grupo_id))
+    else:
+        cur.execute("""
+            SELECT ar.nombre, AVG(e.nota) as media
+            FROM evaluaciones e
+            JOIN areas ar ON e.area_id = ar.id
+            JOIN alumnos al ON e.alumno_id = al.id
+            WHERE e.trimestre = ? AND al.grupo_id = ? AND e.sda_id IS NOT NULL
+            GROUP BY ar.id, ar.nombre
+            ORDER BY media DESC
+        """, (trimestre, grupo_id))
+    area_perf_data = cur.fetchall()
     
     # --- GENERAR GRÁFICAS ---
     import matplotlib
@@ -1635,33 +2005,63 @@ def pdf_grupo():
     
     # Gráfica 1: Pie Chart de Promoción
     fig1, ax1 = plt.subplots(figsize=(6, 4))
+    ax1.set_title('Análisis de Promoción', pad=20)
     if es_infantil:
         colors_promo = ['#28a745', '#ffc107', '#dc3545']
-        data = [infantil_map['C'], infantil_map['EP'], infantil_map['NI']]
+        labels_raw = ["Conseguido", "En proceso", "No Iniciado"]
+        data_raw = [infantil_map['C'], infantil_map['EP'], infantil_map['NI']]
+        
+        # Filtrar ceros
+        data = []
+        labels = []
+        colors_filtered = []
+        for d, l, c in zip(data_raw, labels_raw, colors_promo):
+            if d > 0:
+                data.append(d)
+                labels.append(l)
+                colors_filtered.append(c)
+
         if sum(data) > 0:
             ax1.pie(data, 
-                    labels=["Conseguido", "En Proceso", "No Iniciado"],
+                    labels=labels,
                     autopct='%1.1f%%',
-                    colors=colors_promo,
-                    startangle=90)
+                    pctdistance=0.8, 
+                    labeldistance=1.1,
+                    colors=colors_filtered,
+                    startangle=90,
+                    textprops={'fontsize': 9})
         else:
             ax1.text(0.5, 0.5, 'Sin datos evaluados', ha='center', va='center')
             ax1.axis('off')
     else:
         colors_promo = ['#28a745', '#ffc107', '#fd7e14', '#dc3545']
-        data = [susp_map[0], susp_map[1], susp_map[2], susp_map[3]]
+        labels_raw = ["Todo Aprobado", "1 Suspenso", "2 Suspensos", "+2 Suspensos"]
+        data_raw = [susp_map[0], susp_map[1], susp_map[2], susp_map[3]]
+        
+        # Filtrar ceros
+        data = []
+        labels = []
+        colors_filtered = []
+        for d, l, c in zip(data_raw, labels_raw, colors_promo):
+            if d > 0:
+                data.append(d)
+                labels.append(l)
+                colors_filtered.append(c)
+
         if sum(data) > 0:
             ax1.pie(data, 
-                    labels=["Todo Aprobado", "1 Suspenso", "2 Suspensos", "+2 Suspensos"],
+                    labels=labels,
                     autopct='%1.1f%%',
-                    colors=colors_promo,
-                    startangle=90)
+                    pctdistance=0.8,
+                    labeldistance=1.1,
+                    colors=colors_filtered,
+                    startangle=140,
+                    textprops={'fontsize': 9})
         else:
             ax1.text(0.5, 0.5, 'Sin datos evaluados', ha='center', va='center')
             ax1.axis('off')
-    ax1.set_title('Análisis de Promoción')
     promo_chart_buf = BytesIO()
-    plt.savefig(promo_chart_buf, format='png', bbox_inches='tight', dpi=150)
+    plt.savefig(promo_chart_buf, format='png', bbox_inches='tight', dpi=300)
     promo_chart_buf.seek(0)
     plt.close()
     
@@ -1677,9 +2077,30 @@ def pdf_grupo():
     for i, v in enumerate(values):
         ax2.text(i, v + 0.5, str(v), ha='center', fontweight='bold')
     asist_chart_buf = BytesIO()
-    plt.savefig(asist_chart_buf, format='png', bbox_inches='tight', dpi=150)
+    plt.savefig(asist_chart_buf, format='png', bbox_inches='tight', dpi=300)
     asist_chart_buf.seek(0)
     plt.close()
+    
+    # Gráfica 3: Bar Chart de Rendimiento por Área
+    area_chart_buf = None
+    if area_perf_data:
+        fig3, ax3 = plt.subplots(figsize=(8, max(4, len(area_perf_data) * 0.5)))
+        areas_n = [r["nombre"] for r in area_perf_data]
+        medias_n = [r["media"] for r in area_perf_data]
+        
+        ax3.barh(areas_n, medias_n, color='#17a2b8')
+        ax3.set_xlabel('Nota Media')
+        ax3.set_title('Rendimiento Medio por Área')
+        ax3.set_xlim(0, 10.5)
+        ax3.grid(axis='x', alpha=0.3)
+        
+        for i, v in enumerate(medias_n):
+            ax3.text(v + 0.1, i, f"{v:.2f}", va='center', fontweight='bold')
+            
+        area_chart_buf = BytesIO()
+        plt.savefig(area_chart_buf, format='png', bbox_inches='tight', dpi=300)
+        area_chart_buf.seek(0)
+        plt.close()
     
     # --- GENERAR PDF ---
     buffer = BytesIO()
@@ -1687,20 +2108,26 @@ def pdf_grupo():
     elements = []
     styles = getSampleStyleSheet()
     
-    elements.append(Paragraph(f"Informe Global de Grupo - Trimestre {trimestre}", styles['Title']))
+    add_header(elements, styles, f"Informe Global de Grupo - Trimestre {trimestre}")
     elements.append(Spacer(1, 20))
     
     # 1. Valoración
     if row_grupo:
         if row_grupo["observaciones"]:
+            txt_formatted = row_grupo["observaciones"].replace('\n', '<br/>')
             elements.append(Paragraph("Valoración General:", styles['Heading3']))
-            elements.append(Paragraph(row_grupo["observaciones"], styles['BodyText']))
+            elements.append(Paragraph(txt_formatted, styles['BodyText']))
+            elements.append(Spacer(1, 10))
         if row_grupo["propuestas_mejora"]:
+            txt_formatted = row_grupo["propuestas_mejora"].replace('\n', '<br/>')
             elements.append(Paragraph("Propuestas de Mejora:", styles['Heading3']))
-            elements.append(Paragraph(row_grupo["propuestas_mejora"], styles['BodyText']))
+            elements.append(Paragraph(txt_formatted, styles['BodyText']))
+            elements.append(Spacer(1, 10))
         if row_grupo["conclusion"]:
+            txt_formatted = row_grupo["conclusion"].replace('\n', '<br/>')
             elements.append(Paragraph("Conclusión:", styles['Heading3']))
-            elements.append(Paragraph(row_grupo["conclusion"], styles['BodyText']))
+            elements.append(Paragraph(txt_formatted, styles['BodyText']))
+            elements.append(Spacer(1, 10))
     else:
         elements.append(Paragraph("No hay valoración grupal registrada.", styles['Normal']))
     elements.append(Spacer(1, 15))
@@ -1711,12 +2138,20 @@ def pdf_grupo():
     def calc_pct(n):
         return f"{round(n * 100 / total_alumnos, 1)}%" if total_alumnos > 0 else "0%"
 
-    data_prom = [
-        ["Todo Aprobado", f"{susp_map[0]} ({calc_pct(susp_map[0])})"],
-        ["1 Suspenso", f"{susp_map[1]} ({calc_pct(susp_map[1])})"],
-        ["2 Suspensos", f"{susp_map[2]} ({calc_pct(susp_map[2])})"],
-        ["+2 Suspensos", f"{susp_map[3]} ({calc_pct(susp_map[3])})"]
-    ]
+    if es_infantil:
+        data_prom = [
+            ["Conseguido (C)", f"{infantil_map['C']} ({round(infantil_map['C']*100/max(1,evaluados_infantil),1)}%)"],
+            ["En Proceso (EP)", f"{infantil_map['EP']} ({round(infantil_map['EP']*100/max(1,evaluados_infantil),1)}%)"],
+            ["No Iniciado (NI)", f"{infantil_map['NI']} ({round(infantil_map['NI']*100/max(1,evaluados_infantil),1)}%)"],
+            ["No Evaluados", f"{total_alumnos - evaluados_infantil}"]
+        ]
+    else:
+        data_prom = [
+            ["Todo Aprobado", f"{susp_map[0]} ({calc_pct(susp_map[0])})"],
+            ["1 Suspenso", f"{susp_map[1]} ({calc_pct(susp_map[1])})"],
+            ["2 Suspensos", f"{susp_map[2]} ({calc_pct(susp_map[2])})"],
+            ["+2 Suspensos", f"{susp_map[3]} ({calc_pct(susp_map[3])})"]
+        ]
     t_prom = Table(data_prom, colWidths=[4*cm, 4*cm])
     t_prom.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 1, colors.grey),
@@ -1739,15 +2174,40 @@ def pdf_grupo():
     # Insertar gráfica de asistencia
     asist_img = RLImage(asist_chart_buf, width=12*cm, height=7*cm)
     elements.append(asist_img)
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 15))
+    
+    # 4. Rendimiento por Áreas
+    if area_perf_data and area_chart_buf:
+        elements.append(PageBreak())
+        add_header(elements, styles, f"Rendimiento por Áreas - Trimestre {trimestre}")
+        elements.append(Paragraph("Resumen de Calificaciones Medias por Área:", styles['Heading3']))
+        
+        data_area = [["Área", "Nota Media"]]
+        for r in area_perf_data:
+            data_area.append([r["nombre"], f"{r['media']:.2f}"])
+            
+        t_area = Table(data_area, colWidths=[10*cm, 4*cm])
+        t_area.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 1, colors.grey),
+            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+            ('ALIGN', (1,0), (1,-1), 'CENTER')
+        ]))
+        elements.append(t_area)
+        elements.append(Spacer(1, 15))
+        
+        area_img = RLImage(area_chart_buf, width=16*cm, height=max(8, len(area_perf_data)*0.8)*cm)
+        elements.append(area_img)
         
     doc.build(elements)
     buffer.seek(0)
     
+    # Sanitize filename
+    filename = f"Informe_Grupo_{grupo_nombre.replace(' ', '_')}_T{trimestre}.pdf"
+    
     return send_file(
         buffer,
         as_attachment=True,
-        download_name=f"Informe_Grupo_T{trimestre}.pdf",
+        download_name=filename,
         mimetype='application/pdf'
     )
 

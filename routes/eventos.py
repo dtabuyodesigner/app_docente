@@ -190,6 +190,7 @@ def patch_evento_completado(event_id):
     conn = get_db()
     cur = conn.cursor()
     try:
+        cur.execute("BEGIN")
         cur.execute("UPDATE programacion_diaria SET completado = ? WHERE id = ?", (d.get("completado", 1), event_id))
         conn.commit()
         return jsonify({"ok": True})
@@ -202,8 +203,10 @@ def borrar_evento(event_id):
     conn = get_db()
     cur = conn.cursor()
     try:
+        cur.execute("BEGIN")
         cur.execute("DELETE FROM programacion_diaria WHERE id = ?", (event_id,))
         conn.commit()
+        return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500

@@ -1,4 +1,10 @@
 from flask import Flask, request, redirect, url_for, session, send_file
+try:
+    from flasgger import Swagger
+    HAS_SWAGGER = True
+except ImportError:
+    HAS_SWAGGER = False
+
 import os
 import shutil
 from datetime import datetime
@@ -11,7 +17,18 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-key-change-in-prod")
 
-from utils.db import init_db_if_not_exists
+# Initialize Swagger if available
+swagger = None
+if HAS_SWAGGER:
+    swagger = Swagger(app, template={
+        "info": {
+            "title": "APP_EVALUAR API",
+            "description": "API Backend para la plataforma APP_EVALUAR",
+            "version": "1.0.0"
+        }
+    })
+
+from utils.db import init_db_if_not_exists, get_db_path
 init_db_if_not_exists()
 
 # Tareas de blindaje técnico (Integridad y Backup)
@@ -44,6 +61,7 @@ from routes.evaluacion_directa import evaluacion_directa_bp
 from routes.eventos import eventos_bp
 from routes.observaciones import observaciones_bp
 from routes.evaluacion import evaluacion_bp
+from routes.rubricas import rubricas_bp
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
@@ -71,6 +89,7 @@ app.register_blueprint(evaluacion_directa_bp, url_prefix='/api/evaluacion/direct
 app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion')
 app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
+app.register_blueprint(rubricas_bp)
 
 # Database Initialization and CLI commands
 from utils.db import close_db, get_db
@@ -99,6 +118,12 @@ def serve_sw():
     response.headers['Cache-Control'] = 'no-cache'
     return response
 
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    from utils.db import get_app_data_dir
+    uploads_dir = os.path.join(get_app_data_dir(), "uploads")
+    return send_file(os.path.join(uploads_dir, filename))
+
 @app.route('/manifest.json')
 def serve_manifest():
     """Sirve el manifest PWA desde la raíz."""
@@ -112,6 +137,11 @@ def serve_manifest():
 def require_auth():
     # Allow static files and the login/logout routes
     if (request.path.startswith('/static/') or 
+        (HAS_SWAGGER and (
+            request.path.startswith('/apidocs/') or
+            request.path.startswith('/flasgger_static/') or
+            request.path == '/apispec_1.json'
+        )) or
         request.path in ['/login', '/logout', '/api/csrf-token', '/api/recover_password', '/api/setup', '/service-worker.js', '/manifest.json', '/static/plantilla_sda.csv'] or 
         request.path.endswith('.js') or 
         request.path.endswith('.css') or 
@@ -126,7 +156,8 @@ def require_auth():
 
 @app.cli.command('init-db')
 def init_db_command():
-    if not os.path.exists("app_evaluar.db"):
+    path = get_db_path()
+    if not os.path.exists(path):
         print("Initializing database...")
         conn = get_db()
         with open("schema.sql") as f:

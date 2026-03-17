@@ -46,7 +46,7 @@ def obtener_alumnos():
         return jsonify([])
 
     cur.execute("""
-        SELECT a.id, a.nombre, a.no_comedor, a.comedor_dias, a.foto, a.tiene_ayuda_material,
+        SELECT a.id, a.nombre AS student_name, a.no_comedor, a.comedor_dias, a.foto, a.tiene_ayuda_material,
                f.madre_telefono, f.padre_telefono
         FROM alumnos a
         LEFT JOIN ficha_alumno f ON a.id = f.alumno_id
@@ -54,19 +54,21 @@ def obtener_alumnos():
         ORDER BY a.nombre
     """, (grupo_id,))
 
-    alumnos = [
-        {
+    rows = cur.fetchall()
+    alumnos = []
+    for r in rows:
+        # Debug print to app.log
+        # print(f"DEBUG: Enviando alumno ID {r['id']} con nombre: |{r['student_name']}|", flush=True)
+        alumnos.append({
             "id": r["id"],
-            "nombre": r["nombre"],
+            "nombre": r["student_name"] or "",
             "no_comedor": r["no_comedor"],
             "comedor_dias": r["comedor_dias"],
             "foto": r["foto"],
             "tiene_ayuda_material": r["tiene_ayuda_material"],
-            "madre_telefono": r["madre_telefono"],
-            "padre_telefono": r["padre_telefono"]
-        }
-        for r in cur.fetchall()
-    ]
+            "madre_telefono": str(r["madre_telefono"]) if r["madre_telefono"] else "",
+            "padre_telefono": str(r["padre_telefono"]) if r["padre_telefono"] else ""
+        })
 
     return jsonify(alumnos)
 
@@ -191,10 +193,12 @@ def subir_foto_alumno(alumno_id):
         return jsonify({"ok": False, "error": "No selected file"}), 400
 
     if file:
+        from utils.db import get_app_data_dir
         filename = f"alumno_{alumno_id}_{int(datetime.now().timestamp())}.jpg"
-        filepath = os.path.join("static", "uploads", filename)
+        uploads_dir = os.path.join(get_app_data_dir(), "uploads")
+        filepath = os.path.join(uploads_dir, filename)
         
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        os.makedirs(uploads_dir, exist_ok=True)
         file.save(filepath)
 
         conn = get_db()

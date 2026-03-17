@@ -447,7 +447,7 @@
         function renderImage(filename) {
             const container = document.getElementById('imgContainer');
             if (filename) {
-                container.innerHTML = `<img src="/static/uploads/${filename}" alt="Horario">`;
+                container.innerHTML = `<img src="/uploads/${filename}" alt="Horario">`;
             } else {
                 container.innerHTML = `<p style="color: #666;">No hay imagen subida.</p>`;
             }

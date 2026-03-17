@@ -3,7 +3,10 @@ import io
 import datetime
 from flask import Blueprint, request, jsonify, session, Response
 from utils.db import get_db
-from utils.security import get_security_logger
+from utils.security import get_security_logger, audit_log
+from utils.cache import simple_cache
+from schemas.criterios import AreaSchema, CriterioSchema
+from marshmallow import ValidationError
 
 criterios_bp = Blueprint('criterios_api', __name__)
 security_logger = get_security_logger()
@@ -13,7 +16,33 @@ REQUIRED_HEADER = ["Codigo", "Descripcion completa", "Etapa", "Area", "Materia",
 # --- ETAPAS ---
 
 @criterios_bp.route("/api/etapas", methods=["GET"])
+@simple_cache(timeout=300)
 def listar_etapas():
+    """
+    Lista todas las etapas educativas disponibles.
+    ---
+    tags:
+      - Etapas
+    responses:
+      200:
+        description: Retorna un listado de etapas con su ID y estado activo.
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: ID de la etapa
+              nombre:
+                type: string
+                description: Nombre de la etapa (ej. Infantil, Primaria)
+              activa:
+                type: integer
+                description: Estado de la etapa (1=Activa, 0=Inactiva)
+      401:
+        description: Usuario no autorizado
+    """
     if not session.get('logged_in'):
         return jsonify({"ok": False, "error": "No autorizado"}), 401
     conn = get_db()
@@ -24,7 +53,44 @@ def listar_etapas():
 # --- AREAS ---
 
 @criterios_bp.route("/api/areas", methods=["GET"])
+@simple_cache(timeout=300)
 def listar_areas():
+    """
+    Lista todas las áreas. Permite filtrar por etapa_id.
+    ---
+    tags:
+      - Áreas
+    parameters:
+      - in: query
+        name: etapa_id
+        type: integer
+        required: false
+        description: ID de la etapa para filtrar las áreas
+    responses:
+      200:
+        description: Retorna un listado de las áreas registradas.
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              nombre:
+                type: string
+              etapa_id:
+                type: integer
+              etapa_nombre:
+                type: string
+              modo_evaluacion:
+                type: string
+              tipo_escala:
+                type: string
+              activa:
+                type: integer
+      401:
+        description: Usuario no autorizado
+    """
     if not session.get('logged_in'):
         return jsonify({"ok": False, "error": "No autorizado"}), 401
     
@@ -48,14 +114,55 @@ def listar_areas():
 
 @criterios_bp.route("/api/areas", methods=["POST"])
 def crear_area():
+    """
+    Crea una nueva área.
+    ---
+    tags:
+      - Áreas
+    parameters:
+      - in: body
+        name: body
+        schema:
+          id: AreaPost
+          required:
+            - nombre
+            - etapa_id
+          properties:
+            nombre:
+              type: string
+              description: Nombre del área
+            etapa_id:
+              type: integer
+              description: ID de la etapa a la que pertenece
+            modo_evaluacion:
+              type: string
+              description: Modo de evaluación (ej. 'POR_SA')
+            tipo_escala:
+              type: string
+              description: Tipo de escala
+            activa:
+              type: integer
+              description: Si el área está activa (1 o 0)
+    responses:
+      200:
+        description: Área creada exitosamente
+      400:
+        description: Errores de validación
+      401:
+        description: Usuario no autorizado
+      403:
+        description: Permisos insuficientes (requiere ser admin)
+    """
     if not session.get('logged_in'):
         return jsonify({"ok": False, "error": "No autorizado"}), 401
     if session.get('role') != 'admin':
         return jsonify({"ok": False, "error": "Solo administradores"}), 403
         
-    d = request.json
-    if not d.get("nombre") or not d.get("etapa_id"):
-        return jsonify({"ok": False, "error": "Nombre y etapa obligatorios"}), 400
+    try:
+        req_data = request.get_json(silent=True) or {}
+        d = AreaSchema().load(req_data)
+    except ValidationError as err:
+        return jsonify({"ok": False, "error": "Errores de validación", "details": err.messages}), 400
         
     conn = get_db()
     cur = conn.cursor()
@@ -81,7 +188,14 @@ def actualizar_area(area_id):
     if session.get('role') != 'admin':
         return jsonify({"ok": False, "error": "Solo administradores"}), 403
         
-    d = request.json
+    try:
+        # Partial validation for PUT, or maybe full depending on app rules. 
+        # Using partial because restricted update doesn't need all fields.
+        req_data = request.get_json(silent=True) or {}
+        d = AreaSchema(partial=True).load(req_data)
+    except ValidationError as err:
+        return jsonify({"ok": False, "error": "Errores de validación", "details": err.messages}), 400
+        
     conn = get_db()
     cur = conn.cursor()
     
@@ -96,13 +210,16 @@ def actualizar_area(area_id):
                 UPDATE areas SET activa = ?, modo_evaluacion = ? WHERE id = ?
             """, (d.get("activa", 1), d.get("modo_evaluacion", "POR_SA"), area_id))
         else:
+            # We need full validation here generally, but we just re-verify basics mapping
+            if "nombre" not in d or "etapa_id" not in d:
+                 return jsonify({"ok": False, "error": "Nombre y etapa obligatorios"}), 400
             cur.execute("""
                 UPDATE areas 
                 SET nombre = ?, etapa_id = ?, modo_evaluacion = ?, tipo_escala = ?, activa = ?
                 WHERE id = ?
             """, (
-                d["nombre"], d["etapa_id"], d.get("modo_evaluacion"), 
-                d.get("tipo_escala"), d.get("activa"), area_id
+                d["nombre"], d["etapa_id"], d.get("modo_evaluacion", "POR_SA"), 
+                d.get("tipo_escala", "NUMERICA_1_4"), d.get("activa", 1), area_id
             ))
         conn.commit()
         return jsonify({"ok": True})
@@ -124,6 +241,7 @@ def eliminar_area(area_id):
 # --- CRITERIOS ---
 
 @criterios_bp.route("/api/criterios", methods=["GET"])
+@simple_cache(timeout=300)
 def listar_criterios():
     if not session.get('logged_in'): return jsonify({"ok": False}), 401
     area_id = request.args.get('area_id')
@@ -144,22 +262,33 @@ def listar_criterios():
 @criterios_bp.route("/api/criterios", methods=["POST"])
 def crear_criterio():
     if session.get('role') != 'admin': return jsonify({"ok": False}), 403
-    d = request.json
+    try:
+        req_data = request.get_json(silent=True) or {}
+        d = CriterioSchema().load(req_data)
+    except ValidationError as err:
+        return jsonify({"ok": False, "error": "Errores de validación", "details": err.messages}), 400
     conn = get_db(); cur = conn.cursor()
     try:
         cur.execute("""
             INSERT INTO criterios (codigo, descripcion, area_id, activo, oficial)
             VALUES (?, ?, ?, ?, ?)
         """, (d["codigo"].strip(), d["descripcion"].strip(), d["area_id"], d.get("activo", 1), d.get("oficial", 1)))
+        new_id = cur.lastrowid
+        audit_log(session.get('username'), "CREATE", "criterio", f"ID: {new_id}, Código: {d['codigo']}")
         conn.commit()
-        return jsonify({"ok": True, "id": cur.lastrowid})
+        return jsonify({"ok": True, "id": new_id})
     except Exception as e:
         return jsonify({"ok": False, "error": "Código duplicado en esta área" if "UNIQUE" in str(e) else str(e)}), 400
 
 @criterios_bp.route("/api/criterios/<int:criterio_id>", methods=["PUT"])
 def actualizar_criterio(criterio_id):
     if session.get('role') != 'admin': return jsonify({"ok": False}), 403
-    d = request.json
+    try:
+        req_data = request.get_json(silent=True) or {}
+        d = CriterioSchema(partial=True).load(req_data)
+    except ValidationError as err:
+        return jsonify({"ok": False, "error": "Errores de validación", "details": err.messages}), 400
+        
     conn = get_db(); cur = conn.cursor()
     
     # Check evals
@@ -173,6 +302,7 @@ def actualizar_criterio(criterio_id):
         else:
             cur.execute("UPDATE criterios SET codigo = ?, descripcion = ?, area_id = ?, activo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                        (d["codigo"].strip(), d["descripcion"].strip(), d["area_id"], d.get("activo", 1), criterio_id))
+        audit_log(session.get('username'), "UPDATE", "criterio", f"ID: {criterio_id}, Código: {d.get('codigo')}")
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
@@ -186,6 +316,7 @@ def eliminar_criterio(criterio_id):
     if cur.fetchone()["count"] > 0:
         return jsonify({"ok": False, "error": "Este criterio ya tiene evaluaciones. Solo puede desactivarse."}), 400
     cur.execute("DELETE FROM criterios WHERE id = ?", (criterio_id,))
+    audit_log(session.get('username'), "DELETE", "criterio", f"ID: {criterio_id}")
     conn.commit()
     return jsonify({"ok": True})
 
@@ -291,6 +422,7 @@ def importar_criterios_csv():
 # --- PERIOD ACTIVATION ---
 
 @criterios_bp.route("/api/criterios/periodo", methods=["GET"])
+@simple_cache(timeout=300)
 def listar_criterios_periodo():
     """Devuelve los criterio_id activos para un grupo y periodo concreto."""
     grupo_id = request.args.get('grupo_id')

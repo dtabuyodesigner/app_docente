@@ -210,7 +210,7 @@
             areaSelect.innerHTML = '<option value="">Selecciona Área</option>';
             if (!etapaId) return;
             try {
-                const res = await fetch(`/api/areas?etapa_id=${etapaId}`);
+                const res = await fetch(`/api/evaluacion/areas?etapa_id=${etapaId}`);
                 const areas = await res.json();
                 areas.forEach(a => {
                     const opt = document.createElement('option');

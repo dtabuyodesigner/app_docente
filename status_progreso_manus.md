@@ -13,16 +13,19 @@ Este archivo sirve como memoria para continuar con las tareas de mejora del proy
 ### ⏳ Pendiente (Próximos Pasos)
 
 #### Críticos e Importantísimos (Tareas Cortas < 10min)
-1.  **Caché de Resultados**: Implementar un decorador simple de caché para endpoints de solo lectura (como listar criterios o áreas).
-2.  **Validación con Marshmallow**: Empezar a migrar la validación manual de `criterios_api.py` a esquemas de Marshmallow.
-3.  **Transacciones Atómicas**: Revisar `eventos.py` y `observaciones.py` para asegurar que todos los cambios usen `BEGIN/COMMIT` de forma consistente.
+1.  [x] **Caché de Resultados**: Implementado via decorador `simple_cache` en `utils/cache.py` para endpoints de lectura (`criterios` y `areas`).
+2.  [x] **Validación con Marshmallow**: Migrada la validación manual de `criterios_api.py` a esquemas de Marshmallow.
+3.  [x] **Transacciones Atómicas**: Agrupados los cambios en `eventos.py` y `observaciones.py` usando bloques estructurados robustos con `BEGIN` y `COMMIT` / `ROLLBACK`.
 
 #### Documentación y UI
-4.  **Swagger/OpenAPI**: Configurar `flask-smorest` o similar para documentar la API.
-5.  **Interfaz UI**: Añadir campos de "Eventos" y "Observaciones" más detallados según el diseño de Manus.
+4.  [x] **Swagger/OpenAPI**: Configurar `flask-smorest` o similar para documentar la API. Usado `flasgger` por facilidad.
+5.  [x] **Interfaz UI**: Añadir campos de "Eventos" y "Observaciones" más detallados según el diseño de Manus. Aprobado y añadido tags en `#diario.html`.
 
-#### Fase 2: Empaquetado
-6.  **Instaladores**: Crear scripts para generar `.deb` (Linux), `.exe` (Windows) y `.dmg` (Mac).
+#### Fase 2: Empaquetado y v1.1
+6.  [x] **Instaladores**: Crear scripts para generar `.deb` (Linux), [x] `.exe` (Windows completado por usuario), y `.dmg` (Mac).
+7.  [x] **Autoupdater**: Sistema para detectar nuevas versiones en GitHub Releases e integrado en Configuración.
+8.  [x] **Restauración Externa (v1.1)**: Botón para subir y restaurar archivos `.db` externos implementado en `configuracion.html` y `admin.py`.
+9.  [x] **Versión**: Actualizado a `v1.1.0`.
 
 ---
 > [!TIP]

@@ -200,8 +200,13 @@
             document.getElementById('criterio').innerHTML = '';
             document.getElementById('editor').style.display = 'none';
             if (!areaId) return;
-            fetch(`/api/evaluacion/sda/${areaId}`).then(r => r.json()).then(sdas => {
-                sdas.forEach(sda => s.innerHTML += `<option value="${sda.id}">${sda.nombre}</option>`);
+            fetch(`/api/evaluacion/sda/lista?area_id=${areaId}`).then(r => r.json()).then(sdas => {
+                sdas.forEach(sda => {
+                    const opt = document.createElement('option');
+                    opt.value = sda.id;
+                    opt.text = sda.nombre;
+                    s.appendChild(opt);
+                });
             });
         }
         function loadCriterios() {
@@ -210,7 +215,7 @@
             s.innerHTML = '<option value="">-- Selecciona Criterio --</option>';
             document.getElementById('editor').style.display = 'none';
             if (!sdaId) return;
-            fetch(`/api/evaluacion/criterios/${sdaId}`).then(r => r.json()).then(crits => {
+            fetch(`/api/evaluacion/sda/criterios/${sdaId}`).then(r => r.json()).then(crits => {
                 crits.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.id;

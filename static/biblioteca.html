@@ -641,10 +641,10 @@
                     <div style="font-size:1.4rem;font-weight:800;margin-bottom:6px;">Préstamos</div>
                 </div>
             </div>
-            <!-- Added "Mantener alumno" checkbox near loans -->
+            <!-- Added "Recordar grupo y alumno" checkbox near loans -->
             <div id="loan-context-options" style="margin-top:20px; display:none; align-items:center; gap:8px; background:#f0f7ff; padding:10px 15px; border-radius:10px; border:1px solid #d0e1f9;">
                 <input type="checkbox" id="keep-student" style="width:16px; height:16px;">
-                <label for="keep-student" style="font-size:.85rem; font-weight:600; color:#003366; cursor:pointer;">Mantener alumno seleccionado tras el préstamo</label>
+                <label for="keep-student" style="font-size:.85rem; font-weight:600; color:#003366; cursor:pointer;">Recordar grupo y alumno tras el préstamo</label>
             </div>
             <!-- Stats Content: Chart -->
             <div style="display:grid;grid-template-columns:1fr;gap:20px;margin-top:30px;">
@@ -1585,10 +1585,14 @@
                 const r = await fetch('/api/grupos');
                 const grupos = await r.json();
                 const selG = document.getElementById('p-grupo');
+                const prevVal = selG.value; // Guardar valor previo
                 selG.innerHTML = '<option value="" style="color:#333;background:white;">-- Selecciona un grupo --</option>' +
                     grupos.map(g => `<option value="${g.id}" style="color:#333;background:white;">${g.nombre}</option>`).join('');
-                // If only one group, auto-select it and load students
-                if (grupos.length === 1) {
+                
+                // Restaurar valor previo si existe y es válido
+                if (prevVal && grupos.some(g => g.id == prevVal)) {
+                    selG.value = prevVal;
+                } else if (grupos.length === 1) {
                     selG.value = grupos[0].id;
                     cargarAlumnosPorGrupo();
                 }
@@ -2079,10 +2083,19 @@
             if (d.ok) {
                 showToast(`✅ ${d.mensaje}`);
                 
-                // Partial refresh
+                // Partial refresh logic
                 if (!keepStudent) {
                     document.getElementById('p-alumno').value = '';
                     limpiarSeleccionAlumno();
+                    // Si no mantenemos el alumno, limpiamos también el grupo (comportamiento original pero más limpio)
+                    // document.getElementById('p-grupo').value = ''; 
+                } else {
+                    // Si mantenemos el alumno, nos aseguramos de que el buscador refleje el nombre seleccionado
+                    const alumnoNombre = document.getElementById('p-alumno-search').value;
+                    const alumnoId = document.getElementById('p-alumno').value;
+                    if (alumnoId) {
+                        seleccionarAlumno(alumnoId, alumnoNombre);
+                    }
                 }
                 limpiarSeleccionLibro();
                 

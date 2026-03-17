@@ -6,7 +6,7 @@ import glob
 import logging
 
 # Configuración de logs para integridad y backups
-from utils.db import get_app_data_dir, DB_PATH
+from utils.db import get_app_data_dir, get_db_path
 
 _app_dir = get_app_data_dir()
 LOG_FILE = os.path.join(_app_dir, "logs", "integrity.log")
@@ -28,12 +28,13 @@ def ensure_dirs():
 
 def check_integrity():
     """Ejecuta PRAGMA integrity_check en la base de datos."""
-    if not os.path.exists(DB_PATH):
+    path = get_db_path()
+    if not os.path.exists(path):
         logging.warning("No se encontró la base de datos para verificar integridad.")
         return False
     
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(path)
         cursor = conn.cursor()
         cursor.execute("PRAGMA integrity_check;")
         result = cursor.fetchone()[0]
@@ -52,7 +53,8 @@ def check_integrity():
 def create_backup(label="auto"):
     """Crea un backup de la base de datos actual."""
     ensure_dirs()
-    if not os.path.exists(DB_PATH):
+    path = get_db_path()
+    if not os.path.exists(path):
         return False
     
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
@@ -60,7 +62,7 @@ def create_backup(label="auto"):
     backup_path = os.path.join(BACKUP_DIR, backup_name)
     
     try:
-        shutil.copy2(DB_PATH, backup_path)
+        shutil.copy2(path, backup_path)
         logging.info(f"Backup creado exitosamente: {backup_name}")
         rotate_backups()
         return True

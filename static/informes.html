@@ -157,6 +157,17 @@
                     </div>
                 </div>
 
+                <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
+                    <div style="display:flex; flex-direction:column; gap:5px; flex:2; min-width:300px;">
+                        <label for="colegioName" style="font-weight:600; color:var(--dark);">Nombre del Centro:</label>
+                        <input type="text" id="colegioName" value="CEIP AYATIMAS" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px; width:200px;">
+                        <label for="fechaInforme" style="font-weight:600; color:var(--dark);">Fecha Informe:</label>
+                        <input type="date" id="fechaInforme" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                    </div>
+                </div>
+
                 <div style="display:flex; gap:15px; flex-wrap:wrap; padding-top:15px; border-top:1px solid #eee; justify-content:flex-end;">
                     <button onclick="generarPDFIndividual()"
                         style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
@@ -195,23 +206,41 @@
         </div>
         <!-- SECCIÓN GRUPO -->
         <div id="tabGrupo" class="tab-content">
-            <div class="report-section" style="display:flex; flex-wrap:wrap; gap:20px; border-left: 5px solid var(--primary); justify-content:space-between; align-items:flex-end;">
-                <div style="display:flex; flex-direction:column; gap:5px; min-width:200px;">
-                    <label for="trimestreGrupo" style="font-weight:600; color:var(--dark);">Seleccionar Trimestre para
-                        el Grupo:</label><select id="trimestreGrupo" style="padding: 10px; border-radius:6px; border:1px solid #ccc;"
-                    onchange="cargarInformeGrupo()">
-                    <option value="1">1º Trimestre</option>
-                    <option value="2" selected>2º Trimestre</option>
-                    <option value="3">3º Trimestre</option>
-                </select>
+            <div class="report-section" style="display:flex; flex-direction:column; gap:20px; border-left: 5px solid var(--primary);">
+                <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
+                    <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:250px;">
+                        <label for="colegioNameGrupo" style="font-weight:600; color:var(--dark);">Centro:</label>
+                        <input type="text" id="colegioNameGrupo" value="CEIP AYATIMAS" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px; width:150px;">
+                        <label for="trimestreGrupo" style="font-weight:600; color:var(--dark);">Trimestre:</label>
+                        <select id="trimestreGrupo" style="padding: 10px; border-radius:6px; border:1px solid #ccc;" onchange="cargarInformeGrupo()">
+                            <option value="1">1º Trimestre</option>
+                            <option value="2" selected>2º Trimestre</option>
+                            <option value="3">3º Trimestre</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px; width:180px;">
+                        <label for="fechaInformeGrupo" style="font-weight:600; color:var(--dark);">Fecha:</label>
+                        <input type="date" id="fechaInformeGrupo" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                    </div>
                 </div>
-                <div style="display:flex; gap:15px; flex-wrap:wrap;">
-                    <button onclick="generarPDFGrupo()"
-                        style="padding: 12px 20px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.2rem;">📄</span> Descargar Informe Global PDF</button>
-                    <button onclick="generarExcelGrupo()"
-                        style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.2rem;">📊</span> Descargar Excel de Grupo</button>
+                
+                <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end; padding-top:15px; border-top:1px solid #eee;">
+                    <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:250px;">
+                        <label for="areaFiltroGrupo" style="font-weight:600; color:var(--dark);">Filtrar por Área (Opcional - Para Especialistas):</label>
+                        <select id="areaFiltroGrupo" style="padding: 10px; border-radius:6px; border:1px solid #ccc;" onchange="cargarInformeGrupo()">
+                            <option value="">-- Todas las Áreas --</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:15px; flex-wrap:wrap; justify-content:flex-end; flex:1;">
+                        <button onclick="generarPDFGrupo()"
+                            style="padding: 12px 20px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:1.2rem;">📄</span> Descargar Informe Global PDF</button>
+                        <button onclick="generarExcelGrupo()"
+                            style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:1.2rem;">📊</span> Descargar Excel de Grupo</button>
+                    </div>
                 </div>
             </div>
             <div class="report-section" id="resumenGrupoStats"
@@ -308,7 +337,15 @@
                     datos.forEach(a => {
                         alumnoSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
                     });
-                    // cargarInforme(); // Don't auto-load
+                });
+            // Cargar áreas para filtro especialistas
+            fetch("/api/areas")
+                .then(r => r.json())
+                .then(datos => {
+                    const areaSel = document.getElementById("areaFiltroGrupo");
+                    datos.forEach(a => {
+                        areaSel.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                    });
                 });
             alumnoSelect.addEventListener("change", cargarInforme);
             trimInd.addEventListener("change", cargarInforme);
@@ -319,18 +356,30 @@
             }
             function formatNotaText(nota, escala) {
                 if (escala === 'INFANTIL_NI_EP_C') {
-                    const rnd = Math.round(nota);
-                    if (rnd === 1) return 'NI';
-                    if (rnd === 2) return 'EP';
-                    if (rnd === 3) return 'C';
+                    // Robust mapping for both 1-3 scale and old 2.5-10 scale
+                    let n = Math.round(nota);
+                    if (n > 3) {
+                        if (nota <= 3.5) n = 1;
+                        else if (nota <= 6.5) n = 2;
+                        else n = 3;
+                    }
+                    if (n === 1) return 'NI';
+                    if (n === 2) return 'EP';
+                    if (n === 3) return 'C';
                     return '—';
                 }
                 return nota.toFixed(2);
             }
             function getColorNotaEscala(nota, escala) {
                 if (escala === 'INFANTIL_NI_EP_C') {
-                    if (nota < 2) return "#dc3545"; // NI
-                    if (nota < 3) return "#ffc107"; // EP
+                    let n = nota;
+                    if (n > 3) { // Old scale (2.5, 5, 7.5, 10)
+                        if (nota <= 3.5) n = 1;
+                        else if (nota <= 6.5) n = 2;
+                        else n = 3;
+                    }
+                    if (n < 2) return "#dc3545"; // NI
+                    if (n < 3) return "#ffc107"; // EP
                     return "#28a745"; // C
                 }
                 if (nota < 5) return "#dc3545";
@@ -488,24 +537,52 @@
                     });
             }
             // Inicializar Tutor
-            document.getElementById("tutorName").value = localStorage.getItem("tutorName") || "";
+            const storedTutor = localStorage.getItem("tutorName");
+            if (storedTutor) {
+                document.getElementById("tutorName").value = storedTutor;
+            } else {
+                fetch("/api/config")
+                    .then(r => r.json())
+                    .then(config => {
+                        const tutor = config.find(c => c.clave === 'nombre_tutor');
+                        if (tutor && tutor.valor) {
+                            document.getElementById("tutorName").value = tutor.valor;
+                            localStorage.setItem("tutorName", tutor.valor);
+                        }
+                    });
+            }
+            // Inicializar Fecha hoy
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById("fechaInforme").value = today;
+            document.getElementById("fechaInformeGrupo").value = today;
+
             function generarPDFIndividual() {
                 if (!alumnoSelect.value) {
-                    alert("Por favor,selecciona un alumno primero.");
+                    alert("Por favor, selecciona un alumno primero.");
                     return;
                 }
                 const tutor = document.getElementById("tutorName").value;
-                window.open(`/api/informe/pdf_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}`, '_blank');
+                const colegio = document.getElementById("colegioName").value;
+                const fecha = document.getElementById("fechaInforme").value;
+                const url = `/api/informe/pdf_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}&colegio=${encodeURIComponent(colegio)}&fecha_informe=${fecha}`;
+                window.location.href = url;
             }
             function generarPDFGeneral() {
                 const tutor = document.getElementById("tutorName").value;
-                window.open(`/api/informe/pdf_general?trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}`, '_blank');
+                const colegio = document.getElementById("colegioName").value;
+                const fecha = document.getElementById("fechaInforme").value;
+                const url = `/api/informe/pdf_general?trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}&colegio=${encodeURIComponent(colegio)}&fecha_informe=${fecha}`;
+                window.location.href = url;
             }
             function generarPDFGrupo() {
-                window.open(`/api/informe/pdf_grupo?trimestre=${trimGrp.value}`, '_blank');
+                const colegio = document.getElementById("colegioNameGrupo").value;
+                const fecha = document.getElementById("fechaInformeGrupo").value;
+                const areaId = document.getElementById("areaFiltroGrupo").value;
+                window.location.href = `/api/informe/pdf_grupo?trimestre=${trimGrp.value}&colegio=${encodeURIComponent(colegio)}&fecha_informe=${fecha}&area_id=${areaId}`;
             }
             function generarExcelGrupo() {
-                window.open(`/api/informe/excel_grupo?trimestre=${trimGrp.value}`, '_blank');
+                const areaId = document.getElementById("areaFiltroGrupo").value;
+                window.location.href = `/api/informe/excel_grupo?trimestre=${trimGrp.value}&area_id=${areaId}`;
             }
             // FUNCIONES MODAL ASISTENCIA
             function mostrarDetalleAsistencia(estado) {

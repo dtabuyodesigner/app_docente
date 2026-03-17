@@ -1,11 +1,24 @@
 from flask import Blueprint, jsonify, request, redirect, url_for, session
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
+# from google.oauth2.credentials import Credentials
+# from google_auth_oauthlib.flow import Flow
+# from googleapiclient.discovery import build
 import os
 import json
 from datetime import datetime, timedelta
 from utils.db import get_db
+
+# Helper for lazy imports to prevent crashes if libraries are missing
+def get_google_libs():
+    try:
+        from google.oauth2.credentials import Credentials
+        from google_auth_oauthlib.flow import Flow
+        from googleapiclient.discovery import build
+        Credentials, Flow, build, Request = get_google_libs()
+        if not Credentials:
+            return jsonify({"ok": False, "error": "Librerías de Google no instaladas"}), 500
+        return Credentials, Flow, build, Request
+    except ImportError:
+        return None, None, None, None
 
 google_cal_bp = Blueprint('google_cal', __name__)
 
@@ -13,49 +26,77 @@ google_cal_bp = Blueprint('google_cal', __name__)
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 # Rutas absolutas para evitar problemas con el directorio de trabajo
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CREDENTIALS_FILE = os.path.join(BASE_DIR, 'credentials.json')
-TOKEN_FILE = os.path.join(BASE_DIR, 'token.json')
+# Priorizar credenciales en la carpeta de usuario
+USER_DATA_DIR = os.path.expanduser("~/.cuadernodeltutor")
+if not os.path.exists(USER_DATA_DIR):
+    os.makedirs(USER_DATA_DIR, exist_ok=True)
+
+USER_CREDENTIALS = os.path.join(USER_DATA_DIR, 'credentials.json')
+CREDENTIALS_FILE = USER_CREDENTIALS if os.path.exists(USER_CREDENTIALS) else os.path.join(BASE_DIR, 'credentials.json')
+TOKEN_FILE = os.path.join(USER_DATA_DIR, 'token.json')
 
 # Allow insecure transport for local development (OAuth2 requires HTTPS otherwise)
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 @google_cal_bp.route("/google/authorize")
 def google_authorize():
-    if not os.path.exists(CREDENTIALS_FILE):
-        return "Falta credentials.json", 500
+    try:
+        Credentials, Flow, build, Request = get_google_libs()
+        if not Credentials:
+            return jsonify({"ok": False, "error": "Librerías de Google no instaladas"}), 500
+        if not Flow:
+            return redirect(url_for('programacion') + "?error=missing_libraries")
 
-    flow = Flow.from_client_secrets_file(
-        CREDENTIALS_FILE, scopes=SCOPES)
-    # Forzar la URL de redirección basada en la petición actual para evitar discrepancias
-    parts = request.url_root.rstrip('/')
-    flow.redirect_uri = f"{parts}/oauth2callback"
-    
-    authorization_url, state = flow.authorization_url(
-        access_type='offline',
-        prompt='consent',
-        include_granted_scopes='true')
-    
-    session['state'] = state
-    return redirect(authorization_url)
+        if not os.path.exists(CREDENTIALS_FILE):
+            return redirect(url_for('programacion') + "?error=missing_credentials")
+
+        flow = Flow.from_client_secrets_file(
+            CREDENTIALS_FILE, scopes=SCOPES)
+        # Forzar la URL de redirección basada en la petición actual para evitar discrepancias
+        parts = request.url_root.rstrip('/')
+        flow.redirect_uri = f"{parts}/oauth2callback"
+        
+        authorization_url, state = flow.authorization_url(
+            access_type='offline',
+            prompt='consent',
+            include_granted_scopes='true')
+        
+        session['state'] = state
+        return redirect(authorization_url)
+    except Exception as e:
+        print(f"Error in google_authorize: {e}")
+        return redirect(url_for('programacion') + f"?error=auth_failed&msg={str(e)}")
 
 @google_cal_bp.route("/oauth2callback")
 def oauth2callback():
-    state = session['state']
-    
-    flow = Flow.from_client_secrets_file(
-        CREDENTIALS_FILE, scopes=SCOPES, state=state)
-    parts = request.url_root.rstrip('/')
-    flow.redirect_uri = f"{parts}/oauth2callback"
-    
-    authorization_response = request.url
-    flow.fetch_token(authorization_response=authorization_response)
+    try:
+        Credentials, Flow, build, Request = get_google_libs()
+        if not Credentials:
+            return jsonify({"ok": False, "error": "Librerías de Google no instaladas"}), 500
+        if not Flow:
+            return redirect(url_for('programacion') + "?error=missing_libraries")
 
-    creds = flow.credentials
-    
-    with open(TOKEN_FILE, 'w') as token:
-        token.write(creds.to_json())
+        state = session.get('state')
+        if not state:
+            return redirect(url_for('programacion') + "?error=missing_state")
+            
+        flow = Flow.from_client_secrets_file(
+            CREDENTIALS_FILE, scopes=SCOPES, state=state)
+        parts = request.url_root.rstrip('/')
+        flow.redirect_uri = f"{parts}/oauth2callback"
+        
+        authorization_response = request.url
+        flow.fetch_token(authorization_response=authorization_response)
 
-    return redirect("/programacion")
+        creds = flow.credentials
+        
+        with open(TOKEN_FILE, 'w') as token:
+            token.write(creds.to_json())
+
+        return redirect("/programacion")
+    except Exception as e:
+        print(f"Error in oauth2callback: {e}")
+        return redirect(url_for('programacion') + f"?error=callback_failed&msg={str(e)}")
 
 @google_cal_bp.route("/api/calendar/status")
 def calendar_status():
@@ -68,7 +109,9 @@ def import_calendar():
         if not os.path.exists(TOKEN_FILE):
             return jsonify({"ok": False, "error": "No autorizado"}), 401
             
-        from google.auth.transport.requests import Request
+        Credentials, Flow, build, Request = get_google_libs()
+        if not Credentials:
+            return jsonify({"ok": False, "error": "Librerías de Google no instaladas"}), 500
         creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
         
         if creds and creds.expired and creds.refresh_token:
@@ -142,7 +185,9 @@ def sync_calendar():
         if not os.path.exists(TOKEN_FILE):
             return jsonify({"ok": False, "error": "No autorizado"}), 401
             
-        from google.auth.transport.requests import Request
+        Credentials, Flow, build, Request = get_google_libs()
+        if not Credentials:
+            return jsonify({"ok": False, "error": "Librerías de Google no instaladas"}), 500
         creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
 
         if creds and creds.expired and creds.refresh_token:

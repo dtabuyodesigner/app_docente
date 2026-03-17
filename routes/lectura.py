@@ -66,15 +66,16 @@ def post_libro():
         cur.execute("""
             INSERT INTO libros
             (titulo, autor, isbn, editorial, año_publicacion, nivel_lectura,
-             genero, cantidad_total, cantidad_disponible, descripcion, portada)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             genero, cantidad_total, cantidad_disponible, descripcion, portada, activo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             titulo, autor,
             data.get("isbn", ""), data.get("editorial", ""),
             data.get("año_publicacion"),
             data.get("nivel_lectura", ""), data.get("genero", ""),
             cantidad_total, cantidad_total,
-            data.get("descripcion", ""), data.get("portada", "")
+            data.get("descripcion", ""), data.get("portada", ""),
+            1  # activo by default
         ))
         conn.commit()
         return jsonify({"ok": True, "id": cur.lastrowid,
@@ -634,8 +635,8 @@ def importar_libros_csv():
                 cur.execute("""
                     INSERT INTO libros
                     (titulo, autor, isbn, editorial, año_publicacion, nivel_lectura,
-                     genero, cantidad_total, cantidad_disponible, descripcion)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     genero, cantidad_total, cantidad_disponible, descripcion, activo)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
                 """, (titulo, autor, isbn, editorial, año_publicacion, nivel_lectura,
                       genero, cantidad_total, cantidad_total, descripcion))
                 libros_importados += 1

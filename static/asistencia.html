@@ -602,7 +602,7 @@
                 }
                 card.className = `card ${statusClass}`;
                 const fotoSrc = student.foto
-                    ? `/static/uploads/${student.foto}`
+                    ? `/uploads/${student.foto}`
                     : `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/><text x='50' y='67' font-size='48' text-anchor='middle' fill='white'>👤</text></svg>`;
                 card.innerHTML = `
                     <div class="card-header" style="display:flex; align-items:center; gap:10px;">
@@ -918,7 +918,7 @@
                 .then(data => {
                     const container = document.getElementById('imageContainer');
                     if (data.imagen) {
-                        container.innerHTML = `<img src="/static/uploads/${data.imagen}" alt="Menú Comedor" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">`;
+                        container.innerHTML = `<img src="/uploads/${data.imagen}" alt="Menú Comedor" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">`;
                     } else {
                         container.innerHTML = `<p style="color: #888;">No hay menú subido para ${mes}.</p>`;
                     }

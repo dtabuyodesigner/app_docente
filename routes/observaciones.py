@@ -22,30 +22,40 @@ def guardar_observacion():
     cur = conn.cursor()
 
     if not texto.strip():
+        try:
+            cur.execute("BEGIN")
+            if area_id:
+                cur.execute("DELETE FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id = ?", (alumno_id, fecha, area_id))
+            else:
+                cur.execute("DELETE FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id IS NULL", (alumno_id, fecha))
+            conn.commit()
+            return jsonify({"ok": True, "deleted": True})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"ok": False, "error": str(e)}), 500
+
+    try:
+        cur.execute("BEGIN")
         if area_id:
-            cur.execute("DELETE FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id = ?", (alumno_id, fecha, area_id))
+            cur.execute("SELECT id FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id = ?", (alumno_id, fecha, area_id))
         else:
-            cur.execute("DELETE FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id IS NULL", (alumno_id, fecha))
+            cur.execute("SELECT id FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id IS NULL", (alumno_id, fecha))
+        
+        row = cur.fetchone()
+
+        if row:
+            cur.execute("UPDATE observaciones SET texto = ? WHERE id = ?", (texto, row["id"]))
+        else:
+            cur.execute("""
+                INSERT INTO observaciones (alumno_id, fecha, texto, area_id)
+                VALUES (?, ?, ?, ?)
+            """, (alumno_id, fecha, texto, area_id))
+
         conn.commit()
-        return jsonify({"ok": True, "deleted": True})
-
-    if area_id:
-        cur.execute("SELECT id FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id = ?", (alumno_id, fecha, area_id))
-    else:
-        cur.execute("SELECT id FROM observaciones WHERE alumno_id = ? AND fecha = ? AND area_id IS NULL", (alumno_id, fecha))
-    
-    row = cur.fetchone()
-
-    if row:
-        cur.execute("UPDATE observaciones SET texto = ? WHERE id = ?", (texto, row["id"]))
-    else:
-        cur.execute("""
-            INSERT INTO observaciones (alumno_id, fecha, texto, area_id)
-            VALUES (?, ?, ?, ?)
-        """, (alumno_id, fecha, texto, area_id))
-
-    conn.commit()
-    return jsonify({"ok": True})
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 @observaciones_bp.route("/api/observaciones/dia")
 def obtener_observaciones_dia():
@@ -117,18 +127,28 @@ def editar_observacion(obs_id):
     texto = d.get("texto", "")
     conn = get_db()
     cur = conn.cursor()
-    if not texto.strip():
-        cur.execute("DELETE FROM observaciones WHERE id = ?", (obs_id,))
+    try:
+        cur.execute("BEGIN")
+        if not texto.strip():
+            cur.execute("DELETE FROM observaciones WHERE id = ?", (obs_id,))
+            conn.commit()
+            return jsonify({"ok": True, "deleted": True})
+        cur.execute("UPDATE observaciones SET texto = ? WHERE id = ?", (texto, obs_id))
         conn.commit()
-        return jsonify({"ok": True, "deleted": True})
-    cur.execute("UPDATE observaciones SET texto = ? WHERE id = ?", (texto, obs_id))
-    conn.commit()
-    return jsonify({"ok": True})
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 @observaciones_bp.route("/api/observaciones/<int:obs_id>", methods=["DELETE"])
 def borrar_observacion(obs_id):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("DELETE FROM observaciones WHERE id = ?", (obs_id,))
-    conn.commit()
-    return jsonify({"ok": True})
+    try:
+        cur.execute("BEGIN")
+        cur.execute("DELETE FROM observaciones WHERE id = ?", (obs_id,))
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500

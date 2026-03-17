@@ -41,36 +41,66 @@ def api_reuniones():
         tipo = request.args.get("tipo")
         
         if rid:
-            cur.execute("SELECT * FROM reuniones WHERE id = ?", (rid,))
+            cur.execute("""
+                SELECT r.*, a.nombre as alumno_nombre
+                FROM reuniones r
+                LEFT JOIN alumnos a ON r.alumno_id = a.id
+                WHERE r.id = ?
+            """, (rid,))
             r = cur.fetchone()
             if r:
                 return jsonify(dict(r))
             return jsonify({"ok": False, "error": "Not found"}), 404
             
         elif alumno_id:
-            cur.execute("SELECT * FROM reuniones WHERE alumno_id = ? ORDER BY fecha DESC", (alumno_id,))
+            cur.execute("""
+                SELECT r.*, a.nombre as alumno_nombre
+                FROM reuniones r
+                LEFT JOIN alumnos a ON r.alumno_id = a.id
+                WHERE r.alumno_id = ? 
+                ORDER BY r.fecha DESC
+            """, (alumno_id,))
             rows = cur.fetchall()
             return jsonify([dict(r) for r in rows])
         else:
             # List all (filtered by type if provided)
             grupo_id = session.get('active_group_id')
+            ciclo_id = request.args.get("ciclo_id")
+            
             sql = """
                 SELECT r.*, a.nombre as alumno_nombre
                 FROM reuniones r
                 LEFT JOIN alumnos a ON r.alumno_id = a.id
-                WHERE (r.tipo = 'CICLO' OR a.grupo_id = ?)
+                WHERE 1=1
             """
-            params = [grupo_id]
-            if tipo:
-                sql += " AND r.tipo = ?"
-                params.append(tipo)
-                
+            params = []
+            
+            # Filtros obligatorios por tipo y grupo/ciclo
+            print(f"[DEBUG] Fetching meetings: tipo={tipo}, grupo_id={grupo_id}, ciclo_id={ciclo_id}")
+            if tipo == 'CICLO':
+                sql += " AND r.tipo = 'CICLO'"
+                if ciclo_id:
+                    sql += " AND r.ciclo_id = ?"
+                    params.append(ciclo_id)
+            elif tipo == 'PADRES' or tipo == 'PADRES/TUTORES':
+                sql += " AND r.tipo != 'CICLO'"
+                if grupo_id:
+                    # Incluimos reuniones del grupo Y reuniones generales (sin alumno_id)
+                    sql += " AND (a.grupo_id = ? OR r.alumno_id IS NULL)"
+                    params.append(grupo_id)
+            else:
+                # Si no hay tipo, filtramos por grupo_id si existe
+                if grupo_id:
+                    sql += " AND (r.tipo = 'CICLO' OR a.grupo_id = ? OR r.alumno_id IS NULL)"
+                    params.append(grupo_id)
+
             sql += " ORDER BY r.fecha DESC"
             
+            print(f"[DEBUG] SQL: {sql} | Params: {params}")
             cur.execute(sql, params)
             rows = cur.fetchall()
+            print(f"[DEBUG] Found {len(rows)} meetings")
             return jsonify([dict(r) for r in rows])
-            
 @reuniones_bp.route("/api/reuniones/<int:rid>", methods=["PUT"])
 def editar_reunion(rid):
     d = request.json

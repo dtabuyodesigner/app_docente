@@ -225,11 +225,13 @@ def new_grupo():
         return jsonify({"ok": False, "error": "No autorizado"}), 401
         
     data = request.json
+    print(f"[DEBUG] Creando nuevo grupo. Datos recibidos: {data}")
     etapa_curso = data.get("etapa_curso", "")
     linea = data.get("linea", "")
     
     if not etapa_curso:
-        return jsonify({"ok": False, "error": "Faltan datos de etapa/curso"}), 400
+        print(f"[DEBUG] Error: etapa_curso está vacío. Session user_id: {session.get('user_id')}")
+        return jsonify({"ok": False, "error": "Faltan datos de etapa/curso. Verifica que hayas seleccionado una opción."}), 400
         
     nombres_map = {
         "infantil_3": "Infantil 3 años",
@@ -269,15 +271,19 @@ def new_grupo():
     }
     # Buscar id real de etapas en BD
     cur.execute("SELECT id, nombre FROM etapas")
-    etapas_db = {r["nombre"]: r["id"] for r in cur.fetchall()}
+    etapas_db = {r["nombre"].lower(): r["id"] for r in cur.fetchall()}
     
     etapa_id_num = etapa_id_map.get(etapa_curso, 2)
+    
+    # Intento de recuperación robusta por nombre si el ID no cuadra
     if etapa_id_num == 1:
-        etapa_id_real = etapas_db.get("Infantil", 1)
+        etapa_id_real = etapas_db.get("infantil", 1)
         tipo_eval = "infantil"
     else:
-        etapa_id_real = etapas_db.get("Primaria", 2)
+        etapa_id_real = etapas_db.get("primaria", 2)
         tipo_eval = "primaria"
+    
+    print(f"[DEBUG] Etapa detectada: {tipo_eval} (ID real: {etapa_id_real})")
     
     try:
         cur.execute(
@@ -285,6 +291,7 @@ def new_grupo():
             (nombre_final, etapa_curso, prof_id, etapa_id_real, tipo_eval)
         )
         new_group_id = cur.lastrowid
+        print(f"[DEBUG] Grupo creado con ID: {new_group_id}")
         
         # If it's the first group created and they have none active
         if not session.get('active_group_id'):
@@ -302,10 +309,29 @@ def rename_grupo(grupo_id):
         return jsonify({"ok": False, "error": "No autorizado"}), 401
         
     data = request.json
-    nuevo_nombre = data.get("nombre", "").strip()
     nuevo_curso = data.get("curso", "").strip()
-    if not nuevo_nombre:
-        return jsonify({"ok": False, "error": "Faltan datos requeridos (nombre)"}), 400
+    nueva_linea = data.get("linea", "").strip()
+    
+    if not nuevo_curso:
+        return jsonify({"ok": False, "error": "Falta la etapa/curso"}), 400
+
+    nombres_map = {
+        "infantil_3": "Infantil 3 años",
+        "infantil_4": "Infantil 4 años",
+        "infantil_5": "Infantil 5 años",
+        "primaria_1": "1º Primaria",
+        "primaria_2": "2º Primaria",
+        "primaria_3": "3º Primaria",
+        "primaria_4": "4º Primaria",
+        "primaria_5": "5º Primaria",
+        "primaria_6": "6º Primaria",
+        "unitario_infantil": "Unitario Infantil",
+        "unitario_primaria": "Unitario Primaria",
+        "unitario_mixto": "Unitario Mixto (Inf. y Prim.)"
+    }
+    
+    base_name = nombres_map.get(nuevo_curso, "Grupo Personalizado")
+    nombre_final = f"{base_name} {nueva_linea}".strip()
 
     conn = get_db()
     cur = conn.cursor()
@@ -319,11 +345,33 @@ def rename_grupo(grupo_id):
     cur.execute("SELECT id FROM grupos WHERE id = ? AND profesor_id = ?", (grupo_id, prof["id"]))
     if not cur.fetchone():
         return jsonify({"ok": False, "error": "Grupo no encontrado o no autorizado"}), 404
+    
+    # Recalcular etapa_id y tipo_evaluacion
+    etapa_id_map = {
+        "infantil_3": 1, "infantil_4": 1, "infantil_5": 1, "unitario_infantil": 1,
+        "primaria_1": 2, "primaria_2": 2, "primaria_3": 2, "primaria_4": 2,
+        "primaria_5": 2, "primaria_6": 2, "unitario_primaria": 2, "unitario_mixto": 2,
+    }
+    cur.execute("SELECT id, nombre FROM etapas")
+    etapas_db = {r["nombre"].lower(): r["id"] for r in cur.fetchall()}
+    
+    etapa_id_num = etapa_id_map.get(nuevo_curso, 2)
+    if etapa_id_num == 1:
+        etapa_id_real = etapas_db.get("infantil", 1)
+        tipo_eval = "infantil"
+    else:
+        etapa_id_real = etapas_db.get("primaria", 2)
+        tipo_eval = "primaria"
+
         
     try:
-        cur.execute("UPDATE grupos SET nombre = ?, curso = ? WHERE id = ?", (nuevo_nombre, nuevo_curso, grupo_id))
+        cur.execute("""
+            UPDATE grupos 
+            SET nombre = ?, curso = ?, etapa_id = ?, tipo_evaluacion = ? 
+            WHERE id = ?
+        """, (nombre_final, nuevo_curso, etapa_id_real, tipo_eval, grupo_id))
         conn.commit()
-        return jsonify({"ok": True})
+        return jsonify({"ok": True, "nombre": nombre_final})
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500

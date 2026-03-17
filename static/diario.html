@@ -152,6 +152,44 @@
                 text-align: left;
             }
         }
+        /* Quick Tags */
+        .quick-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .tag-btn {
+            background: #f0f2f5;
+            border: 1px solid #d1d9e6;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        .tag-btn:hover {
+            background: #e2e6ea;
+            border-color: #c0c6cc;
+        }
+        .tag-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+        .tag-badge {
+            display: inline-block;
+            background: #e7f3fe;
+            color: #1e4265;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin: 0 2px;
+            border: 1px solid #bde0fe;
+        }
         /* Preview Modal */
         .modal {
             display: none;
@@ -332,7 +370,7 @@
                 nameDiv.style.display = 'flex';
                 nameDiv.style.gap = '12px';
                 nameDiv.style.alignItems = 'flex-start';
-                const photoPath = s.foto ? `/static/uploads/${s.foto}` : 'https://via.placeholder.com/50';
+                const photoPath = s.foto ? `/uploads/${s.foto}` : 'https://via.placeholder.com/50';
                 const attendanceLabels = {
                     'presente': 'Presente',
                     'retraso': 'Retraso',
@@ -360,14 +398,73 @@
                 txt.style.minHeight = "80px";
                 txt.style.fontSize = "0.95rem";
                 txt.style.lineHeight = "1.5";
+                
+                // Quick Tags
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = "quick-tags";
+                const tagsList = [
+                    { id: '#SinMaterial', label: '🎒 Sin Material' },
+                    { id: '#FaltaTarea', label: '📝 No Trae Tarea' },
+                    { id: '#BuenaActitud', label: '⭐ Buena Actitud' },
+                    { id: '#MalComportamiento', label: '⚠️ Mal Comportamiento' },
+                    { id: '#Participa', label: '🙋‍♂️ Participa' }
+                ];
+                
+                const updateTagToggles = () => {
+                   const val = txt.value || "";
+                   Array.from(tagsContainer.children).forEach(btn => {
+                       if (val.includes(btn.dataset.tag)) {
+                           btn.classList.add('active');
+                       } else {
+                           btn.classList.remove('active');
+                       }
+                   });
+                };
+
+                tagsList.forEach(tag => {
+                    const btn = document.createElement('button');
+                    btn.type = "button";
+                    btn.className = "tag-btn";
+                    btn.dataset.tag = tag.id;
+                    btn.textContent = tag.label;
+                    btn.onclick = () => {
+                        let text = txt.value || "";
+                        if (text.includes(tag.id)) {
+                            // Remove tag
+                            const regex = new RegExp(`\\s*${tag.id}\\b`, 'g');
+                            text = text.replace(regex, "");
+                        } else {
+                            // Add tag
+                            text = text.trim() + (text.trim() ? " " : "") + tag.id;
+                        }
+                        txt.value = text.trim();
+                        updateTagToggles();
+                        txt.focus();
+                        autoExpand(txt);
+                        // Trigger save on blur logic instead of manual here, to debounce
+                        if (txt.value !== s.observacion) {
+                            saveObservation(s.id, txt.value, statusDiv);
+                            s.observacion = txt.value;
+                        }
+                    };
+                    tagsContainer.appendChild(btn);
+                });
+
+
                 // Auto-expand function
                 const autoExpand = (el) => {
                     el.style.height = 'auto';
                     el.style.height = el.scrollHeight + 'px';
                 };
                 // Initial expand
-                setTimeout(() => autoExpand(txt), 0);
-                txt.addEventListener('input', () => autoExpand(txt));
+                setTimeout(() => {
+                    autoExpand(txt);
+                    updateTagToggles();
+                }, 0);
+                txt.addEventListener('input', () => {
+                    autoExpand(txt);
+                    updateTagToggles();
+                });
                 // Save on blur
                 txt.addEventListener('blur', () => {
                     if (txt.value !== s.observacion) {
@@ -380,7 +477,16 @@
                 statusDiv.className = 'status-indicator';
                 statusDiv.textContent = '💾 Guardado';
                 card.appendChild(nameDiv);
-                card.appendChild(txt);
+                
+                // Group text and tags
+                const editorArea = document.createElement('div');
+                editorArea.style.display = "flex";
+                editorArea.style.flexDirection = "column";
+                editorArea.style.gap = "5px";
+                editorArea.appendChild(txt);
+                editorArea.appendChild(tagsContainer);
+
+                card.appendChild(editorArea);
                 card.appendChild(statusDiv);
                 studentList.appendChild(card);
             });

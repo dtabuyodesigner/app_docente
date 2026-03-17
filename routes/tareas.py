@@ -9,28 +9,32 @@ def get_tareas():
     # Obtener listado, opcionalmente filtrar por estado ('pendiente' o 'completada')
     estado = request.args.get("estado")
     
-    conn = get_db()
-    cur = conn.cursor()
-    
-    if estado:
-        cur.execute("SELECT * FROM gestor_tareas WHERE estado = ? ORDER BY fecha_limite ASC NULLS LAST, prioridad DESC, id DESC", (estado,))
-    else:
-        cur.execute("SELECT * FROM gestor_tareas ORDER BY estado DESC, fecha_limite ASC NULLS LAST, prioridad DESC, id DESC")
+    try:
+        conn = get_db()
+        cur = conn.cursor()
         
-    rows = cur.fetchall()
-    
-    tareas = []
-    for r in rows:
-        tareas.append({
-            "id": r["id"],
-            "titulo": r["titulo"],
-            "descripcion": r["descripcion"] or "",
-            "estado": r["estado"],
-            "prioridad": r["prioridad"],
-            "fecha_limite": r["fecha_limite"]
-        })
+        if estado:
+            cur.execute("SELECT * FROM gestor_tareas WHERE estado = ? ORDER BY fecha_limite ASC NULLS LAST, prioridad DESC, id DESC", (estado,))
+        else:
+            cur.execute("SELECT * FROM gestor_tareas ORDER BY estado DESC, fecha_limite ASC NULLS LAST, prioridad DESC, id DESC")
+            
+        rows = cur.fetchall()
         
-    return jsonify(tareas)
+        tareas = []
+        for r in rows:
+            tareas.append({
+                "id": r["id"],
+                "titulo": r["titulo"],
+                "descripcion": r["descripcion"] or "",
+                "estado": r["estado"],
+                "prioridad": r["prioridad"],
+                "fecha_limite": r["fecha_limite"]
+            })
+            
+        return jsonify(tareas)
+    except Exception as e:
+        print("Error en get_tareas:", str(e))
+        return jsonify({"error": "Error interno al obtener tareas."}), 500
 
 @tareas_bp.route("/api/gestor_tareas", methods=["POST"])
 def new_tarea():

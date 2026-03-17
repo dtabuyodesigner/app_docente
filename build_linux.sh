@@ -3,10 +3,6 @@
 # Assumes you are activating your virtualenv before running
 
 echo "Construyendo Cuaderno del Tutor para Linux..."
-pyinstaller --name "CuadernoDelTutor" \
-            --windowed \
-            --add-data "static:static" \
-            --add-data "schema.sql:." \
-            desktop.py
+pyinstaller --clean "CuadernoDelTutor.spec"
 
 echo "Build completado. Revisa la carpeta dist/"

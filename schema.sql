@@ -21,6 +21,12 @@ CREATE TABLE etapas (
     nombre TEXT UNIQUE NOT NULL
 );
 
+-- Datos iniciales obligatorios
+INSERT INTO etapas (id, nombre) VALUES (1, 'Infantil');
+INSERT INTO etapas (id, nombre) VALUES (2, 'Primaria');
+INSERT INTO etapas (id, nombre) VALUES (3, 'Secundaria');
+
+
 CREATE TABLE areas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
@@ -73,6 +79,8 @@ CREATE TABLE alumnos (
     comedor_dias TEXT,
     foto TEXT,
     grupo_id INTEGER,
+    tiene_ayuda_material INTEGER DEFAULT 0,
+    deleted_at DATETIME,
     FOREIGN KEY(grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
 );
 
@@ -133,6 +141,12 @@ CREATE TABLE config (
     clave TEXT PRIMARY KEY,
     valor TEXT
 );
+
+-- Configuración inicial por defecto
+INSERT OR IGNORE INTO config (clave, valor) VALUES ('nombre_centro', '');
+INSERT OR IGNORE INTO config (clave, valor) VALUES ('curso_escolar', '');
+INSERT OR IGNORE INTO config (clave, valor) VALUES ('version', '1.1.0');
+
 
 CREATE TABLE menus_comedor (
     mes TEXT PRIMARY KEY, -- Format YYYY-MM
@@ -348,3 +362,45 @@ CREATE INDEX idx_criterios_area ON criterios (area_id);
 CREATE INDEX idx_asistencia_alumno_fecha ON asistencia (alumno_id, fecha);
 CREATE INDEX idx_alumno_grupo ON alumnos (grupo_id);
 CREATE INDEX idx_crit_per_periodo ON criterios_periodo (periodo);
+
+-- LIBRARY MODULE TABLES
+CREATE TABLE IF NOT EXISTS libros (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    autor TEXT NOT NULL,
+    isbn TEXT,
+    editorial TEXT,
+    año_publicacion INTEGER,
+    nivel_lectura TEXT,
+    genero TEXT,
+    cantidad_disponible INTEGER DEFAULT 1,
+    cantidad_total INTEGER DEFAULT 1,
+    descripcion TEXT,
+    portada TEXT,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    activo INTEGER DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS prestamos_libros (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    libro_id INTEGER NOT NULL,
+    fecha_prestamo DATE NOT NULL,
+    fecha_devolucion DATE,
+    estado TEXT DEFAULT 'activo', 
+    observaciones TEXT,
+    dias_retraso INTEGER DEFAULT 0,
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+    FOREIGN KEY (libro_id) REFERENCES libros(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS generos_lectura (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS niveles_lectura (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL UNIQUE,
+    descripcion TEXT
+);

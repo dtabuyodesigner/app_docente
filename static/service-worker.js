@@ -1,7 +1,7 @@
 // Service Worker — Cuaderno del Tutor
 // Estrategia: Cache-first para la shell estática, network-first para las APIs
 
-const CACHE_NAME = 'cuaderno-tutor-v1';
+const CACHE_NAME = 'cuaderno-tutor-v3';
 
 // Archivos de la "shell" que se cachean al instalar
 const SHELL_ASSETS = [
@@ -38,8 +38,8 @@ self.addEventListener('fetch', event => {
 
     // Las peticiones a la API siempre van a la red
     if (url.pathname.startsWith('/api/')) {
-        // Temporalmente deshabilitado para depurar problemas de conexión
-        return; 
+        event.respondWith(fetch(event.request));
+        return;
     }
 
     // Para el resto: intenta red primero, si falla devuelve caché

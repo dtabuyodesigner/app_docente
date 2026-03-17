@@ -36,13 +36,15 @@ if os.path.exists(_LEGACY_DB) and not os.path.exists(_NEW_DB):
     except Exception as e:
         print(f"Error migrando BD: {e}")
 
-DB_PATH = _NEW_DB if os.path.exists(_NEW_DB) or not os.path.exists(_LEGACY_DB) else _LEGACY_DB
+def get_db_path():
+    return os.environ.get("DATABASE_PATH", _NEW_DB if os.path.exists(_NEW_DB) or not os.path.exists(_LEGACY_DB) else _LEGACY_DB)
 
 def init_db_if_not_exists():
     """Initializes the SQLite database from schema.sql if it doesn't exist yet."""
-    if not os.path.exists(DB_PATH):
-        print(f"[{DB_PATH}] No existe. Inicializando base de datos en blanco...")
-        conn = sqlite3.connect(DB_PATH)
+    path = get_db_path()
+    if not os.path.exists(path):
+        print(f"[{path}] No existe. Inicializando base de datos en blanco...")
+        conn = sqlite3.connect(path)
         
         # Determine the absolute path to schema.sql in the project root
         schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'schema.sql')
@@ -52,7 +54,7 @@ def init_db_if_not_exists():
                 schema_script = f.read()
                 # Run the script
                 conn.executescript(schema_script)
-            print(f"[{DB_PATH}] Base de datos inicializada correctamente con schema.sql.")
+            print(f"[{path}] Base de datos inicializada correctamente con schema.sql.")
         else:
             print(f"[PELIGRO] Archivo schema.sql no encontrado en {schema_path}.")
             
@@ -61,8 +63,10 @@ def init_db_if_not_exists():
 
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect(DB_PATH)
+        g.db = sqlite3.connect(get_db_path())
         g.db.row_factory = sqlite3.Row  # Access columns by name
+        # Enable foreign keys
+        g.db.execute("PRAGMA foreign_keys = ON;")
     return g.db
 
 def close_db(e=None):

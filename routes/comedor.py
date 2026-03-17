@@ -97,9 +97,12 @@ def upload_comedor_menu():
         return jsonify({"ok": False, "error": "No selected file or month"}), 400
 
     if file:
+        from utils.db import get_app_data_dir
         filename = f"menu_comedor_{mes}_{int(datetime.now().timestamp())}.jpg"
-        filepath = os.path.join("static", "uploads", filename)
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        uploads_dir = os.path.join(get_app_data_dir(), "uploads")
+        filepath = os.path.join(uploads_dir, filename)
+        
+        os.makedirs(uploads_dir, exist_ok=True)
         file.save(filepath)
         
         conn = get_db()

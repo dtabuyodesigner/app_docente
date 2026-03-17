@@ -3,10 +3,12 @@ from utils.db import get_db
 import csv
 import io
 from datetime import datetime
+from utils.cache import simple_cache
 
 curricular_bp = Blueprint('curricular', __name__)
 
 @curricular_bp.route("/etapas")
+@simple_cache(timeout=300)
 def listar_etapas():
     conn = get_db()
     cur = conn.cursor()
@@ -14,6 +16,7 @@ def listar_etapas():
     return jsonify([dict(r) for r in cur.fetchall()])
 
 @curricular_bp.route("/areas")
+@simple_cache(timeout=300)
 def listar_areas():
     etapa_id = request.args.get("etapa_id")
     conn = get_db()
@@ -171,6 +174,7 @@ def eliminar_sa(sda_id):
         cur.execute("DELETE FROM evaluaciones WHERE sda_id = ?", (sda_id,))
         cur.execute("DELETE FROM sda_criterios WHERE sda_id = ?", (sda_id,))
         cur.execute("DELETE FROM sda_competencias WHERE sda_id = ?", (sda_id,))
+        cur.execute("DELETE FROM programacion_diaria WHERE sda_id = ?", (sda_id,))
         cur.execute("DELETE FROM actividades_sda WHERE sda_id = ?", (sda_id,))
         cur.execute("DELETE FROM sda WHERE id = ?", (sda_id,))
         conn.commit()
@@ -180,6 +184,7 @@ def eliminar_sa(sda_id):
     return jsonify({"ok": True})
 
 @curricular_bp.route("/full")
+@simple_cache(timeout=300)
 def curricular_full():
     conn = get_db()
     cur = conn.cursor()

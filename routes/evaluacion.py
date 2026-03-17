@@ -4,6 +4,30 @@ from datetime import date
 
 evaluacion_bp = Blueprint('evaluacion', __name__)
 
+@evaluacion_bp.route("/areas")
+def listar_areas():
+    """
+    Lista las áreas filtradas por etapa para el cuaderno de evaluación.
+    Similar a criterios_api.listar_areas pero bajo el prefijo /api/evaluacion
+    """
+    etapa_id = request.args.get('etapa_id')
+    conn = get_db()
+    cur = conn.cursor()
+    
+    query = """
+        SELECT a.id, a.nombre, a.etapa_id, a.tipo_escala, a.modo_evaluacion
+        FROM areas a
+        WHERE a.activa = 1
+    """
+    params = []
+    if etapa_id:
+        query += " AND a.etapa_id = ?"
+        params.append(etapa_id)
+    
+    query += " ORDER BY a.nombre ASC"
+    cur.execute(query, params)
+    return jsonify([dict(row) for row in cur.fetchall()])
+
 @evaluacion_bp.route("/resumen_areas")
 def resumen_areas_alumno():
     alumno_id = request.args.get("alumno_id")
@@ -123,15 +147,21 @@ def guardar_masivo():
                     cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND criterio_id = ? AND trimestre = ? AND sda_id IS NULL", (alumno_id, criterio_id, trimestre))
                 continue
 
-            nota = nivel_a_nota(nivel)
-            
-            # Obtener area_id del criterio
-            cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+            # Obtener area_id y tipo_escala del criterio
+            cur.execute("""
+                SELECT c.area_id, a.tipo_escala 
+                FROM criterios c 
+                JOIN areas a ON c.area_id = a.id 
+                WHERE c.id = ?
+            """, (criterio_id,))
             row = cur.fetchone()
             if not row: 
                 print(f"[WARN] Criterio {criterio_id} no encontrado")
                 continue
             area_id = row["area_id"]
+            tipo_escala = row["tipo_escala"]
+
+            nota = nivel_a_nota(nivel, escala=tipo_escala)
 
             # 1. Insertar el Log (Historial) - Evitamos duplicados el mismo día
             # Borramos si ya existe hoy para este contexto antes de insertar

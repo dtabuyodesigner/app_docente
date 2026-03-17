@@ -137,6 +137,7 @@ def serve_manifest():
 def require_auth():
     # Allow static files and the login/logout routes
     if (request.path.startswith('/static/') or 
+        request.path.startswith('/uploads/') or
         (HAS_SWAGGER and (
             request.path.startswith('/apidocs/') or
             request.path.startswith('/flasgger_static/') or

@@ -375,12 +375,12 @@ def exportar_alumnos_csv():
     # Generate CSV
     si = io.StringIO()
     cw = csv.writer(si, delimiter=';')
-    cw.writerow(["ID", "Nombre", "No Comedor", "Días Comedor", "Fecha Nacimiento", "Dirección", 
+    cw.writerow(["Nombre", "No Comedor", "Días Comedor", "Fecha Nacimiento", "Dirección", 
                  "Madre", "Tel Madre", "Email Madre", "Padre", "Tel Padre", "Email Padre", "Observaciones"])
     
     for r in rows:
         cw.writerow([
-            r["id"], r["nombre"], r["no_comedor"], r["comedor_dias"],
+            r["nombre"], r["no_comedor"], r["comedor_dias"],
             r["fecha_nacimiento"], r["direccion"], r["madre_nombre"], r["madre_telefono"], r["madre_email"],
             r["padre_nombre"], r["padre_telefono"], r["padre_email"], r["observaciones_generales"]
         ])

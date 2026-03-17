@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Cuaderno del Tutor
+Comment=Gestión docente - APP_EVALUAR
+Exec=bash /home/danito73/Documentos/APP_EVALUAR/arrancar.sh
+Icon=accessories-text-editor
+Terminal=false
+Categories=Education;
+StartupNotify=true

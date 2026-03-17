@@ -457,6 +457,10 @@ def importar_alumnos_csv():
             if not row or all(c.strip() == '' for c in row):
                 continue
 
+            # Detectar si la primera columna es un ID numérico y saltarla
+            if row[0].strip().isdigit():
+                row = row[1:]
+
             try:
                 def col(idx, default=''):
                     return row[idx].strip() if idx < len(row) else default

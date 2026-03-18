@@ -670,9 +670,10 @@
             }
             function generarActaOficial() {
                 const tutor = document.getElementById("tutorName")?.value || "";
-                const horaEl = document.getElementById("actaHora");
+                const horaH = document.getElementById("actaHoraH")?.value || "";
+                const horaM = document.getElementById("actaHoraM")?.value || "00";
+                const hora = horaH ? `${horaH}:${horaM}` : "";
                 const fechaEl = document.getElementById("actaFecha");
-                const hora = horaEl ? horaEl.value : "";
                 const fecha = fechaEl ? fechaEl.value : "";
                 const t = document.getElementById("trimestreGrupo").value;
                 const params = new URLSearchParams({ trimestre: t, tutor, hora, fecha });
@@ -860,7 +861,16 @@
                 } else {
                     barraAcciones.innerHTML = `
                         <button onclick="_mostrarFormulario(${t}, true, false)" style="padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">✏️ Editar</button>
-                        <input type="time" id="actaHora" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+                        <select id="actaHoraH" style="padding:8px; border:1px solid #ccc; border-radius:4px; width:70px;">
+                            ${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}" ${i===9?'selected':''}>${String(i).padStart(2,'0')}</option>`).join('')}
+                        </select>
+                        <span style="align-self:center; font-weight:bold;">:</span>
+                        <select id="actaHoraM" style="padding:8px; border:1px solid #ccc; border-radius:4px; width:70px;">
+                            <option value="00" selected>00</option>
+                            <option value="15">15</option>
+                            <option value="30">30</option>
+                            <option value="45">45</option>
+                        </select>
                         <input type="date" id="actaFecha" style="padding:8px; border:1px solid #ccc; border-radius:4px;" value="${new Date().toISOString().split('T')[0]}">
                         <button onclick="generarActaOficial()" style="padding:10px 18px; background:#8B0000; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">📄 Acta Oficial</button>
                         <button onclick="generarPDFGrupo()" style="padding:10px 16px; background:#17a2b8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">🖨️ PDF</button>

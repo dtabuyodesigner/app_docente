@@ -329,6 +329,9 @@ def informe_pdf_individual():
     
     # --- NUEVO: Gráfica de rendimiento ---
     from reportlab.platypus import Image as RLImage
+    cur.execute("SELECT tipo_evaluacion FROM grupos WHERE id = ?", (grupo_id,))
+    tipo_g = cur.fetchone()
+    es_infantil = tipo_g and tipo_g["tipo_evaluacion"] == "infantil"
     chart_buf = generar_grafica_rendimiento(notas_area, alumno, es_infantil)
     if chart_buf:
         elements.append(RLImage(chart_buf, width=16*cm, height=max(4, len(notas_area) * 0.7)*cm))

@@ -99,7 +99,8 @@ app.teardown_appcontext(close_db)
 
 csrf = CSRFProtect()
 csrf.init_app(app)
-csrf.exempt(curricular_bp) 
+csrf.exempt(curricular_bp)
+csrf.exempt(configuracion_bp) 
 
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():

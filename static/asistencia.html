@@ -622,12 +622,14 @@
         // ─────────────────────────────────────────────────────────────────
         let vistaCompacta = localStorage.getItem('asist_vista') === 'compacta';
         // Aplicar estado inicial del botón
-        if (vistaCompacta) {
-            const btn = document.getElementById('toggleVistaBtn');
-            const icon = document.getElementById('toggleVistaIcon');
-            if (btn) { btn.style.background = '#003366'; btn.style.color = 'white'; }
-            if (icon) icon.textContent = '⊞';
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            if (vistaCompacta) {
+                const btn = document.getElementById('toggleVistaBtn');
+                const icon = document.getElementById('toggleVistaIcon');
+                if (btn) { btn.style.background = '#003366'; btn.style.color = 'white'; }
+                if (icon) icon.textContent = '⊞';
+            }
+        });
 
         function toggleVista() {
             vistaCompacta = !vistaCompacta;

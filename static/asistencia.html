@@ -399,6 +399,52 @@
             font-weight: 600;
             color: var(--primary);
         }
+        /* Vista compacta */
+        .grid-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .card-compact {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .card-compact.presente { border-left-color: var(--success); }
+        .card-compact.retraso { border-left-color: #fd7e14; }
+        .card-compact.justificada { border-left-color: #007bff; }
+        .card-compact.nojustificada { border-left-color: var(--danger); }
+        .card-compact .compact-name {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--primary);
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .compact-btns { display: flex; gap: 4px; flex-shrink: 0; }
+        .btn-compact {
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+            background: white;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .btn-compact:hover { transform: scale(1.15); }
+        .btn-compact.active-p { background: var(--success); border-color: var(--success); }
+        .btn-compact.active-r { background: #fd7e14; border-color: #fd7e14; }
+        .btn-compact.active-j { background: #007bff; border-color: #007bff; }
+        .btn-compact.active-n { background: var(--danger); border-color: var(--danger); }
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
@@ -551,12 +597,86 @@
                 </div>
             </div>
         </div>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+            <button id="toggleVistaBtn" onclick="toggleVista()" 
+                style="padding:6px 14px; border:1px solid #ccc; border-radius:20px; background:white; cursor:pointer; font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:6px;">
+                <span id="toggleVistaIcon">☰</span> Vista compacta
+            </button>
+        </div>
         <div class="grid" id="studentGrid">
             <!-- Cards will be loaded here -->
         </div>
     </div>
     <script>
         const studentGrid = document.getElementById("studentGrid");
+        // ── CSRF helper ──────────────────────────────────────────────────
+        let _csrfToken = null;
+        async function getCsrf() {
+            if (_csrfToken) return _csrfToken;
+            const r = await fetch('/api/csrf-token');
+            const d = await r.json();
+            _csrfToken = d.csrf_token;
+            return _csrfToken;
+        }
+        getCsrf(); // pre-fetch
+        // ─────────────────────────────────────────────────────────────────
+        let vistaCompacta = localStorage.getItem('asist_vista') === 'compacta';
+        // Aplicar estado inicial del botón
+        if (vistaCompacta) {
+            const btn = document.getElementById('toggleVistaBtn');
+            const icon = document.getElementById('toggleVistaIcon');
+            if (btn) { btn.style.background = '#003366'; btn.style.color = 'white'; }
+            if (icon) icon.textContent = '⊞';
+        }
+
+        function toggleVista() {
+            vistaCompacta = !vistaCompacta;
+            localStorage.setItem('asist_vista', vistaCompacta ? 'compacta' : 'normal');
+            const btn = document.getElementById('toggleVistaBtn');
+            const icon = document.getElementById('toggleVistaIcon');
+            btn.style.background = vistaCompacta ? '#003366' : 'white';
+            btn.style.color = vistaCompacta ? 'white' : '';
+            icon.textContent = vistaCompacta ? '⊞' : '☰';
+            renderStudents(studentData);
+        }
+
+        function renderStudentsCompact(students) {
+            studentGrid.className = 'grid-compact';
+            studentGrid.innerHTML = '';
+            students.forEach(student => {
+                let sc = 'presente';
+                if (student.estado === 'retraso') sc = 'retraso';
+                else if (student.estado === 'falta_justificada') sc = 'justificada';
+                else if (student.estado === 'falta_no_justificada') sc = 'nojustificada';
+
+                const fotoSrc = student.foto
+                    ? `/uploads/${student.foto}`
+                    : `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/></svg>`;
+
+                const row = document.createElement('div');
+                row.className = `card-compact ${sc}`;
+                row.innerHTML = `
+                    <img src="${fotoSrc}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
+                         onerror="this.style.display='none'">
+                    <span class="compact-name">${student.nombre}</span>
+                    <div class="compact-btns">
+                        <button class="btn-compact ${student.estado==='presente'?'active-p':''}" 
+                            onclick="markStatus(${student.id},'presente')" title="Presente">🟢</button>
+                        <button class="btn-compact ${student.estado==='retraso'?'active-r':''}" 
+                            onclick="markStatus(${student.id},'retraso')" title="Retraso">🟠</button>
+                        <button class="btn-compact ${student.estado==='falta_justificada'?'active-j':''}" 
+                            onclick="markStatus(${student.id},'falta_justificada')" title="Just.">🔵</button>
+                        <button class="btn-compact ${student.estado==='falta_no_justificada'?'active-n':''}" 
+                            onclick="markStatus(${student.id},'falta_no_justificada')" title="No just.">🔴</button>
+                        <button class="btn-compact ${student.comedor?'active-p':''}" 
+                            onclick="toggleComedor(${student.id}, ${!student.comedor})" title="Comedor">🍽️</button>
+                        <button class="btn-compact" 
+                            onclick="addObservation(${student.id},'${student.nombre}')" title="Nota">📝</button>
+                    </div>
+                `;
+                studentGrid.appendChild(row);
+            });
+        }
         const dateInput = document.getElementById("fecha");
         let selectedDate = new Date().toISOString().split("T")[0];
         let scheduleSlots = [];
@@ -586,6 +706,8 @@
             }
         }
         function renderStudents(students) {
+            if (vistaCompacta) { renderStudentsCompact(students); return; }
+            studentGrid.className = 'grid';
             studentGrid.innerHTML = "";
             students.forEach(student => {
                 const card = document.createElement("div");
@@ -699,7 +821,7 @@
             }
             await fetch("/api/asistencia", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
                 body: JSON.stringify(payload)
             });
             loadAttendance();
@@ -707,7 +829,7 @@
         async function toggleComedor(id, checked) {
             await fetch("/api/asistencia", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
                 body: JSON.stringify({
                     alumno_id: id,
                     comedor: checked ? 1 : 0,
@@ -721,7 +843,7 @@
             if (!text) return;
             await fetch("/api/observaciones", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
                 body: JSON.stringify({
                     alumno_id: id,
                     texto: text,
@@ -761,7 +883,7 @@
             if (newText === null || newText === currentText) return;
             await fetch(`/api/observaciones/${obsId}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
                 body: JSON.stringify({ texto: newText })
             });
             // Force refresh of the obs list for that student
@@ -772,9 +894,9 @@
         async function deleteObservation(obsId, studentId) {
             if (!confirm("¿Seguro que quieres borrar esta nota?")) return;
             await fetch(`/api/observaciones/${obsId}`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: { "X-CSRFToken": await getCsrf() }
             });
-            // Force refresh
             const div = document.getElementById(`obs-${studentId}`);
             div.style.display = "none";
             viewObservations(studentId);
@@ -807,7 +929,7 @@
         async function seleccionarEncargado() {
             const res = await fetch("/api/asistencia/encargado/seleccionar", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
                 body: JSON.stringify({ fecha: selectedDate })
             });
             const data = await res.json();
@@ -821,7 +943,8 @@
         async function reiniciarCiclo() {
             if (!confirm("¿Seguro que quieres reiniciar el ciclo de encargados? Se borrará el historial y todos volverán a tener 0 participaciones.")) return;
             const res = await fetch("/api/asistencia/encargado/reiniciar", {
-                method: "POST"
+                method: "POST",
+                headers: { "X-CSRFToken": await getCsrf() }
             });
             if (res.ok) {
                 alert("Ciclo reiniciado.");
@@ -937,7 +1060,7 @@
             formData.append('foto', input.files[0]);
             formData.append('mes', mes);
             document.getElementById('imageContainer').innerHTML = "<p>Subiendo imagen...</p>";
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            const csrfToken = await getCsrf();
             fetch('/api/comedor/menu/upload', {
                 method: 'POST',
                 headers: {
@@ -1046,7 +1169,7 @@
             const student = studentData.find(s => s.id === id);
             await fetch("/api/asistencia", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
                 body: JSON.stringify({
                     alumno_id: id,
                     estado: student.estado,
@@ -1096,7 +1219,7 @@
             }
             await fetch("/api/asistencia", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
                 body: JSON.stringify({
                     alumno_id: currentStudentForHours.id,
                     estado: currentStudentForHours.estado,

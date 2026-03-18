@@ -648,15 +648,26 @@
             </div>
             <!-- Stats Content: Chart -->
             <div style="display:grid;grid-template-columns:1fr;gap:20px;margin-top:30px;">
+                <!-- Diploma alerts -->
+                <div id="diplomaAlertas" style="display:none; background:#fffbea; border:2px solid #f6c90e; border-radius:14px; padding:18px 22px;">
+                    <h4 style="margin:0 0 12px 0; color:#856404; display:flex; align-items:center; gap:8px;">🎓 ¡Diplomas pendientes de entregar!</h4>
+                    <div id="diplomaLista" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+                </div>
                 <!-- Vertical Bar Chart -->
                 <div
                     style="background:white;padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
                     <h3
                         style="margin-top:0;color:var(--primary);font-size:1.1rem;display:flex;align-items:center;gap:8px;">
-                        📊 Ranking de Lectura</h3>
+                        📊 Lectómetro — Libros devueltos por alumno</h3>
+                    <p style="font-size:0.85rem; color:#666; margin-top:-8px; margin-bottom:12px;">Cada 5 libros devueltos se genera un diploma 🎓</p>
                     <div style="height:350px;position:relative;">
                         <canvas id="rankingChart"></canvas>
                     </div>
+                </div>
+                <!-- Tabla detalle -->
+                <div style="background:white;padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
+                    <h3 style="margin-top:0;color:var(--primary);font-size:1.1rem;">📋 Detalle por alumno</h3>
+                    <div id="rankingTabla" style="overflow-x:auto;"></div>
                 </div>
             </div>
         </div>
@@ -1247,19 +1258,22 @@
             fetch('/api/ranking/lectura')
                 .then(r => r.json())
                 .then(data => {
+                    // --- GRÁFICA ---
                     const ctx = document.getElementById('rankingChart').getContext('2d');
                     if (rankingChartInstance) rankingChartInstance.destroy();
                     const labels = data.map(i => i.nombre);
                     const values = data.map(i => i.total_lecturas);
+                    // Colores: verde si tiene diploma pendiente, azul normal
+                    const bgColors = data.map(i => i.diplomas_ganados > 0 ? 'rgba(40,167,69,0.75)' : 'rgba(0,51,102,0.7)');
                     rankingChartInstance = new Chart(ctx, {
                         type: 'bar',
                         data: {
                             labels: labels,
                             datasets: [{
-                                label: 'Libros leídos',
+                                label: 'Libros devueltos',
                                 data: values,
-                                backgroundColor: 'rgba(0, 51, 102, 0.7)',
-                                borderColor: 'rgba(0, 51, 102, 1)',
+                                backgroundColor: bgColors,
+                                borderColor: bgColors.map(c => c.replace('0.7','1').replace('0.75','1')),
                                 borderWidth: 1,
                                 borderRadius: 6
                             }]
@@ -1275,7 +1289,108 @@
                             }
                         }
                     });
+
+                    // --- DIPLOMAS PENDIENTES ---
+                    const conDiploma = data.filter(i => i.diplomas_ganados > 0);
+                    const alertasDiv = document.getElementById('diplomaAlertas');
+                    const listaDiv = document.getElementById('diplomaLista');
+                    if (conDiploma.length > 0) {
+                        alertasDiv.style.display = 'block';
+                        listaDiv.innerHTML = conDiploma.map(i => `
+                            <div style="background:white; border:1px solid #f6c90e; border-radius:10px; padding:10px 16px; display:flex; align-items:center; gap:10px; cursor:pointer;"
+                                 onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.total_lecturas}, ${i.diplomas_ganados})">
+                                <span style="font-size:1.5rem;">🎓</span>
+                                <div>
+                                    <div style="font-weight:700; color:#003366;">${i.nombre}</div>
+                                    <div style="font-size:0.8rem; color:#666;">${i.total_lecturas} libros • ${i.diplomas_ganados} diploma${i.diplomas_ganados > 1 ? 's' : ''}</div>
+                                </div>
+                                <span style="margin-left:auto; font-size:0.8rem; background:#f6c90e; padding:3px 8px; border-radius:6px; font-weight:600;">🖨️ Imprimir</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        alertasDiv.style.display = 'none';
+                    }
+
+                    // --- TABLA DETALLE ---
+                    const tablaDiv = document.getElementById('rankingTabla');
+                    if (data.length === 0) {
+                        tablaDiv.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">No hay libros devueltos aún.</p>';
+                        return;
+                    }
+                    let html = `<table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                        <thead><tr style="background:#f0f4f8;">
+                            <th style="padding:10px 12px; text-align:left; color:#003366;">Alumno</th>
+                            <th style="padding:10px 12px; text-align:center; color:#003366;">Devueltos</th>
+                            <th style="padding:10px 12px; text-align:center; color:#003366;">Progreso diploma</th>
+                            <th style="padding:10px 12px; text-align:center; color:#003366;">Diplomas</th>
+                            <th style="padding:10px 12px; text-align:center; color:#003366;">Acción</th>
+                        </tr></thead><tbody>`;
+                    data.forEach((i, idx) => {
+                        const prog = i.progreso_actual; // 0-4
+                        const pct = (prog / 5) * 100;
+                        const barColor = i.diplomas_ganados > 0 ? '#28a745' : '#007bff';
+                        html += `<tr style="border-bottom:1px solid #eef2f7; background:${idx%2===0?'white':'#fafafa'};">
+                            <td style="padding:10px 12px; font-weight:600;">${i.nombre}</td>
+                            <td style="padding:10px 12px; text-align:center;">${i.total_lecturas}</td>
+                            <td style="padding:10px 12px; min-width:120px;">
+                                <div style="background:#eef2f7; border-radius:8px; height:10px; overflow:hidden;">
+                                    <div style="background:${barColor}; width:${pct}%; height:100%; border-radius:8px; transition:width 0.4s;"></div>
+                                </div>
+                                <div style="font-size:0.75rem; color:#666; margin-top:3px; text-align:center;">${prog}/5</div>
+                            </td>
+                            <td style="padding:10px 12px; text-align:center;">
+                                ${i.diplomas_ganados > 0 ? `<span style="background:#d4edda; color:#155724; padding:3px 10px; border-radius:8px; font-weight:700;">🎓 ${i.diplomas_ganados}</span>` : '<span style="color:#999;">—</span>'}
+                            </td>
+                            <td style="padding:10px 12px; text-align:center;">
+                                ${i.diplomas_ganados > 0 ? `<button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.total_lecturas}, ${i.diplomas_ganados})" style="padding:5px 12px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">🖨️ Diploma</button>` : ''}
+                            </td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    tablaDiv.innerHTML = html;
                 });
+        }
+
+        function imprimirDiploma(alumnoId, nombre, libros, diplomas) {
+            const win = window.open('', '_blank', 'width=800,height=600');
+            win.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Diploma - ${nombre}</title>
+<style>
+  body { margin:0; font-family: 'Georgia', serif; background:#fffef0; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+  .diploma { width:700px; border:12px double #c8a000; border-radius:18px; padding:50px 60px; text-align:center; background:linear-gradient(135deg,#fffff5 0%,#fffde0 100%); box-shadow:0 8px 32px rgba(0,0,0,0.12); }
+  .estrella { font-size:3rem; }
+  .titulo { font-size:2.2rem; font-weight:bold; color:#8B6914; margin:16px 0 6px; letter-spacing:2px; }
+  .subtitulo { font-size:1rem; color:#a0852e; margin-bottom:24px; }
+  .nombre { font-size:2.4rem; color:#003366; font-style:italic; border-bottom:2px solid #c8a000; display:inline-block; padding:0 20px 8px; margin:10px 0 20px; }
+  .texto { font-size:1.1rem; color:#444; line-height:1.7; margin-bottom:20px; }
+  .libros { font-size:2.5rem; font-weight:bold; color:#28a745; }
+  .firma { margin-top:40px; font-size:0.9rem; color:#888; }
+  @media print { body { background:white; } .diploma { box-shadow:none; } }
+</style>
+</head>
+<body>
+<div class="diploma">
+  <div class="estrella">⭐ 📚 ⭐</div>
+  <div class="titulo">DIPLOMA DE LECTURA</div>
+  <div class="subtitulo">Cuaderno del Tutor · Biblioteca Escolar</div>
+  <p style="color:#666; font-size:1rem;">Se otorga el presente diploma a</p>
+  <div class="nombre">${nombre}</div>
+  <p class="texto">por haber leído y devuelto</p>
+  <div class="libros">${libros} libros 📖</div>
+  <p class="texto" style="margin-top:12px;">demostrando dedicación, curiosidad y amor por la lectura.</p>
+  ${diplomas > 1 ? `<p style="color:#856404; font-weight:bold;">🏆 ¡${diplomas}º Diploma conseguido!</p>` : ''}
+  <div class="firma">
+    <p>___________________________</p>
+    <p>Firma del Tutor/a · ${new Date().toLocaleDateString('es-ES', {year:'numeric',month:'long',day:'numeric'})}</p>
+  </div>
+</div>
+<script>window.onload = () => window.print();</script>
+</body>
+</html>`);
+            win.document.close();
         }
         let selectedBookIds = []; // IDS de libros seleccionados
 

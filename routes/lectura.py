@@ -462,11 +462,15 @@ def ranking_lectura():
     cur = conn.cursor()
     
     active_group_id = session.get('active_group_id')
+    # Solo contar libros DEVUELTOS (leídos de verdad), no los que están en préstamo
     query = """
-        SELECT a.nombre, COUNT(*) as total_lecturas
+        SELECT a.id as alumno_id, a.nombre, 
+               COUNT(*) as total_lecturas,
+               COUNT(*) % 5 as progreso_actual,
+               (COUNT(*) / 5) as diplomas_ganados
         FROM prestamos_libros pl
         JOIN alumnos a ON pl.alumno_id = a.id
-        WHERE 1=1
+        WHERE pl.estado = 'devuelto'
     """
     params = []
     if active_group_id:
@@ -477,6 +481,33 @@ def ranking_lectura():
     cur.execute(query, params)
     ranking = [dict(row) for row in cur.fetchall()]
     return jsonify(ranking)
+
+
+@lectura_bp.route("/lectometro/diploma/<int:alumno_id>", methods=["GET"])
+def diploma_alumno(alumno_id):
+    """Devuelve los datos del diploma para un alumno."""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    cur.execute("SELECT nombre FROM alumnos WHERE id = ?", (alumno_id,))
+    alumno = cur.fetchone()
+    if not alumno:
+        return jsonify({"ok": False, "error": "Alumno no encontrado"}), 404
+    
+    cur.execute("""
+        SELECT COUNT(*) as total
+        FROM prestamos_libros
+        WHERE alumno_id = ? AND estado = 'devuelto'
+    """, (alumno_id,))
+    total = cur.fetchone()["total"]
+    diplomas = total // 5
+    
+    return jsonify({
+        "ok": True,
+        "nombre": alumno["nombre"],
+        "libros_leidos": total,
+        "diplomas_ganados": diplomas
+    })
 
 
 # ====================================================

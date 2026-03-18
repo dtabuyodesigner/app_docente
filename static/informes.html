@@ -325,13 +325,20 @@
                         <p style="color: #666; font-style: italic;">Selecciona un trimestre del historial para cargar los docentes.</p>
                     </div>
                 </div>
-                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
                     <button onclick="guardarGrupoObs()"
                         style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">💾
                         Guardar Datos del Grupo</button>
                     <span id="mensajeGuardadoGrupo"
                         style="margin-left: 10px; color: #28a745; font-weight: bold; display: none;">✓
                         Guardado</span>
+                    <div style="display:flex; gap:8px; align-items:center; margin-left:auto; flex-wrap:wrap;">
+                        <input type="time" id="actaHora" style="padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="Hora reunión">
+                        <input type="date" id="actaFecha" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+                        <button onclick="generarActaOficial()"
+                            style="padding: 12px 20px; background: #8B0000; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📄
+                            Generar Acta Oficial</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -454,27 +461,55 @@
                 fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(datos => {
-                        let html = datos.length === 0 ? "<em>No hay calificaciones.</em>" : "<table><tr><th>Área / Criterio</th><th>Nota / Media</th></tr>";
-                        datos.forEach(d => {
+                        if (datos.length === 0) {
+                            document.getElementById("mediasAreas").innerHTML = "<em>No hay calificaciones.</em>";
+                            return;
+                        }
+                        let html = '';
+                        datos.forEach((d, idx) => {
                             const valText = formatNotaText(d.media, d.tipo_escala);
                             const valColor = getColorNotaEscala(d.media, d.tipo_escala);
-                            html += `<tr style="background:#f0f7ff;"><td style="font-weight:bold;">${d.area}</td><td style="color:${valColor};font-weight:bold;">${valText} (Media)</td></tr>`;
-                            
-                            if (d.criterios && d.criterios.length > 0) {
-                                d.criterios.forEach(c => {
-                                    const cText = formatNotaText(c.nota, d.tipo_escala);
-                                    const cColor = getColorNotaEscala(c.nota, d.tipo_escala);
-                                    html += `<tr><td style="padding-left:25px; font-size:0.9rem; color:#555;">${c.codigo}</td><td style="color:${cColor}; font-size:0.9rem;">${cText}</td></tr>`;
-                                });
-                            }
-                        });
-                        document.getElementById("mediasAreas").innerHTML = html + "</table>";
+                            const hasCriterios = d.criterios && d.criterios.length > 0;
+                            const areaId = `area-crit-${idx}`;
 
+                            html += `
+                            <div style="border:1px solid #e2e8f0; border-radius:8px; margin-bottom:8px; overflow:hidden;">
+                                <div onclick="toggleAreaCriterios('${areaId}')"
+                                    style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f0f7ff; cursor:${hasCriterios ? 'pointer' : 'default'}; user-select:none;">
+                                    <span style="font-weight:700; color:#003366;">${d.area}</span>
+                                    <span style="display:flex; align-items:center; gap:10px;">
+                                        <span style="font-weight:700; color:${valColor};">${valText}</span>
+                                        ${hasCriterios ? `<span id="${areaId}-icon" style="color:#888; font-size:0.85rem;">▼</span>` : ''}
+                                    </span>
+                                </div>
+                                ${hasCriterios ? `
+                                <div id="${areaId}" style="display:none;">
+                                    <table style="width:100%; margin:0; border-radius:0;">
+                                        <thead><tr style="background:#eef2f7;">
+                                            <th style="padding:8px 12px; font-size:0.8rem; color:#555; width:80px;">Código</th>
+                                            <th style="padding:8px 12px; font-size:0.8rem; color:#555;">Descripción</th>
+                                            <th style="padding:8px 12px; font-size:0.8rem; color:#555; width:80px; text-align:center;">Nota</th>
+                                        </tr></thead>
+                                        <tbody>
+                                        ${d.criterios.map((c, ci) => {
+                                            const cText = formatNotaText(c.nota, d.tipo_escala);
+                                            const cColor = getColorNotaEscala(c.nota, d.tipo_escala);
+                                            return `<tr style="background:${ci%2===0?'white':'#fafafa'};">
+                                                <td style="padding:7px 12px; font-size:0.85rem; font-weight:600; color:#444;">${c.codigo}</td>
+                                                <td style="padding:7px 12px; font-size:0.85rem; color:#555;">${c.descripcion || ''}</td>
+                                                <td style="padding:7px 12px; text-align:center; font-weight:700; color:${cColor};">${cText}</td>
+                                            </tr>`;
+                                        }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>` : ''}
+                            </div>`;
+                        });
+                        document.getElementById("mediasAreas").innerHTML = html;
                     });
                 fetch(`/api/evaluacion/resumen_sda_todos?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(datos => {
-                        // Current endpoint doesn't return tipo_escala, so default to standard
                         let html = datos.length === 0 ? "<em>No hay calificaciones.</em>" : "<table><tr><th>Área</th><th>SDA</th><th>Media</th></tr>";
                         datos.forEach(d => {
                             html += `<tr><td>${d.area}</td><td>${d.sda}</td><td style="color:${getColorNota(d.media)};font-weight:bold;">${d.media}</td></tr>`;
@@ -496,6 +531,15 @@
                         </table>
                     `;
                     });
+            }
+
+            function toggleAreaCriterios(id) {
+                const el = document.getElementById(id);
+                const icon = document.getElementById(id + '-icon');
+                if (!el) return;
+                const open = el.style.display !== 'none';
+                el.style.display = open ? 'none' : 'block';
+                if (icon) icon.textContent = open ? '▼' : '▲';
             }
             function cargarInformeGrupo() {
                 const trimestre = trimGrp.value;
@@ -638,6 +682,15 @@
                         document.getElementById("grupoConclusion").value = c;
                     });
             }
+            function generarActaOficial() {
+                const tutor = document.getElementById("tutorName")?.value || "";
+                const hora = document.getElementById("actaHora").value;
+                const fecha = document.getElementById("actaFecha").value;
+                const t = document.getElementById("trimestreGrupo").value;
+                const params = new URLSearchParams({ trimestre: t, tutor, hora, fecha });
+                window.location.href = `/api/informe/acta_oficial?${params}`;
+            }
+
             // Inicializar Tutor
             const storedTutor = localStorage.getItem("tutorName");
             if (storedTutor) {
@@ -657,6 +710,7 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById("fechaInforme").value = today;
             document.getElementById("fechaInformeGrupo").value = today;
+            if (document.getElementById("actaFecha")) document.getElementById("actaFecha").value = today;
 
             function generarExcelClase() {
                 window.location.href = `/api/informe/excel_clase?trimestre=${trimInd.value}`;

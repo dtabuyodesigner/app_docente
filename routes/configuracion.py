@@ -1,7 +1,63 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, send_file
 from utils.db import get_db
+import os
 
 configuracion_bp = Blueprint('configuracion', __name__)
+
+@configuracion_bp.route("/api/configuracion/logo", methods=["POST"])
+def upload_logo():
+    """Sube un logo (izda o dcha) a AppData/uploads/logos/"""
+    from utils.db import get_app_data_dir
+    lado = request.form.get('lado', 'izda')  # izda | dcha
+    posicion = request.form.get('posicion', 'left')
+    
+    if 'logo' not in request.files:
+        return jsonify({"ok": False, "error": "No se recibió archivo"}), 400
+    
+    file = request.files['logo']
+    if not file.filename:
+        return jsonify({"ok": False, "error": "Archivo vacío"}), 400
+
+    ext = file.filename.rsplit('.', 1)[-1].lower()
+    if ext not in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
+        return jsonify({"ok": False, "error": "Formato no permitido"}), 400
+
+    logos_dir = os.path.join(get_app_data_dir(), "uploads", "logos")
+    os.makedirs(logos_dir, exist_ok=True)
+
+    filename = f"logo_{lado}.{ext}"
+    filepath = os.path.join(logos_dir, filename)
+    file.save(filepath)
+
+    # Guardar posición en config
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO config (clave, valor) VALUES (?, ?)
+        ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor
+    """, (f"logo_{lado}_posicion", posicion))
+    conn.execute("""
+        INSERT INTO config (clave, valor) VALUES (?, ?)
+        ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor
+    """, (f"logo_{lado}_filename", f"logos/{filename}"))
+    conn.commit()
+
+    return jsonify({"ok": True, "filename": f"logos/{filename}"})
+
+
+@configuracion_bp.route("/api/configuracion/logos", methods=["GET"])
+def get_logos():
+    """Devuelve los filenames de los logos guardados."""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%'")
+    rows = {r["clave"]: r["valor"] for r in cur.fetchall()}
+    return jsonify({
+        "izda": rows.get("logo_izda_filename"),
+        "dcha": rows.get("logo_dcha_filename"),
+        "izda_posicion": rows.get("logo_izda_posicion", "left"),
+        "dcha_posicion": rows.get("logo_dcha_posicion", "right"),
+    })
+
 
 @configuracion_bp.route("/api/configuracion", methods=["GET"])
 def get_all_config():

@@ -255,6 +255,45 @@
                 <div id="updateStatus" style="margin-top: 15px; display: none; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center;"></div>
             </div>
 
+            <div class="section-title">Logos para Documentos e Informes</div>
+            <div class="form-group" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
+                <p style="margin-top:0; color:#555; font-size:0.9rem;">Estos logos aparecerán en las cabeceras de los PDFs e informes generados.</p>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                    <!-- Logo izquierda -->
+                    <div>
+                        <label style="font-weight:600; display:block; margin-bottom:6px;">Logo izquierda:</label>
+                        <div id="logo-izda-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
+                            <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
+                        </div>
+                        <input type="file" id="logo-izda-file" accept="image/*" onchange="previewLogo('izda')" style="width:100%; font-size:0.85rem;">
+                        <label style="font-size:0.85rem; margin-top:6px; display:block;">Posición:
+                            <select id="logo-izda-pos" style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
+                                <option value="left">Izquierda</option>
+                                <option value="center">Centro</option>
+                                <option value="right">Derecha</option>
+                            </select>
+                        </label>
+                    </div>
+                    <!-- Logo derecha -->
+                    <div>
+                        <label style="font-weight:600; display:block; margin-bottom:6px;">Logo derecha:</label>
+                        <div id="logo-dcha-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
+                            <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
+                        </div>
+                        <input type="file" id="logo-dcha-file" accept="image/*" onchange="previewLogo('dcha')" style="width:100%; font-size:0.85rem;">
+                        <label style="font-size:0.85rem; margin-top:6px; display:block;">Posición:
+                            <select id="logo-dcha-pos" style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
+                                <option value="right" selected>Derecha</option>
+                                <option value="center">Centro</option>
+                                <option value="left">Izquierda</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <button onclick="subirLogos()" style="margin-top:14px; padding:10px 20px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">📤 Guardar Logos</button>
+                <span id="logos-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardado</span>
+            </div>
+
             <div class="section-title">Mantenimiento de Base de Datos</div>
             <div class="form-group" style="background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px;">
                 <p style="margin-top: 0; color: #856404;"><b>Limpieza:</b> Elimina de forma definitiva a los alumnos que han sido archivados (borrados). Esta acción no se puede deshacer.</p>
@@ -655,6 +694,66 @@
     </div>
 
     <script>
+        // ── Logos ─────────────────────────────────────────────────────────
+        function previewLogo(lado) {
+            const file = document.getElementById(`logo-${lado}-file`).files[0];
+            const preview = document.getElementById(`logo-${lado}-preview`);
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.innerHTML = `<img src="${e.target.result}" style="max-height:56px; max-width:100%; object-fit:contain;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function subirLogos() {
+            const csrf = await getCsrfTokenManual();
+            const status = document.getElementById('logos-status');
+            const slots = ['izda', 'dcha'];
+            let subidos = 0;
+
+            for (const lado of slots) {
+                const file = document.getElementById(`logo-${lado}-file`).files[0];
+                const pos = document.getElementById(`logo-${lado}-pos`).value;
+                if (!file) continue;
+
+                const fd = new FormData();
+                fd.append('logo', file);
+                fd.append('lado', lado);
+                fd.append('posicion', pos);
+
+                const r = await fetch('/api/configuracion/logo', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf },
+                    body: fd
+                });
+                const d = await r.json();
+                if (d.ok) subidos++;
+            }
+
+            if (subidos > 0) {
+                status.style.display = 'inline';
+                setTimeout(() => status.style.display = 'none', 2500);
+                cargarLogosPreviews();
+            }
+        }
+
+        async function cargarLogosPreviews() {
+            try {
+                const r = await fetch('/api/configuracion/logos');
+                const d = await r.json();
+                ['izda', 'dcha'].forEach(lado => {
+                    if (d[lado]) {
+                        document.getElementById(`logo-${lado}-preview`).innerHTML =
+                            `<img src="/uploads/${d[lado]}" style="max-height:56px; max-width:100%; object-fit:contain;">`;
+                    }
+                });
+            } catch(e) {}
+        }
+        // Cargar previews al iniciar
+        window.addEventListener('DOMContentLoaded', () => { cargarLogosPreviews(); });
+        // ──────────────────────────────────────────────────────────────────
+
         async function getCsrfTokenManual() {
             const r = await fetch('/api/csrf-token');
             const d = await r.json();

@@ -1039,6 +1039,286 @@ def excel_clase():
     )
 
 
+
+
+@informes_bp.route("/api/informe/acta_oficial")
+def acta_oficial():
+    """Genera el Acta Oficial de Evaluación en PDF con el formato del CEIP Ayatimas."""
+    trimestre = request.args.get("trimestre", "2")
+    tutor_nombre = request.args.get("tutor", "")
+    fecha_str = request.args.get("fecha", "")
+    hora_str = request.args.get("hora", "")
+
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return "No hay grupo activo", 400
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Datos del grupo
+    cur.execute("SELECT g.nombre, g.curso, g.equipo_docente FROM grupos g WHERE g.id = ?", (grupo_id,))
+    grupo = cur.fetchone()
+    if not grupo:
+        return "Grupo no encontrado", 404
+    grupo_nombre = grupo["nombre"]
+    equipo_docente_raw = grupo["equipo_docente"] or ""
+
+    # Datos del informe guardado
+    cur.execute("SELECT * FROM informe_grupo WHERE grupo_id = ? AND trimestre = ?", (grupo_id, trimestre))
+    informe = cur.fetchone()
+    valoracion = informe["observaciones"] if informe and informe["observaciones"] else ""
+    dificultades = ""
+    propuestas = informe["propuestas_mejora"] if informe and informe["propuestas_mejora"] else ""
+    otras_obs = informe["conclusion"] if informe and informe["conclusion"] else ""
+    equipo_informe = informe["equipo_docente"] if informe and informe["equipo_docente"] else equipo_docente_raw
+
+    # Estadísticas del grupo
+    cur.execute("SELECT COUNT(*) FROM alumnos WHERE grupo_id = ? AND deleted_at IS NULL", (grupo_id,))
+    total_alumnos = cur.fetchone()[0]
+
+    # Detectar si es Infantil
+    cur.execute("SELECT tipo_evaluacion FROM grupos WHERE id = ?", (grupo_id,))
+    tipo = cur.fetchone()
+    es_infantil = tipo and tipo["tipo_evaluacion"] == "infantil"
+
+    periodo = f"T{trimestre}"
+    aprobados = 0
+    if es_infantil:
+        cur.execute("""
+            SELECT ec.alumno_id, AVG(ec.nota) as media
+            FROM evaluacion_criterios ec
+            JOIN alumnos a ON ec.alumno_id = a.id
+            WHERE ec.periodo = ? AND a.grupo_id = ? AND a.deleted_at IS NULL
+            GROUP BY ec.alumno_id
+            HAVING media >= 2.5
+        """, (periodo, grupo_id))
+        aprobados = len(cur.fetchall())
+    else:
+        cur.execute("""
+            SELECT alumno_id FROM (
+                SELECT e.alumno_id, AVG(e.nota) as media_area
+                FROM evaluaciones e
+                JOIN alumnos a ON e.alumno_id = a.id
+                WHERE e.trimestre = ? AND a.grupo_id = ? AND a.deleted_at IS NULL
+                GROUP BY e.alumno_id, e.area_id
+            ) sub GROUP BY alumno_id HAVING MIN(media_area) >= 5
+        """, (trimestre, grupo_id))
+        aprobados = len(cur.fetchall())
+
+    pct_exito = round(aprobados * 100 / total_alumnos, 1) if total_alumnos > 0 else 0
+
+    # Alumnos con áreas suspensas (solo Primaria)
+    alumnos_suspensos = []
+    if not es_infantil:
+        cur.execute("""
+            SELECT a.nombre, ar.nombre as area, AVG(e.nota) as media
+            FROM evaluaciones e
+            JOIN alumnos a ON e.alumno_id = a.id
+            JOIN areas ar ON e.area_id = ar.id
+            WHERE e.trimestre = ? AND a.grupo_id = ? AND a.deleted_at IS NULL
+            GROUP BY e.alumno_id, e.area_id
+            HAVING media < 5
+            ORDER BY a.nombre, ar.nombre
+        """, (trimestre, grupo_id))
+        rows = cur.fetchall()
+        alumno_map = {}
+        for r in rows:
+            if r["nombre"] not in alumno_map:
+                alumno_map[r["nombre"]] = []
+            alumno_map[r["nombre"]].append(f"{r['area']} ({r['media']:.1f})")
+        alumnos_suspensos = [(n, ", ".join(a)) for n, a in alumno_map.items()]
+
+    # Logos
+    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%'")
+    logo_config = {r["clave"]: r["valor"] for r in cur.fetchall()}
+
+    from utils.db import get_app_data_dir
+    uploads_dir = os.path.join(get_app_data_dir(), "uploads")
+
+    def get_logo_path(lado):
+        fn = logo_config.get(f"logo_{lado}_filename")
+        if fn:
+            p = os.path.join(uploads_dir, fn)
+            if os.path.exists(p):
+                return p
+        return None
+
+    logo_izda = get_logo_path("izda")
+    logo_dcha = get_logo_path("dcha")
+    pos_izda = logo_config.get("logo_izda_posicion", "left")
+    pos_dcha = logo_config.get("logo_dcha_posicion", "right")
+
+    # Nombre del centro
+    cur.execute("SELECT valor FROM config WHERE clave = 'nombre_centro'")
+    r = cur.fetchone()
+    nombre_centro = r["valor"] if r and r["valor"] else "CEIP"
+
+    # Número de trimestre en texto
+    trim_texto = {"1": "PRIMERA", "2": "SEGUNDA", "3": "TERCERA"}.get(str(trimestre), trimestre.upper())
+
+    # Asistentes del acta
+    firmantes = [l.strip() for l in equipo_informe.replace('\r', '').split('\n') if l.strip()]
+    if not firmantes:
+        firmantes = [l.strip() for l in equipo_docente_raw.replace('\r', '').split('\n') if l.strip()]
+
+    # ── GENERAR PDF ────────────────────────────────────────────────────────
+    from reportlab.platypus import Image as RLImage, HRFlowable
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                             leftMargin=2*cm, rightMargin=2*cm,
+                             topMargin=1.5*cm, bottomMargin=2*cm)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    style_title = ParagraphStyle('ActaTitle', parent=styles['Normal'],
+                                  fontSize=13, fontName='Helvetica-Bold',
+                                  alignment=1, spaceAfter=4)
+    style_sub = ParagraphStyle('ActaSub', parent=styles['Normal'],
+                                fontSize=10, fontName='Helvetica-Bold',
+                                alignment=1, spaceAfter=8)
+    style_body = ParagraphStyle('ActaBody', parent=styles['Normal'],
+                                 fontSize=10, leading=16, spaceAfter=6)
+    style_label = ParagraphStyle('ActaLabel', parent=styles['Normal'],
+                                  fontSize=10, fontName='Helvetica-Bold', spaceAfter=4)
+
+    # CABECERA CON LOGOS
+    logo_izda_el = None
+    logo_dcha_el = None
+    if logo_izda and os.path.exists(logo_izda):
+        try:
+            logo_izda_el = RLImage(logo_izda, width=3*cm, height=2*cm)
+            logo_izda_el.hAlign = pos_izda.upper()
+        except:
+            logo_izda_el = None
+    if logo_dcha and os.path.exists(logo_dcha):
+        try:
+            logo_dcha_el = RLImage(logo_dcha, width=3*cm, height=2*cm)
+            logo_dcha_el.hAlign = pos_dcha.upper()
+        except:
+            logo_dcha_el = None
+
+    # Tabla de cabecera con logos y título
+    from reportlab.platypus import Table as RLTable, TableStyle as RLTableStyle
+    from reportlab.lib import colors as rl_colors
+
+    col_izda = logo_izda_el if logo_izda_el else Paragraph("", styles['Normal'])
+    col_centro = Paragraph(f"<b>{nombre_centro}</b><br/><b>ACTA DE LA {trim_texto} EVALUACIÓN</b><br/><b>CURSO {cur.execute('SELECT valor FROM config WHERE clave=?', ('curso_escolar',)) or ''}",
+                           ParagraphStyle('h', parent=styles['Normal'], alignment=1, fontSize=11, fontName='Helvetica-Bold', leading=16))
+    # Rebuild centro text clean
+    cur.execute("SELECT valor FROM config WHERE clave = 'curso_escolar'")
+    rc = cur.fetchone()
+    curso_escolar = rc["valor"] if rc and rc["valor"] else ""
+    col_centro = Paragraph(
+        f"<b>{nombre_centro}</b><br/><b>ACTA DE LA {trim_texto} EVALUACIÓN</b><br/>Curso {curso_escolar}",
+        ParagraphStyle('h', parent=styles['Normal'], alignment=1, fontSize=11, fontName='Helvetica-Bold', leading=16)
+    )
+    col_dcha = logo_dcha_el if logo_dcha_el else Paragraph("", styles['Normal'])
+
+    header_tbl = RLTable([[col_izda, col_centro, col_dcha]], colWidths=[3.5*cm, 10*cm, 3.5*cm])
+    header_tbl.setStyle(RLTableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+    ]))
+    elements.append(header_tbl)
+    elements.append(HRFlowable(width="100%", thickness=1, color=rl_colors.black, spaceAfter=10))
+
+    # INTRO
+    hora_display = hora_str if hora_str else "……"
+    fecha_display = fecha_str if fecha_str else "…………………………"
+    elements.append(Paragraph(
+        f"Siendo las {hora_display} horas del día {fecha_display} se reúnen en el {nombre_centro}, "
+        f"el Equipo Educativo de <b>{grupo_nombre}</b>, cuyos miembros asistentes se relacionan a continuación, "
+        f"a fin de tratar el siguiente Orden del día:",
+        style_body))
+    elements.append(Spacer(1, 6))
+
+    # ASISTENTES
+    elements.append(Paragraph("<b>Asistentes:</b>", style_label))
+    if firmantes:
+        for f in firmantes:
+            elements.append(Paragraph(f"• {f}", style_body))
+    else:
+        elements.append(Paragraph(".", style_body))
+    elements.append(Spacer(1, 8))
+
+    # ORDEN DEL DÍA
+    elements.append(Paragraph("<b>Orden del Día:</b>", style_label))
+    orden = [
+        "1. Valoración del Grupo.",
+        f"   NÚMERO DE ALUMNADO: {total_alumnos}     ALUMNADO CON TODO APROBADO: {aprobados}     ÉXITO: {pct_exito}%",
+        "2. Dificultades encontradas en el grupo clase",
+        "3. Propuestas de mejora",
+        "4. Alumnado con áreas suspensas" if not es_infantil else "4. Observaciones generales",
+        "5. Otras Observaciones.",
+    ]
+    for item in orden:
+        elements.append(Paragraph(item, style_body))
+    elements.append(Spacer(1, 10))
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=rl_colors.grey, spaceAfter=8))
+
+    # DESARROLLO
+    elements.append(Paragraph("<b>Desarrollo de la sesión:</b>", style_label))
+    elements.append(Spacer(1, 4))
+
+    elements.append(Paragraph("<b>1. Valoración del Grupo</b>", style_label))
+    elements.append(Paragraph(valoracion if valoracion else " ", style_body))
+    elements.append(Spacer(1, 8))
+
+    elements.append(Paragraph("<b>2. Dificultades encontradas en el grupo clase</b>", style_label))
+    elements.append(Paragraph(dificultades if dificultades else " ", style_body))
+    elements.append(Spacer(1, 8))
+
+    elements.append(Paragraph("<b>3. Propuestas de mejora</b>", style_label))
+    elements.append(Paragraph(propuestas if propuestas else " ", style_body))
+    elements.append(Spacer(1, 8))
+
+    if not es_infantil and alumnos_suspensos:
+        elements.append(Paragraph("<b>4. Alumnado con áreas suspensas</b>", style_label))
+        data_susp = [["Alumno/a", "Áreas"]]
+        for nombre_al, areas_al in alumnos_suspensos:
+            data_susp.append([Paragraph(nombre_al, styles['Normal']), Paragraph(areas_al, styles['Normal'])])
+        t_susp = RLTable(data_susp, colWidths=[7*cm, 10*cm])
+        t_susp.setStyle(RLTableStyle([
+            ('GRID', (0,0), (-1,-1), 0.5, rl_colors.grey),
+            ('BACKGROUND', (0,0), (-1,0), rl_colors.lightgrey),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ]))
+        elements.append(t_susp)
+        elements.append(Spacer(1, 8))
+
+    elements.append(Paragraph("<b>5. Otras Observaciones</b>", style_label))
+    elements.append(Paragraph(otras_obs if otras_obs else " ", style_body))
+    elements.append(Spacer(1, 12))
+
+    # CIERRE Y FIRMAS
+    elements.append(Paragraph(f"En Valle de Guerra a {fecha_display}", style_body))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b>Equipo Educativo</b>", style_label))
+    elements.append(Spacer(1, 6))
+
+    if firmantes:
+        sig_data = [["Docente", "Firma"]]
+        for f in firmantes:
+            sig_data.append([Paragraph(f, styles['Normal']), ""])
+        t_sig = RLTable(sig_data, colWidths=[9*cm, 8*cm],
+                         rowHeights=[0.8*cm] + [1.5*cm]*len(firmantes))
+        t_sig.setStyle(RLTableStyle([
+            ('GRID', (0,0), (-1,-1), 0.5, rl_colors.black),
+            ('BACKGROUND', (0,0), (-1,0), rl_colors.lightgrey),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ]))
+        elements.append(t_sig)
+
+    doc.build(elements)
+    buffer.seek(0)
+
+    filename = f"Acta_{trim_texto}_{grupo_nombre.replace(' ','_')}.pdf"
+    return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
+
+
 @informes_bp.route("/api/informe/grupo_obs_delete", methods=["POST"])
 def grupo_obs_delete():
     data = request.json or {}

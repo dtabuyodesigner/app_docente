@@ -118,6 +118,13 @@
             margin-bottom: 10px;
             transition: all 0.2s;
         }
+        .history-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .history-card-info h4 { margin: 0; font-size: 1rem; }
+        .history-card-actions { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
         .history-card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     </style>
 
@@ -265,14 +272,6 @@
                             <option value="">-- Todas las Áreas --</option>
                         </select>
                     </div>
-                    <div style="display:flex; gap:15px; flex-wrap:wrap; justify-content:flex-end; flex:1;">
-                        <button onclick="generarPDFGrupo()"
-                            style="padding: 12px 20px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:1.2rem;">📄</span> Descargar Informe Global PDF</button>
-                        <button onclick="generarExcelGrupo()"
-                            style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:1.2rem;">📊</span> Descargar Excel de Grupo</button>
-                    </div>
                 </div>
             </div>
             <div class="report-section" id="resumenGrupoStats"
@@ -306,7 +305,7 @@
                         <button onclick="toggleAllDocentes(false)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.85rem; padding: 0; text-decoration: underline;">Desmarcar todos</button>
                     </div>
                     <div id="grupoEquipoDocenteContainer" style="margin-top: 10px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fafafa; max-height: 200px; overflow-y: auto;">
-                        <p style="color: #666; font-style: italic;">Cargando...</p>
+                        <p style="color: #666; font-style: italic;">Selecciona un trimestre del historial para cargar los docentes.</p>
                     </div>
                 </div>
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
@@ -370,7 +369,7 @@
                 }
                 if (tabId === 'tabGrupo' && reloadHistory) {
                     loadHistoryDashboard();
-                    cargarInformeGrupo();
+                    // NO cargar formulario automáticamente — se carga al clicar en el historial
                 }
                 else if (tabId === 'tabIndividual') cargarInforme();
             }
@@ -730,17 +729,22 @@
                             `<button onclick="setTrimester(${item.trimestre}, true)" style="padding:6px 12px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">✏️ Editar</button>` :
                             `<button onclick="setTrimester(${item.trimestre}, false)" style="padding:6px 12px; background:var(--secondary); color:white; border:none; border-radius:4px; cursor:pointer;">➕ Crear</button>`;
                         const printBtn = item.exists ? 
-                            `<button onclick="descargarInformeGrupoModal(${item.trimestre})" style="padding:6px 12px; background:#6c757d; color:white; border:none; border-radius:4px; cursor:pointer;">🖨️ PDF</button>` : "";
+                            `<button onclick="descargarInformeGrupoModal(${item.trimestre})" style="padding:6px 12px; background:#17a2b8; color:white; border:none; border-radius:4px; cursor:pointer;">🖨️ PDF</button>
+                             <button onclick="descargarExcelGrupoModal(${item.trimestre})" style="padding:6px 12px; background:#1D6F42; color:white; border:none; border-radius:4px; cursor:pointer;">📊 Excel</button>` : "";
                         
+                        const deleteBtn = item.exists ?
+                            `<button onclick="eliminarInformeGrupo(${item.trimestre})" style="padding:6px 12px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;" title="Eliminar informe">🗑️</button>` : "";
+
                         html += `
                             <div class="history-card">
-                                <div>
-                                    <h4 style="margin:0;">${item.trimestre}º Trimestre</h4>
+                                <div class="history-card-info">
+                                    <h4>${item.trimestre}º Trimestre</h4>
                                     <span class="status-badge ${statusClass}">${statusText}</span>
                                 </div>
-                                <div style="display:flex; gap:5px;">
+                                <div class="history-card-actions">
                                     ${actionBtn}
                                     ${printBtn}
+                                    ${deleteBtn}
                                 </div>
                             </div>
                         `;
@@ -768,6 +772,48 @@
                 cargarInformeGrupo();
                 container.scrollIntoView({ behavior: 'smooth' });
             }
+
+            async function eliminarInformeGrupo(t) {
+                if (!confirm(`¿Seguro que quieres eliminar el informe del ${t}º Trimestre? Esta acción no se puede deshacer.`)) return;
+                try {
+                    const res = await fetch(`/api/informe/grupo_obs_delete?trimestre=${t}`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': await (async () => { const r = await fetch('/api/csrf-token'); const d = await r.json(); return d.csrf_token; })()
+                        },
+                        body: JSON.stringify({ trimestre: t })
+                    });
+                    if (res.ok) {
+                        if (document.getElementById("trimestreGrupo").value == t) {
+                            document.getElementById("formGrupoContainer").style.display = "none";
+                        }
+                        loadHistoryDashboard();
+                    } else {
+                        alert("Error al eliminar el informe.");
+                    }
+                } catch (e) {
+                    alert("Error de conexión.");
+                }
+            }
+
+            function descargarExcelGrupoModal(t) {
+                const areaId = document.getElementById("areaFiltroGrupo").value || "";
+                window.open(`/api/informe/excel_grupo?trimestre=${t}&area_id=${areaId}`);
+            }
+
+            // Cargar nombre del centro desde config
+            fetch("/api/configuracion")
+                .then(r => r.json())
+                .then(config => {
+                    const centro = config.nombre_centro || config.colegio || "";
+                    if (centro) {
+                        const f1 = document.getElementById("colegioName");
+                        const f2 = document.getElementById("colegioNameGrupo");
+                        if (f1 && !f1.value) f1.value = centro;
+                        if (f2 && !f2.value) f2.value = centro;
+                    }
+                }).catch(() => {});
 
             function descargarInformeGrupoModal(t) {
                 const colegio = prompt("Nombre del colegio:", localStorage.getItem('colegio_nombre') || "");

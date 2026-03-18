@@ -869,6 +869,28 @@ def excel_individual():
     )
 
 
+@informes_bp.route("/api/informe/grupo_obs_delete", methods=["POST"])
+def grupo_obs_delete():
+    data = request.json or {}
+    trimestre = data.get("trimestre")
+    if not trimestre:
+        return jsonify({"ok": False, "error": "Falta trimestre"}), 400
+
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({"ok": False, "error": "No hay grupo activo"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM informe_grupo WHERE grupo_id = ? AND trimestre = ?", (grupo_id, trimestre))
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 @informes_bp.route("/api/informe/grupo_data")
 def grupo_data():
     trimestre = request.args.get("trimestre", "1")

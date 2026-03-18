@@ -753,7 +753,7 @@ def excel_individual():
         JOIN areas a ON e.area_id = a.id
         JOIN criterios c ON e.criterio_id = c.id
         WHERE e.alumno_id = ? AND e.trimestre = ?
-        ORDER BY a.nombre, s.nombre, c.codigo
+        ORDER BY a.nombre, s.nombre, CAST(SUBSTR(c.codigo, INSTR(c.codigo,".")+1) AS INTEGER), c.codigo
     """, (alumno_id, trimestre))
     rows_sda = cur.fetchall()
 
@@ -764,7 +764,7 @@ def excel_individual():
         JOIN criterios c ON ec.criterio_id = c.id
         JOIN areas a ON c.area_id = a.id
         WHERE ec.alumno_id = ? AND ec.periodo = ?
-        ORDER BY a.nombre, c.codigo
+        ORDER BY a.nombre, CAST(SUBSTR(c.codigo, INSTR(c.codigo,".")+1) AS INTEGER), c.codigo
     """, (alumno_id, periodo))
     rows_dir = cur.fetchall()
 
@@ -930,7 +930,7 @@ def excel_clase():
             JOIN areas a ON e.area_id = a.id
             JOIN criterios c ON e.criterio_id = c.id
             WHERE e.alumno_id = ? AND e.trimestre = ?
-            ORDER BY a.nombre, s.nombre, c.codigo
+            ORDER BY a.nombre, s.nombre, CAST(SUBSTR(c.codigo, INSTR(c.codigo,".")+1) AS INTEGER), c.codigo
         """, (alumno_id, trimestre))
         rows_sda = cur.fetchall()
 
@@ -941,7 +941,7 @@ def excel_clase():
             JOIN criterios c ON ec.criterio_id = c.id
             JOIN areas a ON c.area_id = a.id
             WHERE ec.alumno_id = ? AND ec.periodo = ?
-            ORDER BY a.nombre, c.codigo
+            ORDER BY a.nombre, CAST(SUBSTR(c.codigo, INSTR(c.codigo,".")+1) AS INTEGER), c.codigo
         """, (alumno_id, periodo))
         rows_dir = cur.fetchall()
 

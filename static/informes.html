@@ -114,7 +114,8 @@
             padding: 15px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            gap: 10px;
             margin-bottom: 10px;
             transition: all 0.2s;
         }
@@ -122,9 +123,21 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            min-width: 110px;
         }
-        .history-card-info h4 { margin: 0; font-size: 1rem; }
-        .history-card-actions { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+        .history-card-info h4 { margin: 0; font-size: 1rem; white-space: nowrap; }
+        .history-card-actions { 
+            display: flex; 
+            flex-direction: column;
+            gap: 5px; 
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+        .history-card-actions-row {
+            display: flex;
+            gap: 5px;
+            flex-wrap: nowrap;
+        }
         .history-card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     </style>
 
@@ -742,9 +755,11 @@
                                     <span class="status-badge ${statusClass}">${statusText}</span>
                                 </div>
                                 <div class="history-card-actions">
-                                    ${actionBtn}
-                                    ${printBtn}
-                                    ${deleteBtn}
+                                    <div class="history-card-actions-row">
+                                        ${actionBtn}
+                                        ${printBtn}
+                                    </div>
+                                    ${deleteBtn ? `<div class="history-card-actions-row">${deleteBtn}</div>` : ""}
                                 </div>
                             </div>
                         `;

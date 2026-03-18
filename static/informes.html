@@ -266,6 +266,16 @@
                             style="padding: 10px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer;"
                             title="Sugerir con IA">🤖 Sugerir IA</button>
                     </div>
+                    <label style="display: block; margin-top: 15px;"><strong>10. Miembros del Equipo Docente (Firmas):</strong><br/>
+                    <small style="font-weight: normal; color: #555;">Selecciona los docentes que han asistido (se configuran globalmente en la pestaña Configuración &gt; Grupos).</small></label>
+                    <div style="margin-top: 5px; margin-bottom: 5px;">
+                        <button onclick="toggleAllDocentes(true)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.85rem; padding: 0; text-decoration: underline;">Marcar todos</button>
+                        <span style="margin: 0 5px; color: #ccc;">|</span>
+                        <button onclick="toggleAllDocentes(false)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.85rem; padding: 0; text-decoration: underline;">Desmarcar todos</button>
+                    </div>
+                    <div id="grupoEquipoDocenteContainer" style="margin-top: 10px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fafafa; max-height: 200px; overflow-y: auto;">
+                        <p style="color: #666; font-style: italic;">Cargando...</p>
+                    </div>
                 </div>
                 <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
                     <button onclick="guardarGrupoObs()"
@@ -436,7 +446,31 @@
                         document.getElementById("grupoObservaciones").value = d.observaciones || "";
                         document.getElementById("grupoPropuestas").value = d.propuestas_mejora || "";
                         document.getElementById("grupoConclusion").value = d.conclusion || "";
+                        
+                        const container = document.getElementById("grupoEquipoDocenteContainer");
+                        if (container) {
+                            const globales = d.equipo_docente_grupo ? d.equipo_docente_grupo.split('\n').map(x => x.trim()).filter(x => x) : [];
+                            const guardados_str = d.equipo_docente ? d.equipo_docente.split('\n').map(x => x.trim()).filter(x => x) : [];
+                            
+                            // Si NO hay nada guardado en este informe (lista vacía), marcamos todos por defecto
+                            const esNuevoInforme = !d.equipo_docente;
+
+                            if (globales.length === 0) {
+                                container.innerHTML = '<p style="color: #666; font-style: italic; margin: 0;">No hay docentes configurados para este grupo. Puedes añadirlos en Configuración &gt; Grupos.</p>';
+                            } else {
+                                container.innerHTML = globales.map((docente) => {
+                                    const checked = (esNuevoInforme || guardados_str.includes(docente)) ? 'checked' : '';
+                                    return `<label style="display: block; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
+                                                <input type="checkbox" class="docente-checkbox" value="${docente.replace(/"/g, '&quot;')}" ${checked} style="width: auto; margin-right: 8px;"> ${docente}
+                                            </label>`;
+                                }).join('');
+                            }
+                        }
                     });
+            }
+            function toggleAllDocentes(check) {
+                document.querySelectorAll(".docente-checkbox").forEach(cb => cb.checked = check);
+            }
                 // Cargar Dashboard rápido
                 fetch(`/api/informe/grupo_data?trimestre=${trimestre}`)
                     .then(r => r.json())
@@ -508,10 +542,17 @@
                 const obs = document.getElementById("grupoObservaciones").value;
                 const prop = document.getElementById("grupoPropuestas").value;
                 const conc = document.getElementById("grupoConclusion").value;
+                
+                let eqDoc = "";
+                const checkboxes = document.querySelectorAll(".docente-checkbox:checked");
+                if (checkboxes.length > 0) {
+                    eqDoc = Array.from(checkboxes).map(cb => cb.value).join('\n');
+                }
+                
                 fetch("/api/informe/grupo_obs", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ trimestre: trimestre, observaciones: obs, propuestas_mejora: prop, conclusion: conc })
+                    body: JSON.stringify({ trimestre: trimestre, observaciones: obs, propuestas_mejora: prop, conclusion: conc, equipo_docente: eqDoc })
                 }).then(r => r.json()).then(data => {
                     if (data.ok) {
                         const mensaje = document.getElementById("mensajeGuardadoGrupo");

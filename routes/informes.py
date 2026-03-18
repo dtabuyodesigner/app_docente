@@ -127,7 +127,17 @@ def informe_pdf_individual():
         return "Alumno no encontrado", 404
     alumno = row_al["nombre"]
     
-    # 2. Asistencia
+    # 2. Datos Grupo (para firmas)
+    cur.execute("SELECT grupo_id FROM alumnos WHERE id = ?", (alumno_id,))
+    row_aid = cur.fetchone()
+    grupo_id = row_aid["grupo_id"] if row_aid else None
+    
+    row_inf = None
+    if grupo_id:
+        cur.execute("SELECT * FROM informe_grupo WHERE grupo_id = ? AND trimestre = ?", (grupo_id, trimestre))
+        row_inf = cur.fetchone()
+
+    # 3. Asistencia
     # (Simplified for brevity, assuming standard logic)
     cur.execute("""
         SELECT estado, COUNT(*) 
@@ -137,7 +147,10 @@ def informe_pdf_individual():
     """, (alumno_id,))
     asist_data = dict(cur.fetchall())
     
-    # 3. Notas
+    # Define alumnos list for the loop below (single student case)
+    alumnos = [{"id": alumno_id, "nombre": alumno}]
+    
+    # 4. Notas
     # 3. Notas por Área
     periodo = f"T{trimestre}"
     cur.execute("""
@@ -629,6 +642,31 @@ def informe_reunion_pdf(rid):
         mimetype='application/pdf'
     )
 
+@informes_bp.route("/api/informe/historial_status")
+def get_informe_historial_status():
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify([])
+    
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        
+        status_data = []
+        for t in [1, 2, 3]:
+            # Use count(*) to check existence
+            cur.execute("SELECT COUNT(*) FROM informe_grupo WHERE grupo_id = ? AND trimestre = ?", (grupo_id, t))
+            count = cur.fetchone()[0]
+            status_data.append({
+                "trimestre": t,
+                "exists": True if count > 0 else False
+            })
+            
+        return jsonify(status_data)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 @informes_bp.route("/api/informe/grupo_obs", methods=["GET", "POST"])
 def grupo_obs():
     trimestre = request.args.get("trimestre") if request.method == "GET" else request.json.get("trimestre")
@@ -643,29 +681,193 @@ def grupo_obs():
         obs = d.get("observaciones", "")
         prop = d.get("propuestas_mejora", "")
         conc = d.get("conclusion", "")
+        eq_doc = d.get("equipo_docente", "")
         
         grupo_id = session.get('active_group_id')
         cur.execute("""
-            INSERT INTO informe_grupo (grupo_id, trimestre, observaciones, propuestas_mejora, conclusion)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO informe_grupo (grupo_id, trimestre, observaciones, propuestas_mejora, conclusion, equipo_docente)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(grupo_id, trimestre) DO UPDATE SET
                 observaciones = excluded.observaciones,
                 propuestas_mejora = excluded.propuestas_mejora,
-                conclusion = excluded.conclusion
-        """, (grupo_id, trimestre, obs, prop, conc))
+                conclusion = excluded.conclusion,
+                equipo_docente = excluded.equipo_docente
+        """, (grupo_id, trimestre, obs, prop, conc, eq_doc))
         conn.commit()
         return jsonify({"ok": True})
     else:
         grupo_id = session.get('active_group_id')
+        grupo_id = session.get('active_group_id')
+        
+        cur.execute("SELECT equipo_docente FROM grupos WHERE id = ?", (grupo_id,))
+        g_row = cur.fetchone()
+        eq_doc_grupo = ""
+        if g_row:
+            try:
+                eq_doc_grupo = g_row["equipo_docente"] if "equipo_docente" in g_row.keys() and g_row["equipo_docente"] else ""
+            except:
+                eq_doc_grupo = g_row[0] if (type(g_row) is tuple) or (g_row and g_row[0]) else ""
+        
         cur.execute("SELECT * FROM informe_grupo WHERE trimestre = ? AND grupo_id = ?", (trimestre, grupo_id))
         row = cur.fetchone()
+        
         if row:
+            equipo = ""
+            try:
+                equipo = row["equipo_docente"] if "equipo_docente" in row.keys() else ""
+            except:
+                pass
             return jsonify({
                 "observaciones": row["observaciones"],
                 "propuestas_mejora": row["propuestas_mejora"],
-                "conclusion": row["conclusion"]
+                "conclusion": row["conclusion"],
+                "equipo_docente": equipo,
+                "equipo_docente_grupo": eq_doc_grupo
             })
-        return jsonify({})
+        return jsonify({"equipo_docente_grupo": eq_doc_grupo})
+
+@informes_bp.route("/api/informe/excel_individual")
+def excel_individual():
+    alumno_id = request.args.get("alumno_id")
+    trimestre = request.args.get("trimestre")
+
+    if not alumno_id or not trimestre:
+        return "Faltan parámetros", 400
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT nombre FROM alumnos WHERE id = ?", (alumno_id,))
+    row_al = cur.fetchone()
+    if not row_al:
+        return "Alumno no encontrado", 404
+    alumno_nombre = row_al["nombre"]
+
+    periodo = f"T{trimestre}"
+
+    # Criterios evaluados por SDA
+    cur.execute("""
+        SELECT a.nombre as area, s.nombre as sda, c.codigo, c.descripcion, e.nota, a.tipo_escala
+        FROM evaluaciones e
+        JOIN sda s ON e.sda_id = s.id
+        JOIN areas a ON e.area_id = a.id
+        JOIN criterios c ON e.criterio_id = c.id
+        WHERE e.alumno_id = ? AND e.trimestre = ?
+        ORDER BY a.nombre, s.nombre, c.codigo
+    """, (alumno_id, trimestre))
+    rows_sda = cur.fetchall()
+
+    # Criterios evaluados directamente
+    cur.execute("""
+        SELECT a.nombre as area, 'Evaluación Directa' as sda, c.codigo, c.descripcion, ec.nota, a.tipo_escala
+        FROM evaluacion_criterios ec
+        JOIN criterios c ON ec.criterio_id = c.id
+        JOIN areas a ON c.area_id = a.id
+        WHERE ec.alumno_id = ? AND ec.periodo = ?
+        ORDER BY a.nombre, c.codigo
+    """, (alumno_id, periodo))
+    rows_dir = cur.fetchall()
+
+    all_rows = list(rows_sda) + list(rows_dir)
+
+    # Generar Excel con openpyxl
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    except ImportError:
+        return "openpyxl no instalado", 500
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"T{trimestre} - {alumno_nombre[:20]}"
+
+    # Estilos
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", fgColor="1F3864")
+    area_fill = PatternFill("solid", fgColor="D5E8F0")
+    area_font = Font(bold=True)
+    thin = Side(style="thin", color="CCCCCC")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    center = Alignment(horizontal="center", vertical="center")
+
+    # Título
+    ws.merge_cells("A1:F1")
+    ws["A1"] = f"Notas - {alumno_nombre} - {trimestre}º Trimestre"
+    ws["A1"].font = Font(bold=True, size=13)
+    ws["A1"].alignment = center
+
+    # Cabecera
+    headers = ["Área", "SDA / Modalidad", "Código Criterio", "Descripción", "Nota (1-10)", "Escala"]
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=2, column=col, value=h)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center
+        cell.border = border
+
+    # Datos
+    current_area = None
+    row_num = 3
+    for r in all_rows:
+        area = r["area"]
+        if area != current_area:
+            # Fila de área
+            ws.merge_cells(f"A{row_num}:F{row_num}")
+            cell = ws.cell(row=row_num, column=1, value=f"📚 {area}")
+            cell.font = area_font
+            cell.fill = area_fill
+            cell.border = border
+            row_num += 1
+            current_area = area
+
+        nota = r["nota"]
+        escala = r["tipo_escala"]
+
+        # Nota siempre en escala 1-10
+        if escala == "INFANTIL_NI_EP_C":
+            # Convertir 1-3 a texto y nota numérica
+            n = round(nota) if nota <= 3 else (1 if nota <= 3.5 else (2 if nota <= 6.5 else 3))
+            nota_display = {1: 1, 2: 5, 3: 10}.get(n, nota)  # NI=1, EP=5, C=10 para el Excel
+            escala_txt = {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
+        else:
+            nota_display = round(nota, 2) if nota is not None else None
+            escala_txt = "1-10"
+
+        ws.cell(row=row_num, column=1, value="").border = border
+        ws.cell(row=row_num, column=2, value=r["sda"]).border = border
+        ws.cell(row=row_num, column=3, value=r["codigo"]).border = border
+        ws.cell(row=row_num, column=4, value=r["descripcion"]).border = border
+        nota_cell = ws.cell(row=row_num, column=5, value=nota_display)
+        nota_cell.border = border
+        nota_cell.alignment = center
+        if nota_display is not None:
+            if escala == "INFANTIL_NI_EP_C":
+                nota_cell.fill = PatternFill("solid", fgColor=("FADADD" if n == 1 else "FFF3CD" if n == 2 else "D5F5E3"))
+            else:
+                nota_cell.fill = PatternFill("solid", fgColor=("FADADD" if nota < 5 else "FFF3CD" if nota < 7 else "D5F5E3"))
+        ws.cell(row=row_num, column=6, value=escala_txt).border = border
+        row_num += 1
+
+    # Anchos de columna
+    ws.column_dimensions["A"].width = 22
+    ws.column_dimensions["B"].width = 22
+    ws.column_dimensions["C"].width = 16
+    ws.column_dimensions["D"].width = 45
+    ws.column_dimensions["E"].width = 12
+    ws.column_dimensions["F"].width = 12
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    filename = f"Notas_{alumno_nombre.replace(' ', '_')}_T{trimestre}.xlsx"
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
 
 @informes_bp.route("/api/informe/grupo_data")
 def grupo_data():
@@ -1169,6 +1371,33 @@ def informe_pdf_todos():
     elements.append(Paragraph(f"• Alumno/a con más faltas: <b>{max_faltas['nombre']}</b> ({max_faltas['num']} faltas)", styles['Normal']))
     elements.append(Paragraph(f"• Alumno/a con más retrasos: <b>{max_retrasos['nombre']}</b> ({max_retrasos['num']} retrasos)", styles['Normal']))
     
+    # 4. Equipo Docente (Firmas)
+    equipo_docente = ""
+    if row_inf:
+        try:
+            equipo_docente = row_inf["equipo_docente"] if "equipo_docente" in row_inf.keys() else ""
+        except:
+            pass
+            
+    if equipo_docente:
+        elements.append(Spacer(1, 20))
+        elements.append(Paragraph("Miembros del Equipo Docente", styles['Heading3']))
+        
+        firmantes = [line.strip() for line in equipo_docente.replace('\r', '').split('\n') if line.strip()]
+        if firmantes:
+            sig_data = [["Docente", "Firma"]]
+            for f in firmantes:
+                sig_data.append([Paragraph(f, styles['Normal']), ""])
+                
+            t_sig = Table(sig_data, colWidths=[8*cm, 8*cm], rowHeights=[1*cm] + [1.5*cm]*len(firmantes))
+            t_sig.setStyle(TableStyle([
+                ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('ALIGN', (0,0), (-1,0), 'CENTER'),
+            ]))
+            elements.append(t_sig)
+
     elements.append(PageBreak())
     
     # --- INFORMES INDIVIDUALES ---
@@ -2198,6 +2427,33 @@ def pdf_grupo():
         area_img = RLImage(area_chart_buf, width=16*cm, height=max(8, len(area_perf_data)*0.8)*cm)
         elements.append(area_img)
         
+    # Equipo Docente (Firmas)
+    equipo_docente = ""
+    if row_grupo:
+        try:
+            equipo_docente = row_grupo["equipo_docente"] if "equipo_docente" in row_grupo.keys() else ""
+        except:
+            pass
+            
+    if equipo_docente:
+        elements.append(Spacer(1, 20))
+        elements.append(Paragraph("Miembros del Equipo Docente", styles['Heading3']))
+        
+        firmantes = [line.strip() for line in equipo_docente.replace('\r', '').split('\n') if line.strip()]
+        if firmantes:
+            sig_data = [["Docente", "Firma"]]
+            for f in firmantes:
+                sig_data.append([Paragraph(f, styles['Normal']), ""])
+                
+            t_sig = Table(sig_data, colWidths=[8*cm, 8*cm], rowHeights=[1*cm] + [1.5*cm]*len(firmantes))
+            t_sig.setStyle(TableStyle([
+                ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('ALIGN', (0,0), (-1,0), 'CENTER'),
+            ]))
+            elements.append(t_sig)
+
     doc.build(elements)
     buffer.seek(0)
     

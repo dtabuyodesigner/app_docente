@@ -60,6 +60,22 @@ def init_db_if_not_exists():
             
         conn.commit()
         conn.close()
+        
+    # Migraciones silenciosas
+    try:
+        conn = sqlite3.connect(path)
+        try:
+            conn.execute("ALTER TABLE informe_grupo ADD COLUMN equipo_docente TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE grupos ADD COLUMN equipo_docente TEXT")
+        except Exception:
+            pass
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 def get_db():
     if 'db' not in g:

@@ -99,6 +99,26 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transform: translateY(-1px);
         }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-pending { background: #ffeeba; color: #856404; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .history-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .history-card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
@@ -173,6 +193,10 @@
                         style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
                         <span style="font-size:1.2rem;">📄</span> Descargar Informe Individual
                     </button>
+                    <button onclick="generarExcelIndividual()"
+                        style="padding: 12px 20px; background: #1D6F42; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.2rem;">📊</span> Exportar Notas a Excel
+                    </button>
                     <button onclick="generarPDFGeneral()"
                         style="padding: 12px 20px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
                         <span style="font-size:1.2rem;">📑</span> Informes de toda la Clase (PDF ZIP)
@@ -206,7 +230,15 @@
         </div>
         <!-- SECCIÓN GRUPO -->
         <div id="tabGrupo" class="tab-content">
-            <div class="report-section" style="display:flex; flex-direction:column; gap:20px; border-left: 5px solid var(--primary);">
+            <div id="grupoHistoryDashboard" class="report-section" style="margin-bottom: 20px; border-top: 5px solid var(--secondary);">
+                <h3 style="margin-top:0;">📂 Historial de Informes de Grupo</h3>
+                <div id="historyList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">
+                    <!-- Se cargará dinámicamente -->
+                </div>
+            </div>
+
+            <div id="formGrupoContainer" class="report-section" style="display:none; flex-direction:column; gap:20px; border-left: 5px solid var(--primary);">
+                <div id="formGrupoTitle" style="font-size:1.1rem; font-weight:700; color:var(--primary); margin-bottom:5px;">📝 Informe de Grupo</div>
                 <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
                     <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:250px;">
                         <label for="colegioNameGrupo" style="font-weight:600; color:var(--dark);">Centro:</label>
@@ -326,7 +358,7 @@
             let alumnoSelect = document.getElementById("alumno");
             let trimInd = document.getElementById("trimestreIndividual");
             let trimGrp = document.getElementById("trimestreGrupo");
-            function switchTab(tabId, checkGroup = false) {
+            function switchTab(tabId, reloadHistory = false) {
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
                 document.getElementById(tabId).classList.add('active');
@@ -336,7 +368,10 @@
                 } else if (tabId === 'tabGrupo') {
                     document.querySelector('.tab-button[onclick*="tabGrupo"]').classList.add('active');
                 }
-                if (tabId === 'tabGrupo' && checkGroup) cargarInformeGrupo();
+                if (tabId === 'tabGrupo' && reloadHistory) {
+                    loadHistoryDashboard();
+                    cargarInformeGrupo();
+                }
                 else if (tabId === 'tabIndividual') cargarInforme();
             }
             // Cargar alumnos Inicial
@@ -403,13 +438,22 @@
                 fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(datos => {
-                        let html = datos.length === 0 ? "<em>No hay calificaciones.</em>" : "<table><tr><th>Área</th><th>Media</th></tr>";
+                        let html = datos.length === 0 ? "<em>No hay calificaciones.</em>" : "<table><tr><th>Área / Criterio</th><th>Nota / Media</th></tr>";
                         datos.forEach(d => {
                             const valText = formatNotaText(d.media, d.tipo_escala);
                             const valColor = getColorNotaEscala(d.media, d.tipo_escala);
-                            html += `<tr><td>${d.area}</td><td style="color:${valColor};font-weight:bold;">${valText}</td></tr>`;
+                            html += `<tr style="background:#f0f7ff;"><td style="font-weight:bold;">${d.area}</td><td style="color:${valColor};font-weight:bold;">${valText} (Media)</td></tr>`;
+                            
+                            if (d.criterios && d.criterios.length > 0) {
+                                d.criterios.forEach(c => {
+                                    const cText = formatNotaText(c.nota, d.tipo_escala);
+                                    const cColor = getColorNotaEscala(c.nota, d.tipo_escala);
+                                    html += `<tr><td style="padding-left:25px; font-size:0.9rem; color:#555;">${c.codigo}</td><td style="color:${cColor}; font-size:0.9rem;">${cText}</td></tr>`;
+                                });
+                            }
                         });
                         document.getElementById("mediasAreas").innerHTML = html + "</table>";
+
                     });
                 fetch(`/api/evaluacion/resumen_sda_todos?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
@@ -558,6 +602,7 @@
                         const mensaje = document.getElementById("mensajeGuardadoGrupo");
                         mensaje.style.display = "inline";
                         setTimeout(() => mensaje.style.display = "none", 2000);
+                        loadHistoryDashboard(); // Reload history to update status
                     }
                 });
             }
@@ -597,6 +642,13 @@
             document.getElementById("fechaInforme").value = today;
             document.getElementById("fechaInformeGrupo").value = today;
 
+            function generarExcelIndividual() {
+                if (!alumnoSelect.value) {
+                    alert("Por favor, selecciona un alumno primero.");
+                    return;
+                }
+                window.location.href = `/api/informe/excel_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}`;
+            }
             function generarPDFIndividual() {
                 if (!alumnoSelect.value) {
                     alert("Por favor, selecciona un alumno primero.");
@@ -655,6 +707,76 @@
             function cerrarModal() {
                 document.getElementById("modalAsistencia").style.display = "none";
             }
+
+            async function loadHistoryDashboard() {
+                const historyList = document.getElementById("historyList");
+                historyList.innerHTML = "<p>Cargando historial...</p>";
+                try {
+                    const res = await fetch('/api/informe/historial_status');
+                    if (!res.ok) throw new Error('Error en la respuesta del servidor');
+                    const data = await res.json();
+
+                    
+                    if (data.length === 0) {
+                        historyList.innerHTML = "<p><em>No hay datos del grupo activo.</em></p>";
+                        return;
+                    }
+
+                    let html = "";
+                    data.forEach(item => {
+                        const statusClass = item.exists ? "status-completed" : "status-pending";
+                        const statusText = item.exists ? "✅ Completado" : "⏳ Pendiente";
+                        const actionBtn = item.exists ? 
+                            `<button onclick="setTrimester(${item.trimestre}, true)" style="padding:6px 12px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">✏️ Editar</button>` :
+                            `<button onclick="setTrimester(${item.trimestre}, false)" style="padding:6px 12px; background:var(--secondary); color:white; border:none; border-radius:4px; cursor:pointer;">➕ Crear</button>`;
+                        const printBtn = item.exists ? 
+                            `<button onclick="descargarInformeGrupoModal(${item.trimestre})" style="padding:6px 12px; background:#6c757d; color:white; border:none; border-radius:4px; cursor:pointer;">🖨️ PDF</button>` : "";
+                        
+                        html += `
+                            <div class="history-card">
+                                <div>
+                                    <h4 style="margin:0;">${item.trimestre}º Trimestre</h4>
+                                    <span class="status-badge ${statusClass}">${statusText}</span>
+                                </div>
+                                <div style="display:flex; gap:5px;">
+                                    ${actionBtn}
+                                    ${printBtn}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    historyList.innerHTML = html;
+                } catch (e) {
+                    historyList.innerHTML = "<p style='color:red;'>Error al cargar el historial.</p>";
+                }
+            }
+
+            function setTrimester(t, exists) {
+                document.getElementById("trimestreGrupo").value = t;
+                // Mostrar formulario con título
+                const container = document.getElementById("formGrupoContainer");
+                container.style.display = "flex";
+                document.getElementById("formGrupoTitle").textContent = exists 
+                    ? `✏️ Editando informe del ${t}º Trimestre`
+                    : `➕ Nuevo informe del ${t}º Trimestre`;
+                // Si es nuevo, limpiar campos
+                if (!exists) {
+                    document.getElementById("grupoObservaciones").value = "";
+                    document.getElementById("grupoPropuestas").value = "";
+                    document.getElementById("grupoConclusion").value = "";
+                }
+                cargarInformeGrupo();
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function descargarInformeGrupoModal(t) {
+                const colegio = prompt("Nombre del colegio:", localStorage.getItem('colegio_nombre') || "");
+                if (colegio === null) return;
+                localStorage.setItem('colegio_nombre', colegio);
+                const fecha = new Date().toLocaleDateString('es-ES');
+                window.open(`/api/informe/pdf_grupo?trimestre=${t}&colegio=${encodeURIComponent(colegio)}&fecha_informe=${encodeURIComponent(fecha)}`);
+            }
+
             // Cerrar al pulsar fuera
             window.onclick = function (event) {
                 const modal = document.getElementById("modalAsistencia");

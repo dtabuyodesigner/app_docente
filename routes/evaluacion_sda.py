@@ -137,21 +137,52 @@ def resumen_areas_alumno():
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
-        SELECT a.nombre, ROUND(AVG(val.nota), 2) as media, a.tipo_escala
+        SELECT a.nombre as area_nombre, a.tipo_escala, val.codigo, val.nota
         FROM (
-            SELECT area_id, nota FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
+            SELECT area_id, CriterionTable.codigo, nota 
+            FROM evaluaciones 
+            JOIN criterios as CriterionTable ON evaluaciones.criterio_id = CriterionTable.id
+            WHERE alumno_id = ? AND trimestre = ?
+            
             UNION ALL
-            SELECT c.area_id, ec.nota 
+            
+            SELECT c.area_id, c.codigo, ec.nota 
             FROM evaluacion_criterios ec
             JOIN criterios c ON ec.criterio_id = c.id
             WHERE ec.alumno_id = ? AND ec.periodo = ?
         ) val
         JOIN areas a ON val.area_id = a.id
-        GROUP BY a.id, a.nombre, a.tipo_escala
-        ORDER BY a.nombre
+        ORDER BY a.nombre, val.codigo
     """, (alumno_id, trimestre, alumno_id, periodo))
     rows = cur.fetchall()
-    return jsonify([{"area": r["nombre"], "media": r["media"], "tipo_escala": r["tipo_escala"]} for r in rows])
+    
+    # Agrupar por área
+    resumen = {}
+    for r in rows:
+        area = r["area_nombre"]
+        if area not in resumen:
+            resumen[area] = {
+                "area": area,
+                "tipo_escala": r["tipo_escala"],
+                "criterios": [],
+                "sum_notas": 0,
+                "count_notas": 0
+            }
+        resumen[area]["criterios"].append({
+            "codigo": r["codigo"],
+            "nota": r["nota"]
+        })
+        resumen[area]["sum_notas"] += r["nota"]
+        resumen[area]["count_notas"] += 1
+
+    final_data = []
+    for area_name in sorted(resumen.keys()):
+        item = resumen[area_name]
+        item["media"] = round(item["sum_notas"] / item["count_notas"], 2) if item["count_notas"] > 0 else 0
+        final_data.append(item)
+
+    return jsonify(final_data)
+
 
 @evaluacion_sda_bp.route("/", methods=["DELETE"])
 def borrar_evaluacion():

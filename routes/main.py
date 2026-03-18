@@ -208,11 +208,11 @@ def get_mis_grupos():
         return jsonify([])
         
     cur.execute("""
-        SELECT g.id, g.nombre, g.curso, COUNT(a.id) as num_alumnos
+        SELECT g.id, g.nombre, g.curso, COUNT(a.id) as num_alumnos, g.equipo_docente
         FROM grupos g
         LEFT JOIN alumnos a ON g.id = a.grupo_id AND a.deleted_at IS NULL
         WHERE g.profesor_id = ?
-        GROUP BY g.id, g.nombre, g.curso
+        GROUP BY g.id, g.nombre, g.curso, g.equipo_docente
         ORDER BY g.curso ASC, g.nombre ASC
     """, (prof["id"],))
     grupos = [dict(g) for g in cur.fetchall()]
@@ -228,6 +228,7 @@ def new_grupo():
     print(f"[DEBUG] Creando nuevo grupo. Datos recibidos: {data}")
     etapa_curso = data.get("etapa_curso", "")
     linea = data.get("linea", "")
+    eq_doc = data.get("equipo_docente", "")
     
     if not etapa_curso:
         print(f"[DEBUG] Error: etapa_curso está vacío. Session user_id: {session.get('user_id')}")
@@ -287,8 +288,8 @@ def new_grupo():
     
     try:
         cur.execute(
-            "INSERT INTO grupos (nombre, curso, profesor_id, etapa_id, tipo_evaluacion) VALUES (?, ?, ?, ?, ?)",
-            (nombre_final, etapa_curso, prof_id, etapa_id_real, tipo_eval)
+            "INSERT INTO grupos (nombre, curso, profesor_id, etapa_id, tipo_evaluacion, equipo_docente) VALUES (?, ?, ?, ?, ?, ?)",
+            (nombre_final, etapa_curso, prof_id, etapa_id_real, tipo_eval, eq_doc)
         )
         new_group_id = cur.lastrowid
         print(f"[DEBUG] Grupo creado con ID: {new_group_id}")
@@ -311,6 +312,7 @@ def rename_grupo(grupo_id):
     data = request.json
     nuevo_curso = data.get("curso", "").strip()
     nueva_linea = data.get("linea", "").strip()
+    eq_doc = data.get("equipo_docente", "")
     
     if not nuevo_curso:
         return jsonify({"ok": False, "error": "Falta la etapa/curso"}), 400
@@ -367,9 +369,9 @@ def rename_grupo(grupo_id):
     try:
         cur.execute("""
             UPDATE grupos 
-            SET nombre = ?, curso = ?, etapa_id = ?, tipo_evaluacion = ? 
+            SET nombre = ?, curso = ?, etapa_id = ?, tipo_evaluacion = ?, equipo_docente = ? 
             WHERE id = ?
-        """, (nombre_final, nuevo_curso, etapa_id_real, tipo_eval, grupo_id))
+        """, (nombre_final, nuevo_curso, etapa_id_real, tipo_eval, eq_doc, grupo_id))
         conn.commit()
         return jsonify({"ok": True, "nombre": nombre_final})
     except Exception as e:

@@ -12,6 +12,7 @@ CREATE TABLE grupos (
     profesor_id INTEGER,
     tipo_evaluacion TEXT DEFAULT 'primaria',
     etapa_id INTEGER,
+    equipo_docente TEXT,
     FOREIGN KEY(profesor_id) REFERENCES profesores(id),
     FOREIGN KEY(etapa_id) REFERENCES etapas(id)
 );
@@ -88,7 +89,8 @@ CREATE TABLE informe_grupo (
     trimestre INTEGER PRIMARY KEY,
     observaciones TEXT,
     propuestas_mejora TEXT,
-    conclusion TEXT
+    conclusion TEXT,
+    equipo_docente TEXT
 );
 
 CREATE TABLE programacion_diaria (

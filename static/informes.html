@@ -467,10 +467,7 @@
                             }
                         }
                     });
-            }
-            function toggleAllDocentes(check) {
-                document.querySelectorAll(".docente-checkbox").forEach(cb => cb.checked = check);
-            }
+
                 // Cargar Dashboard rápido
                 fetch(`/api/informe/grupo_data?trimestre=${trimestre}`)
                     .then(r => r.json())
@@ -520,6 +517,9 @@
                         </div>
                     `;
                     });
+            }
+            function toggleAllDocentes(check) {
+                document.querySelectorAll(".docente-checkbox").forEach(cb => cb.checked = check);
             }
             function guardarObservaciones() {
                 const alumnoId = alumnoSelect.value;

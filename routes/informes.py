@@ -1203,9 +1203,6 @@ def acta_oficial():
     from reportlab.lib import colors as rl_colors
 
     col_izda = logo_izda_el if logo_izda_el else Paragraph("", styles['Normal'])
-    col_centro = Paragraph(f"<b>{nombre_centro}</b><br/><b>ACTA DE LA {trim_texto} EVALUACIÓN</b><br/><b>CURSO {cur.execute('SELECT valor FROM config WHERE clave=?', ('curso_escolar',)) or ''}",
-                           ParagraphStyle('h', parent=styles['Normal'], alignment=1, fontSize=11, fontName='Helvetica-Bold', leading=16))
-    # Rebuild centro text clean
     cur.execute("SELECT valor FROM config WHERE clave = 'curso_escolar'")
     rc = cur.fetchone()
     curso_escolar = rc["valor"] if rc and rc["valor"] else ""

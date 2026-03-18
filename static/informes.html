@@ -696,13 +696,13 @@
             if (storedTutor) {
                 document.getElementById("tutorName").value = storedTutor;
             } else {
-                fetch("/api/config")
+                fetch("/api/configuracion")
                     .then(r => r.json())
                     .then(config => {
-                        const tutor = config.find(c => c.clave === 'nombre_tutor');
-                        if (tutor && tutor.valor) {
-                            document.getElementById("tutorName").value = tutor.valor;
-                            localStorage.setItem("tutorName", tutor.valor);
+                        const tutor = config.nombre_tutor;
+                        if (tutor) {
+                            document.getElementById("tutorName").value = tutor;
+                            localStorage.setItem("tutorName", tutor);
                         }
                     });
             }

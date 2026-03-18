@@ -1233,6 +1233,22 @@
         </div>
     </div>
     <script>
+        // ── CSRF helper ─────────────────────────────────────────────────────
+        let _csrfCache = null;
+        async function getCsrf() {
+            if (_csrfCache) return _csrfCache;
+            const r = await fetch('/api/csrf-token');
+            const d = await r.json();
+            _csrfCache = d.csrf_token;
+            return _csrfCache;
+        }
+        function csrfHeaders(extra = {}) {
+            // Sync version — use only after getCsrf() has been called once
+            return { 'Content-Type': 'application/json', 'X-CSRFToken': _csrfCache || '', ...extra };
+        }
+        // Pre-fetch CSRF token on page load
+        getCsrf();
+        // ────────────────────────────────────────────────────────────────────
         let allBooks = [], selectedGbBook = null, csvSelectedFile = null;
         let _plazoGlobal = 7; // plazo por defecto, se actualiza desde la BD al cargar préstamos
         let _todosActivos = [], _todosRetrasos = [];
@@ -1434,7 +1450,7 @@
             try {
                 const response = await fetch('/api/libros/bulk-delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                     body: JSON.stringify({ ids: selectedBookIds })
                 });
                 const d = await response.json();
@@ -1558,7 +1574,7 @@
             const body = { titulo: document.getElementById('f-titulo').value, autor: document.getElementById('f-autor').value, isbn: document.getElementById('f-isbn').value, editorial: document.getElementById('f-editorial').value, año_publicacion: document.getElementById('f-año').value || null, cantidad_total: parseInt(document.getElementById('f-cantidad').value) || 1, nivel_lectura: document.getElementById('f-nivel').value, genero: document.getElementById('f-genero').value, descripcion: document.getElementById('f-desc').value };
             const d = await (await fetch('/api/libros', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
             })).json();
             const el = document.getElementById('formAlert');
@@ -1582,7 +1598,7 @@
             const body = { titulo: document.getElementById('e-titulo').value, autor: document.getElementById('e-autor').value, isbn: document.getElementById('e-isbn').value, editorial: document.getElementById('e-editorial').value, año_publicacion: document.getElementById('e-año').value || null, cantidad_total: parseInt(document.getElementById('e-cantidad').value) || 1, nivel_lectura: document.getElementById('e-nivel').value, genero: document.getElementById('e-genero').value, descripcion: document.getElementById('e-desc').value };
             const d = await (await fetch(`/api/libros/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
             })).json();
             if (d.ok) { closeModal('editModal'); loadBooks(); loadStats(); }
@@ -1590,7 +1606,7 @@
         }
         async function deleteBook(id, titulo) {
             if (!confirm(`¿Eliminar "${titulo}"?`)) return;
-            const d = await (await fetch(`/api/libros/${id}`, { method: 'DELETE' })).json();
+            const d = await (await fetch(`/api/libros/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
             if (d.ok) { loadBooks(); loadStats(); } else alert(`Error: ${d.error}`);
         }
         function closeModal(id) {
@@ -1608,7 +1624,7 @@
             const fd = new FormData(); fd.append('file', csvSelectedFile);
             const btn = document.getElementById('csvBtn'); btn.textContent = '⏳ Importando...'; btn.disabled = true;
             try {
-                const d = await (await fetch('/api/libros/importar/csv', { method: 'POST', body: fd })).json();
+                const d = await (await fetch('/api/libros/importar/csv', { method: 'POST', headers: { 'X-CSRFToken': await getCsrf() }, body: fd })).json();
                 let html = d.ok ? `<div class="alert alert-success">✅ ${d.mensaje} (${d.libros_importados}/${d.total_filas})</div>` : `<div class="alert alert-danger">❌ ${d.error}</div>`;
                 if (d.ok && d.errores) html += `<div class="alert" style="background:#fff8e1;border-left:4px solid orange;color:#7a5c00;">⚠️ Errores: ${d.errores.join('<br>')}</div>`;
                 document.getElementById('csvAlert').innerHTML = html;
@@ -1622,7 +1638,7 @@
             btn.innerHTML = '⏳ Limpiando...';
             btn.disabled = true;
             try {
-                const d = await (await fetch('/api/libros/borrar-duplicados', { method: 'POST' })).json();
+                const d = await (await fetch('/api/libros/borrar-duplicados', { method: 'POST', headers: { 'X-CSRFToken': await getCsrf() } })).json();
                 if (d.ok) {
                     alert(d.mensaje);
                     loadBooks(); loadStats();
@@ -1666,7 +1682,7 @@
             const body = { ...selectedGbBook, cantidad_total: parseInt(document.getElementById('gb-cantidad').value) || 1, nivel_lectura: document.getElementById('gb-nivel').value, genero: document.getElementById('gb-genero').value };
             const d = await (await fetch('/api/libros/importar-google', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
             })).json();
             if (d.ok) { closeModal('gbImportModal'); document.getElementById('gbAlert').innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`; loadBooks(); loadStats(); }
@@ -2117,7 +2133,7 @@
                 observaciones: document.getElementById('ep-obs').value
             };
             const d = await (await fetch(`/api/prestamos/${id}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
             })).json();
             if (d.ok) {
@@ -2131,13 +2147,13 @@
         function closeEditPrest() { document.getElementById('editPrestModal').style.display = 'none'; }
         async function eliminarPrestamo(id) {
             if (!confirm('¿Eliminar este préstamo? Si estaba activo, el libro volverá a estar disponible.')) return;
-            const d = await (await fetch(`/api/prestamos/${id}`, { method: 'DELETE' })).json();
+            const d = await (await fetch(`/api/prestamos/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
             if (d.ok) { _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats(); location.reload(); }
             else alert(`Error: ${d.error}`);
         }
         async function reactivarPrestamo(id) {
             if (!confirm('¿Reactivar este préstamo? Se marcará como activo y se descontará 1 unidad del libro disponible.')) return;
-            const d = await (await fetch(`/api/prestamos/${id}/reactivar`, { method: 'POST' })).json();
+            const d = await (await fetch(`/api/prestamos/${id}/reactivar`, { method: 'POST', headers: { 'X-CSRFToken': await getCsrf() } })).json();
             if (d.ok) {
                 _prestamosLoaded = false;
                 initPrestamos();
@@ -2166,10 +2182,10 @@
                 document.getElementById('pst-retrasos').style.color = r.length > 0 ? '#c62828' : '#2e7d32';
             } catch (e) { }
         }
-        function guardarPlazo(dias) {
+        async function guardarPlazo(dias) {
             fetch('/api/config', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify({ max_dias_prestamo: parseInt(dias) })
             }).then(() => {
                 _plazoGlobal = parseInt(dias);
@@ -2192,7 +2208,7 @@
             }
             const d = await (await fetch('/api/prestamos', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
             })).json();
             if (d.ok) {
@@ -2244,7 +2260,7 @@
             const id = document.getElementById('dev-id').value;
             const body = { fecha_devolucion: document.getElementById('dev-fecha').value, observaciones: document.getElementById('dev-obs').value };
             const d = await (await fetch(`/api/prestamos/${id}/devolver`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() }, body: JSON.stringify(body)
             })).json();
             if (d.ok) {
                 closeDevModal();
@@ -2321,7 +2337,7 @@
             try {
                 const d = await (await fetch('/api/prestamos', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                     body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
                 })).json();
                 if (d.ok) {

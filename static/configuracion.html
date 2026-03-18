@@ -556,7 +556,6 @@
         }
         function toggleRolAreas() {
             const esEsp = document.getElementById('rolEspecialista').checked;
-            document.getElementById('areasImparteContainer').style.display = esEsp ? 'block' : 'none';
             document.getElementById('rolTutorLabel').style.borderColor = esEsp ? '#ddd' : 'var(--primary)';
             document.getElementById('rolEspecialistaLabel').style.borderColor = esEsp ? 'var(--primary)' : '#ddd';
         }
@@ -568,9 +567,9 @@
                 const areas = await res.json();
                 if (!areas.length) { listDiv.innerHTML = '<p style="color:#888; margin:0;">No hay áreas configuradas.</p>'; return; }
                 listDiv.innerHTML = areas.map(a => `
-                    <label style="display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; border-bottom:1px solid #eee;">
-                        <input type="checkbox" class="area-imparte-cb" value="${a.id}" ${areasSeleccionadas.includes(String(a.id)) ? 'checked' : ''}>
-                        <span>${a.nombre}</span>
+                    <label style="display:flex; align-items:center; gap:10px; padding:7px 10px; cursor:pointer; border-bottom:1px solid #eee; border-radius:4px;">
+                        <input type="checkbox" class="area-imparte-cb" value="${a.id}" ${areasSeleccionadas.includes(String(a.id)) ? 'checked' : ''} style="width:16px; height:16px; flex-shrink:0; cursor:pointer;">
+                        <span style="font-size:0.9rem;">${a.nombre}</span>
                     </label>
                 `).join('');
             } catch(e) {
@@ -979,7 +978,7 @@
                         </label>
                     </div>
                 </div>
-                <div id="areasImparteContainer" style="margin-bottom:20px; display:none;">
+                <div id="areasImparteContainer" style="margin-bottom:20px;">
                     <label style="display:block; font-weight:600; margin-bottom:8px;">Áreas que impartes en este grupo:</label>
                     <div id="areasImparteList" style="border:1px solid #ddd; border-radius:8px; padding:10px; max-height:180px; overflow-y:auto; background:#fafafa;">
                         <p style="color:#888; font-style:italic; margin:0;">Cargando áreas...</p>

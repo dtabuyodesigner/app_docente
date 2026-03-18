@@ -217,6 +217,10 @@
                         style="padding: 12px 20px; background: #1D6F42; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
                         <span style="font-size:1.2rem;">📊</span> Exportar Notas a Excel
                     </button>
+                    <button onclick="generarExcelClase()"
+                        style="padding: 12px 20px; background: #155724; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.2rem;">📗</span> Excel Clase Completa
+                    </button>
                     <button onclick="generarPDFGeneral()"
                         style="padding: 12px 20px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
                         <span style="font-size:1.2rem;">📑</span> Informes de toda la Clase (PDF ZIP)
@@ -653,6 +657,10 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById("fechaInforme").value = today;
             document.getElementById("fechaInformeGrupo").value = today;
+
+            function generarExcelClase() {
+                window.location.href = `/api/informe/excel_clase?trimestre=${trimInd.value}`;
+            }
 
             function generarExcelIndividual() {
                 if (!alumnoSelect.value) {

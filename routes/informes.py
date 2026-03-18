@@ -869,6 +869,176 @@ def excel_individual():
     )
 
 
+@informes_bp.route("/api/informe/excel_clase")
+def excel_clase():
+    """Genera un Excel con una pestaña por alumno y lo guarda en notas_criterios_excel/"""
+    trimestre = request.args.get("trimestre")
+    if not trimestre:
+        return "Falta trimestre", 400
+
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return "No hay grupo activo", 400
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Nombre del grupo para el archivo
+    cur.execute("SELECT nombre FROM grupos WHERE id = ?", (grupo_id,))
+    g = cur.fetchone()
+    grupo_nombre = g["nombre"] if g else f"Grupo_{grupo_id}"
+
+    # Alumnos del grupo
+    cur.execute("""
+        SELECT id, nombre FROM alumnos
+        WHERE grupo_id = ? AND deleted_at IS NULL
+        ORDER BY nombre
+    """, (grupo_id,))
+    alumnos = cur.fetchall()
+
+    if not alumnos:
+        return "No hay alumnos en este grupo", 400
+
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    except ImportError:
+        return "openpyxl no instalado", 500
+
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)  # Eliminar hoja vacía por defecto
+
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", fgColor="1F3864")
+    area_fill = PatternFill("solid", fgColor="D5E8F0")
+    area_font = Font(bold=True)
+    thin = Side(style="thin", color="CCCCCC")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    center = Alignment(horizontal="center", vertical="center")
+
+    periodo = f"T{trimestre}"
+
+    for alumno in alumnos:
+        alumno_id = alumno["id"]
+        alumno_nombre = alumno["nombre"]
+
+        # Criterios por SDA
+        cur.execute("""
+            SELECT a.nombre as area, s.nombre as sda, c.codigo, c.descripcion, e.nota, a.tipo_escala
+            FROM evaluaciones e
+            JOIN sda s ON e.sda_id = s.id
+            JOIN areas a ON e.area_id = a.id
+            JOIN criterios c ON e.criterio_id = c.id
+            WHERE e.alumno_id = ? AND e.trimestre = ?
+            ORDER BY a.nombre, s.nombre, c.codigo
+        """, (alumno_id, trimestre))
+        rows_sda = cur.fetchall()
+
+        # Criterios directos
+        cur.execute("""
+            SELECT a.nombre as area, 'Evaluación Directa' as sda, c.codigo, c.descripcion, ec.nota, a.tipo_escala
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            JOIN areas a ON c.area_id = a.id
+            WHERE ec.alumno_id = ? AND ec.periodo = ?
+            ORDER BY a.nombre, c.codigo
+        """, (alumno_id, periodo))
+        rows_dir = cur.fetchall()
+
+        all_rows = list(rows_sda) + list(rows_dir)
+
+        # Nombre de pestaña — máx 31 caracteres, sin caracteres inválidos
+        sheet_name = alumno_nombre[:28].replace('/', '-').replace('\\', '-').replace('*', '').replace('?', '').replace('[', '').replace(']', '').replace(':', '')
+        ws = wb.create_sheet(title=sheet_name)
+
+        # Título
+        ws.merge_cells("A1:F1")
+        ws["A1"] = f"{alumno_nombre} — {trimestre}º Trimestre"
+        ws["A1"].font = Font(bold=True, size=12)
+        ws["A1"].alignment = center
+
+        # Cabecera
+        headers = ["Área", "SDA / Modalidad", "Código", "Descripción", "Nota (1-10)", "Escala"]
+        for col, h in enumerate(headers, 1):
+            cell = ws.cell(row=2, column=col, value=h)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = center
+            cell.border = border
+
+        if not all_rows:
+            ws.merge_cells("A3:F3")
+            ws["A3"] = "Sin evaluaciones registradas para este trimestre"
+            ws["A3"].alignment = center
+        else:
+            current_area = None
+            row_num = 3
+            for r in all_rows:
+                area = r["area"]
+                if area != current_area:
+                    ws.merge_cells(f"A{row_num}:F{row_num}")
+                    cell = ws.cell(row=row_num, column=1, value=f"  {area}")
+                    cell.font = area_font
+                    cell.fill = area_fill
+                    cell.border = border
+                    row_num += 1
+                    current_area = area
+
+                nota = r["nota"]
+                escala = r["tipo_escala"]
+
+                if escala == "INFANTIL_NI_EP_C":
+                    n = round(nota) if nota <= 3 else (1 if nota <= 3.5 else (2 if nota <= 6.5 else 3))
+                    nota_display = {1: 1, 2: 5, 3: 10}.get(n, nota)
+                    escala_txt = {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
+                    color = "FADADD" if n == 1 else "FFF3CD" if n == 2 else "D5F5E3"
+                else:
+                    nota_display = round(nota, 2) if nota is not None else None
+                    escala_txt = "1-10"
+                    color = "FADADD" if nota and nota < 5 else "FFF3CD" if nota and nota < 7 else "D5F5E3"
+
+                ws.cell(row=row_num, column=1, value="").border = border
+                ws.cell(row=row_num, column=2, value=r["sda"]).border = border
+                ws.cell(row=row_num, column=3, value=r["codigo"]).border = border
+                ws.cell(row=row_num, column=4, value=r["descripcion"]).border = border
+                nota_cell = ws.cell(row=row_num, column=5, value=nota_display)
+                nota_cell.border = border
+                nota_cell.alignment = center
+                if nota_display is not None:
+                    nota_cell.fill = PatternFill("solid", fgColor=color)
+                ws.cell(row=row_num, column=6, value=escala_txt).border = border
+                row_num += 1
+
+        ws.column_dimensions["A"].width = 22
+        ws.column_dimensions["B"].width = 22
+        ws.column_dimensions["C"].width = 12
+        ws.column_dimensions["D"].width = 45
+        ws.column_dimensions["E"].width = 12
+        ws.column_dimensions["F"].width = 10
+
+    # Guardar en carpeta persistente
+    from utils.db import get_app_data_dir
+    save_dir = os.path.join(get_app_data_dir(), "notas_criterios_excel")
+    os.makedirs(save_dir, exist_ok=True)
+
+    safe_grupo = grupo_nombre.replace(' ', '_').replace('/', '-')
+    filename = f"Notas_Clase_{safe_grupo}_T{trimestre}_{date.today().strftime('%Y%m%d')}.xlsx"
+    filepath = os.path.join(save_dir, filename)
+    wb.save(filepath)
+
+    # También devolver para descarga directa
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
 @informes_bp.route("/api/informe/grupo_obs_delete", methods=["POST"])
 def grupo_obs_delete():
     data = request.json or {}

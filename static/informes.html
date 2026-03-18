@@ -325,20 +325,7 @@
                         <p style="color: #666; font-style: italic;">Selecciona un trimestre del historial para cargar los docentes.</p>
                     </div>
                 </div>
-                <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-                    <button onclick="guardarGrupoObs()"
-                        style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">💾
-                        Guardar Datos del Grupo</button>
-                    <span id="mensajeGuardadoGrupo"
-                        style="margin-left: 10px; color: #28a745; font-weight: bold; display: none;">✓
-                        Guardado</span>
-                    <div style="display:flex; gap:8px; align-items:center; margin-left:auto; flex-wrap:wrap;">
-                        <input type="time" id="actaHora" style="padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="Hora reunión">
-                        <input type="date" id="actaFecha" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
-                        <button onclick="generarActaOficial()"
-                            style="padding: 12px 20px; background: #8B0000; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📄
-                            Generar Acta Oficial</button>
-                    </div>
+                <div id="barraAcciones" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
                 </div>
             </div>
         </div>
@@ -659,10 +646,9 @@
                     body: JSON.stringify({ trimestre: trimestre, observaciones: obs, propuestas_mejora: prop, conclusion: conc, equipo_docente: eqDoc })
                 }).then(r => r.json()).then(data => {
                     if (data.ok) {
-                        const mensaje = document.getElementById("mensajeGuardadoGrupo");
-                        mensaje.style.display = "inline";
-                        setTimeout(() => mensaje.style.display = "none", 2000);
-                        loadHistoryDashboard(); // Reload history to update status
+                        loadHistoryDashboard();
+                        // Volver a modo lectura tras guardar
+                        setTimeout(() => verTrimestre(parseInt(trimestre)), 300);
                     }
                 });
             }
@@ -684,8 +670,10 @@
             }
             function generarActaOficial() {
                 const tutor = document.getElementById("tutorName")?.value || "";
-                const hora = document.getElementById("actaHora").value;
-                const fecha = document.getElementById("actaFecha").value;
+                const horaEl = document.getElementById("actaHora");
+                const fechaEl = document.getElementById("actaFecha");
+                const hora = horaEl ? horaEl.value : "";
+                const fecha = fechaEl ? fechaEl.value : "";
                 const t = document.getElementById("trimestreGrupo").value;
                 const params = new URLSearchParams({ trimestre: t, tutor, hora, fecha });
                 window.location.href = `/api/informe/acta_oficial?${params}`;
@@ -800,31 +788,35 @@
                     data.forEach(item => {
                         const statusClass = item.exists ? "status-completed" : "status-pending";
                         const statusText = item.exists ? "✅ Completado" : "⏳ Pendiente";
-                        const actionBtn = item.exists ? 
-                            `<button onclick="setTrimester(${item.trimestre}, true)" style="padding:6px 12px; background:var(--primary); color:white; border:none; border-radius:4px; cursor:pointer;">✏️ Editar</button>` :
-                            `<button onclick="setTrimester(${item.trimestre}, false)" style="padding:6px 12px; background:var(--secondary); color:white; border:none; border-radius:4px; cursor:pointer;">➕ Crear</button>`;
-                        const printBtn = item.exists ? 
-                            `<button onclick="descargarInformeGrupoModal(${item.trimestre})" style="padding:6px 12px; background:#17a2b8; color:white; border:none; border-radius:4px; cursor:pointer;">🖨️ PDF</button>
-                             <button onclick="descargarExcelGrupoModal(${item.trimestre})" style="padding:6px 12px; background:#1D6F42; color:white; border:none; border-radius:4px; cursor:pointer;">📊 Excel</button>` : "";
-                        
-                        const deleteBtn = item.exists ?
-                            `<button onclick="eliminarInformeGrupo(${item.trimestre})" style="padding:6px 12px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;" title="Eliminar informe">🗑️</button>` : "";
 
-                        html += `
-                            <div class="history-card">
-                                <div class="history-card-info">
-                                    <h4>${item.trimestre}º Trimestre</h4>
-                                    <span class="status-badge ${statusClass}">${statusText}</span>
-                                </div>
-                                <div class="history-card-actions">
-                                    <div class="history-card-actions-row">
-                                        ${actionBtn}
-                                        ${printBtn}
+                        if (item.exists) {
+                            html += `
+                                <div class="history-card" onclick="verTrimestre(${item.trimestre})" style="cursor:pointer;">
+                                    <div class="history-card-info">
+                                        <h4>${item.trimestre}º Trimestre</h4>
+                                        <span class="status-badge ${statusClass}">${statusText}</span>
                                     </div>
-                                    ${deleteBtn ? `<div class="history-card-actions-row">${deleteBtn}</div>` : ""}
-                                </div>
-                            </div>
-                        `;
+                                    <div class="history-card-actions">
+                                        <div class="history-card-actions-row">
+                                            <button onclick="event.stopPropagation(); eliminarInformeGrupo(${item.trimestre})" 
+                                                style="padding:6px 10px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;" title="Eliminar">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        } else {
+                            html += `
+                                <div class="history-card" onclick="crearTrimestre(${item.trimestre})" style="cursor:pointer; opacity:0.7;">
+                                    <div class="history-card-info">
+                                        <h4>${item.trimestre}º Trimestre</h4>
+                                        <span class="status-badge ${statusClass}">${statusText}</span>
+                                    </div>
+                                    <div class="history-card-actions">
+                                        <div class="history-card-actions-row">
+                                            <span style="font-size:0.8rem; color:#888;">Clic para crear</span>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        }
                     });
                     historyList.innerHTML = html;
                 } catch (e) {
@@ -832,22 +824,64 @@
                 }
             }
 
-            function setTrimester(t, exists) {
+            let _modoEdicion = false;
+
+            function _mostrarFormulario(t, modoEdicion, esNuevo) {
+                _modoEdicion = modoEdicion;
                 document.getElementById("trimestreGrupo").value = t;
-                // Mostrar formulario con título
                 const container = document.getElementById("formGrupoContainer");
                 container.style.display = "flex";
-                document.getElementById("formGrupoTitle").textContent = exists 
-                    ? `✏️ Editando informe del ${t}º Trimestre`
-                    : `➕ Nuevo informe del ${t}º Trimestre`;
-                // Si es nuevo, limpiar campos
-                if (!exists) {
+
+                // Título
+                const titulo = esNuevo
+                    ? `➕ Nuevo informe — ${t}º Trimestre`
+                    : modoEdicion
+                        ? `✏️ Editando — ${t}º Trimestre`
+                        : `📄 ${t}º Trimestre`;
+                document.getElementById("formGrupoTitle").textContent = titulo;
+
+                // Habilitar/deshabilitar campos
+                const campos = ["grupoObservaciones", "grupoPropuestas", "grupoConclusion"];
+                campos.forEach(id => {
+                    document.getElementById(id).disabled = !modoEdicion;
+                    document.getElementById(id).style.background = modoEdicion ? "white" : "#f8f9fa";
+                });
+                document.querySelectorAll(".docente-checkbox").forEach(cb => cb.disabled = !modoEdicion);
+                document.querySelector("[onclick*='toggleAllDocentes']")?.parentElement.querySelectorAll("button").forEach(b => b.style.display = modoEdicion ? "" : "none");
+
+                // Barra de botones
+                const barraAcciones = document.getElementById("barraAcciones");
+                if (modoEdicion || esNuevo) {
+                    barraAcciones.innerHTML = `
+                        <button onclick="guardarGrupoObs()" style="padding:10px 20px; background:#007bff; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">💾 Guardar</button>
+                        <span id="mensajeGuardadoGrupo" style="color:#28a745; font-weight:bold; display:none;">✓ Guardado</span>
+                        ${!esNuevo ? `<button onclick="verTrimestre(${t})" style="padding:10px 16px; background:#6c757d; color:white; border:none; border-radius:6px; cursor:pointer;">✕ Cancelar</button>` : ""}
+                    `;
+                } else {
+                    barraAcciones.innerHTML = `
+                        <button onclick="_mostrarFormulario(${t}, true, false)" style="padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">✏️ Editar</button>
+                        <input type="time" id="actaHora" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+                        <input type="date" id="actaFecha" style="padding:8px; border:1px solid #ccc; border-radius:4px;" value="${new Date().toISOString().split('T')[0]}">
+                        <button onclick="generarActaOficial()" style="padding:10px 18px; background:#8B0000; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">📄 Acta Oficial</button>
+                        <button onclick="generarPDFGrupo()" style="padding:10px 16px; background:#17a2b8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">🖨️ PDF</button>
+                        <button onclick="generarExcelGrupo()" style="padding:10px 16px; background:#1D6F42; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">📊 Excel</button>
+                    `;
+                }
+
+                if (esNuevo) {
                     document.getElementById("grupoObservaciones").value = "";
                     document.getElementById("grupoPropuestas").value = "";
                     document.getElementById("grupoConclusion").value = "";
                 }
                 cargarInformeGrupo();
                 container.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function verTrimestre(t) { _mostrarFormulario(t, false, false); }
+            function crearTrimestre(t) { _mostrarFormulario(t, true, true); }
+            function setTrimester(t, exists) { 
+                if (exists) verTrimestre(t);
+                else crearTrimestre(t);
             }
 
             async function eliminarInformeGrupo(t) {

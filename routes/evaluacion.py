@@ -37,8 +37,10 @@ def resumen_areas_alumno():
         return jsonify([])
     conn = get_db()
     cur = conn.cursor()
+
+    # Medias por área
     cur.execute("""
-        SELECT a.nombre, ROUND(AVG(val.nota), 2) as media, a.tipo_escala
+        SELECT a.id, a.nombre, ROUND(AVG(val.nota), 2) as media, a.tipo_escala
         FROM (
             SELECT area_id, nota FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
             UNION ALL
@@ -51,8 +53,50 @@ def resumen_areas_alumno():
         GROUP BY a.id, a.nombre, a.tipo_escala
         ORDER BY a.nombre
     """, (alumno_id, trimestre, alumno_id, periodo))
-    rows = cur.fetchall()
-    return jsonify([{"area": r["nombre"], "media": r["media"], "tipo_escala": r["tipo_escala"]} for r in rows])
+    areas = cur.fetchall()
+
+    result = []
+    for area in areas:
+        # Criterios de esta área (por SDA)
+        cur.execute("""
+            SELECT c.codigo, c.descripcion, ROUND(AVG(e.nota), 2) as nota
+            FROM evaluaciones e
+            JOIN criterios c ON e.criterio_id = c.id
+            WHERE e.alumno_id = ? AND e.trimestre = ? AND e.area_id = ?
+            GROUP BY c.id, c.codigo, c.descripcion
+            ORDER BY CAST(SUBSTR(c.codigo, INSTR(c.codigo,'.')+1) AS INTEGER), c.codigo
+        """, (alumno_id, trimestre, area["id"]))
+        criterios_sda = cur.fetchall()
+
+        # Criterios directos
+        cur.execute("""
+            SELECT c.codigo, c.descripcion, ROUND(AVG(ec.nota), 2) as nota
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            WHERE ec.alumno_id = ? AND ec.periodo = ? AND c.area_id = ?
+            GROUP BY c.id, c.codigo, c.descripcion
+            ORDER BY CAST(SUBSTR(c.codigo, INSTR(c.codigo,'.')+1) AS INTEGER), c.codigo
+        """, (alumno_id, periodo, area["id"]))
+        criterios_dir = cur.fetchall()
+
+        criterios = [{"codigo": r["codigo"], "descripcion": r["descripcion"], "nota": r["nota"]} 
+                     for r in (list(criterios_sda) + list(criterios_dir))]
+        # Deduplicar por código
+        seen = set()
+        criterios_uniq = []
+        for c in criterios:
+            if c["codigo"] not in seen:
+                seen.add(c["codigo"])
+                criterios_uniq.append(c)
+
+        result.append({
+            "area": area["nombre"],
+            "media": area["media"],
+            "tipo_escala": area["tipo_escala"],
+            "criterios": criterios_uniq
+        })
+
+    return jsonify(result)
 
 @evaluacion_bp.route("/resumen_sda_todos")
 def resumen_sda_todos():

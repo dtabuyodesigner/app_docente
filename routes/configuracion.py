@@ -59,6 +59,39 @@ def get_logos():
     })
 
 
+@configuracion_bp.route("/api/configuracion/grupo_rol", methods=["GET"])
+def get_grupo_rol():
+    grupo_id = request.args.get("grupo_id")
+    if not grupo_id:
+        return jsonify({"rol": "tutor", "areas": []})
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT clave, valor FROM config WHERE clave IN (?, ?)",
+                (f"grupo_{grupo_id}_rol", f"grupo_{grupo_id}_areas"))
+    rows = {r["clave"]: r["valor"] for r in cur.fetchall()}
+    rol = rows.get(f"grupo_{grupo_id}_rol", "tutor")
+    areas_str = rows.get(f"grupo_{grupo_id}_areas", "")
+    areas = areas_str.split(",") if areas_str else []
+    return jsonify({"rol": rol, "areas": areas})
+
+
+@configuracion_bp.route("/api/configuracion/grupo_rol", methods=["POST"])
+def save_grupo_rol():
+    data = request.json or {}
+    grupo_id = data.get("grupo_id")
+    rol = data.get("rol", "tutor")
+    areas = data.get("areas", [])
+    if not grupo_id:
+        return jsonify({"ok": False, "error": "Falta grupo_id"}), 400
+    conn = get_db()
+    conn.execute("INSERT INTO config (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor=excluded.valor",
+                 (f"grupo_{grupo_id}_rol", rol))
+    conn.execute("INSERT INTO config (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor=excluded.valor",
+                 (f"grupo_{grupo_id}_areas", ",".join(str(a) for a in areas)))
+    conn.commit()
+    return jsonify({"ok": True})
+
+
 @configuracion_bp.route("/api/configuracion", methods=["GET"])
 def get_all_config():
     conn = get_db()

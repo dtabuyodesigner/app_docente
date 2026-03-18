@@ -554,35 +554,69 @@
                 alert("Error de conexión al borrar.");
             }
         }
+        function toggleRolAreas() {
+            const esEsp = document.getElementById('rolEspecialista').checked;
+            document.getElementById('areasImparteContainer').style.display = esEsp ? 'block' : 'none';
+            document.getElementById('rolTutorLabel').style.borderColor = esEsp ? '#ddd' : 'var(--primary)';
+            document.getElementById('rolEspecialistaLabel').style.borderColor = esEsp ? 'var(--primary)' : '#ddd';
+        }
+
+        async function cargarAreasParaGrupo(grupoId, areasSeleccionadas) {
+            const listDiv = document.getElementById('areasImparteList');
+            try {
+                const res = await fetch('/api/areas');
+                const areas = await res.json();
+                if (!areas.length) { listDiv.innerHTML = '<p style="color:#888; margin:0;">No hay áreas configuradas.</p>'; return; }
+                listDiv.innerHTML = areas.map(a => `
+                    <label style="display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; border-bottom:1px solid #eee;">
+                        <input type="checkbox" class="area-imparte-cb" value="${a.id}" ${areasSeleccionadas.includes(String(a.id)) ? 'checked' : ''}>
+                        <span>${a.nombre}</span>
+                    </label>
+                `).join('');
+            } catch(e) {
+                listDiv.innerHTML = '<p style="color:red; margin:0;">Error cargando áreas.</p>';
+            }
+        }
+
         function preRenombrarGrupo(id, nombre) {
             document.getElementById('renameGroupId').value = id;
             document.getElementById('renombrarGrupoModal').style.display = 'flex';
             const g = gruposCacheConfig.find(x => x.id === id);
             if(g) {
                 document.getElementById('renameGroupEquipoDocente').value = g.equipo_docente || "";
-                // Auto-seleccionar etapa
-                if (g.curso) {
-                    document.getElementById('renameGroupStage').value = g.curso;
-                }
-                // Deducir línea a partir del nombre (ej: "1º Primaria A" -> "A")
+                if (g.curso) document.getElementById('renameGroupStage').value = g.curso;
                 const lineas = ["A", "B", "C", "D"];
                 let linea_detectada = "";
                 for (let l of lineas) {
-                    if (g.nombre.endsWith(" " + l)) {
-                        linea_detectada = l;
-                        break;
-                    }
+                    if (g.nombre.endsWith(" " + l)) { linea_detectada = l; break; }
                 }
                 document.getElementById('renameGroupLine').value = linea_detectada;
             } else {
                 document.getElementById('renameGroupEquipoDocente').value = "";
             }
+            // Cargar rol y áreas desde config
+            fetch(`/api/configuracion/grupo_rol?grupo_id=${id}`)
+                .then(r => r.json())
+                .then(d => {
+                    const rol = d.rol || 'tutor';
+                    const areas = d.areas || [];
+                    document.getElementById(rol === 'tutor' ? 'rolTutor' : 'rolEspecialista').checked = true;
+                    toggleRolAreas();
+                    cargarAreasParaGrupo(id, areas);
+                })
+                .catch(() => {
+                    document.getElementById('rolTutor').checked = true;
+                    toggleRolAreas();
+                    cargarAreasParaGrupo(id, []);
+                });
         }
         async function ejecutarRenombrarGrupo() {
             const id = document.getElementById('renameGroupId').value;
             const stage = document.getElementById('renameGroupStage').value;
             const line = document.getElementById('renameGroupLine').value;
             const eqDoc = document.getElementById('renameGroupEquipoDocente').value;
+            const rol = document.querySelector('input[name="rolGrupo"]:checked')?.value || 'tutor';
+            const areasChecked = Array.from(document.querySelectorAll('.area-imparte-cb:checked')).map(cb => cb.value);
             
             if (!confirm(`¿Confirmas el cambio de nombre/etapa para este grupo?`)) return;
             
@@ -590,15 +624,14 @@
                 const csrf = await getCsrfTokenManual();
                 const res = await fetch(`/api/grupos/${id}`, {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrf 
-                    },
-                    body: JSON.stringify({ 
-                        curso: stage,
-                        linea: line,
-                        equipo_docente: eqDoc
-                    })
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+                    body: JSON.stringify({ curso: stage, linea: line, equipo_docente: eqDoc })
+                });
+                // Guardar rol y áreas
+                await fetch('/api/configuracion/grupo_rol', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+                    body: JSON.stringify({ grupo_id: id, rol, areas: areasChecked })
                 });
                 if (res.ok) {
                     document.getElementById('renombrarGrupoModal').style.display = 'none';
@@ -932,6 +965,25 @@
                 <div style="margin-bottom: 25px;">
                     <label style="display:block; font-weight:600; margin-bottom:5px;">Equipo Docente (Opcional):</label>
                     <textarea id="renameGroupEquipoDocente" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;" placeholder="Escribe un nombre por línea..."></textarea>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; font-weight:600; margin-bottom:8px;">Tu Rol en este Grupo:</label>
+                    <div style="display:flex; gap:10px;">
+                        <label style="flex:1; display:flex; align-items:center; gap:8px; padding:10px; border:2px solid #ddd; border-radius:8px; cursor:pointer; background:white;" id="rolTutorLabel">
+                            <input type="radio" name="rolGrupo" value="tutor" id="rolTutor" onchange="toggleRolAreas()"> 
+                            <span>🎓 Tutor/a</span>
+                        </label>
+                        <label style="flex:1; display:flex; align-items:center; gap:8px; padding:10px; border:2px solid #ddd; border-radius:8px; cursor:pointer; background:white;" id="rolEspecialistaLabel">
+                            <input type="radio" name="rolGrupo" value="especialista" id="rolEspecialista" onchange="toggleRolAreas()">
+                            <span>📚 Especialista</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="areasImparteContainer" style="margin-bottom:20px; display:none;">
+                    <label style="display:block; font-weight:600; margin-bottom:8px;">Áreas que impartes en este grupo:</label>
+                    <div id="areasImparteList" style="border:1px solid #ddd; border-radius:8px; padding:10px; max-height:180px; overflow-y:auto; background:#fafafa;">
+                        <p style="color:#888; font-style:italic; margin:0;">Cargando áreas...</p>
+                    </div>
                 </div>
                 <button onclick="ejecutarRenombrarGrupo()"
                     style="width:100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">

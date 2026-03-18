@@ -309,6 +309,10 @@
                         <option value="D">Línea D</option>
                     </select>
                 </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="display:block; font-weight:600; margin-bottom:5px;">Equipo Docente (Opcional):</label>
+                    <textarea id="newGroupEquipoDocente" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;" placeholder="Escribe un nombre por línea...&#10;Juan (Mates)&#10;Ana (Inglés)"></textarea>
+                </div>
                 <button onclick="createNewGroup()"
                     style="width:100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">
                     Guardar Grupo
@@ -433,11 +437,13 @@
             document.getElementById('ajustesGruposModal').style.display = 'flex';
             loadGruposAjustes();
         }
+        let gruposCacheConfig = [];
         async function loadGruposAjustes() {
             const listDiv = document.getElementById('ajustesGruposList');
             try {
                 const res = await fetch('/api/grupos');
                 const grupos = await res.json();
+                gruposCacheConfig = grupos;
                 if (grupos.length === 0) {
                     listDiv.innerHTML = '<p style="color: #666; font-style: italic;">No tienes grupos creados aún.</p>';
                     return;
@@ -461,6 +467,7 @@
         async function createNewGroup() {
             const stage = document.getElementById('newGroupStage').value;
             const line = document.getElementById('newGroupLine').value;
+            const eqDoc = document.getElementById('newGroupEquipoDocente').value;
             
             if (!stage) {
                 alert("Por favor, selecciona una etapa.");
@@ -468,12 +475,17 @@
             }
 
             try {
+                const csrf = await getCsrfTokenManual();
                 const res = await fetch('/api/grupos', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrf 
+                    },
                     body: JSON.stringify({ 
                         etapa_curso: stage, 
-                        linea: line 
+                        linea: line,
+                        equipo_docente: eqDoc
                     })
                 });
                 if (res.ok) {
@@ -506,22 +518,47 @@
         function preRenombrarGrupo(id, nombre) {
             document.getElementById('renameGroupId').value = id;
             document.getElementById('renombrarGrupoModal').style.display = 'flex';
-            // No autocompleta los dropdowns por simplicidad, los obliga a elegir la nueva combinación
+            const g = gruposCacheConfig.find(x => x.id === id);
+            if(g) {
+                document.getElementById('renameGroupEquipoDocente').value = g.equipo_docente || "";
+                // Auto-seleccionar etapa
+                if (g.curso) {
+                    document.getElementById('renameGroupStage').value = g.curso;
+                }
+                // Deducir línea a partir del nombre (ej: "1º Primaria A" -> "A")
+                const lineas = ["A", "B", "C", "D"];
+                let linea_detectada = "";
+                for (let l of lineas) {
+                    if (g.nombre.endsWith(" " + l)) {
+                        linea_detectada = l;
+                        break;
+                    }
+                }
+                document.getElementById('renameGroupLine').value = linea_detectada;
+            } else {
+                document.getElementById('renameGroupEquipoDocente').value = "";
+            }
         }
         async function ejecutarRenombrarGrupo() {
             const id = document.getElementById('renameGroupId').value;
             const stage = document.getElementById('renameGroupStage').value;
             const line = document.getElementById('renameGroupLine').value;
+            const eqDoc = document.getElementById('renameGroupEquipoDocente').value;
             
             if (!confirm(`¿Confirmas el cambio de nombre/etapa para este grupo?`)) return;
             
             try {
+                const csrf = await getCsrfTokenManual();
                 const res = await fetch(`/api/grupos/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrf 
+                    },
                     body: JSON.stringify({ 
                         curso: stage,
-                        linea: line
+                        linea: line,
+                        equipo_docente: eqDoc
                     })
                 });
                 if (res.ok) {
@@ -792,6 +829,10 @@
                         <option value="C">Línea C</option>
                         <option value="D">Línea D</option>
                     </select>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="display:block; font-weight:600; margin-bottom:5px;">Equipo Docente (Opcional):</label>
+                    <textarea id="renameGroupEquipoDocente" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;" placeholder="Escribe un nombre por línea..."></textarea>
                 </div>
                 <button onclick="ejecutarRenombrarGrupo()"
                     style="width:100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">

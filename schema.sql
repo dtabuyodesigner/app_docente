@@ -406,3 +406,11 @@ CREATE TABLE IF NOT EXISTS niveles_lectura (
     nombre TEXT NOT NULL UNIQUE,
     descripcion TEXT
 );
+
+-- Diplomas de lectura entregados por alumno
+CREATE TABLE IF NOT EXISTS diplomas_entregados (
+    alumno_id INTEGER PRIMARY KEY,
+    cantidad INTEGER DEFAULT 0,
+    fecha_ultimo DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+);

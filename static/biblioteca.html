@@ -1307,20 +1307,23 @@
                     });
 
                     // --- DIPLOMAS PENDIENTES ---
-                    const conDiploma = data.filter(i => i.diplomas_ganados > 0);
+                    // Pendiente = ganados > entregados
+                    const conDiploma = data.filter(i => i.diplomas_ganados > i.diplomas_entregados);
                     const alertasDiv = document.getElementById('diplomaAlertas');
                     const listaDiv = document.getElementById('diplomaLista');
                     if (conDiploma.length > 0) {
                         alertasDiv.style.display = 'block';
                         listaDiv.innerHTML = conDiploma.map(i => `
-                            <div style="background:white; border:1px solid #f6c90e; border-radius:10px; padding:10px 16px; display:flex; align-items:center; gap:10px; cursor:pointer;"
-                                 onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.total_lecturas}, ${i.diplomas_ganados})">
+                            <div style="background:white; border:1px solid #f6c90e; border-radius:10px; padding:10px 16px; display:flex; align-items:center; gap:10px;">
                                 <span style="font-size:1.5rem;">🎓</span>
-                                <div>
+                                <div style="flex:1;">
                                     <div style="font-weight:700; color:#003366;">${i.nombre}</div>
-                                    <div style="font-size:0.8rem; color:#666;">${i.total_lecturas} libros • ${i.diplomas_ganados} diploma${i.diplomas_ganados > 1 ? 's' : ''}</div>
+                                    <div style="font-size:0.8rem; color:#666;">${i.total_lecturas} libros • ${i.diplomas_ganados - i.diplomas_entregados} diploma${(i.diplomas_ganados - i.diplomas_entregados) > 1 ? 's' : ''} pendiente${(i.diplomas_ganados - i.diplomas_entregados) > 1 ? 's' : ''}</div>
                                 </div>
-                                <span style="margin-left:auto; font-size:0.8rem; background:#f6c90e; padding:3px 8px; border-radius:6px; font-weight:600;">🖨️ Imprimir</span>
+                                <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.total_lecturas}, ${i.diplomas_ganados})"
+                                    style="padding:5px 10px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">🖨️ Imprimir</button>
+                                <button onclick="marcarEntregado(${i.alumno_id})"
+                                    style="padding:5px 10px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">✅ Entregado</button>
                             </div>
                         `).join('');
                     } else {
@@ -1355,16 +1358,34 @@
                                 <div style="font-size:0.75rem; color:#666; margin-top:3px; text-align:center;">${prog}/5</div>
                             </td>
                             <td style="padding:10px 12px; text-align:center;">
-                                ${i.diplomas_ganados > 0 ? `<span style="background:#d4edda; color:#155724; padding:3px 10px; border-radius:8px; font-weight:700;">🎓 ${i.diplomas_ganados}</span>` : '<span style="color:#999;">—</span>'}
+                                ${i.diplomas_ganados > i.diplomas_entregados ? `<span style="background:#d4edda; color:#155724; padding:3px 10px; border-radius:8px; font-weight:700;">🎓 ${i.diplomas_ganados - i.diplomas_entregados} pendiente${(i.diplomas_ganados - i.diplomas_entregados) > 1 ? 's' : ''}</span>` : i.diplomas_ganados > 0 ? '<span style="color:#28a745; font-size:0.85rem;">✅ Todos entregados</span>' : '<span style="color:#999;">—</span>'}
                             </td>
-                            <td style="padding:10px 12px; text-align:center;">
-                                ${i.diplomas_ganados > 0 ? `<button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.total_lecturas}, ${i.diplomas_ganados})" style="padding:5px 12px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">🖨️ Diploma</button>` : ''}
+                            <td style="padding:10px 12px; text-align:center; display:flex; gap:5px; justify-content:center;">
+                                ${i.diplomas_ganados > i.diplomas_entregados ? `
+                                    <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.total_lecturas}, ${i.diplomas_ganados})" style="padding:5px 10px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">🖨️</button>
+                                    <button onclick="marcarEntregado(${i.alumno_id})" style="padding:5px 10px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">✅</button>
+                                ` : ''}
                             </td>
                         </tr>`;
                     });
                     html += '</tbody></table>';
                     tablaDiv.innerHTML = html;
                 });
+        }
+
+        async function marcarEntregado(alumnoId) {
+            const csrf = await getCsrf();
+            const r = await fetch(`/api/lectometro/entregar_diploma/${alumnoId}`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrf }
+            });
+            const d = await r.json();
+            if (d.ok) {
+                showToast('✅ Diploma marcado como entregado');
+                loadRankingChart();
+            } else {
+                alert('Error: ' + d.error);
+            }
         }
 
         function imprimirDiploma(alumnoId, nombre, libros, diplomas) {

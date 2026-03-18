@@ -459,55 +459,65 @@ def estadisticas_lectura():
 @lectura_bp.route("/ranking/lectura", methods=["GET"])
 def ranking_lectura():
     conn = get_db()
+    # Asegurar que existe la tabla
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS diplomas_entregados (
+            alumno_id INTEGER PRIMARY KEY,
+            cantidad INTEGER DEFAULT 0,
+            fecha_ultimo DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )
+    """)
     cur = conn.cursor()
     
     active_group_id = session.get('active_group_id')
-    # Solo contar libros DEVUELTOS (leídos de verdad), no los que están en préstamo
     query = """
-        SELECT a.id as alumno_id, a.nombre, 
-               COUNT(*) as total_lecturas,
-               COUNT(*) % 5 as progreso_actual,
-               (COUNT(*) / 5) as diplomas_ganados
-        FROM prestamos_libros pl
-        JOIN alumnos a ON pl.alumno_id = a.id
-        WHERE pl.estado = 'devuelto'
+        SELECT a.id as alumno_id, a.nombre,
+               COUNT(pl.id) as total_lecturas,
+               COUNT(pl.id) % 5 as progreso_actual,
+               (COUNT(pl.id) / 5) as diplomas_ganados,
+               COALESCE(de.cantidad, 0) as diplomas_entregados
+        FROM alumnos a
+        LEFT JOIN prestamos_libros pl ON pl.alumno_id = a.id AND pl.estado = 'devuelto'
+        LEFT JOIN diplomas_entregados de ON de.alumno_id = a.id
+        WHERE a.deleted_at IS NULL
     """
     params = []
     if active_group_id:
         query += " AND a.grupo_id = ?"
         params.append(active_group_id)
         
-    query += " GROUP BY pl.alumno_id ORDER BY total_lecturas DESC"
+    query += " GROUP BY a.id, a.nombre ORDER BY total_lecturas DESC"
     cur.execute(query, params)
     ranking = [dict(row) for row in cur.fetchall()]
     return jsonify(ranking)
 
 
-@lectura_bp.route("/lectometro/diploma/<int:alumno_id>", methods=["GET"])
-def diploma_alumno(alumno_id):
-    """Devuelve los datos del diploma para un alumno."""
+@lectura_bp.route("/lectometro/entregar_diploma/<int:alumno_id>", methods=["POST"])
+def entregar_diploma(alumno_id):
+    """Marca un diploma como entregado para un alumno."""
     conn = get_db()
-    cur = conn.cursor()
-    
-    cur.execute("SELECT nombre FROM alumnos WHERE id = ?", (alumno_id,))
-    alumno = cur.fetchone()
-    if not alumno:
-        return jsonify({"ok": False, "error": "Alumno no encontrado"}), 404
-    
-    cur.execute("""
-        SELECT COUNT(*) as total
-        FROM prestamos_libros
-        WHERE alumno_id = ? AND estado = 'devuelto'
-    """, (alumno_id,))
-    total = cur.fetchone()["total"]
-    diplomas = total // 5
-    
-    return jsonify({
-        "ok": True,
-        "nombre": alumno["nombre"],
-        "libros_leidos": total,
-        "diplomas_ganados": diplomas
-    })
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS diplomas_entregados (
+            alumno_id INTEGER PRIMARY KEY,
+            cantidad INTEGER DEFAULT 0,
+            fecha_ultimo DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )
+    """)
+    try:
+        conn.execute("""
+            INSERT INTO diplomas_entregados (alumno_id, cantidad, fecha_ultimo)
+            VALUES (?, 1, CURRENT_TIMESTAMP)
+            ON CONFLICT(alumno_id) DO UPDATE SET
+                cantidad = cantidad + 1,
+                fecha_ultimo = CURRENT_TIMESTAMP
+        """, (alumno_id,))
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 # ====================================================

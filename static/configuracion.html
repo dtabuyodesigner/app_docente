@@ -465,8 +465,8 @@
         }
 
         async function applyUpdate(btn) {
-            if (!confirm('¿Confirmas la actualización? La app se reiniciará automáticamente.')) return;
-            btn.innerHTML = '⏳ Actualizando...';
+            if (!confirm('¿Confirmas la actualización? Se descargará el código nuevo y la página se recargará.')) return;
+            btn.innerHTML = '⏳ Descargando actualización...';
             btn.disabled = true;
             try {
                 const csrf = await getCsrfTokenManual();
@@ -476,12 +476,19 @@
                 });
                 const data = await res.json();
                 if (data.ok) {
-                    btn.parentElement.innerHTML = `
-                        <div style="color:#155724;">
-                            ✅ ${data.mensaje}<br>
-                            <small>${data.detalle}</small>
-                        </div>`;
-                    setTimeout(() => location.reload(), 4000);
+                    let secs = 5;
+                    btn.parentElement.innerHTML = `<div id="updateCountdown" style="color:#155724; text-align:center; padding:10px;">
+                        ✅ Actualización aplicada correctamente.<br>
+                        <small style="color:#555;">${data.detalle}</small><br><br>
+                        <b>⚠️ Reinicia la app manualmente para aplicar los cambios.</b><br>
+                        <span style="font-size:0.85rem;">Recargando página en <span id="cdSecs">${secs}</span>s...</span>
+                    </div>`;
+                    const interval = setInterval(() => {
+                        secs--;
+                        const el = document.getElementById('cdSecs');
+                        if (el) el.textContent = secs;
+                        if (secs <= 0) { clearInterval(interval); location.reload(); }
+                    }, 1000);
                 } else {
                     btn.innerHTML = '❌ Error: ' + data.error;
                     btn.disabled = false;

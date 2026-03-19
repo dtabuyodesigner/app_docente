@@ -305,7 +305,7 @@
         <div style="margin-top: 15px;">
             <div style="background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px;">
                 <p style="margin-top: 0; color: #856404;"><b>Limpieza:</b> Elimina de forma definitiva a los alumnos que han sido archivados (borrados). Esta acción no se puede deshacer.</p>
-                <button onclick="limpiarAlumnosBorrados()" style="padding: 10px 15px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🗑️ Limpiar Alumnos Borrados</button>
+                <button onclick="limpiarAlumnosBorrados(this)" style="padding: 10px 15px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🗑️ Limpiar Alumnos Borrados</button>
             </div>
         </div>
     </div>
@@ -499,16 +499,15 @@
             }
         }
 
-        async function limpiarAlumnosBorrados() {
+        async function limpiarAlumnosBorrados(btn) {
             if (!confirm('⚠️ ATENCIÓN: Esta acción eliminará DEFINITIVAMENTE a todos los alumnos que estén marcados como borrados (archivados). No se puede deshacer. ¿Deseas continuar?')) return;
             
             try {
-                const csrfToken = await getCsrfTokenManual();
-                const btn = event.target;
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '⏳ Limpiando...';
                 btn.disabled = true;
-                
+
+                const csrfToken = await getCsrfTokenManual();
                 const res = await fetch('/api/admin/limpiar_alumnos_borrados', { 
                     method: 'POST',
                     headers: { 'X-CSRFToken': csrfToken }

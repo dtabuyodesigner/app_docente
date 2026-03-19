@@ -153,26 +153,22 @@
         }
         .modal-close:hover {
             .cfg-icon-btn {
-            background: rgba(255,255,255,0.15) !important;
-            border: 1px solid rgba(255,255,255,0.3) !important;
-            width: 90px !important;
-            height: 85px !important;
-            min-height: 85px !important;
-            border-radius: 12px !important;
-            font-size: 2rem !important;
-            cursor: pointer !important;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            width: 90px;
+            height: 85px;
+            border-radius: 12px;
+            font-size: 2rem;
+            cursor: pointer;
             transition: all 0.2s;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 5px !important;
-            color: white !important;
-            font-weight: 600 !important;
-            padding: 0 !important;
-            box-sizing: border-box !important;
-            appearance: none !important;
-            -webkit-appearance: none !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: white;
+            font-weight: 600;
+            user-select: none;
         }
         .cfg-icon-btn span.cfg-label {
             font-size: 0.72rem;
@@ -202,17 +198,17 @@
             style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
             <h2 style="color: white; margin: 0 0 12px; text-align: center; font-size: 1rem; opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">⚙️ CONFIGURACIÓN</h2>
             <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 6px;">
-                <button onclick="mostrarSeccion('centro')" class="cfg-icon-btn" title="Centro">🏫<span class="cfg-label">Centro</span></button>
-                <button onclick="mostrarSeccion('grupos')" class="cfg-icon-btn" title="Grupos">👥<span class="cfg-label">Grupos</span></button>
-                <button onclick="mostrarSeccion('logos')" class="cfg-icon-btn" title="Logos">🖼️<span class="cfg-label">Logos</span></button>
-                <button onclick="mostrarSeccion('actualizaciones')" class="cfg-icon-btn" title="Actualizaciones">🔄<span class="cfg-label">Updates</span></button>
-                <button onclick="mostrarSeccion('mantenimiento')" class="cfg-icon-btn" title="Mantenimiento">🗄️<span class="cfg-label">Manten.</span></button>
+                <div onclick="mostrarSeccion('centro')" class="cfg-icon-btn" title="Centro" role="button">🏫<span class="cfg-label">Centro</span></div>
+                <div onclick="mostrarSeccion('grupos')" class="cfg-icon-btn" title="Grupos" role="button">👥<span class="cfg-label">Grupos</span></div>
+                <div onclick="mostrarSeccion('logos')" class="cfg-icon-btn" title="Logos" role="button">🖼️<span class="cfg-label">Logos</span></div>
+                <div onclick="mostrarSeccion('actualizaciones')" class="cfg-icon-btn" title="Actualizaciones" role="button">🔄<span class="cfg-label">Updates</span></div>
+                <div onclick="mostrarSeccion('mantenimiento')" class="cfg-icon-btn" title="Mantenimiento" role="button">🗄️<span class="cfg-label">Manten.</span></div>
                 <div class="cfg-separator"></div>
-                <button onclick="window.location='/usuarios'" class="cfg-icon-btn" title="Usuarios">👤<span class="cfg-label">Usuarios</span></button>
-                <button onclick="window.location='/areas'" class="cfg-icon-btn" title="Áreas">🏗️<span class="cfg-label">Áreas</span></button>
-                <button onclick="window.location='/evaluacion#crit-pane'" class="cfg-icon-btn" title="Criterios">📌<span class="cfg-label">Criterios</span></button>
-                <button onclick="abrirMiCuenta()" class="cfg-icon-btn" title="Mi Cuenta">🔐<span class="cfg-label">Cuenta</span></button>
-                <button onclick="openBackups()" class="cfg-icon-btn" title="Backups">💾<span class="cfg-label">Backups</span></button>
+                <div onclick="window.location='/usuarios'" class="cfg-icon-btn" title="Usuarios" role="button">👤<span class="cfg-label">Usuarios</span></div>
+                <div onclick="window.location='/areas'" class="cfg-icon-btn" title="Áreas" role="button">🏗️<span class="cfg-label">Áreas</span></div>
+                <div onclick="window.location='/evaluacion#crit-pane'" class="cfg-icon-btn" title="Criterios" role="button">📌<span class="cfg-label">Criterios</span></div>
+                <div onclick="abrirMiCuenta()" class="cfg-icon-btn" title="Mi Cuenta" role="button">🔐<span class="cfg-label">Cuenta</span></div>
+                <div onclick="openBackups()" class="cfg-icon-btn" title="Backups" role="button">💾<span class="cfg-label">Backups</span></div>
             </div>
         </div>
     </div>

@@ -309,7 +309,7 @@ def informe_pdf_individual():
     # Structure: Area (avg) → SDA 1 → Criterio 1, Criterio 2... → SDA 2 → ...
     
     area_sda_map = {}  # {area_name: {sda_name: [(criterio, desc, nota, escala), ...]}}
-    for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
+    for area, area_id_r, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
         if area not in area_sda_map:
             area_sda_map[area] = {}
         if sda not in area_sda_map[area]:
@@ -360,11 +360,7 @@ def informe_pdf_individual():
     # 6. Observaciones Pedagógicas (Nuevo)
     elements.append(Paragraph("Observaciones Pedagógicas", styles['Heading3']))
     comentarios_por_area = {}
-    for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
-        if nivel:
-            comment = ""
-            if nivel == 1: comment = f"• <b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
-            elif nivel == 2: comment = f"• <b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
+    for area, area_id_r, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
             elif nivel == 3: comment = f"• <b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
             elif nivel == 4: comment = f"• <b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
             

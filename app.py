@@ -31,6 +31,9 @@ if HAS_SWAGGER:
 from utils.db import init_db_if_not_exists, get_db_path
 init_db_if_not_exists()
 
+from utils.db import run_migrations
+run_migrations()
+
 # Tareas de blindaje técnico (Integridad y Backup)
 from utils.backup import run_startup_tasks
 run_startup_tasks()
@@ -99,8 +102,7 @@ app.teardown_appcontext(close_db)
 
 csrf = CSRFProtect()
 csrf.init_app(app)
-csrf.exempt(curricular_bp)
-csrf.exempt(configuracion_bp) 
+csrf.exempt(curricular_bp) 
 
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
@@ -119,12 +121,6 @@ def serve_sw():
     response.headers['Cache-Control'] = 'no-cache'
     return response
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    from utils.db import get_app_data_dir
-    uploads_dir = os.path.join(get_app_data_dir(), "uploads")
-    return send_file(os.path.join(uploads_dir, filename))
-
 @app.route('/manifest.json')
 def serve_manifest():
     """Sirve el manifest PWA desde la raíz."""
@@ -138,7 +134,6 @@ def serve_manifest():
 def require_auth():
     # Allow static files and the login/logout routes
     if (request.path.startswith('/static/') or 
-        request.path.startswith('/uploads/') or
         (HAS_SWAGGER and (
             request.path.startswith('/apidocs/') or
             request.path.startswith('/flasgger_static/') or

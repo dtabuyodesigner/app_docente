@@ -39,6 +39,89 @@ if os.path.exists(_LEGACY_DB) and not os.path.exists(_NEW_DB):
 def get_db_path():
     return os.environ.get("DATABASE_PATH", _NEW_DB if os.path.exists(_NEW_DB) or not os.path.exists(_LEGACY_DB) else _LEGACY_DB)
 
+def run_migrations():
+    """Aplica migraciones automáticas para BDs antiguas."""
+    path = get_db_path()
+    if not os.path.exists(path):
+        return
+    
+    conn = sqlite3.connect(path)
+    migrated = []
+
+    migrations = [
+        # Columnas faltantes
+        ("ALTER TABLE gestor_tareas ADD COLUMN completado INTEGER DEFAULT 0", "gestor_tareas.completado"),
+        ("ALTER TABLE programacion_diaria ADD COLUMN completado INTEGER DEFAULT 0", "programacion_diaria.completado"),
+        ("ALTER TABLE etapas ADD COLUMN activa INTEGER DEFAULT 1", "etapas.activa"),
+        ("ALTER TABLE informe_grupo ADD COLUMN grupo_id INTEGER", "informe_grupo.grupo_id"),
+        ("ALTER TABLE alumnos ADD COLUMN deleted_at DATETIME", "alumnos.deleted_at"),
+        ("ALTER TABLE alumnos ADD COLUMN tiene_ayuda_material INTEGER DEFAULT 0", "alumnos.tiene_ayuda_material"),
+        ("ALTER TABLE grupos ADD COLUMN equipo_docente TEXT", "grupos.equipo_docente"),
+        # Tabla diplomas_entregados
+        ("""CREATE TABLE IF NOT EXISTS diplomas_entregados (
+            alumno_id INTEGER PRIMARY KEY,
+            cantidad INTEGER DEFAULT 0,
+            fecha_ultimo DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )""", "tabla diplomas_entregados"),
+    ]
+
+    for sql, name in migrations:
+        try:
+            conn.execute(sql)
+            conn.commit()
+            migrated.append(name)
+        except Exception:
+            pass  # Ya existe o no aplica
+
+    # Datos iniciales obligatorios
+    try:
+        conn.execute("INSERT OR IGNORE INTO etapas (id, nombre, activa) VALUES (1, 'Infantil', 1)")
+        conn.execute("INSERT OR IGNORE INTO etapas (id, nombre, activa) VALUES (2, 'Primaria', 1)")
+        conn.execute("INSERT OR IGNORE INTO etapas (id, nombre, activa) VALUES (3, 'Secundaria', 1)")
+        conn.commit()
+    except Exception:
+        pass
+
+    # Áreas por defecto si no hay ninguna
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM areas")
+        count = cur.fetchone()[0]
+        if count == 0:
+            areas_infantil = [
+                ("Conocimiento de sí mismo y autonomía personal", 1, "INFANTIL_NI_EP_C"),
+                ("Conocimiento del entorno", 1, "INFANTIL_NI_EP_C"),
+                ("Lenguajes: Comunicación y representación", 1, "INFANTIL_NI_EP_C"),
+                ("Segunda Lengua Extranjera", 1, "INFANTIL_NI_EP_C"),
+                ("Música", 1, "INFANTIL_NI_EP_C"),
+            ]
+            areas_primaria = [
+                ("Conocimiento del Medio Natural, Social y Cultural", 2, "NUMERICA_1_4"),
+                ("Lengua Castellana y Literatura", 2, "NUMERICA_1_4"),
+                ("Matemáticas", 2, "NUMERICA_1_4"),
+                ("Educación Artística", 2, "NUMERICA_1_4"),
+                ("Educación Física", 2, "NUMERICA_1_4"),
+                ("Segunda Lengua Extranjera", 2, "NUMERICA_1_4"),
+                ("Religión", 2, "NUMERICA_1_4"),
+                ("Atención Educativa", 2, "NUMERICA_1_4"),
+            ]
+            for nombre, etapa_id, escala in areas_infantil + areas_primaria:
+                conn.execute(
+                    "INSERT INTO areas (nombre, etapa_id, tipo_escala, es_oficial, activa) VALUES (?, ?, ?, 1, 1)",
+                    (nombre, etapa_id, escala)
+                )
+            conn.commit()
+            migrated.append("áreas por defecto")
+    except Exception as e:
+        pass
+
+    if migrated:
+        print(f"[Migraciones aplicadas]: {', '.join(migrated)}")
+
+    conn.close()
+
+
 def init_db_if_not_exists():
     """Initializes the SQLite database from schema.sql if it doesn't exist yet."""
     path = get_db_path()
@@ -60,29 +143,11 @@ def init_db_if_not_exists():
             
         conn.commit()
         conn.close()
-        
-    # Migraciones silenciosas
-    try:
-        conn = sqlite3.connect(path)
-        try:
-            conn.execute("ALTER TABLE informe_grupo ADD COLUMN equipo_docente TEXT")
-        except Exception:
-            pass
-        try:
-            conn.execute("ALTER TABLE grupos ADD COLUMN equipo_docente TEXT")
-        except Exception:
-            pass
-        conn.commit()
-        conn.close()
-    except Exception:
-        pass
 
 def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(get_db_path())
         g.db.row_factory = sqlite3.Row  # Access columns by name
-        # Enable foreign keys
-        g.db.execute("PRAGMA foreign_keys = ON;")
     return g.db
 
 def close_db(e=None):

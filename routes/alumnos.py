@@ -193,12 +193,12 @@ def subir_foto_alumno(alumno_id):
         return jsonify({"ok": False, "error": "No selected file"}), 400
 
     if file:
-        from utils.db import get_app_data_dir
         filename = f"alumno_{alumno_id}_{int(datetime.now().timestamp())}.jpg"
-        uploads_dir = os.path.join(get_app_data_dir(), "uploads")
-        filepath = os.path.join(uploads_dir, filename)
+        # Ruta absoluta basada en la ubicación de este archivo
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        filepath = os.path.join(base_dir, "static", "uploads", filename)
         
-        os.makedirs(uploads_dir, exist_ok=True)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         file.save(filepath)
 
         conn = get_db()
@@ -375,12 +375,12 @@ def exportar_alumnos_csv():
     # Generate CSV
     si = io.StringIO()
     cw = csv.writer(si, delimiter=';')
-    cw.writerow(["Nombre", "No Comedor", "Días Comedor", "Fecha Nacimiento", "Dirección", 
+    cw.writerow(["ID", "Nombre", "No Comedor", "Días Comedor", "Fecha Nacimiento", "Dirección", 
                  "Madre", "Tel Madre", "Email Madre", "Padre", "Tel Padre", "Email Padre", "Observaciones"])
     
     for r in rows:
         cw.writerow([
-            r["nombre"], r["no_comedor"], r["comedor_dias"],
+            r["id"], r["nombre"], r["no_comedor"], r["comedor_dias"],
             r["fecha_nacimiento"], r["direccion"], r["madre_nombre"], r["madre_telefono"], r["madre_email"],
             r["padre_nombre"], r["padre_telefono"], r["padre_email"], r["observaciones_generales"]
         ])
@@ -456,10 +456,6 @@ def importar_alumnos_csv():
         for i, row in enumerate(data_rows, start=2):
             if not row or all(c.strip() == '' for c in row):
                 continue
-
-            # Detectar si la primera columna es un ID numérico y saltarla
-            if row[0].strip().isdigit():
-                row = row[1:]
 
             try:
                 def col(idx, default=''):

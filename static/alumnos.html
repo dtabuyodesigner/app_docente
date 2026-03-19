@@ -889,10 +889,10 @@
                     padre_email: document.getElementById("modalPadreEmail").value,
                     personas_autorizadas: document.getElementById("modalAutorizados").value
                 };
-                getCsrfTokenManual().then(csrfToken => {
+                fetch(url, {
                 fetch(url, {
                     method: method,
-                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 })
                     .then(r => r.json())
@@ -936,7 +936,6 @@
                         }
                     })
                     .catch(err => alert("Error de red: " + err));
-                }); // cierre getCsrfTokenManual
             }
             function borrarAlumno(id, nombre) {
                 if (!confirm(`¿Estás SEGURO de que quieres borrar a ${nombre}?\n\n⚠️ ESTA ACCIÓN BORRARÁ TODOS SUS DATOS (Notas, Asistencia, etc) Y NO SE PUEDE DESHACER.`)) {

@@ -59,6 +59,30 @@ def get_logos():
     })
 
 
+@configuracion_bp.route("/api/configuracion/mi_rol", methods=["GET"])
+def get_mi_rol():
+    """Devuelve el rol y áreas del usuario en el grupo activo."""
+    from flask import session
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({"rol": "tutor", "areas": [], "area_nombres": []})
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT clave, valor FROM config WHERE clave IN (?, ?)",
+                (f"grupo_{grupo_id}_rol", f"grupo_{grupo_id}_areas"))
+    rows = {r["clave"]: r["valor"] for r in cur.fetchall()}
+    rol = rows.get(f"grupo_{grupo_id}_rol", "tutor")
+    areas_str = rows.get(f"grupo_{grupo_id}_areas", "")
+    areas = [a for a in areas_str.split(",") if a] if areas_str else []
+    # Obtener nombres de las áreas
+    area_nombres = []
+    if areas:
+        placeholders = ",".join("?" * len(areas))
+        cur.execute(f"SELECT id, nombre FROM areas WHERE id IN ({placeholders})", areas)
+        area_nombres = [{"id": r["id"], "nombre": r["nombre"]} for r in cur.fetchall()]
+    return jsonify({"rol": rol, "areas": areas, "area_nombres": area_nombres})
+
+
 @configuracion_bp.route("/api/configuracion/grupo_rol", methods=["GET"])
 def get_grupo_rol():
     grupo_id = request.args.get("grupo_id")

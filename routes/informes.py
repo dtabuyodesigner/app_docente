@@ -113,6 +113,8 @@ def informe_pdf_individual():
     alumno_id = request.args.get("alumno_id")
     trimestre = request.args.get("trimestre")
     tutor_nombre = request.args.get("tutor", "")
+    area_id_filtro = request.args.get("area_id", "")  # Para especialistas
+    rol = request.args.get("rol", "tutor")  # tutor | especialista
     
     if not alumno_id or not trimestre:
         return "Faltan parámetros", 400
@@ -126,6 +128,14 @@ def informe_pdf_individual():
     if not row_al:
         return "Alumno no encontrado", 404
     alumno = row_al["nombre"]
+    
+    # Nombre del área si es especialista
+    area_nombre_filtro = ""
+    if rol == "especialista" and area_id_filtro:
+        cur.execute("SELECT nombre FROM areas WHERE id = ?", (area_id_filtro,))
+        row_area = cur.fetchone()
+        if row_area:
+            area_nombre_filtro = row_area["nombre"]
     
     # 2. Datos Grupo (para firmas)
     cur.execute("SELECT grupo_id FROM alumnos WHERE id = ?", (alumno_id,))
@@ -153,7 +163,10 @@ def informe_pdf_individual():
     # 4. Notas
     # 3. Notas por Área
     periodo = f"T{trimestre}"
-    cur.execute("""
+    area_filter_sql = "AND a.id = ?" if area_id_filtro else ""
+    area_filter_params = [area_id_filtro] if area_id_filtro else []
+
+    cur.execute(f"""
         SELECT a.id, a.nombre, ROUND(AVG(val.nota), 2) as media, a.tipo_escala
         FROM (
             SELECT area_id, nota FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
@@ -164,13 +177,14 @@ def informe_pdf_individual():
             WHERE ec.alumno_id = ? AND ec.periodo = ?
         ) val
         JOIN areas a ON val.area_id = a.id
+        WHERE 1=1 {area_filter_sql}
         GROUP BY a.id, a.nombre, a.tipo_escala
-    """, (alumno_id, trimestre, alumno_id, periodo))
+    """, (alumno_id, trimestre, alumno_id, periodo) + tuple(area_filter_params))
     notas_area = cur.fetchall()
 
-    # 4. Notas por SDA con Criterios
+    # 4. Notas por SDA con Criterios (sin filtro en SQL, filtramos en Python)
     cur.execute("""
-        SELECT a.nombre as area, s.nombre as sda, c.codigo as criterio_codigo, 
+        SELECT a.nombre as area, a.id as area_id, s.nombre as sda, c.codigo as criterio_codigo, 
                c.descripcion as criterio_desc, e.nota, a.tipo_escala, e.nivel, c.comentario_base
         FROM evaluaciones e
         JOIN sda s ON e.sda_id = s.id
@@ -180,7 +194,7 @@ def informe_pdf_individual():
         
         UNION ALL
         
-        SELECT a.nombre as area, 'Criterios Directos' as sda, c.codigo as criterio_codigo,
+        SELECT a.nombre as area, a.id as area_id, 'Criterios Directos' as sda, c.codigo as criterio_codigo,
                c.descripcion as criterio_desc, ec.nota, a.tipo_escala, ec.nivel, c.comentario_base
         FROM evaluacion_criterios ec
         JOIN criterios c ON ec.criterio_id = c.id
@@ -189,7 +203,12 @@ def informe_pdf_individual():
         
         ORDER BY area, sda, criterio_codigo
     """, (alumno_id, trimestre, alumno_id, periodo))
-    notas_criterios = cur.fetchall()
+    all_criterios = cur.fetchall()
+    # Filtrar por área si es especialista
+    if area_id_filtro:
+        notas_criterios = [r for r in all_criterios if str(r["area_id"]) == str(area_id_filtro)]
+    else:
+        notas_criterios = list(all_criterios)
 
     def format_nota(nota, tipo_escala):
         if nota is None:
@@ -234,7 +253,8 @@ def informe_pdf_individual():
     add_header(elements, styles, f"Informe Trimestral - Trimestre {trimestre}")
     elements.append(Paragraph(f"Alumno: {alumno}", styles['Heading2']))
     if tutor_nombre:
-        elements.append(Paragraph(f"Tutor/a: {tutor_nombre}", styles['Normal']))
+        rol_label = f"Especialista de {area_nombre_filtro}" if rol == "especialista" and area_nombre_filtro else "Especialista" if rol == "especialista" else "Tutor/a"
+        elements.append(Paragraph(f"{rol_label}: {tutor_nombre}", styles['Normal']))
     elements.append(Spacer(1, 12))
     
     # Asistencia
@@ -368,8 +388,9 @@ def informe_pdf_individual():
 
     elements.append(Spacer(1, 40))
     if tutor_nombre:
+        rol_label = f"Especialista de {area_nombre_filtro}" if rol == "especialista" and area_nombre_filtro else "Especialista" if rol == "especialista" else "Tutor/a"
         elements.append(Paragraph(f"Fdo: {tutor_nombre}", styles['Normal']))
-        elements.append(Paragraph("(Tutor/a)", styles['Normal']))
+        elements.append(Paragraph(f"({rol_label})", styles['Normal']))
 
     doc.build(elements)
     buffer.seek(0)

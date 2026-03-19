@@ -188,12 +188,22 @@
                         </select>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:250px;">
-                        <label for="tutorName" style="font-weight:600; color:var(--dark);">Tutor/a del Grupo:</label>
+                        <label for="tutorName" style="font-weight:600; color:var(--dark);">
+                            <span id="rolLabel">Tutor/a del Grupo:</span>
+                            <span id="rolBadge" style="display:none; margin-left:8px; padding:2px 8px; background:#e3f2fd; color:#1565c0; border-radius:10px; font-size:0.75rem; font-weight:700;">ESPECIALISTA</span>
+                        </label>
                         <div style="display:flex; gap:10px;">
                             <input type="text" id="tutorName" placeholder="Escribe tu nombre..." style="flex:1; padding: 10px; border-radius:6px; border:1px solid #ccc;" oninput="document.getElementById('btnGuardarTutor').style.display='inline-block'">
                             <button id="btnGuardarTutor" onclick="localStorage.setItem('tutorName', document.getElementById('tutorName').value); this.style.display='none'; this.nextElementSibling.style.display='inline'; setTimeout(()=>this.nextElementSibling.style.display='none',2000);" style="padding: 10px 15px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; display:none;" title="Guardar tutor">💾 Recordar</button>
                             <span style="display:none; color:#28a745; font-weight:bold; align-self:center;">✓</span>
                         </div>
+                    </div>
+                    <!-- Selector de área para especialista -->
+                    <div id="areaEspecialistaContainer" style="display:none; flex-direction:column; gap:5px; min-width:220px;">
+                        <label style="font-weight:600; color:var(--dark);">Área que impartes:</label>
+                        <select id="areaEspecialistaSelect" style="padding:10px; border-radius:6px; border:1px solid #ccc;">
+                            <option value="">-- Todas las áreas --</option>
+                        </select>
                     </div>
                 </div>
 
@@ -684,7 +694,7 @@
                 window.location.href = `/api/informe/acta_oficial?${params}`;
             }
 
-            // Inicializar Tutor
+            // Inicializar Tutor y Rol
             const storedTutor = localStorage.getItem("tutorName");
             if (storedTutor) {
                 document.getElementById("tutorName").value = storedTutor;
@@ -699,6 +709,29 @@
                         }
                     });
             }
+            // Cargar rol del grupo activo
+            fetch("/api/configuracion/mi_rol")
+                .then(r => r.json())
+                .then(d => {
+                    const esEsp = d.rol === 'especialista';
+                    document.getElementById('rolBadge').style.display = esEsp ? 'inline' : 'none';
+                    document.getElementById('rolLabel').textContent = esEsp ? 'Tu nombre (Especialista):' : 'Tutor/a del Grupo:';
+                    const areaContainer = document.getElementById('areaEspecialistaContainer');
+                    const areaSel = document.getElementById('areaEspecialistaSelect');
+                    if (esEsp && d.area_nombres && d.area_nombres.length > 0) {
+                        areaContainer.style.display = 'flex';
+                        d.area_nombres.forEach(a => {
+                            const opt = document.createElement('option');
+                            opt.value = a.id;
+                            opt.textContent = a.nombre;
+                            areaSel.appendChild(opt);
+                        });
+                        // Auto-seleccionar si solo hay una área
+                        if (d.area_nombres.length === 1) areaSel.value = d.area_nombres[0].id;
+                    }
+                })
+                .catch(() => {});
+
             // Inicializar Fecha hoy
             const today = new Date().toISOString().split('T')[0];
             document.getElementById("fechaInforme").value = today;
@@ -724,7 +757,11 @@
                 const tutor = document.getElementById("tutorName").value;
                 const colegio = document.getElementById("colegioName").value;
                 const fecha = document.getElementById("fechaInforme").value;
-                const url = `/api/informe/pdf_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}&colegio=${encodeURIComponent(colegio)}&fecha_informe=${fecha}`;
+                const areaId = document.getElementById("areaEspecialistaSelect")?.value || "";
+                const rolBadge = document.getElementById("rolBadge");
+                const esEsp = rolBadge && rolBadge.style.display !== 'none';
+                const rol = esEsp ? 'especialista' : 'tutor';
+                const url = `/api/informe/pdf_individual?alumno_id=${alumnoSelect.value}&trimestre=${trimInd.value}&tutor=${encodeURIComponent(tutor)}&colegio=${encodeURIComponent(colegio)}&fecha_informe=${fecha}&area_id=${areaId}&rol=${rol}`;
                 window.location.href = url;
             }
             function generarPDFGeneral() {

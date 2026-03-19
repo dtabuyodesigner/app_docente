@@ -582,12 +582,38 @@
             z-index: 100;
             box-shadow: 0 4px 15px rgba(0,0,0,.2);
         }
+        .hub-cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width:900px) {
+            .books-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            }
+        }
         @media (max-width:600px) {
             .form-grid {
                 grid-template-columns: 1fr;
             }
             .books-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .hub-cards-grid {
+                grid-template-columns: 1fr;
+            }
+            /* Toolbar: buscador ocupa fila completa, selects en dos columnas */
+            .toolbar {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .toolbar .search-input {
+                grid-column: 1 / -1;
+            }
+            .toolbar .view-toggles {
+                grid-column: 1 / -1;
+                justify-content: flex-end;
             }
         }
     </style>
@@ -628,7 +654,7 @@
                 </div>
             </div>
             <!-- Two big hub cards -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="hub-cards-grid">
                 <div onclick="document.getElementById('btnTabCatalogo').click()"
                     style="background:linear-gradient(135deg,#003366,#0055a5);color:white;border-radius:18px;padding:36px 28px;cursor:pointer;text-align:center;transition:transform .2s,box-shadow .2s;box-shadow:0 6px 20px rgba(0,51,102,.25);">
                     <div style="font-size:3rem;margin-bottom:12px;">📖</div>

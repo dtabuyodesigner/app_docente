@@ -25,3 +25,5 @@ dist/
 *.spec
 APP_EVALUAR.zip
 *.zip
+*.db
+*.db.bak

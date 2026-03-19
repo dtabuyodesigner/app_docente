@@ -221,3 +221,18 @@ def apply_update():
         return jsonify({"ok": False, "error": "Timeout — comprueba la conexión a Internet"}), 500
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@admin_bp.route('/api/admin/limpiar_alumnos_borrados', methods=['POST'])
+def limpiar_alumnos_borrados():
+    from utils.db import get_db
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("BEGIN")
+        cur.execute("DELETE FROM alumnos WHERE deleted_at IS NOT NULL")
+        eliminados = cur.rowcount
+        conn.commit()
+        return jsonify({"ok": True, "message": f"Se han eliminado definitivamente {eliminados} alumnos."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": f"Error interno al limpiar alumnos: {str(e)}"}), 500

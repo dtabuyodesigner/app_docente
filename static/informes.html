@@ -332,10 +332,7 @@
                             Final:</strong></label>
                     <div style="display: flex; gap: 10px; align-items: flex-start; margin-top: 5px;">
                         <textarea id="grupoConclusion" rows="4" style="flex-grow: 1; padding: 10px;"
-                            placeholder="Conclusión final del trimestre..."></textarea><button
-                            onclick="sugerirConclusionIA()"
-                            style="padding: 10px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer;"
-                            title="Sugerir con IA">🤖 Sugerir IA</button>
+                            placeholder="Conclusión final del trimestre..."></textarea>
                     </div>
                     <label style="display: block; margin-top: 15px;"><strong>10. Miembros del Equipo Docente (Firmas):</strong><br/>
                     <small style="font-weight: normal; color: #555;">Selecciona los docentes que han asistido (se configuran globalmente en la pestaña Configuración &gt; Grupos).</small></label>
@@ -665,22 +662,6 @@
                         setTimeout(() => verTrimestre(parseInt(trimestre)), 300);
                     }
                 });
-            }
-            function sugerirConclusionIA() {
-                const trimestre = trimGrp.value;
-                fetch(`/api/informe/grupo_data?trimestre=${trimestre}`)
-                    .then(r => r.json())
-                    .then(d => {
-                        const media = d.generales.media_general;
-                        const prom = d.promocion.todo.pct;
-                        let c = `Tras analizar los datos del ${trimestre}º trimestre, se observa un rendimiento global medio de ${media}. `;
-                        if (media >= 7) c += "El grupo muestra una actitud muy positiva y un alto grado de consecución de objetivos. ";
-                        else if (media >= 5) c += "El grupo progresa adecuadamente, aunque existen áreas con margen de mejora. ";
-                        else c += "Se detectan dificultades significativas que requieren un plan de acción conjunto. ";
-                        c += `Un ${prom}% del alumnado ha superado satisfactoriamente todas las áreas. `;
-                        c += "Como conclusión, el grupo muestra una evolución adecuada acorde a su nivel educativo, con aspectos positivos en la implicación y participación.";
-                        document.getElementById("grupoConclusion").value = c;
-                    });
             }
             function generarActaOficial() {
                 const tutor = document.getElementById("tutorName")?.value || "";

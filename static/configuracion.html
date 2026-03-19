@@ -152,7 +152,21 @@
             line-height: 1;
         }
         .modal-close:hover {
-            color: var(--danger);
+            .cfg-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .cfg-btn:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
         }
     </style>
 
@@ -164,53 +178,19 @@
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
         <div class="card"
-            style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
-            <h2
-                style="color: white; border-bottom: 1px solid rgba(255,255,255,0.2); margin-top: 0; text-align: center;">
-                ⚙️ Administración Rápida</h2>
-            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 20px;">
-                <a href="#" onclick="mostrarSeccion('centro'); return false;"
-                    style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.3)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                    <span style="font-size: 2rem;">🏫</span> Centro
-                </a>
-                <a href="#" onclick="mostrarSeccion('grupos'); return false;"
-                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                    <span style="font-size: 2rem;">⚙️</span> Grupos
-                </a>
-                <a href="/usuarios"
-                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                    <span style="font-size: 2rem;">👤</span> Usuarios
-                </a>
-                <a href="/areas"
-                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                    <span style="font-size: 2rem;">🏗️</span> Áreas
-                </a>
-                <a href="/evaluacion#crit-pane"
-                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                    <span style="font-size: 2rem;">📌</span> Criterios
-                </a>
-                <a href="#" onclick="abrirMiCuenta(); return false;"
-                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                    <span style="font-size: 2rem;">🔐</span> Mi Cuenta
-                </a>
-                <a href="#" onclick="openBackups(); return false;"
-                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); padding: 15px; border-radius: 10px; color: white; text-align: center; text-decoration: none; font-weight: bold; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 130px;"
-                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
-                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                    <span style="font-size: 2rem;">💾</span> Backups
-                </a>
+            style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
+            <h2 style="color: white; margin: 0 0 12px; text-align: center; font-size: 1rem; opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">⚙️ CONFIGURACIÓN</h2>
+            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;">
+                <a href="#" onclick="mostrarSeccion('centro'); return false;" class="cfg-btn">🏫 Centro</a>
+                <a href="#" onclick="mostrarSeccion('grupos'); return false;" class="cfg-btn">👥 Grupos</a>
+                <a href="#" onclick="mostrarSeccion('logos'); return false;" class="cfg-btn">🖼️ Logos</a>
+                <a href="#" onclick="mostrarSeccion('actualizaciones'); return false;" class="cfg-btn">🔄 Actualizaciones</a>
+                <a href="#" onclick="mostrarSeccion('mantenimiento'); return false;" class="cfg-btn">🗄️ Mantenimiento</a>
+                <a href="/usuarios" class="cfg-btn">👤 Usuarios</a>
+                <a href="/areas" class="cfg-btn">🏗️ Áreas</a>
+                <a href="/evaluacion#crit-pane" class="cfg-btn">📌 Criterios</a>
+                <a href="#" onclick="abrirMiCuenta(); return false;" class="cfg-btn">🔐 Mi Cuenta</a>
+                <a href="#" onclick="openBackups(); return false;" class="cfg-btn">💾 Backups</a>
             </div>
         </div>
     </div>
@@ -247,55 +227,64 @@
             </div>
             <button class="btn-save" onclick="saveConfig()">💾 Guardar Configuración</button>
             <div id="status" class="status-msg"></div>
+        </div>
+    </div>
 
-            <div class="section-title">Actualizaciones de Software</div>
-            <div class="form-group" style="background: #e9ecef; padding: 15px; border-radius: 8px;">
-                <p style="margin-top: 0; color: #555;">La versión actual de sistema es: <strong id="currentAppVersion">Desconocida</strong></p>
-                <button onclick="checkUpdates()" style="padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🔄 Buscar Actualizaciones</button>
-                <div id="updateStatus" style="margin-top: 15px; display: none; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center;"></div>
-            </div>
-
-            <div class="section-title">Logos para Documentos e Informes</div>
-            <div class="form-group" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">
-                <p style="margin-top:0; color:#555; font-size:0.9rem;">Estos logos aparecerán en las cabeceras de los PDFs e informes generados.</p>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                    <!-- Logo izquierda -->
-                    <div>
-                        <label style="font-weight:600; display:block; margin-bottom:6px;">Logo izquierda:</label>
-                        <div id="logo-izda-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
-                            <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
-                        </div>
-                        <input type="file" id="logo-izda-file" accept="image/*" onchange="previewLogo('izda')" style="width:100%; font-size:0.85rem;">
-                        <label style="font-size:0.85rem; margin-top:6px; display:block;">Posición:
-                            <select id="logo-izda-pos" style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
-                                <option value="left">Izquierda</option>
-                                <option value="center">Centro</option>
-                                <option value="right">Derecha</option>
-                            </select>
-                        </label>
+    <!-- LOGOS -->
+    <div id="logosConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: none;">
+        <h2 style="color: var(--primary);">🖼️ Logos para Documentos e Informes</h2>
+        <div style="margin-top: 15px;">
+            <p style="color:#555; font-size:0.9rem;">Estos logos aparecerán en las cabeceras de los PDFs e informes generados.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                <div>
+                    <label style="font-weight:600; display:block; margin-bottom:6px;">Logo izquierda:</label>
+                    <div id="logo-izda-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
+                        <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
                     </div>
-                    <!-- Logo derecha -->
-                    <div>
-                        <label style="font-weight:600; display:block; margin-bottom:6px;">Logo derecha:</label>
-                        <div id="logo-dcha-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
-                            <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
-                        </div>
-                        <input type="file" id="logo-dcha-file" accept="image/*" onchange="previewLogo('dcha')" style="width:100%; font-size:0.85rem;">
-                        <label style="font-size:0.85rem; margin-top:6px; display:block;">Posición:
-                            <select id="logo-dcha-pos" style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
-                                <option value="right" selected>Derecha</option>
-                                <option value="center">Centro</option>
-                                <option value="left">Izquierda</option>
-                            </select>
-                        </label>
-                    </div>
+                    <input type="file" id="logo-izda-file" accept="image/*" onchange="previewLogo('izda')" style="width:100%; font-size:0.85rem;">
+                    <label style="font-size:0.85rem; margin-top:6px; display:block;">Posición:
+                        <select id="logo-izda-pos" style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
+                            <option value="left">Izquierda</option>
+                            <option value="center">Centro</option>
+                            <option value="right">Derecha</option>
+                        </select>
+                    </label>
                 </div>
-                <button onclick="subirLogos()" style="margin-top:14px; padding:10px 20px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">📤 Guardar Logos</button>
-                <span id="logos-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardado</span>
+                <div>
+                    <label style="font-weight:600; display:block; margin-bottom:6px;">Logo derecha:</label>
+                    <div id="logo-dcha-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
+                        <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
+                    </div>
+                    <input type="file" id="logo-dcha-file" accept="image/*" onchange="previewLogo('dcha')" style="width:100%; font-size:0.85rem;">
+                    <label style="font-size:0.85rem; margin-top:6px; display:block;">Posición:
+                        <select id="logo-dcha-pos" style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
+                            <option value="right" selected>Derecha</option>
+                            <option value="center">Centro</option>
+                            <option value="left">Izquierda</option>
+                        </select>
+                    </label>
+                </div>
             </div>
+            <button onclick="subirLogos()" style="margin-top:14px; padding:10px 20px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">📤 Guardar Logos</button>
+            <span id="logos-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardado</span>
+        </div>
+    </div>
 
-            <div class="section-title">Mantenimiento de Base de Datos</div>
-            <div class="form-group" style="background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px;">
+    <!-- ACTUALIZACIONES -->
+    <div id="actualizacionesConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: none;">
+        <h2 style="color: var(--primary);">🔄 Actualizaciones de Software</h2>
+        <div style="margin-top: 15px;">
+            <p style="color: #555;">La versión actual del sistema es: <strong id="currentAppVersion">Desconocida</strong></p>
+            <button onclick="checkUpdates()" style="padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🔄 Buscar Actualizaciones</button>
+            <div id="updateStatus" style="margin-top: 15px; display: none; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center;"></div>
+        </div>
+    </div>
+
+    <!-- MANTENIMIENTO -->
+    <div id="mantenimientoConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: none;">
+        <h2 style="color: var(--primary);">🗄️ Mantenimiento</h2>
+        <div style="margin-top: 15px;">
+            <div style="background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px;">
                 <p style="margin-top: 0; color: #856404;"><b>Limpieza:</b> Elimina de forma definitiva a los alumnos que han sido archivados (borrados). Esta acción no se puede deshacer.</p>
                 <button onclick="limpiarAlumnosBorrados()" style="padding: 10px 15px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🗑️ Limpiar Alumnos Borrados</button>
             </div>
@@ -734,7 +723,9 @@
             const target = document.getElementById(seccionId + 'ConfigSection');
             if (target) {
                 target.style.display = 'block';
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+            if (seccionId === 'logos') cargarLogosPreviews();
         }
     </script>
 

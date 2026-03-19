@@ -192,39 +192,24 @@
         <div class="card"
             style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
             <h2 style="color: white; margin: 0 0 12px; text-align: center; font-size: 1rem; opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">⚙️ CONFIGURACIÓN</h2>
-            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 10px;">
-                <div onclick="mostrarSeccion('centro')" class="cfg-card">
-                    <span style="font-size:1.8rem;">🏫</span><span class="cfg-card-label">Centro</span>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                <div style="display:flex; justify-content:center; gap:12px;">
+                    <div onclick="mostrarSeccion('centro')" class="cfg-card"><span style="font-size:1.8rem;">🏫</span><span class="cfg-card-label">Centro</span></div>
+                    <div onclick="mostrarSeccion('grupos')" class="cfg-card"><span style="font-size:1.8rem;">👥</span><span class="cfg-card-label">Grupos</span></div>
+                    <div onclick="mostrarSeccion('logos')" class="cfg-card"><span style="font-size:1.8rem;">🖼️</span><span class="cfg-card-label">Logos</span></div>
+                    <div onclick="mostrarSeccion('actualizaciones')" class="cfg-card"><span style="font-size:1.8rem;">🔄</span><span class="cfg-card-label">Actualizaciones</span></div>
+                    <div onclick="mostrarSeccion('mantenimiento')" class="cfg-card"><span style="font-size:1.8rem;">🗄️</span><span class="cfg-card-label">Mantenimiento</span></div>
                 </div>
-                <div onclick="mostrarSeccion('grupos')" class="cfg-card">
-                    <span style="font-size:1.8rem;">👥</span><span class="cfg-card-label">Grupos</span>
-                </div>
-                <div onclick="mostrarSeccion('logos')" class="cfg-card">
-                    <span style="font-size:1.8rem;">🖼️</span><span class="cfg-card-label">Logos</span>
-                </div>
-                <div onclick="mostrarSeccion('actualizaciones')" class="cfg-card">
-                    <span style="font-size:1.8rem;">🔄</span><span class="cfg-card-label">Actualizaciones</span>
-                </div>
-                <div onclick="mostrarSeccion('mantenimiento')" class="cfg-card">
-                    <span style="font-size:1.8rem;">🗄️</span><span class="cfg-card-label">Mantenimiento</span>
-                </div>
-                <div onclick="window.location='/usuarios'" class="cfg-card">
-                    <span style="font-size:1.8rem;">👤</span><span class="cfg-card-label">Usuarios</span>
-                </div>
-                <div onclick="window.location='/areas'" class="cfg-card">
-                    <span style="font-size:1.8rem;">🏗️</span><span class="cfg-card-label">Áreas</span>
-                </div>
-                <div onclick="window.location='/evaluacion#crit-pane'" class="cfg-card">
-                    <span style="font-size:1.8rem;">📌</span><span class="cfg-card-label">Criterios</span>
-                </div>
-                <div onclick="abrirMiCuenta()" class="cfg-card">
-                    <span style="font-size:1.8rem;">🔐</span><span class="cfg-card-label">Mi Cuenta</span>
-                </div>
-                <div onclick="openBackups()" class="cfg-card">
-                    <span style="font-size:1.8rem;">💾</span><span class="cfg-card-label">Backups</span>
+                <div style="display:flex; justify-content:center; gap:12px;">
+                    <div onclick="window.location='/usuarios'" class="cfg-card"><span style="font-size:1.8rem;">👤</span><span class="cfg-card-label">Usuarios</span></div>
+                    <div onclick="window.location='/areas'" class="cfg-card"><span style="font-size:1.8rem;">🏗️</span><span class="cfg-card-label">Áreas</span></div>
+                    <div onclick="window.location='/evaluacion#crit-pane'" class="cfg-card"><span style="font-size:1.8rem;">📌</span><span class="cfg-card-label">Criterios</span></div>
+                    <div onclick="abrirMiCuenta()" class="cfg-card"><span style="font-size:1.8rem;">🔐</span><span class="cfg-card-label">Mi Cuenta</span></div>
+                    <div onclick="openBackups()" class="cfg-card"><span style="font-size:1.8rem;">💾</span><span class="cfg-card-label">Backups</span></div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
     </div>
     </div>

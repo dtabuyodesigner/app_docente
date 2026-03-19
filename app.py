@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, session, send_file
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file, send_from_directory
 try:
     from flasgger import Swagger
     HAS_SWAGGER = True
@@ -107,6 +107,13 @@ csrf.exempt(curricular_bp)
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
     return {"ok": True, "csrf_token": generate_csrf()}
+
+@app.route('/uploads/<path:filename>')
+def serve_uploads(filename):
+    """Sirve archivos desde la carpeta de datos del usuario (fotos, logos, etc.)"""
+    from utils.db import get_app_data_dir
+    uploads_dir = os.path.join(get_app_data_dir(), "uploads")
+    return send_from_directory(uploads_dir, filename)
 
 # Nota: El endpoint /api/admin/backup se ha movido a routes/admin.py
 

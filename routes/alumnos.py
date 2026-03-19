@@ -158,6 +158,50 @@ def editar_alumno_info(alumno_id):
             SET nombre = ?, no_comedor = ?, comedor_dias = ?
             WHERE id = ?
         """, (nombre, no_comedor, comedor_dias, alumno_id))
+
+        # Actualizar o insertar ficha_alumno
+        cur.execute("SELECT alumno_id FROM ficha_alumno WHERE alumno_id = ?", (alumno_id,))
+        if cur.fetchone():
+            cur.execute("""
+                UPDATE ficha_alumno SET
+                    fecha_nacimiento = ?, direccion = ?,
+                    madre_nombre = ?, madre_telefono = ?, madre_email = ?,
+                    padre_nombre = ?, padre_telefono = ?, padre_email = ?,
+                    personas_autorizadas = ?
+                WHERE alumno_id = ?
+            """, (
+                d.get("fecha_nacimiento", ""),
+                sanitize_input(d.get("direccion", "")),
+                sanitize_input(d.get("madre_nombre", "")),
+                d.get("madre_telefono", ""),
+                d.get("madre_email", ""),
+                sanitize_input(d.get("padre_nombre", "")),
+                d.get("padre_telefono", ""),
+                d.get("padre_email", ""),
+                d.get("personas_autorizadas", ""),
+                alumno_id
+            ))
+        else:
+            cur.execute("""
+                INSERT INTO ficha_alumno
+                    (alumno_id, fecha_nacimiento, direccion,
+                     madre_nombre, madre_telefono, madre_email,
+                     padre_nombre, padre_telefono, padre_email,
+                     personas_autorizadas)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                alumno_id,
+                d.get("fecha_nacimiento", ""),
+                sanitize_input(d.get("direccion", "")),
+                sanitize_input(d.get("madre_nombre", "")),
+                d.get("madre_telefono", ""),
+                d.get("madre_email", ""),
+                sanitize_input(d.get("padre_nombre", "")),
+                d.get("padre_telefono", ""),
+                d.get("padre_email", ""),
+                d.get("personas_autorizadas", "")
+            ))
+
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -183,7 +227,7 @@ def borrar_alumno(alumno_id):
 
     return jsonify({"ok": True, "mensaje": "Alumno archivado correctamente."})
 
-@alumnos_bp.route("/api/alumnos/<int:alumno_id>/foto", methods=["POST"])
+@alumnos_bp.route("/api/alumnos/foto/<int:alumno_id>", methods=["POST"])
 def subir_foto_alumno(alumno_id):
     if 'foto' not in request.files:
         return jsonify({"ok": False, "error": "No file part"}), 400
@@ -194,9 +238,7 @@ def subir_foto_alumno(alumno_id):
 
     if file:
         filename = f"alumno_{alumno_id}_{int(datetime.now().timestamp())}.jpg"
-        # Ruta absoluta basada en la ubicación de este archivo
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        filepath = os.path.join(base_dir, "static", "uploads", filename)
+        filepath = os.path.join("static", "uploads", filename)
         
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         file.save(filepath)

@@ -262,16 +262,18 @@
                     <h2>Información de Contacto de los Padres</h2>
                     <p>En la lista de alumnos, debajo del nombre de cada alumno, verás los teléfonos de la madre (👩) y el padre (👨) directamente en la tarjeta, cada uno en su propia línea para facilitar la lectura rápida.</p>
                     <h2>Pasar Lista</h2>
-                    <p>La pestaña 📋 <strong>Pasar Lista</strong> está diseñada para la rapidez del día a día:</p>
+                    <p>La pantalla de Pasar Lista está diseñada para la rapidez del día a día:</p>
                     <ol>
-                        <li>Selecciona la fecha de hoy mediante el calendario de la parte superior, o pincha en "Hoy".
-                        </li>
-                        <li>Junto a cada alumno verás botones para registrar: Presente, Falta y Retraso.</li>
-                        <li>Al pinchar en Falta, puedes añadir un comentario (ej: Cita médica) y marcar si se justifica
-                            a la derecha.</li>
-                        <li>El sistema guarda los datos en el momento. Si te equivocas, simplemente pincha en "Presente"
-                            y la falta desaparecerá.</li>
+                        <li>Selecciona la fecha mediante el calendario de la parte superior.</li>
+                        <li>Junto a cada alumno verás botones para registrar: <strong>🟢 Presente, 🟠 Retraso, 🔵 Justificada, 🔴 No Justificada</strong>.</li>
+                        <li>Puedes marcar también si come en el <strong>🍽️ Comedor</strong> y añadir una <strong>📝 Nota</strong> individual.</li>
+                        <li>El sistema guarda los datos en el momento. Si te equivocas, simplemente pincha en "Presente" y la falta desaparecerá.</li>
                     </ol>
+                    <h2>Vista Compacta</h2>
+                    <p>En la parte superior derecha de Pasar Lista encontrarás el botón <strong>☰ Vista compacta</strong>. Al activarlo, cada alumno se muestra en una sola línea con todos los botones de acción, permitiéndote ver toda la clase de un vistazo sin necesidad de hacer scroll. La app recuerda tu preferencia para la próxima vez.</p>
+                    <div class="highlight-box info">
+                        <strong>💡 Consejo:</strong> Usa la vista compacta para el día a día y la vista normal cuando necesites añadir notas o marcar faltas por horas.
+                    </div>
                 </section>
                 <!-- SECCIÓN DIARIO -->
                 <section id="diario" class="help-section">
@@ -438,16 +440,47 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                 </section>
                 <section id="informes" class="help-section">
                     <h1>📜 Informes de Evaluación</h1>
-                    <p>El generador de informes recoge automáticamente todas las notas ("Conseguido", "8", etc.) por
-                        área y las incidencias del alumno de ese trimestre.</p>
+                    <p>El generador de informes recoge automáticamente todas las notas por área y las incidencias del alumno de ese trimestre.</p>
+
+                    <h2>Informes Individuales</h2>
                     <ol>
-                        <li>En la sección Informes, escoge al alumno.</li>
-                        <li>Escribe las Observaciones cualitativas (texto libre) finales o de comportamiento usando el
-                            editor de texto.</li>
-                        <li>Puedes pulsar **"Guardar Borrador"** para no perder el progreso y seguir más tarde.</li>
-                        <li>Cuando termines, pulsa **"Imprimir PDF"**. Se descargará un boletín oficial limpio con las
-                            valoraciones finales y una tabla limpia.</li>
+                        <li>Selecciona el alumno y el trimestre en la parte superior.</li>
+                        <li>Verás tres bloques: <strong>Asistencia</strong>, <strong>Calificaciones por Área</strong> y <strong>Observaciones</strong>.</li>
+                        <li>En el bloque de Calificaciones, haz clic en cualquier área para desplegar sus criterios con la nota en escala 1-10.</li>
+                        <li>Escribe las observaciones individuales y pulsa <strong>💾 Guardar</strong>.</li>
                     </ol>
+                    <p>Desde los botones superiores puedes:</p>
+                    <ul>
+                        <li><strong>📄 Descargar Informe Individual</strong> — PDF con todas las notas y observaciones.</li>
+                        <li><strong>📊 Exportar Notas a Excel</strong> — criterios en escala 1-10 de ese alumno.</li>
+                        <li><strong>📗 Excel Clase Completa</strong> — un único Excel con una pestaña por alumno, guardado también en la carpeta <em>notas_criterios_excel</em> de tu equipo.</li>
+                    </ul>
+
+                    <h2>Rol Tutor / Especialista</h2>
+                    <p>Si en <strong>Configuración → Grupos</strong> te has marcado como Especialista en un grupo, al generar el informe:</p>
+                    <ul>
+                        <li>Aparece un badge azul <strong>ESPECIALISTA</strong> junto a tu nombre.</li>
+                        <li>Puedes seleccionar el área que impartes en ese grupo.</li>
+                        <li>El PDF generado mostrará tu nombre como <em>"Especialista de [Área]"</em> y solo incluirá las notas de esa área.</li>
+                    </ul>
+
+                    <h2>Informe de Grupo (Global)</h2>
+                    <p>En la pestaña <strong>Informe de Grupo</strong> encontrarás el historial de los tres trimestres:</p>
+                    <ul>
+                        <li>Haz clic en una tarjeta de trimestre para ver su contenido en <strong>modo lectura</strong>.</li>
+                        <li>Pulsa <strong>✏️ Editar</strong> para modificar valoración, dificultades, propuestas y equipo docente.</li>
+                        <li>Desde modo lectura puedes generar: <strong>📄 Acta Oficial</strong> (PDF formato CEIP), <strong>🖨️ PDF</strong> y <strong>📊 Excel</strong>.</li>
+                    </ul>
+
+                    <h2>Acta Oficial de Evaluación</h2>
+                    <p>El botón <strong>📄 Acta Oficial</strong> genera un PDF con el formato oficial del CEIP Ayatimas, incluyendo:</p>
+                    <ul>
+                        <li>Logos del centro y del Gobierno de Canarias (configurables en Configuración → Logos).</li>
+                        <li>Estadísticas del grupo: total alumnado, aprobados y % de éxito.</li>
+                        <li>Contenido del informe: valoración, dificultades, propuestas y observaciones.</li>
+                        <li>Tabla de firmas con el equipo docente.</li>
+                    </ul>
+                    <p>Antes de generar el acta, introduce la <strong>hora</strong> y <strong>fecha</strong> de la reunión en los campos que aparecen en modo lectura.</p>
                 </section>
                 <section id="dashboard" class="help-section">
                     <h1>📈 Panel de Control (Dashboard)</h1>
@@ -462,54 +495,65 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                 <section id="biblioteca" class="help-section">
                     <h1>📚 Biblioteca y Préstamos</h1>
                     <p>Gestiona el fondo de libros y controla los préstamos a tus alumnos de forma sencilla.</p>
-                    <h2>1. Registrar un Préstamo</h2>
+
+                    <h2>1. Catálogo de Libros</h2>
+                    <p>En la pestaña <strong>Catálogo</strong> puedes añadir libros manualmente, importarlos desde un CSV/Excel o buscarlos directamente en <strong>🔍 Google Books</strong> para importar portada y datos automáticamente.</p>
+
+                    <h2>2. Registrar un Préstamo</h2>
                     <ol>
-                        <li>Ve a la pestaña 📋 <strong>Préstamos</strong>.</li>
-                        <li>Selecciona el grupo y busca al alumno.</li>
-                        <li>Busca el libro por título o autor.</li>
-                        <li>Pulsa en <strong>Registrar Préstamo</strong>. La página se actualizará automáticamente para reflejar el cambio en el inventario.</li>
+                        <li>Ve a la pestaña <strong>📋 Préstamos</strong>.</li>
+                        <li>Selecciona el alumno y busca el libro.</li>
+                        <li>Pulsa <strong>Registrar Préstamo</strong>.</li>
                     </ol>
-                    <h2>2. Devoluciones</h2>
-                    <p>En el listado de préstamos activos, pulsa el botón de <strong>Devolver</strong>. Puedes añadir observaciones sobre el estado del libro al recibirlo.</p>
+
+                    <h2>3. Devoluciones</h2>
+                    <p>En el listado de préstamos activos, pulsa el botón <strong>Devolver</strong>. Puedes añadir observaciones sobre el estado del libro al recibirlo.</p>
+
+                    <h2>4. 📊 Lectómetro</h2>
+                    <p>En la pestaña <strong>Resumen</strong> encontrarás el Lectómetro: un ranking visual que muestra cuántos libros ha <em>devuelto</em> (leído de verdad) cada alumno, con una barra de progreso hacia el próximo diploma.</p>
+
+                    <h2>5. 🎓 Diplomas de Lectura</h2>
+                    <p>Cada vez que un alumno devuelve un múltiplo de 5 libros (5, 10, 15...), aparece una alerta amarilla con su nombre. Desde ahí puedes:</p>
+                    <ul>
+                        <li><strong>🖨️ Imprimir</strong> — genera un diploma imprimible con su nombre, libros leídos y fecha.</li>
+                        <li><strong>✅ Entregado</strong> — marca el diploma como entregado y lo elimina de los pendientes.</li>
+                    </ul>
                     <div class="highlight-box info">
-                        <strong>💡 Consejo:</strong>
-                        Usa la pestaña 📖 <strong>Catálogo</strong> para ver el stock disponible de cada título. Si un libro no tiene unidades libres, el sistema te avisará al intentar prestarlo.
+                        <strong>💡 Consejo:</strong> Usa el Catálogo en vista lista para ver rápidamente el stock disponible de cada título.
                     </div>
                 </section>
                 <!-- SECCIÓN CONFIGURACIÓN -->
                 <section id="configuracion" class="help-section">
                     <h1>⚙️ Configuración y Grupos</h1>
-                    <p>Esta es la base de todo tu cuaderno. Aquí defines qué grupos virtuales impartes y gestionas la seguridad de tu cuenta.</p>
-                    <h2>1. Administración de Centro</h2>
-                    <p>En <strong>Centro</strong> indicas el nombre oficial del colegio, tu nombre como Tutor que saldrá en los
-                        boletines, y algunos parámetros por defecto para bibliotecas o comedor.</p>
+                    <p>Esta es la base de todo tu cuaderno. Aquí defines qué grupos impartes y personalizas la aplicación.</p>
+
+                    <h2>1. Datos del Centro</h2>
+                    <p>Indica el nombre oficial del colegio, tu nombre como tutor/a (aparecerá en los informes), el curso escolar y los días máximos de préstamo de biblioteca.</p>
+
                     <h2>2. Gestión de Grupos</h2>
-                    <p>Aquí creas "Infantil 4 años" o "1º B Primaria". Si borras un grupo, ¡cuidado!, borrarás también a
-                        todos sus alumnos y sus calificaciones asociadas a él.</p>
-                    <h2>3. Usuarios</h2>
-                    <p>Si eres administrador, puedes invitar a otros compañeros o especialistas dando de alta su nombre
-                        de usuario (email) y contraseña. Útil si queréis compartir el cuaderno en la red del cole.</p>
-                    <h2>4. Áreas</h2>
-                    <p>Te permite crear nuevas "asignaturas" no oficiales, por ejemplo "Taller de Robótica", que no
-                        estén en el currículum base. Deberás asignarles también una etapa y una escala de notas para que
-                        el cuaderno sepa cómo tratarlas.</p>
-                    <h2>5. 🔐 Mi Cuenta</h2>
-                    <p>Desde el botón <strong>Mi Cuenta</strong> en el panel de Configuración Avanzada puedes cambiar tu contraseña y configurar tu pregunta y respuesta de seguridad. Esto te permite recuperar el acceso si alguna vez olvidas tu contraseña.</p>
-                    <div class="highlight-box warning">
-                        <strong>💡 Recomendación:</strong>
-                        Establece siempre una pregunta de seguridad para que el sistema pueda ayudarte a recuperar el acceso sin necesitar al administrador.
-                    </div>
-                    <h2>6. 💾 Copias de Seguridad (Backups)</h2>
-                    <p>Desde el botón <strong>Backups</strong> en el panel de Configuración Avanzada puedes gestionar tus copias de seguridad:</p>
+                    <p>Aquí creas tus grupos (ej: "Infantil 4 años" o "1º Primaria"). Al modificar un grupo puedes configurar:</p>
                     <ul>
-                        <li><strong>Backup automático diario:</strong> Cada vez que arranques la aplicación, el sistema crea automáticamente una copia del día si aún no existe ninguna de hoy.</li>
-                        <li><strong>Crear backup manual:</strong> Puedes crear una copia puntual en cualquier momento con el botón <em>"➕ Crear Backup Ahora"</em>.</li>
-                        <li><strong>Restaurar:</strong> Si algo va mal, puedes volver a una versión anterior de tus datos. Se te pedirá confirmación doble antes de proceder.</li>
-                        <li><strong>Rotación automática:</strong> Los backups con más de 30 días se eliminan automáticamente para no ocupar espacio innecesario.</li>
+                        <li><strong>Equipo Docente</strong> — lista de docentes que firman el acta de evaluación.</li>
+                        <li><strong>Tu Rol</strong> — elige si eres <em>Tutor/a</em> o <em>Especialista</em> en ese grupo.</li>
+                        <li><strong>Áreas que impartes</strong> — marca las asignaturas que das en ese grupo. Las áreas se filtran automáticamente por la etapa del grupo (Infantil solo muestra áreas de Infantil, Primaria solo las de Primaria).</li>
                     </ul>
                     <div class="highlight-box warning">
-                        <strong>⚠️ Atención al restaurar:</strong>
-                        Restaurar un backup reemplazará TODOS los datos actuales. Se creará un backup de seguridad previo automáticamente antes de restaurar.
+                        <strong>⚠️ Atención:</strong> Si borras un grupo se eliminarán también todos sus alumnos y calificaciones.
+                    </div>
+
+                    <h2>3. Logos para Documentos</h2>
+                    <p>En la sección <strong>Logos para Documentos e Informes</strong> puedes subir hasta dos logos (izquierda y derecha) que aparecerán en la cabecera del Acta Oficial de Evaluación y otros PDFs. Para cada logo puedes elegir su posición (izquierda, centro o derecha).</p>
+
+                    <h2>4. Áreas</h2>
+                    <p>Permite crear nuevas asignaturas no oficiales (ej: "Taller de Robótica"). Deberás asignarles una etapa y una escala de notas.</p>
+
+                    <h2>5. 🔐 Mi Cuenta</h2>
+                    <p>Cambia tu contraseña y configura tu pregunta de seguridad para poder recuperar el acceso si la olvidas.</p>
+
+                    <h2>6. 💾 Copias de Seguridad</h2>
+                    <p>El sistema crea un backup automático cada vez que arrancas la app. También puedes crear copias manuales y restaurar versiones anteriores.</p>
+                    <div class="highlight-box warning">
+                        <strong>⚠️ Atención al restaurar:</strong> Restaurar un backup reemplazará TODOS los datos actuales.
                     </div>
                 </section>
             </main>

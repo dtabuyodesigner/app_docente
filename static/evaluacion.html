@@ -358,9 +358,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap: wrap; gap: 10px;">
                 <h2 style="margin:0;">🎯 Gestión de Criterios de Evaluación</h2>
                 <div style="display:flex; gap:10px;">
-                    <a id="btnBackConfig" href="/configuracion" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#fff; color:var(--primary); padding:8px 16px; border-radius:10px; font-weight:700; border:2px solid var(--primary); transition:all 0.2s; font-size: 0.9rem;" onmouseover="this.style.background='var(--primary)'; this.style.color='white';" onmouseout="this.style.background='#fff'; this.style.color='var(--primary)';" title="Volver a la configuración general">
-                        ⬅️ Volver a Administración
-                    </a>
+                    <a id="btnBackConfig" href="/configuracion" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:white; color:var(--primary); padding:7px 14px; border-radius:8px; font-weight:600; border:2px solid var(--primary); font-size:0.85rem;" onmouseover="this.style.background='var(--primary)'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='var(--primary)';">⬅️ Configuración</a>
                 </div>
             </div>
             <div class="toolbar"
@@ -635,13 +633,13 @@
                     const btnBack = document.getElementById('btnBackConfig');
                     if (btnBack) {
                         if (window.location.hash !== '#crit-pane') {
-                           btnBack.innerText = '⬅️ Volver a Evaluación';
+                           btnBack.innerText = '⬅️ Evaluación';
                            btnBack.onclick = (e) => {
                                e.preventDefault();
                                showEvalTab('eval-pane', document.querySelector('button[onclick*="eval-pane"]'));
                            };
                         } else {
-                           btnBack.innerText = '⬅️ Volver a Administración';
+                           btnBack.innerText = '⬅️ Configuración';
                            btnBack.onclick = null;
                         }
                     }

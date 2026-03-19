@@ -152,23 +152,21 @@
             line-height: 1;
         }
         .modal-close:hover {
-            .cfg-icon-btn {
+            .cfg-pill {
             background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
-            width: 90px;
-            height: 85px;
-            border-radius: 12px;
-            font-size: 2rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+            border: 1px solid rgba(255,255,255,0.35);
+            padding: 5px 11px;
+            border-radius: 20px;
             color: white;
             font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
             user-select: none;
+        }
+        .cfg-pill:hover {
+            background: rgba(255,255,255,0.3);
         }
         .cfg-icon-btn span.cfg-label {
             font-size: 0.72rem;
@@ -176,9 +174,8 @@
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
-        .cfg-icon-btn:hover {
+        .cfg-pill:hover {
             background: rgba(255,255,255,0.3);
-            transform: translateY(-2px);
         }
         .cfg-separator {
             width: 1px;
@@ -197,20 +194,20 @@
         <div class="card"
             style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
             <h2 style="color: white; margin: 0 0 12px; text-align: center; font-size: 1rem; opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">⚙️ CONFIGURACIÓN</h2>
-            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 6px;">
-                <div onclick="mostrarSeccion('centro')" class="cfg-icon-btn" title="Centro" role="button">🏫<span class="cfg-label">Centro</span></div>
-                <div onclick="mostrarSeccion('grupos')" class="cfg-icon-btn" title="Grupos" role="button">👥<span class="cfg-label">Grupos</span></div>
-                <div onclick="mostrarSeccion('logos')" class="cfg-icon-btn" title="Logos" role="button">🖼️<span class="cfg-label">Logos</span></div>
-                <div onclick="mostrarSeccion('actualizaciones')" class="cfg-icon-btn" title="Actualizaciones" role="button">🔄<span class="cfg-label">Updates</span></div>
-                <div onclick="mostrarSeccion('mantenimiento')" class="cfg-icon-btn" title="Mantenimiento" role="button">🗄️<span class="cfg-label">Manten.</span></div>
-                <div class="cfg-separator"></div>
-                <div onclick="window.location='/usuarios'" class="cfg-icon-btn" title="Usuarios" role="button">👤<span class="cfg-label">Usuarios</span></div>
-                <div onclick="window.location='/areas'" class="cfg-icon-btn" title="Áreas" role="button">🏗️<span class="cfg-label">Áreas</span></div>
-                <div onclick="window.location='/evaluacion#crit-pane'" class="cfg-icon-btn" title="Criterios" role="button">📌<span class="cfg-label">Criterios</span></div>
-                <div onclick="abrirMiCuenta()" class="cfg-icon-btn" title="Mi Cuenta" role="button">🔐<span class="cfg-label">Cuenta</span></div>
-                <div onclick="openBackups()" class="cfg-icon-btn" title="Backups" role="button">💾<span class="cfg-label">Backups</span></div>
+            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;">
+                <div onclick="mostrarSeccion('centro')" class="cfg-pill">🏫 Centro</div>
+                <div onclick="mostrarSeccion('grupos')" class="cfg-pill">👥 Grupos</div>
+                <div onclick="mostrarSeccion('logos')" class="cfg-pill">🖼️ Logos</div>
+                <div onclick="mostrarSeccion('actualizaciones')" class="cfg-pill">🔄 Actualizaciones</div>
+                <div onclick="mostrarSeccion('mantenimiento')" class="cfg-pill">🗄️ Mantenimiento</div>
+                <div onclick="window.location='/usuarios'" class="cfg-pill">👤 Usuarios</div>
+                <div onclick="window.location='/areas'" class="cfg-pill">🏗️ Áreas</div>
+                <div onclick="window.location='/evaluacion#crit-pane'" class="cfg-pill">📌 Criterios</div>
+                <div onclick="abrirMiCuenta()" class="cfg-pill">🔐 Mi Cuenta</div>
+                <div onclick="openBackups()" class="cfg-pill">💾 Backups</div>
             </div>
         </div>
+    </div>
     </div>
     <!-- The Centro Configuration UI -->
     <div id="centroConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: block;">

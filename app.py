@@ -102,7 +102,8 @@ app.teardown_appcontext(close_db)
 
 csrf = CSRFProtect()
 csrf.init_app(app)
-csrf.exempt(curricular_bp) 
+csrf.exempt(curricular_bp)
+csrf.exempt(alumnos_bp)
 
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
@@ -184,10 +185,3 @@ def create_user_command(username, password, role):
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
-from flask import send_from_directory
-
-@app.route('/uploads/<path:filename>')
-def serve_upload(filename):
-    uploads_dir = os.path.join(app.root_path, 'static', 'uploads')
-    return send_from_directory(uploads_dir, filename)

@@ -122,50 +122,102 @@ def get_integrity():
 def check_updates():
     import requests
     from version import APP_VERSION
-    
-    # We will assume a placeholder repo name here since the user didn't provide one
-    # Replace the repo name with the actual repo later
-    github_repo = "danito73/APP_EVALUAR" 
-    
+
+    github_repo = "dtabuyodesigner/app_docente"
+    branch = "feature/refactor-evaluacion-curricular"
+
     try:
-        response = requests.get(f"https://api.github.com/repos/{github_repo}/releases/latest", timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            latest_version = data.get("tag_name", "")
-            
-            # Simple string comparison for versions like "v1.0.1" vs "v1.0.0"
-            if latest_version and latest_version > APP_VERSION:
-                return jsonify({
-                    "ok": True,
-                    "update_available": True,
-                    "current_version": APP_VERSION,
-                    "latest_version": latest_version,
-                    "release_notes": data.get("body", "Sin notas de versión disponibles."),
-                    "download_url": data.get("html_url", f"https://github.com/{github_repo}/releases/latest")
-                })
-            else:
-                return jsonify({
-                    "ok": True,
-                    "update_available": False,
-                    "current_version": APP_VERSION,
-                    "latest_version": latest_version
-                })
-        else:
-            return jsonify({"ok": False, "error": f"Error de GitHub: HTTP {response.status_code}"}), 500
+        # Obtener los últimos commits de la rama
+        commits_url = f"https://api.github.com/repos/{github_repo}/commits?sha={branch}&per_page=5"
+        r = requests.get(commits_url, timeout=5, headers={"Accept": "application/vnd.github.v3+json"})
+
+        if r.status_code != 200:
+            return jsonify({"ok": False, "error": f"Error GitHub: HTTP {r.status_code}"}), 500
+
+        commits = r.json()
+
+        # Obtener el SHA local actual via git
+        import subprocess
+        try:
+            local_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                cwd=os.path.dirname(os.path.abspath(__file__)),
+                stderr=subprocess.DEVNULL
+            ).decode().strip()
+        except Exception:
+            local_sha = ""
+
+        latest_sha = commits[0]["sha"] if commits else ""
+        update_available = bool(latest_sha and local_sha and latest_sha != local_sha)
+
+        # Construir lista de cambios pendientes
+        cambios = []
+        for c in commits:
+            sha = c["sha"]
+            msg = c["commit"]["message"].split("\n")[0]  # Solo primera línea
+            fecha = c["commit"]["committer"]["date"][:10]
+            cambios.append({"sha": sha[:7], "mensaje": msg, "fecha": fecha})
+            if sha == local_sha:
+                break
+
+        return jsonify({
+            "ok": True,
+            "update_available": update_available,
+            "current_version": APP_VERSION,
+            "local_sha": local_sha[:7] if local_sha else "desconocido",
+            "latest_sha": latest_sha[:7] if latest_sha else "desconocido",
+            "cambios": cambios if update_available else []
+        })
+
     except Exception as e:
         return jsonify({"ok": False, "error": f"Error de conexión: {str(e)}"}), 500
 
-@admin_bp.route('/api/admin/limpiar_alumnos_borrados', methods=['POST'])
-def limpiar_alumnos_borrados():
-    from utils.db import get_db
-    conn = get_db()
-    cur = conn.cursor()
+
+@admin_bp.route('/api/admin/apply_update', methods=['POST'])
+def apply_update():
+    """Hace git pull y reinicia la app."""
+    import subprocess
+    import threading
+
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+
     try:
-        cur.execute("BEGIN")
-        cur.execute("DELETE FROM alumnos WHERE deleted_at IS NOT NULL")
-        eliminados = cur.rowcount
-        conn.commit()
-        return jsonify({"ok": True, "message": f"Se han eliminado definitivamente {eliminados} alumnos."})
+        # Crear backup antes de actualizar
+        create_backup(label="pre_update")
+
+        # Ejecutar git pull
+        result = subprocess.run(
+            ["git", "pull"],
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+
+        if result.returncode != 0:
+            return jsonify({
+                "ok": False,
+                "error": f"Error en git pull: {result.stderr}"
+            }), 500
+
+        output = result.stdout.strip()
+
+        # Reiniciar en un hilo separado para que la respuesta llegue primero
+        def restart():
+            import time
+            time.sleep(1.5)
+            os.execv(__file__.replace('routes/admin.py', 'desktop.py'),
+                     ['desktop.py'])
+
+        threading.Thread(target=restart, daemon=True).start()
+
+        return jsonify({
+            "ok": True,
+            "mensaje": "Actualización aplicada. La app se reiniciará en unos segundos.",
+            "detalle": output
+        })
+
+    except subprocess.TimeoutExpired:
+        return jsonify({"ok": False, "error": "Timeout — comprueba la conexión a Internet"}), 500
     except Exception as e:
-        conn.rollback()
-        return jsonify({"ok": False, "error": f"Error interno al limpiar alumnos: {str(e)}"}), 500
+        return jsonify({"ok": False, "error": str(e)}), 500

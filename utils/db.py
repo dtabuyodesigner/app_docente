@@ -95,16 +95,36 @@ def run_migrations():
                 ("Lenguajes: Comunicación y representación", 1, "INFANTIL_NI_EP_C"),
                 ("Segunda Lengua Extranjera", 1, "INFANTIL_NI_EP_C"),
                 ("Música", 1, "INFANTIL_NI_EP_C"),
+                ("Educación Emocional", 1, "INFANTIL_NI_EP_C"),
             ]
             areas_primaria = [
+                # --- ÁREAS COMUNES LOMLOE (todas las CCAA) ---
                 ("Conocimiento del Medio Natural, Social y Cultural", 2, "NUMERICA_1_4"),
                 ("Lengua Castellana y Literatura", 2, "NUMERICA_1_4"),
                 ("Matemáticas", 2, "NUMERICA_1_4"),
                 ("Educación Artística", 2, "NUMERICA_1_4"),
                 ("Educación Física", 2, "NUMERICA_1_4"),
+                ("Lengua Extranjera", 2, "NUMERICA_1_4"),
                 ("Segunda Lengua Extranjera", 2, "NUMERICA_1_4"),
+                ("Educación en Valores Cívicos y Éticos", 2, "NUMERICA_1_4"),
                 ("Religión", 2, "NUMERICA_1_4"),
                 ("Atención Educativa", 2, "NUMERICA_1_4"),
+                # --- DESDOBLAMIENTOS OPTATIVOS ---
+                ("Ciencias de la Naturaleza", 2, "NUMERICA_1_4"),
+                ("Ciencias Sociales", 2, "NUMERICA_1_4"),
+                ("Educación Plástica y Visual", 2, "NUMERICA_1_4"),
+                ("Música y Danza", 2, "NUMERICA_1_4"),
+                # --- CANARIAS ---
+                ("Educación Emocional y para la Creatividad", 2, "NUMERICA_1_4"),
+                # --- MADRID ---
+                ("Tecnología y Robótica", 2, "NUMERICA_1_4"),
+                ("Digitalización", 2, "NUMERICA_1_4"),
+                # --- CCAA CON LENGUA COOFICIAL ---
+                ("Lengua Catalana y Literatura", 2, "NUMERICA_1_4"),       # Cataluña / Baleares
+                ("Lengua Gallega y Literatura", 2, "NUMERICA_1_4"),         # Galicia
+                ("Lengua Vasca y Literatura (Euskera)", 2, "NUMERICA_1_4"), # País Vasco / Navarra
+                ("Lengua Valenciana y Literatura", 2, "NUMERICA_1_4"),      # Comunidad Valenciana
+                ("Llingua Asturiana y Literatura", 2, "NUMERICA_1_4"),      # Asturias
             ]
             for nombre, etapa_id, escala in areas_infantil + areas_primaria:
                 conn.execute(

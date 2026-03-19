@@ -155,24 +155,34 @@
             .cfg-icon-btn {
             background: rgba(255,255,255,0.15);
             border: 1px solid rgba(255,255,255,0.3);
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            font-size: 1.3rem;
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            font-size: 1.6rem;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 4px;
+            color: white;
+            font-weight: 600;
+        }
+        .cfg-icon-btn span.cfg-label {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.85);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
         .cfg-icon-btn:hover {
-            background: rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
         }
         .cfg-separator {
             width: 1px;
             background: rgba(255,255,255,0.3);
-            margin: 4px 4px;
+            margin: 4px 2px;
         }
     </style>
 
@@ -187,17 +197,17 @@
             style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
             <h2 style="color: white; margin: 0 0 12px; text-align: center; font-size: 1rem; opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">⚙️ CONFIGURACIÓN</h2>
             <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 6px;">
-                <button onclick="mostrarSeccion('centro')" class="cfg-icon-btn" title="Centro">🏫</button>
-                <button onclick="mostrarSeccion('grupos')" class="cfg-icon-btn" title="Grupos">👥</button>
-                <button onclick="mostrarSeccion('logos')" class="cfg-icon-btn" title="Logos">🖼️</button>
-                <button onclick="mostrarSeccion('actualizaciones')" class="cfg-icon-btn" title="Actualizaciones">🔄</button>
-                <button onclick="mostrarSeccion('mantenimiento')" class="cfg-icon-btn" title="Mantenimiento">🗄️</button>
+                <button onclick="mostrarSeccion('centro')" class="cfg-icon-btn" title="Centro">🏫<span class="cfg-label">Centro</span></button>
+                <button onclick="mostrarSeccion('grupos')" class="cfg-icon-btn" title="Grupos">👥<span class="cfg-label">Grupos</span></button>
+                <button onclick="mostrarSeccion('logos')" class="cfg-icon-btn" title="Logos">🖼️<span class="cfg-label">Logos</span></button>
+                <button onclick="mostrarSeccion('actualizaciones')" class="cfg-icon-btn" title="Actualizaciones">🔄<span class="cfg-label">Updates</span></button>
+                <button onclick="mostrarSeccion('mantenimiento')" class="cfg-icon-btn" title="Mantenimiento">🗄️<span class="cfg-label">Manten.</span></button>
                 <div class="cfg-separator"></div>
-                <button onclick="window.location='/usuarios'" class="cfg-icon-btn" title="Usuarios">👤</button>
-                <button onclick="window.location='/areas'" class="cfg-icon-btn" title="Áreas">🏗️</button>
-                <button onclick="window.location='/evaluacion#crit-pane'" class="cfg-icon-btn" title="Criterios">📌</button>
-                <button onclick="abrirMiCuenta()" class="cfg-icon-btn" title="Mi Cuenta">🔐</button>
-                <button onclick="openBackups()" class="cfg-icon-btn" title="Backups">💾</button>
+                <button onclick="window.location='/usuarios'" class="cfg-icon-btn" title="Usuarios">👤<span class="cfg-label">Usuarios</span></button>
+                <button onclick="window.location='/areas'" class="cfg-icon-btn" title="Áreas">🏗️<span class="cfg-label">Áreas</span></button>
+                <button onclick="window.location='/evaluacion#crit-pane'" class="cfg-icon-btn" title="Criterios">📌<span class="cfg-label">Criterios</span></button>
+                <button onclick="abrirMiCuenta()" class="cfg-icon-btn" title="Mi Cuenta">🔐<span class="cfg-label">Cuenta</span></button>
+                <button onclick="openBackups()" class="cfg-icon-btn" title="Backups">💾<span class="cfg-label">Backups</span></button>
             </div>
         </div>
     </div>

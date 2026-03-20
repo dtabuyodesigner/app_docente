@@ -49,21 +49,90 @@ def run_migrations():
     migrated = []
 
     migrations = [
-        # Columnas faltantes
+        # --- gestor_tareas ---
         ("ALTER TABLE gestor_tareas ADD COLUMN completado INTEGER DEFAULT 0", "gestor_tareas.completado"),
+        ("ALTER TABLE gestor_tareas ADD COLUMN profesor_id INTEGER", "gestor_tareas.profesor_id"),
+        # --- programacion_diaria ---
         ("ALTER TABLE programacion_diaria ADD COLUMN completado INTEGER DEFAULT 0", "programacion_diaria.completado"),
+        ("ALTER TABLE programacion_diaria ADD COLUMN criterio_id INTEGER REFERENCES criterios(id)", "programacion_diaria.criterio_id"),
+        # --- etapas ---
         ("ALTER TABLE etapas ADD COLUMN activa INTEGER DEFAULT 1", "etapas.activa"),
+        # --- informe_grupo ---
         ("ALTER TABLE informe_grupo ADD COLUMN grupo_id INTEGER", "informe_grupo.grupo_id"),
+        ("ALTER TABLE informe_grupo ADD COLUMN equipo_docente TEXT", "informe_grupo.equipo_docente"),
+        # --- alumnos ---
         ("ALTER TABLE alumnos ADD COLUMN deleted_at DATETIME", "alumnos.deleted_at"),
         ("ALTER TABLE alumnos ADD COLUMN tiene_ayuda_material INTEGER DEFAULT 0", "alumnos.tiene_ayuda_material"),
+        ("ALTER TABLE alumnos ADD COLUMN fecha_nacimiento DATE", "alumnos.fecha_nacimiento"),
+        ("ALTER TABLE alumnos ADD COLUMN direccion TEXT", "alumnos.direccion"),
+        ("ALTER TABLE alumnos ADD COLUMN madre_nombre TEXT", "alumnos.madre_nombre"),
+        ("ALTER TABLE alumnos ADD COLUMN madre_telefono TEXT", "alumnos.madre_telefono"),
+        ("ALTER TABLE alumnos ADD COLUMN madre_email TEXT", "alumnos.madre_email"),
+        ("ALTER TABLE alumnos ADD COLUMN padre_nombre TEXT", "alumnos.padre_nombre"),
+        ("ALTER TABLE alumnos ADD COLUMN padre_telefono TEXT", "alumnos.padre_telefono"),
+        ("ALTER TABLE alumnos ADD COLUMN padre_email TEXT", "alumnos.padre_email"),
+        ("ALTER TABLE alumnos ADD COLUMN personas_autorizadas TEXT", "alumnos.personas_autorizadas"),
+        ("ALTER TABLE alumnos ADD COLUMN observaciones_generales TEXT", "alumnos.observaciones_generales"),
+        # --- grupos ---
         ("ALTER TABLE grupos ADD COLUMN equipo_docente TEXT", "grupos.equipo_docente"),
-        # Tabla diplomas_entregados
+        # --- areas ---
+        ("ALTER TABLE areas ADD COLUMN es_personalizada BOOLEAN DEFAULT 1", "areas.es_personalizada"),
+        # --- criterios ---
+        ("ALTER TABLE criterios ADD COLUMN comentario_base TEXT", "criterios.comentario_base"),
+        # --- sda ---
+        ("ALTER TABLE sda ADD COLUMN codigo_sda TEXT", "sda.codigo_sda"),
+        ("ALTER TABLE sda ADD COLUMN duracion_semanas INTEGER", "sda.duracion_semanas"),
+        # --- horario ---
+        ("ALTER TABLE horario ADD COLUMN tipo TEXT DEFAULT 'clase'", "horario.tipo"),
+        # --- reuniones ---
+        ("ALTER TABLE reuniones ADD COLUMN ciclo_id INTEGER REFERENCES config_ciclo(id)", "reuniones.ciclo_id"),
+        # --- evaluaciones ---
+        ("ALTER TABLE evaluaciones ADD COLUMN nota REAL", "evaluaciones.nota"),
+        # --- usuarios ---
+        ("ALTER TABLE usuarios ADD COLUMN pregunta_seguridad TEXT", "usuarios.pregunta_seguridad"),
+        ("ALTER TABLE usuarios ADD COLUMN respuesta_seguridad_hash TEXT", "usuarios.respuesta_seguridad_hash"),
+        # --- Tablas nuevas ---
         ("""CREATE TABLE IF NOT EXISTS diplomas_entregados (
             alumno_id INTEGER PRIMARY KEY,
             cantidad INTEGER DEFAULT 0,
             fecha_ultimo DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
         )""", "tabla diplomas_entregados"),
+        ("""CREATE TABLE IF NOT EXISTS informe_observaciones (
+            alumno_id INTEGER NOT NULL,
+            trimestre INTEGER NOT NULL,
+            texto TEXT,
+            PRIMARY KEY (alumno_id, trimestre),
+            FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )""", "tabla informe_observaciones"),
+        ("""CREATE TABLE IF NOT EXISTS sesiones_actividad (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            actividad_id INTEGER NOT NULL,
+            numero_sesion INTEGER NOT NULL,
+            descripcion TEXT,
+            fecha DATE,
+            FOREIGN KEY(actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE
+        )""", "tabla sesiones_actividad"),
+        ("""CREATE TABLE IF NOT EXISTS criterios_keywords (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            criterio_id INTEGER,
+            keyword TEXT,
+            FOREIGN KEY(criterio_id) REFERENCES criterios(id)
+        )""", "tabla criterios_keywords"),
+        ("""CREATE TABLE IF NOT EXISTS ficha_alumno (
+            alumno_id INTEGER PRIMARY KEY,
+            fecha_nacimiento TEXT,
+            direccion TEXT,
+            madre_nombre TEXT,
+            madre_telefono TEXT,
+            padre_nombre TEXT,
+            padre_telefono TEXT,
+            observaciones_generales TEXT,
+            personas_autorizadas TEXT,
+            madre_email TEXT,
+            padre_email TEXT,
+            FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )""", "tabla ficha_alumno"),
     ]
 
     for sql, name in migrations:

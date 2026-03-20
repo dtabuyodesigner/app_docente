@@ -351,19 +351,39 @@
         // Init
         initDropdowns();
         loadData();
-        function initDropdowns() {
+        async function initDropdowns() {
             const subjList = document.getElementById('asignaturasList');
             ASIGNATURAS.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s;
                 subjList.appendChild(opt);
             });
+            // Cargar grupos del usuario
             const courseList = document.getElementById('cursosList');
-            CURSOS.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                courseList.appendChild(opt);
-            });
+            try {
+                const res = await fetch('/api/grupos');
+                const grupos = await res.json();
+                if (grupos && grupos.length > 0) {
+                    grupos.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g.nombre;
+                        courseList.appendChild(opt);
+                    });
+                } else {
+                    CURSOS.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c;
+                        courseList.appendChild(opt);
+                    });
+                }
+            } catch(e) {
+                CURSOS.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    courseList.appendChild(opt);
+                });
+            }
+            courseList.innerHTML += '<option value="N/A">';
         }
         function setType(type) {
             currentType = type;
@@ -447,10 +467,19 @@
         function renderImage(filename) {
             const container = document.getElementById('imgContainer');
             if (filename) {
-                container.innerHTML = `<img src="/uploads/${filename}" alt="Horario">`;
+                container.innerHTML = `
+                    <img src="/static/uploads/${filename}" alt="Horario">
+                    <br>
+                    <button class="btn" style="background:var(--danger); margin-top:10px;" onclick="deleteImage()">🗑️ Quitar imagen</button>
+                `;
             } else {
                 container.innerHTML = `<p style="color: #666;">No hay imagen subida.</p>`;
             }
+        }
+        async function deleteImage() {
+            if (!confirm('¿Quitar la imagen del horario?')) return;
+            await fetch(`/api/horario/imagen?tipo=${currentType}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
+            loadData();
         }
         // --- MODAL EVENTO ---
         const modal = document.getElementById('modalEvento');

@@ -119,6 +119,15 @@
                         <option value="admin">Administrador (Acceso a este panel)</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Pregunta de Seguridad <small style="color:#888; font-weight:400;">(para recuperar contraseña)</small></label>
+                    <input type="text" id="newPregunta" placeholder="Ej: Nombre de mi primera mascota">
+                </div>
+                <div class="form-group">
+                    <label>Respuesta de Seguridad</label>
+                    <input type="text" id="newRespuesta" placeholder="Ej: Toby">
+                    <small style="color:#888;">Si no se rellena, el usuario no podrá recuperar su contraseña por su cuenta.</small>
+                </div>
                 <button type="submit" class="btn-primary">Guardar Usuario</button>
                 <button type="button"
                     onclick="document.getElementById('newUserForm').style.display='none'">Cancelar</button>
@@ -174,16 +183,20 @@
             const username = document.getElementById('newUsername').value;
             const password = document.getElementById('newPassword').value;
             const role = document.getElementById('newRole').value;
+            const pregunta = document.getElementById('newPregunta').value.trim();
+            const respuesta = document.getElementById('newRespuesta').value.trim();
             try {
                 const res = await fetch('/api/usuarios', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, role })
+                    body: JSON.stringify({ username, password, role, pregunta, respuesta })
                 });
                 const data = await res.json();
                 if (data.ok) {
                     document.getElementById('newUsername').value = '';
                     document.getElementById('newPassword').value = '';
+                    document.getElementById('newPregunta').value = '';
+                    document.getElementById('newRespuesta').value = '';
                     document.getElementById('newUserForm').style.display = 'none';
                     loadUsuarios();
                 } else {

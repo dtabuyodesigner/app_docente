@@ -33,6 +33,8 @@ def post_usuario():
     username = data.get("username", "").strip()
     password = data.get("password", "")
     role = data.get("role", "profesor")
+    pregunta = data.get("pregunta", "").strip()
+    respuesta = data.get("respuesta", "").strip()
     
     if not username or not password:
         return jsonify({"ok": False, "error": "Faltan datos requeridos"}), 400
@@ -45,8 +47,13 @@ def post_usuario():
         return jsonify({"ok": False, "error": "El usuario ya existe."}), 400
         
     try:
+        from werkzeug.security import generate_password_hash
         pwd_hash = generate_password_hash(password)
-        cur.execute("INSERT INTO usuarios (username, password_hash, role) VALUES (?, ?, ?)", (username, pwd_hash, role))
+        resp_hash = generate_password_hash(respuesta) if respuesta else None
+        cur.execute(
+            "INSERT INTO usuarios (username, password_hash, role, pregunta_seguridad, respuesta_seguridad_hash) VALUES (?, ?, ?, ?, ?)",
+            (username, pwd_hash, role, pregunta or None, resp_hash)
+        )
         conn.commit()
         security_logger.info(f"Admin '{session.get('username')}' created new user '{username}' with role '{role}'. IP: {request.remote_addr}")
         return jsonify({"ok": True, "id": cur.lastrowid})

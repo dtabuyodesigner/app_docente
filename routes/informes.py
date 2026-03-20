@@ -529,70 +529,76 @@ def informe_pdf_diario(alumno_id):
 
 @informes_bp.route("/api/reuniones/<int:rid>/pdf")
 def informe_reunion_pdf(rid):
-    tutor_nombre = request.args.get("tutor", "El Tutor/a")
-    
     conn = get_db()
     cur = conn.cursor()
-    
+
+    # --- Datos de la reunión ---
     cur.execute("""
-        SELECT r.*, a.nombre as alumno_nombre, c.nombre as ciclo_nombre
+        SELECT r.*, a.nombre as alumno_nombre, a.grupo_id as alumno_grupo_id,
+               g.nombre as ciclo_nombre
         FROM reuniones r
         LEFT JOIN alumnos a ON r.alumno_id = a.id
-        LEFT JOIN config_ciclo c ON r.ciclo_id = c.id
+        LEFT JOIN grupos g ON r.ciclo_id = g.id
         WHERE r.id = ?
-    """, (rid, ))
+    """, (rid,))
     r = cur.fetchone()
-    
     if not r:
         return "Reunión no encontrada", 404
-        
+
+    # --- Nombre del tutor desde config ---
+    cur.execute("SELECT valor FROM config WHERE clave = 'nombre_tutor'")
+    row_cfg = cur.fetchone()
+    tutor_nombre = row_cfg["valor"] if row_cfg and row_cfg["valor"] else "El Tutor/a"
+
+    # --- Rol en el grupo (tutor o especialista) ---
+    grupo_id = r["alumno_grupo_id"] or session.get("active_group_id")
+    rol_label = "Tutor/a"
+    if grupo_id:
+        cur.execute("SELECT rol FROM configuracion_grupo_rol WHERE grupo_id = ?", (grupo_id,))
+        row_rol = cur.fetchone()
+        if row_rol and row_rol["rol"] == "especialista":
+            rol_label = "Especialista"
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
     elements = []
     styles = getSampleStyleSheet()
-    
-    # Custom styles
+
     style_label = ParagraphStyle('LabelStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10)
     style_content = ParagraphStyle('ContentStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=10, leftIndent=10)
-    
+
     is_ciclo = (r['tipo'] == 'CICLO')
     if is_ciclo:
         title = f"Acta de reunión de {r['ciclo_nombre'] or 'Ciclo'}"
     else:
-        title = f"Acta de reunión con familias"
-        
+        title = "Acta de reunión con familias"
+
     add_header(elements, styles, title)
     elements.append(Spacer(1, 15))
-    
-    # Info Table
+
     info_data = []
-    
     if not is_ciclo:
         if r['alumno_nombre']:
             info_data.append([Paragraph("<b>Alumno/a:</b>", style_label), Paragraph(r['alumno_nombre'], style_content)])
-        info_data.append([Paragraph("<b>Tutor/a:</b>", style_label), Paragraph(tutor_nombre, style_content)])
-    
+        info_data.append([Paragraph(f"<b>{rol_label}:</b>", style_label), Paragraph(tutor_nombre, style_content)])
+
     info_data.append([Paragraph("<b>Fecha:</b>", style_label), Paragraph(r['fecha'], style_content)])
-        
+
     # Asistentes parsing
     asistentes_str = r['asistentes'] or ""
     asistentes_list = []
     if asistentes_str:
-        # Normalize separators
         if '[' in asistentes_str and ']' in asistentes_str:
-            # Handle JSON list if we start saving it as such, but for now it's TEXT
             try:
                 asistentes_list = json.loads(asistentes_str)
             except:
-                normalized = asistentes_str.replace('\n', ',')
-                asistentes_list = [a.strip() for a in normalized.split(',') if a.strip()]
+                asistentes_list = [a.strip() for a in asistentes_str.replace('\n', ',').split(',') if a.strip()]
         else:
-            normalized = asistentes_str.replace('\n', ',')
-            asistentes_list = [a.strip() for a in normalized.split(',') if a.strip()]
-    
+            asistentes_list = [a.strip() for a in asistentes_str.replace('\n', ',').split(',') if a.strip()]
+
     asistentes_display = ", ".join(asistentes_list) if isinstance(asistentes_list, list) else asistentes_str
     info_data.append([Paragraph("<b>Asistentes:</b>", style_label), Paragraph(asistentes_display, style_content)])
-    
+
     t_info = Table(info_data, colWidths=[3*cm, 14*cm])
     t_info.setStyle(TableStyle([
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
@@ -600,65 +606,53 @@ def informe_reunion_pdf(rid):
     ]))
     elements.append(t_info)
     elements.append(Spacer(1, 20))
-    
-    # Body
+
     elements.append(Paragraph("<b>Temas Tratados:</b>", styles['Heading3']))
     elements.append(Paragraph(r['temas'] or "Sin contenido", styles['Normal']))
     elements.append(Spacer(1, 15))
-    
+
     elements.append(Paragraph("<b>Acuerdos / Conclusiones:</b>", styles['Heading3']))
     elements.append(Paragraph(r['acuerdos'] or "Sin acuerdos registrados", styles['Normal']))
     elements.append(Spacer(1, 40))
-    
-    # Signatures
+
     elements.append(Paragraph("<b>Firmas:</b>", styles['Heading4']))
     elements.append(Spacer(1, 10))
-    
-    sig_table_rows = []
+
     firmantes = []
-    
     if not is_ciclo:
-        firmantes.append(f"Tutor/a: {tutor_nombre}")
+        firmantes.append(f"{rol_label}: {tutor_nombre}")
         for p in asistentes_list:
-             if p.strip() and p.lower() not in tutor_nombre.lower(): 
-                  firmantes.append(p.strip())
+            if p.strip() and p.lower() not in tutor_nombre.lower():
+                firmantes.append(p.strip())
     else:
-        if isinstance(asistentes_list, list):
-            firmantes = asistentes_list
-        else:
-            firmantes = [a.strip() for a in asistentes_str.replace('\n', ',').split(',') if a.strip()]
-             
-    # Create grid of 2 columns
+        firmantes = asistentes_list if isinstance(asistentes_list, list) else [a.strip() for a in asistentes_str.replace('\n', ',').split(',') if a.strip()]
+
+    sig_table_rows = []
     for i in range(0, len(firmantes), 2):
         sig1_name = firmantes[i]
         sig2_name = firmantes[i+1] if i+1 < len(firmantes) else ""
-        
-        # Row 1: Signature gap
         sig_table_rows.append(["", ""])
-        
-        # Row 2: "Fdo: Name" underlined
         row_names = [
             Paragraph(f"Fdo: <u>{sig1_name}</u>", styles['Normal']),
             Paragraph(f"Fdo: <u>{sig2_name}</u>", styles['Normal']) if sig2_name else ""
         ]
         sig_table_rows.append(row_names)
-        
+
     row_heights = []
     for _ in range(0, len(firmantes), 2):
-        row_heights.extend([2.5*cm, 1.0*cm]) # Gap, "Fdo: Name" 
-    
+        row_heights.extend([2.5*cm, 1.0*cm])
+
     t_sig = Table(sig_table_rows, colWidths=[8.5*cm, 8.5*cm], rowHeights=row_heights)
     t_sig.setStyle(TableStyle([
         ('ALIGN', (0,0), (-1,-1), 'LEFT'),
         ('VALIGN', (0,0), (-1,-1), 'BOTTOM'),
         ('BOTTOMPADDING', (0,0), (-1,-1), 10),
     ]))
-    
     elements.append(t_sig)
-    
+
     doc.build(elements)
     buffer.seek(0)
-    
+
     return send_file(
         buffer,
         as_attachment=True,

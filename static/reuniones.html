@@ -905,8 +905,7 @@
                 });
         }
         function generatePDF(id) {
-            const tutor = localStorage.getItem('tutorName') || "El Tutor/a";
-            window.open(`/api/reuniones/${id}/pdf?tutor=${encodeURIComponent(tutor)}`, '_blank');
+            window.open(`/api/reuniones/${id}/pdf`, '_blank');
         }
         async function reprogramarReunion(event) {
             const id = event.id;

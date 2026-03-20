@@ -367,7 +367,9 @@
                     courseList.appendChild(opt);
                 });
             } catch(e) {}
-            courseList.innerHTML += '<option value="N/A">';
+            const optNA = document.createElement('option');
+            optNA.value = 'N/A';
+            courseList.appendChild(optNA);
 
             // Cargar asignaturas: las del grupo activo + fijas
             const subjList = document.getElementById('asignaturasList');
@@ -515,6 +517,7 @@
             alert('✅ Horario de clase copiado al de profesor. Ahora puedes editarlo.');
             if (currentType === 'profesor') loadData();
         }
+        async function deleteImage() {
             if (!confirm('¿Quitar la imagen del horario?')) return;
             await fetch(`/api/horario/imagen?tipo=${currentType}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
             loadData();

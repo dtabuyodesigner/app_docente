@@ -386,12 +386,12 @@
             if (currentType === 'clase') {
                 // Horario de clase: todas las áreas de la etapa del grupo activo
                 try {
-                    const grupoActivoId = window._activeGroupId || null;
-                    if (grupoActivoId) {
-                        const res = await fetch(`/api/areas?grupo_id=${grupoActivoId}`);
-                        const data = await res.json();
-                        areas = (data.areas || data || []).map(a => a.nombre || a);
-                    }
+                    const grupoActivo = gruposData.find(g => g.id == (window._activeGroupId));
+                    const etapaId = grupoActivo ? grupoActivo.etapa_id : null;
+                    const url = etapaId ? `/api/areas?etapa_id=${etapaId}` : '/api/areas';
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    areas = data.map(a => a.nombre);
                 } catch(e) {}
             } else {
                 // Horario de profesor: áreas del usuario para el grupo seleccionado
@@ -403,13 +403,16 @@
                         const data = await res.json();
                         const areaIds = (data.areas || []).filter(Boolean);
                         if (areaIds.length > 0) {
-                            const res2 = await fetch(`/api/areas?ids=${areaIds.join(',')}`);
-                            const data2 = await res2.json();
-                            areas = (data2.areas || data2 || []).map(a => a.nombre || a);
+                            // Obtener nombres de las áreas por sus IDs
+                            const resAreas = await fetch('/api/areas');
+                            const todasAreas = await resAreas.json();
+                            areas = todasAreas
+                                .filter(a => areaIds.includes(String(a.id)) || areaIds.includes(a.id))
+                                .map(a => a.nombre);
                         }
                     } catch(e) {}
                 } else {
-                    // Sin grupo seleccionado, cargar las del grupo activo
+                    // Sin grupo seleccionado, áreas del grupo activo del profesor
                     try {
                         const res = await fetch('/api/configuracion/mi_rol');
                         const data = await res.json();

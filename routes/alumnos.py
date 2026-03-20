@@ -227,7 +227,7 @@ def borrar_alumno(alumno_id):
 
     return jsonify({"ok": True, "mensaje": "Alumno archivado correctamente."})
 
-@alumnos_bp.route("/api/alumnos/foto/<int:alumno_id>", methods=["POST"])
+@alumnos_bp.route("/api/alumnos/<int:alumno_id>/foto", methods=["POST"])
 def subir_foto_alumno(alumno_id):
     if 'foto' not in request.files:
         return jsonify({"ok": False, "error": "No file part"}), 400

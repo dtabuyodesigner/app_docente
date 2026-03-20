@@ -33,8 +33,6 @@
             padding: 20px 0;
             position: sticky;
             top: 20px;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
         }
         .help-menu h3 {
             margin: 0 20px 15px 20px;
@@ -74,8 +72,6 @@
             box-shadow: var(--shadow);
             padding: 40px;
             min-height: 60vh;
-            overflow-x: hidden;
-            min-width: 0;
         }
         .help-section {
             display: none;
@@ -110,8 +106,6 @@
             color: #555;
             font-size: 1.05rem;
             margin-bottom: 12px;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
         }
         .help-section ul,
         .help-section ol {
@@ -215,9 +209,9 @@
             <nav class="help-menu">
                 <h3>📖 Manual de Uso</h3>
                 <ul>
-                    <li><a href="#inicio" onclick="showSection('inicio')" class="active">🏠 Resumen del Cuaderno</a>
-                    </li>
+                    <li><a href="#inicio" onclick="showSection('inicio')" class="active">🏠 Resumen del Cuaderno</a></li>
                     <li><a href="#alumnos" onclick="showSection('alumnos')">👥 Alumnos y Asistencia</a></li>
+                    <li><a href="#horario" onclick="showSection('horario')">📅 Horario</a></li>
                     <li><a href="#diario" onclick="showSection('diario')">📓 Diario y Calendario</a></li>
                     <li><a href="#flujo" onclick="showSection('flujo')">🚀 Flujo de Evaluación (PASO A PASO)</a></li>
                     <li><a href="#evaluacion" onclick="showSection('evaluacion')">📊 Cómo Evaluar</a></li>
@@ -280,6 +274,30 @@
                     <div class="highlight-box info">
                         <strong>💡 Consejo:</strong> Usa la vista compacta para el día a día y la vista normal cuando necesites añadir notas o marcar faltas por horas.
                     </div>
+                </section>
+                <!-- SECCIÓN HORARIO -->
+                <section id="horario" class="help-section">
+                    <h1>📅 Horario</h1>
+                    <p>El módulo de Horario te permite gestionar tanto el horario de tu clase como el tuyo personal como docente.</p>
+
+                    <h2>Vista Manual vs Vista Imagen</h2>
+                    <p>Tienes dos modos de visualización. La <strong>Vista Manual</strong> te permite crear y editar el horario celda a celda directamente en la aplicación. La <strong>Vista Imagen</strong> te permite subir una foto de tu horario en papel o impreso para tenerla siempre disponible. Puedes quitar la imagen con el botón 🗑️ que aparece debajo.</p>
+
+                    <h2>Horario de Clase vs Horario de Profesor</h2>
+                    <p>Hay dos tipos de horario:</p>
+                    <ul>
+                        <li><strong>🏫 Clase</strong> — el horario completo del grupo, con todas las asignaturas que se imparten. Las asignaturas disponibles se filtran automáticamente por la etapa del grupo activo.</li>
+                        <li><strong>👨‍🏫 Profesor</strong> — tu horario personal. Las asignaturas se filtran por las que tienes asignadas en cada grupo. Al seleccionar un grupo en el campo Curso, solo verás las asignaturas que tú impartes en ese grupo.</li>
+                    </ul>
+
+                    <h2>Copiar Clase → Profesor</h2>
+                    <p>El botón <strong>📋 Clase → Profesor</strong> copia el horario de clase al de profesor como punto de partida. Así solo tienes que modificar las horas que cambien respecto al horario de aula.</p>
+
+                    <h2>Configurar Tramos Horarios</h2>
+                    <p>Con el botón <strong>⚙️ Configurar Horas</strong> defines los tramos del día (09:00-10:00, 10:00-11:00...). Si un tramo tiene etiqueta (ej. "Recreo") aparece resaltado ocupando toda la fila. Puedes añadir, eliminar y reordenar tramos.</p>
+
+                    <h2>Imprimir</h2>
+                    <p>El botón 🖨️ imprime la vista activa (manual o imagen) tal como se ve en pantalla.</p>
                 </section>
                 <!-- SECCIÓN DIARIO -->
                 <section id="diario" class="help-section">

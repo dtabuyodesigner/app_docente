@@ -373,10 +373,11 @@
 
             // Cargar asignaturas: las del grupo activo + fijas
             const subjList = document.getElementById('asignaturasList');
+            subjList.innerHTML = '';
             try {
                 const res = await fetch('/api/configuracion/mi_rol');
                 const data = await res.json();
-                const areas = data.areas || [];
+                const areas = data.area_nombres || [];
                 const todasAreas = [...new Set([...areas.map(a => a.nombre), ...ASIGNATURAS_FIJAS])];
                 todasAreas.forEach(s => {
                     const opt = document.createElement('option');
@@ -384,7 +385,6 @@
                     subjList.appendChild(opt);
                 });
             } catch(e) {
-                // Fallback a lista genérica
                 ASIGNATURAS_FIJAS.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s;
@@ -392,7 +392,11 @@
                 });
             }
         }
-        function setType(type) {
+        // Recargar asignaturas cuando cambia el grupo activo
+        document.addEventListener('grupoActivo:changed', () => {
+            initDropdowns();
+            loadData();
+        });
             currentType = type;
             document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll(`.btn-tipo-${type}`).forEach(b => b.classList.add('active'));

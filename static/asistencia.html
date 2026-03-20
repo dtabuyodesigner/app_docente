@@ -672,7 +672,8 @@
                         <button class="btn-compact ${student.estado==='falta_no_justificada'?'active-n':''}" 
                             onclick="markStatus(${student.id},'falta_no_justificada')" title="No just.">🔴</button>
                         <button class="btn-compact ${student.comedor?'active-p':''}" id="btn-comedor-${student.id}"
-                            onclick="toggleComedor(${student.id}, ${!student.comedor})" title="Comedor">🍽️</button>
+                            onclick="toggleComedor(${student.id}, ${!student.comedor})" title="Comedor"
+                            ${(student.estado && student.estado.startsWith('falta') && student.tipo_ausencia === 'dia') ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}>🍽️</button>
                         <button class="btn-compact" 
                             onclick="addObservation(${student.id},'${student.nombre}')" title="Nota">📝</button>
                     </div>

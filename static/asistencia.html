@@ -652,11 +652,12 @@
                 else if (student.estado === 'falta_no_justificada') sc = 'nojustificada';
 
                 const fotoSrc = student.foto
-                    ? `/uploads/${student.foto}`
+                    ? `/static/uploads/${student.foto}`
                     : `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/></svg>`;
 
                 const row = document.createElement('div');
                 row.className = `card-compact ${sc}`;
+                row.id = `compact-row-${student.id}`;
                 row.innerHTML = `
                     <img src="${fotoSrc}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
                          onerror="this.style.display='none'">
@@ -670,7 +671,7 @@
                             onclick="markStatus(${student.id},'falta_justificada')" title="Just.">🔵</button>
                         <button class="btn-compact ${student.estado==='falta_no_justificada'?'active-n':''}" 
                             onclick="markStatus(${student.id},'falta_no_justificada')" title="No just.">🔴</button>
-                        <button class="btn-compact ${student.comedor?'active-p':''}" 
+                        <button class="btn-compact ${student.comedor?'active-p':''}" id="btn-comedor-${student.id}"
                             onclick="toggleComedor(${student.id}, ${!student.comedor})" title="Comedor">🍽️</button>
                         <button class="btn-compact" 
                             onclick="addObservation(${student.id},'${student.nombre}')" title="Nota">📝</button>
@@ -838,6 +839,10 @@
                     fecha: selectedDate
                 })
             });
+            // Actualizar datos locales y re-renderizar
+            const s = studentData.find(s => s.id === id);
+            if (s) s.comedor = checked ? 1 : 0;
+            if (vistaCompacta) renderStudentsCompact(studentData);
             updateStats();
         }
         async function addObservation(id, name) {
@@ -1043,7 +1048,7 @@
                 .then(data => {
                     const container = document.getElementById('imageContainer');
                     if (data.imagen) {
-                        container.innerHTML = `<img src="/static/uploads/${data.imagen}" alt="Menú Comedor" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">`;
+                        container.innerHTML = `<img src="/uploads/${data.imagen}" alt="Menú Comedor" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">`;
                     } else {
                         container.innerHTML = `<p style="color: #888;">No hay menú subido para ${mes}.</p>`;
                     }

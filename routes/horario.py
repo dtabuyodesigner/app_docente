@@ -142,7 +142,8 @@ def upload_horario_img():
 
     if file:
         filename = f"horario_{tipo}_{int(datetime.now().timestamp())}.jpg"
-        filepath = os.path.join("static", "uploads", filename)
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        filepath = os.path.join(base_dir, "static", "uploads", filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         file.save(filepath)
         
@@ -151,3 +152,10 @@ def upload_horario_img():
         return jsonify({"ok": True, "imagen": filename})
         
     return jsonify({"ok": False}), 500
+
+@horario_bp.route("/api/horario/imagen", methods=["DELETE"])
+def delete_horario_img():
+    tipo = request.args.get("tipo", "clase")
+    config_key = f"horario_img_path_{tipo}"
+    set_config_value(config_key, "")
+    return jsonify({"ok": True})

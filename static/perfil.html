@@ -321,7 +321,7 @@
                 if (!me) throw new Error("Alumno no encontrado");
                 // LEFT COLUMN (General Info)
                 document.getElementById('lblNombre').innerText = me.nombre;
-                document.getElementById('imgAvatar').src = me.foto ? `/uploads/${me.foto}` : '/static/placeholder.jpg';
+                document.getElementById('imgAvatar').src = me.foto ? `/static/uploads/${me.foto}` : '/static/placeholder.jpg';
                 let comedorText = me.no_comedor ? 'No asiste' : 'Todos los días';
                 if (!me.no_comedor && me.comedor_dias) {
                     // translate 0,1,2,3,4 to Mon, Tue...

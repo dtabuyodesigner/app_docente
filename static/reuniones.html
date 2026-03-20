@@ -298,27 +298,11 @@
                 </div>
                 <!-- Botones de Acción Globales -->
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn-config" onclick="exportarReunionesCSV()" style="background: #28a745;">📥 Exportar
-                        CSV</button>
-                    <button class="btn-config" onclick="exportarReunionesICal()" style="background: #6f42c1;">📅
-                        Exportar iCal</button>
-                    <button class="btn-config" id="btnConfig" onclick="openConfigModal()" style="display:none;">⚙️
-                        Configurar</button>
+                    <button class="btn-config" onclick="exportarReunionesCSV()" style="background: #28a745;">📥 Exportar CSV</button>
                     <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
                 </div>
             </div>
-            <!-- Fila Inferior: Configuración del Tutor -->
-            <div
-                style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
-                <label style="font-size: 0.9rem; color: #555; white-space: nowrap; margin: 0;">Nombre Tutor/a (para
-                    firmas):</label>
-                <div style="display: flex; gap: 5px; flex-wrap: nowrap; align-items: center;">
-                    <input type="text" id="tutorName" placeholder="Tu Nombre completo"
-                        style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; width: 250px; margin: 0;">
-                    <button onclick="saveTutorName()"
-                        style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">💾</button>
-                </div>
-            </div>
+            <input type="hidden" id="tutorName">
         </div>
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
         <!-- Vista Calendario (Nueva Función) -->
@@ -326,7 +310,10 @@
             style="background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 20px;">
             <div id='calendar'></div>
         </div>
-        <h3 style="margin-top: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px;">📋 Listado Detallado</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:30px; border-bottom:2px solid #eee; padding-bottom:10px;">
+            <h3 style="margin:0;">📋 Listado Detallado</h3>
+            <button id="btnToggleList" onclick="toggleListado()" style="padding:6px 14px; background:#f0f2f5; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:600; color:#555;">🔼 Colapsar</button>
+        </div>
         <div id="meetingList" class="meeting-list"></div>
     </div>
     <!-- Modal -->
@@ -374,8 +361,8 @@
                     <!-- Dynamic Checkboxes -->
                 </div>
                 <textarea id="mAsistentesCiclo" class="form-control"
-                    placeholder="Otros asistentes (separados por comas)..."
-                    style="height: 60px; margin-top: 8px;"></textarea>
+                    placeholder="Otros asistentes (uno por línea)..."
+                    style="height: 80px; margin-top: 8px;"></textarea>
             </div>
             <div class="form-group">
                 <label>Temas Tratados</label>
@@ -415,7 +402,7 @@
         const pageTitle = document.getElementById('pageTitle');
         const tabPadres = document.getElementById('tabPadres');
         const tabCiclo = document.getElementById('tabCiclo');
-        const btnConfig = document.getElementById('btnConfig');
+        const btnConfig = null; // eliminado
         // Config Modal elements
         const configModal = document.getElementById('configModal');
         const configCycleName = document.getElementById('configCycleName');
@@ -440,9 +427,13 @@
         const mAlumnoSelect = document.getElementById('mAlumnoSelect');
         const mAlumnoGroup = document.getElementById('mAlumnoGroup');
         // Initial Load
-        // Load Tutor Name
-        const savedTutor = localStorage.getItem('tutorName') || "";
-        tutorNameInput.value = savedTutor;
+        // Load Tutor Name desde config del centro (fallback a localStorage)
+        fetch('/api/config').then(r => r.json()).then(cfg => {
+            const nombre = cfg.nombre_tutor || cfg.nombre_docente || localStorage.getItem('tutorName') || "";
+            tutorNameInput.value = nombre;
+        }).catch(() => {
+            tutorNameInput.value = localStorage.getItem('tutorName') || "";
+        });
         // Load Students
         fetch('/api/alumnos').then(r => r.json()).then(data => {
             data.forEach(s => {
@@ -450,20 +441,21 @@
                 opt.value = s.id;
                 opt.textContent = s.nombre;
                 studentSelect.appendChild(opt);
-                // Also add to modal
                 const opt2 = opt.cloneNode(true);
                 mAlumnoSelect.appendChild(opt2);
             });
-            loadMeetings(); // Load initial view
+            loadMeetings();
         });
-        // Load Cycles
-        fetch('/api/ciclos').then(r => r.json()).then(data => {
-            cyclesData = data;
-            // Background select
+        // Load Ciclos desde GRUPOS (equipo_docente)
+        fetch('/api/grupos').then(r => r.json()).then(data => {
+            cyclesData = data.map(g => ({
+                id: g.id,
+                nombre: g.nombre,
+                asistentes_defecto: g.equipo_docente || ""
+            }));
             cycleSelect.innerHTML = '<option value="">-- Ver Todos los Ciclos --</option>';
-            // Modal select
             mCycleSelect.innerHTML = '<option value="">-- Seleccionar Ciclo --</option>';
-            data.forEach(c => {
+            cyclesData.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c.id;
                 opt.textContent = c.nombre;
@@ -495,20 +487,6 @@
             }
             loadMeetings();
         }
-        // Fetch Cycles and store data
-        function fetchCycles() {
-            return fetch('/api/ciclos').then(r => r.json()).then(data => {
-                cyclesData = data;
-                cycleSelect.innerHTML = '<option value="">-- Seleccionar Ciclo --</option>';
-                data.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.id;
-                    opt.textContent = c.nombre;
-                    cycleSelect.appendChild(opt);
-                });
-            });
-        }
-        fetchCycles();
         let meetingsData = [];
         function renderCalendar() {
             const calendarEl = document.getElementById('calendar');
@@ -548,37 +526,25 @@
                 },
                 events: events,
                 height: 500,
-                editable: true, // Habilitar arrastrar y soltar
+                editable: true,
                 eventClick: function (info) {
-                    // Open edit modal directly
                     const id = parseInt(info.event.id);
                     openEdit(id);
                 },
                 eventDrop: function (info) {
                     reprogramarReunion(info.event);
                 },
-                // Permite seleccionar un hueco para crear nueva reunión
                 selectable: true,
                 select: function (info) {
-                    // Pre-fill modal
                     openModal();
-                    // info.startStr includes Time if in timeGridWeek view
                     let d = new Date(info.startStr);
-                    // Si es en vista mes, pone la hora a las 16:00
                     if (!info.startStr.includes('T')) {
                         d.setHours(16, 0);
-                        // Shift to local timezone display
                         const localD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
                         mFecha.value = localD.toISOString().slice(0, 16);
                     } else {
-                        mFecha.value = info.startStr.slice(0, 16); // format for datetime-local
+                        mFecha.value = info.startStr.slice(0, 16);
                     }
-                },
-                // Resaltar los lunes por la tarde en vista semanal
-                businessHours: {
-                    daysOfWeek: [1], // Lunes
-                    startTime: '14:30',
-                    endTime: '17:30',
                 }
             });
             calendar.render();
@@ -714,10 +680,28 @@
             }
         }
         function saveTutorName() {
-            const name = tutorNameInput.value.trim();
-            if (name) {
-                localStorage.setItem('tutorName', name);
-                alert("Nombre del tutor guardado.");
+            // ya no se usa — tutor viene de /api/config
+        }
+        function toggleListado() {
+            const list = document.getElementById('meetingList');
+            const btn = document.getElementById('btnToggleList');
+            if (list.style.display === 'none') {
+                list.style.display = '';
+                btn.textContent = '🔼 Colapsar';
+            } else {
+                list.style.display = 'none';
+                btn.textContent = '🔽 Expandir';
+            }
+        }
+        async function deleteMeeting(id) {
+            if (!confirm('¿Borrar esta reunión?')) return;
+            try {
+                const res = await fetch(`/api/reuniones/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.ok) loadMeetings();
+                else alert('Error al borrar: ' + data.error);
+            } catch(e) {
+                alert('Error de conexión');
             }
         }
         function openModal() {
@@ -757,39 +741,32 @@
             const container = document.getElementById('cycleAttendeesCheckboxes');
             container.innerHTML = '';
             if (!cycleId) {
-                container.innerHTML = '<div style="grid-column: 1/-1; color: #888; font-size: 0.8rem;">Selecciona un ciclo para ver los miembros.</div>';
+                container.innerHTML = '<div style="grid-column:1/-1;color:#888;font-size:0.8rem;">Selecciona un ciclo para ver los miembros.</div>';
                 return;
             }
-            if (!cycle || !cycle.asistentes_defecto || cycle.asistentes_defecto === "[]") {
-                container.innerHTML = '<div style="grid-column: 1/-1; color: #888; font-size: 0.8rem;">No hay miembros configurados para este ciclo.</div>';
+            if (!cycle || !cycle.asistentes_defecto || cycle.asistentes_defecto.trim() === '') {
+                container.innerHTML = '<div style="grid-column:1/-1;color:#888;font-size:0.8rem;">No hay equipo docente configurado para este grupo. Ve a Configuración → Grupos para añadirlo.</div>';
                 return;
             }
-            try {
-                let members = JSON.parse(cycle.asistentes_defecto);
-                let selectedList = [];
-                let isEditWithData = false;
-                if (selectedAsistentes) {
-                    isEditWithData = true;
-                    if (selectedAsistentes.startsWith('[') && selectedAsistentes.endsWith(']')) {
-                        try { selectedList = JSON.parse(selectedAsistentes); }
-                        catch (e) { selectedList = selectedAsistentes.split(',').map(a => a.trim()); }
-                    } else {
-                        selectedList = selectedAsistentes.split(',').map(a => a.trim());
-                    }
-                }
-                members.forEach(m => {
-                    const div = document.createElement('div');
-                    div.className = 'attendee-item';
-                    const isChecked = isEditWithData ? selectedList.includes(m) : true;
-                    div.innerHTML = `
-                        <input type="checkbox" class="cycle-member-check" value="${m}" ${isChecked ? 'checked' : ''}>
-                        <span>${m}</span>
-                    `;
-                    container.appendChild(div);
-                });
-            } catch (e) {
-                console.error("Error parsing members", e);
+            // equipo_docente puede ser string separado por comas o saltos de línea
+            let members = cycle.asistentes_defecto
+                .split(/[\n,]+/)
+                .map(m => m.trim())
+                .filter(m => m);
+            let selectedList = [];
+            if (selectedAsistentes) {
+                try {
+                    if (selectedAsistentes.startsWith('[')) selectedList = JSON.parse(selectedAsistentes);
+                    else selectedList = selectedAsistentes.split(/[\n,]+/).map(a => a.trim());
+                } catch(e) { selectedList = []; }
             }
+            members.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'attendee-item';
+                const isChecked = selectedAsistentes ? selectedList.includes(m) : true;
+                div.innerHTML = `<input type="checkbox" class="cycle-member-check" value="${m}" ${isChecked ? 'checked' : ''}><span>${m}</span>`;
+                container.appendChild(div);
+            });
         }
         function openConfigModal() {
             const cycleId = parseInt(cycleSelect.value);
@@ -878,15 +855,13 @@
             const url = id ? `/api/reuniones/${id}` : '/api/reuniones';
             let asistentes = "";
             if (currentMode === 'PADRES') {
-                if (mAsistentesSelect.value === "Otro") {
-                    asistentes = mAsistentesOtro.value;
-                } else {
-                    asistentes = mAsistentesSelect.value;
-                }
+                if (mAsistentesSelect.value === "Otro") asistentes = mAsistentesOtro.value;
+                else asistentes = mAsistentesSelect.value;
             } else {
                 const checks = document.querySelectorAll('.cycle-member-check:checked');
                 const checkedNames = Array.from(checks).map(c => c.value);
-                const extras = mAsistentesCiclo.value.split(',').map(a => a.trim()).filter(a => a);
+                // Extras: uno por línea
+                const extras = mAsistentesCiclo.value.split('\n').map(a => a.trim()).filter(a => a);
                 asistentes = JSON.stringify([...checkedNames, ...extras]);
             }
             const data = {
@@ -906,16 +881,24 @@
                 alert("Por favor, selecciona un ciclo primero.");
                 return;
             }
-            fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
+            fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
                 .then(r => r.json())
                 .then(res => {
                     if (res.ok) {
                         closeModal();
                         loadMeetings();
+                        // Ofrecer añadir a Google Calendar solo al CREAR
+                        if (!id) {
+                            const d = new Date(mFecha.value);
+                            const end = new Date(d.getTime() + 60 * 60000);
+                            const fmt = dt => dt.toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15) + 'Z';
+                            const alumNom = mAlumnoSelect.options[mAlumnoSelect.selectedIndex]?.text || '';
+                            const titulo = currentMode === 'PADRES' ? `Reunión Familias - ${alumNom}` : `Reunión de Ciclo`;
+                            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titulo)}&dates=${fmt(d)}/${fmt(end)}&details=${encodeURIComponent('Temas: ' + mTemas.value)}`;
+                            if (confirm('✅ Reunión guardada.\n\n¿Añadir a Google Calendar?')) {
+                                window.open(gcalUrl, '_blank');
+                            }
+                        }
                     } else {
                         alert("Error al guardar: " + res.error);
                     }

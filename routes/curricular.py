@@ -443,3 +443,73 @@ def importar_sda_csv():
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@curricular_bp.route("/actividades/<int:act_id>/sesiones", methods=["GET"])
+def get_sesiones_actividad(act_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, numero_sesion, descripcion, fecha, material, evaluable
+        FROM programacion_diaria
+        WHERE actividad_id = ?
+        ORDER BY numero_sesion
+    """, (act_id,))
+    rows = cur.fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@curricular_bp.route("/actividades/<int:act_id>/sesiones", methods=["POST"])
+def save_sesiones_actividad(act_id):
+    d = request.get_json(silent=True) or {}
+    sesiones = d.get("sesiones", [])
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Obtener sda_id de la actividad
+    cur.execute("SELECT sda_id FROM actividades_sda WHERE id = ?", (act_id,))
+    act_row = cur.fetchone()
+    if not act_row:
+        return jsonify({"ok": False, "error": "Actividad no encontrada"}), 404
+    sda_id = act_row["sda_id"]
+
+    try:
+        for s in sesiones:
+            s_id = s.get("id")
+            num = int(s.get("numero_sesion", 1))
+            desc = s.get("descripcion", "").strip()
+            fecha = s.get("fecha") or None
+            material = s.get("material", "").strip()
+            evaluable = int(s.get("evaluable", 0))
+
+            if s_id:
+                cur.execute("""
+                    UPDATE programacion_diaria
+                    SET descripcion = ?, fecha = ?, material = ?, evaluable = ?
+                    WHERE id = ?
+                """, (desc, fecha, material, evaluable, s_id))
+            else:
+                # Comprobar si ya existe para esta actividad y número de sesión
+                cur.execute("""
+                    SELECT id FROM programacion_diaria
+                    WHERE actividad_id = ? AND numero_sesion = ?
+                """, (act_id, num))
+                existing = cur.fetchone()
+                if existing:
+                    cur.execute("""
+                        UPDATE programacion_diaria
+                        SET descripcion = ?, fecha = ?, material = ?, evaluable = ?
+                        WHERE id = ?
+                    """, (desc, fecha, material, evaluable, existing["id"]))
+                else:
+                    cur.execute("""
+                        INSERT INTO programacion_diaria
+                            (sda_id, actividad_id, numero_sesion, descripcion, fecha, material, evaluable)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (sda_id, act_id, num, desc, fecha, material, evaluable))
+
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        print("Error en save_sesiones_actividad:", str(e))
+        return jsonify({"ok": False, "error": str(e)}), 500

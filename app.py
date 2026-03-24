@@ -13,6 +13,19 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Sentry — monitorización de errores en producción
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN"),
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=0.1,
+        send_default_pii=True,
+    )
+except ImportError:
+    pass
+
 # Build app
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-key-change-in-prod")
@@ -190,5 +203,12 @@ from flask import send_from_directory
 
 @app.route('/uploads/<path:filename>')
 def serve_upload(filename):
-    uploads_dir = os.path.join(app.root_path, 'static', 'uploads')
-    return send_from_directory(uploads_dir, filename)
+    from utils.db import get_app_data_dir
+    # 1. Try persistent AppData uploads folder first
+    app_data_uploads = os.path.join(get_app_data_dir(), 'uploads')
+    if os.path.exists(os.path.join(app_data_uploads, filename)):
+        return send_from_directory(app_data_uploads, filename)
+    
+    # 2. Fallback to legacy static uploads folder
+    static_uploads = os.path.join(app.root_path, 'static', 'uploads')
+    return send_from_directory(static_uploads, filename)

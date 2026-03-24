@@ -99,48 +99,99 @@
         .meeting-card {
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             border-left: 5px solid var(--secondary);
-            position: relative;
+            transition: all 0.2s;
         }
+
+        .meeting-card.collapsed .meeting-body,
+        .meeting-card.collapsed .meeting-actions {
+            display: none;
+        }
+
+        .meeting-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
         .meeting-card.cycle {
             border-left-color: var(--warning);
         }
+
         .meeting-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+            cursor: pointer;
         }
+
+        .meeting-card.collapsed .meeting-header {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .meeting-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .toggle-icon {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            transition: transform 0.2s;
+            display: inline-block;
+            width: 12px;
+        }
+
+        .meeting-card:not(.collapsed) .toggle-icon {
+            transform: rotate(90deg);
+        }
+
         .meeting-date {
             font-weight: bold;
             color: var(--primary);
             font-size: 1.1rem;
         }
+
         .meeting-attendees {
             color: #666;
-            font-size: 0.9rem;
-        }
-        .meeting-body h4 {
-            margin: 10px 0 5px;
-            color: #444;
             font-size: 0.95rem;
         }
+
+        .meeting-body h4 {
+            margin: 15px 0 8px;
+            color: var(--primary);
+            font-size: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
         .meeting-text {
             white-space: pre-wrap;
             color: #333;
             background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 8px;
             margin-bottom: 15px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border: 1px solid #edf2f7;
         }
+
         .meeting-actions {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
         }
         .btn-edit {
             background: #ffc107;
@@ -149,6 +200,76 @@
             border-radius: 4px;
             cursor: pointer;
             color: #333;
+        }
+
+        /* Attendee Alignment and Differentiation */
+        .attendees-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            background: #fdfdfd;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .attendee-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background: white;
+            border: 1px solid #edf2f7;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            font-size: 0.9rem;
+            min-height: 40px; /* Ensures consistent alignment */
+        }
+
+        .attendee-item:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .attendee-item span {
+            line-height: 1.3;
+            padding-top: 2px; /* Align text with checkbox top */
+        }
+        .attendee-section-title {
+            grid-column: 1 / -1;
+            font-weight: 800;
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Mobile grid for attendees */
+        @media (max-width: 600px) {
+            .attendees-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        .attendee-section-title:first-child {
+            margin-top: 0;
+        }
+        .cycle-member-check {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
         }
         .btn-delete {
             background: #dc3545;
@@ -231,22 +352,6 @@
             width: 100%;
             margin-top: 10px;
         }
-        .attendees-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #eee;
-            margin-top: 5px;
-        }
-        .attendee-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-        }
         /* Mobile tweaks */
         @media (max-width: 768px) {
             .nav {
@@ -270,12 +375,21 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
+        
+        <!-- Tabs de Sección Gestión -->
+        <div class="section-tabs">
+            <a href="/alumnos" class="section-tab-btn">👦 Alumnos</a>
+            <a href="/asistencia" class="section-tab-btn">📋 Pasar Lista</a>
+            <a href="/horario" class="section-tab-btn">⏰ Horario</a>
+            <a href="/reuniones" class="section-tab-btn active">👨‍👩‍👧‍👦 Reuniones</a>
+        </div>
+        
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         </div>
@@ -288,7 +402,7 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <h2 style="margin:0;" id="pageTitle">Reuniones con Familias</h2>
+                    <h2 style="margin:0; font-size: 1.4rem;" id="pageTitle">Reuniones con Familias</h2>
                     <select id="studentSelect" style="width: auto;">
                         <option value="">-- Ver Todas (Resumen) --</option>
                     </select>
@@ -297,9 +411,15 @@
                     </select>
                 </div>
                 <!-- Botones de Acción Globales -->
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn-config" onclick="exportarReunionesCSV()" style="background: #28a745;">📥 Exportar CSV</button>
-                    <button class="btn-new" onclick="openModal()">➕ Nueva Reunión</button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <a href="https://calendar.google.com/calendar/render?action=TEMPLATE" target="_blank" class="btn-config" 
+                       style="background: #ea4335 !important; color: white !important; text-decoration: none !important; display: flex !important; align-items: center !important; gap: 5px !important; padding: 6px 12px !important; font-size: 0.85rem !important;">
+                        📅 G. Calendar
+                    </a>
+                    <button class="btn-config" onclick="exportarReunionesCSV()" 
+                            style="background: #28a745; padding: 6px 12px; font-size: 0.85rem;">📥 CSV</button>
+                    <button class="btn-new" onclick="openModal()" 
+                            style="padding: 6px 12px; font-size: 0.85rem;">➕ Nueva</button>
                 </div>
             </div>
             <input type="hidden" id="tutorName">
@@ -365,13 +485,27 @@
                     style="height: 80px; margin-top: 8px;"></textarea>
             </div>
             <div class="form-group">
-                <label>Temas Tratados</label>
-                <textarea id="mTemas" class="form-control" placeholder="Puntos principales de la reunión..."></textarea>
+                <label>Punto 1: Temas a tratar</label>
+                <textarea id="mTemas" class="form-control" placeholder="Temas a tratar en la reunión..."></textarea>
             </div>
+            
             <div class="form-group">
-                <label>Acuerdos / Conclusiones</label>
+                <label id="acuerdosLabel">Punto 2: Acuerdos / Conclusiones</label>
                 <textarea id="mAcuerdos" class="form-control" placeholder="Acuerdos llegados..."></textarea>
             </div>
+
+            <div id="cycleSignaturesPoint" style="display:none; margin-top:15px;">
+                <label><strong>Punto 3: Miembros del Equipo Docente (Firmas)</strong></label>
+                <div style="font-size:0.8rem; color:#666;">Se incluirán automáticamente en el PDF basándose en los asistentes seleccionados arriba.</div>
+            </div>
+
+            <div class="form-group" id="groupDificultades" style="display:none;">
+                <textarea id="mDificultades" class="form-control" style="display:none;"></textarea>
+            </div>
+            <div class="form-group" id="groupPropuestas" style="display:none;">
+                <textarea id="mPropuestas" class="form-control" style="display:none;"></textarea>
+            </div>
+            <div id="groupStatsCycle" style="display:none;"></div>
             <button class="btn-save" onclick="saveMeeting()">Guardar Reunión</button>
         </div>
     </div>
@@ -417,7 +551,9 @@
         const groupAsistentes = document.getElementById('groupAsistentes');
         const groupAsistentesCiclo = document.getElementById('groupAsistentesCiclo');
         const mTemas = document.getElementById('mTemas');
+        const mDificultades = document.getElementById('mDificultades');
         const mAcuerdos = document.getElementById('mAcuerdos');
+        const groupDificultades = document.getElementById('groupDificultades');
         const editingId = document.getElementById('editingId');
         const modalTitle = document.getElementById('modalTitle');
         const meetingTypeInput = document.getElementById('meetingType');
@@ -426,6 +562,12 @@
         const mCycleGroup = document.getElementById('mCycleGroup');
         const mAlumnoSelect = document.getElementById('mAlumnoSelect');
         const mAlumnoGroup = document.getElementById('mAlumnoGroup');
+        const mPropuestas = document.getElementById('mPropuestas');
+        const groupPropuestas = document.getElementById('groupPropuestas');
+        const mResultadosAuto = document.getElementById('mResultadosAuto');
+        const mSuspensosAuto = document.getElementById('mSuspensosAuto');
+        const groupStatsCycle = document.getElementById('groupStatsCycle');
+        const acuerdosLabel = document.getElementById('acuerdosLabel');
         // Initial Load
         // Load Tutor Name desde config del centro (fallback a localStorage)
         fetch('/api/config').then(r => r.json()).then(cfg => {
@@ -435,8 +577,15 @@
             tutorNameInput.value = localStorage.getItem('tutorName') || "";
         });
         // Load Students
-        fetch('/api/alumnos').then(r => r.json()).then(data => {
-            data.forEach(s => {
+        // Load Data
+        let groupsData = [];
+        let cyclesData = [];
+
+        async function initData() {
+            // Load Alumnos for Parents mode
+            const resAlumnos = await fetch('/api/alumnos');
+            const alumnos = await resAlumnos.json();
+            alumnos.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
                 opt.textContent = s.nombre;
@@ -444,29 +593,36 @@
                 const opt2 = opt.cloneNode(true);
                 mAlumnoSelect.appendChild(opt2);
             });
-            loadMeetings();
-        });
-        // Load Ciclos desde GRUPOS (equipo_docente)
-        fetch('/api/grupos').then(r => r.json()).then(data => {
-            cyclesData = data.map(g => ({
-                id: g.id,
-                nombre: g.nombre,
-                asistentes_defecto: g.equipo_docente || ""
-            }));
-            cycleSelect.innerHTML = '<option value="">-- Ver Todos los Ciclos --</option>';
-            mCycleSelect.innerHTML = '<option value="">-- Seleccionar Ciclo --</option>';
-            cyclesData.forEach(c => {
+
+            // Load Grupos (for Equipo Docente)
+            const resGrupos = await fetch('/api/grupos');
+            groupsData = await resGrupos.json();
+
+            // Load Cycles (from config_ciclo)
+            const resCycles = await fetch('/api/ciclos');
+            cyclesData = await resCycles.json();
+
+            // Populate Cycle selectors (using Groups as primary selector for now to maintain compatibility)
+            // But we will also allow selecting real Cycles if desired? 
+            // For now, let's keep groups as the primary 'unit' but enrich with cycle data.
+            cycleSelect.innerHTML = '<option value="">-- Ver Todos los Grupos --</option>';
+            mCycleSelect.innerHTML = '<option value="">-- Seleccionar Grupo --</option>';
+            
+            groupsData.forEach(g => {
                 const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = c.nombre;
+                opt.value = g.id;
+                opt.textContent = g.nombre;
                 cycleSelect.appendChild(opt);
                 const opt2 = opt.cloneNode(true);
                 mCycleSelect.appendChild(opt2);
             });
-        });
+
+            loadMeetings();
+        }
+
+        initData();
         studentSelect.addEventListener('change', loadMeetings);
         cycleSelect.addEventListener('change', loadMeetings);
-        let cyclesData = [];
         let calendar = null;
         function setMode(mode) {
             currentMode = mode;
@@ -475,14 +631,14 @@
                 tabCiclo.classList.remove('active');
                 studentSelect.style.display = 'inline-block';
                 cycleSelect.style.display = 'none';
-                btnConfig.style.display = 'none';
+                if (btnConfig) btnConfig.style.display = 'none';
                 pageTitle.textContent = "Reuniones con Familias";
             } else {
                 tabPadres.classList.remove('active');
                 tabCiclo.classList.add('active');
                 studentSelect.style.display = 'none';
                 cycleSelect.style.display = 'inline-block';
-                btnConfig.style.display = 'inline-block';
+                if (btnConfig) btnConfig.style.display = 'inline-block';
                 pageTitle.textContent = "Reuniones de Ciclo";
             }
             loadMeetings();
@@ -590,32 +746,44 @@
                         } catch (e) {
                             dateStr = m.fecha; // fallback
                         }
-                        let headerTitle = m.asistentes;
+                        let attendeesFormatted = m.asistentes || "";
+                        if (attendeesFormatted.startsWith('[')) {
+                            try {
+                                attendeesFormatted = JSON.parse(attendeesFormatted).join(", ");
+                            } catch(e) {}
+                        }
+                        
+                        let headerTitle = attendeesFormatted;
                         let rawTitleObj = "Reunión";
                         if (m.tipo === 'PADRES' && m.alumno_nombre) {
-                            headerTitle = `<strong>${m.alumno_nombre}</strong>: ${m.asistentes}`;
+                            headerTitle = `<strong>${m.alumno_nombre}</strong>: ${attendeesFormatted}`;
                             rawTitleObj = `Reunión Familias - ${m.alumno_nombre}`;
                         } else if (m.tipo === 'CICLO') {
-                            headerTitle = `🏫 ${m.asistentes || 'Reunión de Ciclo'}`;
+                            headerTitle = `🏫 ${attendeesFormatted || 'Reunión de Ciclo'}`;
                             rawTitleObj = `Reunión de Ciclo`;
                         }
                         // Generate GCal Link
-                        let gUrlDetails = `Asistentes: ${m.asistentes}\nTemas:\n${m.temas}`;
+                        let gUrlDetails = `Asistentes: ${attendeesFormatted}\nTemas:\n${m.temas}`;
                         let gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(rawTitleObj)}&dates=${gcalDstart}/${gcalDend}&details=${encodeURIComponent(gUrlDetails)}`;
                         card.innerHTML = `
-                            <div class="meeting-header">
-                                <span class="meeting-date">📅 ${dateStr}</span>
-                                <span class="meeting-attendees">${headerTitle}</span>
+                            <div class="meeting-header" onclick="toggleMeeting(this.parentElement)">
+                                <div class="meeting-header-left">
+                                    <span class="toggle-icon">▶</span>
+                                    <span class="meeting-date">📅 ${dateStr}</span>
+                                    <span class="meeting-attendees" title="${attendeesFormatted}">${headerTitle}</span>
+                                </div>
                             </div>
                             <div class="meeting-body">
-                                <h4>📝 Temas Tratados</h4>
-                                <div class="meeting-text">${m.temas}</div>
-                                ${m.acuerdos ? `<h4>🤝 Acuerdos</h4><div class="meeting-text">${m.acuerdos}</div>` : ''}
+                                <h4>📝 Punto 1: Temas a tratar</h4>
+                                <div class="meeting-text">${m.temas || "Sin contenido"}</div>
+                                ${m.tipo === 'CICLO' ? `
+                                    <h4>🤝 Punto 2: Acuerdos / Conclusiones</h4>
+                                    <div class="meeting-text">${m.acuerdos || "Sin acuerdos"}</div>
+                                ` : `
+                                    ${m.acuerdos ? `<h4>🤝 Acuerdos / Conclusiones</h4><div class="meeting-text">${m.acuerdos}</div>` : ''}
+                                `}
                             </div>
                             <div class="meeting-actions">
-                                <a href="${gcalLink}" target="_blank" class="btn-config" style="background: #ea4335; color: white; border: none; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9rem;">
-                                    ➕ Google Calendar
-                                </a>
                                 <button class="btn-pdf" onclick="generatePDF(${m.id})">📄 PDF</button>
                                 <button class="btn-edit" onclick="openEdit(${m.id})">✏️ Editar</button>
                                 <button class="btn-delete" onclick="deleteMeeting(${m.id})">🗑️ Borrar</button>
@@ -645,6 +813,8 @@
                 mFecha.value = m.fecha + "T16:00";
             }
             mTemas.value = m.temas;
+            mDificultades.value = m.dificultades || "";
+            mPropuestas.value = m.propuestas_mejora || "";
             mAcuerdos.value = m.acuerdos || "";
             mAsistentesOtro.value = "";
             mAsistentesCiclo.value = "";
@@ -653,6 +823,7 @@
                 groupAsistentesCiclo.style.display = 'none';
                 mCycleGroup.style.display = 'none';
                 mAlumnoGroup.style.display = 'block';
+                groupDificultades.style.display = 'none';
                 mAlumnoSelect.value = m.alumno_id;
                 const commonOptions = ["Madre", "Padre", "Padre y Madre", "Tutores", "Abuelo", "Abuela"];
                 if (commonOptions.includes(m.asistentes)) {
@@ -668,8 +839,14 @@
                 groupAsistentesCiclo.style.display = 'block';
                 mCycleGroup.style.display = 'block';
                 mAlumnoGroup.style.display = 'none';
+                groupDificultades.style.display = 'none';
+                groupPropuestas.style.display = 'none';
+                groupStatsCycle.style.display = 'none';
+                document.getElementById('cycleSignaturesPoint').style.display = 'block';
+                acuerdosLabel.textContent = "Punto 2: Acuerdos / Conclusiones";
                 mCycleSelect.value = m.ciclo_id;
                 renderCycleAttendees(m.asistentes);
+                // fetchCycleStats(m.ciclo_id); // Removed statistics from meetings
             }
         }
         function toggleOtherAssistants() {
@@ -682,15 +859,27 @@
         function saveTutorName() {
             // ya no se usa — tutor viene de /api/config
         }
+        function toggleMeeting(card) {
+            card.classList.toggle('collapsed');
+        }
+
         function toggleListado() {
-            const list = document.getElementById('meetingList');
+            const cards = document.querySelectorAll('.meeting-card');
             const btn = document.getElementById('btnToggleList');
-            if (list.style.display === 'none') {
-                list.style.display = '';
-                btn.textContent = '🔼 Colapsar';
+            const isCollapsed = btn.textContent.includes('Expandir');
+            
+            cards.forEach(card => {
+                if (isCollapsed) {
+                    card.classList.remove('collapsed');
+                } else {
+                    card.classList.add('collapsed');
+                }
+            });
+
+            if (isCollapsed) {
+                btn.textContent = '🔼 Colapsar Todo';
             } else {
-                list.style.display = 'none';
-                btn.textContent = '🔽 Expandir';
+                btn.textContent = '🔽 Expandir Todo';
             }
         }
         async function deleteMeeting(id) {
@@ -702,6 +891,80 @@
                 else alert('Error al borrar: ' + data.error);
             } catch(e) {
                 alert('Error de conexión');
+            }
+        }
+
+
+        async function fetchCycleStats(cycleId) {
+            if (!cycleId) return;
+            try {
+                // Sacamos el trimestre aproximado basado en la fecha seleccionada o el actual
+                const fechaVal = mFecha.value || new Date().toISOString();
+                const d = new Date(fechaVal);
+                const month = d.getMonth() + 1;
+                let trim = 1;
+                if (month >= 1 && month <= 3) trim = 2;
+                else if (month >= 4 && month <= 6) trim = 3;
+                
+                // Usamos el endpoint de grupo_data
+                const r = await fetch(`/api/informe/grupo_data?trimestre=${trim}`);
+                const data = await r.json();
+                
+                if (mResultadosAuto) {
+                    mResultadosAuto.innerHTML = `
+                        <b>Alumnado total:</b> ${data.generales.total_alumnos}<br/>
+                        <b>Aprobados:</b> ${data.promocion.todo ? data.promocion.todo.num : (data.promocion.C ? data.promocion.C.num : 0)}<br/>
+                        <b>Tasa éxito:</b> ${data.promocion.todo ? data.promocion.todo.pct : (data.promocion.C ? data.promocion.C.pct : 0)}%
+                    `;
+                }
+                
+                if (mSuspensosAuto) {
+                    if (data.suspensos && data.suspensos.length > 0) {
+                        mSuspensosAuto.innerHTML = data.suspensos.map(s => `• ${s.nombre}: ${s.areas}`).join('<br/>');
+                    } else {
+                        mSuspensosAuto.innerHTML = "✓ Todo aprobado.";
+                    }
+                }
+            } catch (e) {
+                console.error("Error fetching cycle stats:", e);
+                mResultadosAuto.innerHTML = "No se pudieron cargar las estadísticas.";
+                mSuspensosAuto.innerHTML = "No se pudieron cargar los datos.";
+            }
+        }
+        async function fetchCycleStats(cycleId) {
+            if (!cycleId) return;
+            try {
+                // Sacamos el trimestre aproximado basado en la fecha seleccionada o el actual
+                const fechaVal = mFecha.value || new Date().toISOString();
+                const d = new Date(fechaVal);
+                const month = d.getMonth() + 1;
+                let trim = 1;
+                if (month >= 1 && month <= 3) trim = 2;
+                else if (month >= 4 && month <= 6) trim = 3;
+                
+                // Usamos el endpoint de grupo_data
+                const r = await fetch(`/api/informe/grupo_data?trimestre=${trim}`);
+                const data = await r.json();
+                
+                if (mResultadosAuto) {
+                    mResultadosAuto.innerHTML = `
+                        <b>Alumnado total:</b> ${data.generales.total_alumnos}<br/>
+                        <b>Aprobados:</b> ${data.promocion.todo ? data.promocion.todo.num : (data.promocion.C ? data.promocion.C.num : 0)}<br/>
+                        <b>Tasa éxito:</b> ${data.promocion.todo ? data.promocion.todo.pct : (data.promocion.C ? data.promocion.C.pct : 0)}%
+                    `;
+                }
+                
+                if (mSuspensosAuto) {
+                    if (data.suspensos && data.suspensos.length > 0) {
+                        mSuspensosAuto.innerHTML = data.suspensos.map(s => `• ${s.nombre}: ${s.areas}`).join('<br/>');
+                    } else {
+                        mSuspensosAuto.innerHTML = "✓ Todo aprobado.";
+                    }
+                }
+            } catch (e) {
+                console.error("Error fetching cycle stats:", e);
+                mResultadosAuto.innerHTML = "No se pudieron cargar las estadísticas.";
+                mSuspensosAuto.innerHTML = "No se pudieron cargar los datos.";
             }
         }
         function openModal() {
@@ -717,56 +980,156 @@
             mAsistentesOtro.value = "";
             mAsistentesCiclo.value = "";
             mTemas.value = "";
+            mDificultades.value = "";
+            mPropuestas.value = "";
             mAcuerdos.value = "";
+            
             if (currentMode === 'PADRES') {
+                modalTitle.textContent = "Nueva Reunión con Familia";
                 groupAsistentes.style.display = 'block';
                 groupAsistentesCiclo.style.display = 'none';
                 mCycleGroup.style.display = 'none';
                 mAlumnoGroup.style.display = 'block';
+                groupDificultades.style.display = 'none';
+                groupPropuestas.style.display = 'none';
+                groupStatsCycle.style.display = 'none';
+                document.getElementById('cycleSignaturesPoint').style.display = 'none';
+                acuerdosLabel.textContent = "Acuerdos / Conclusiones";
                 // Preselect if filter is active
                 if (studentSelect.value) mAlumnoSelect.value = studentSelect.value;
                 else mAlumnoSelect.value = "";
             } else {
+                modalTitle.textContent = "Nueva Reunión de Ciclo";
                 groupAsistentes.style.display = 'none';
                 groupAsistentesCiclo.style.display = 'block';
                 mCycleGroup.style.display = 'block';
                 mAlumnoGroup.style.display = 'none';
+                groupDificultades.style.display = 'none';
+                groupPropuestas.style.display = 'none';
+                groupStatsCycle.style.display = 'none';
+                document.getElementById('cycleSignaturesPoint').style.display = 'block';
+                acuerdosLabel.textContent = "Punto 2: Acuerdos / Conclusiones";
+                
                 mCycleSelect.value = cycleSelect.value;
                 renderCycleAttendees();
+                // if (mCycleSelect.value) fetchCycleStats(mCycleSelect.value); // Removed stats
             }
         }
-        function renderCycleAttendees(selectedAsistentes = "") {
-            const cycleId = parseInt(mCycleSelect.value);
-            const cycle = cyclesData.find(c => c.id === cycleId);
+        function toggleSectionAttendees(sectionHeader, checked) {
+            // Find the closest parent that contains both this header and the checkboxes
+            // Actually, since they are all in the same container, we can find checkboxes 
+            // after this header until the next header.
+            let el = sectionHeader.nextElementSibling;
+            while (el && !el.classList.contains('attendee-section-title')) {
+                if (el.classList.contains('attendee-item')) {
+                    const chk = el.querySelector('.cycle-member-check');
+                    if (chk) chk.checked = checked;
+                }
+                el = el.nextElementSibling;
+            }
+        }
+
+        function renderCycleAttendees(meetingData = null) {
+            const selectedGroupId = parseInt(mCycleSelect.value);
             const container = document.getElementById('cycleAttendeesCheckboxes');
             container.innerHTML = '';
-            if (!cycleId) {
-                container.innerHTML = '<div style="grid-column:1/-1;color:#888;font-size:0.8rem;">Selecciona un ciclo para ver los miembros.</div>';
-                return;
-            }
-            if (!cycle || !cycle.asistentes_defecto || cycle.asistentes_defecto.trim() === '') {
-                container.innerHTML = '<div style="grid-column:1/-1;color:#888;font-size:0.8rem;">No hay equipo docente configurado para este grupo. Ve a Configuración → Grupos para añadirlo.</div>';
-                return;
-            }
-            // equipo_docente puede ser string separado por comas o saltos de línea
-            let members = cycle.asistentes_defecto
-                .split(/[\n,]+/)
-                .map(m => m.trim())
-                .filter(m => m);
+            
+            if (!selectedGroupId) return;
+
+            const group = groupsData.find(g => g.id === selectedGroupId);
+            if (!group) return;
+
+            const selectedAsistentes = (meetingData && meetingData.asistentes) || '';
             let selectedList = [];
             if (selectedAsistentes) {
                 try {
                     if (selectedAsistentes.startsWith('[')) selectedList = JSON.parse(selectedAsistentes);
-                    else selectedList = selectedAsistentes.split(/[\n,]+/).map(a => a.trim());
+                    else selectedList = selectedAsistentes.split(/\n+/).map(a => a.trim());
                 } catch(e) { selectedList = []; }
             }
-            members.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'attendee-item';
-                const isChecked = selectedAsistentes ? selectedList.includes(m) : true;
-                div.innerHTML = `<input type="checkbox" class="cycle-member-check" value="${m}" ${isChecked ? 'checked' : ''}><span>${m}</span>`;
-                container.appendChild(div);
-            });
+
+            // Helper to create header with bulk actions
+            const createHeader = (icon, text) => {
+                const title = document.createElement('div');
+                title.className = 'attendee-section-title';
+                title.style.display = 'flex';
+                title.style.justifyContent = 'space-between';
+                title.style.alignItems = 'center';
+                
+                const left = document.createElement('div');
+                left.innerHTML = `<span>${icon}</span> ${text}`;
+                
+                const right = document.createElement('div');
+                right.style.fontSize = '0.7rem';
+                right.style.display = 'flex';
+                right.style.gap = '10px';
+                
+                const btnAll = document.createElement('a');
+                btnAll.href = '#';
+                btnAll.textContent = 'Todos';
+                btnAll.style.color = 'var(--secondary)';
+                btnAll.style.textDecoration = 'none';
+                btnAll.onclick = (e) => { e.preventDefault(); toggleSectionAttendees(title, true); };
+                
+                const btnNone = document.createElement('a');
+                btnNone.href = '#';
+                btnNone.textContent = 'Ninguno';
+                btnNone.style.color = '#888';
+                btnNone.style.textDecoration = 'none';
+                btnNone.onclick = (e) => { e.preventDefault(); toggleSectionAttendees(title, false); };
+                
+                right.appendChild(btnAll);
+                right.appendChild(btnNone);
+                title.appendChild(left);
+                title.appendChild(right);
+                return title;
+            };
+
+            // --- SECCIÓN 1: MIEMBROS DEL CICLO ---
+            let cycleMembers = [];
+            let cycleNameFound = "";
+            let targetCycleName = "";
+            const gName = group.nombre.toLowerCase();
+            if (gName.includes("1º") || gName.includes("2º")) targetCycleName = "Primer Ciclo";
+            else if (gName.includes("3º") || gName.includes("4º")) targetCycleName = "Segundo Ciclo";
+            else if (gName.includes("5º") || gName.includes("6º")) targetCycleName = "Tercer Ciclo";
+            else if (gName.includes("infantil")) targetCycleName = "Infantil";
+
+            const targetCycle = cyclesData.find(c => c.nombre.toLowerCase() === targetCycleName.toLowerCase());
+            if (targetCycle) {
+                cycleNameFound = targetCycle.nombre;
+                const src = targetCycle.asistentes_defecto || "[]";
+                if (src.startsWith("[")) {
+                    try { cycleMembers = JSON.parse(src); } catch(e) { cycleMembers = []; }
+                } else {
+                    cycleMembers = src.split(/\n+/).map(m => m.trim()).filter(m => m);
+                }
+            }
+
+            if (cycleMembers.length > 0) {
+                container.appendChild(createHeader('👥', `Miembros del ${cycleNameFound}`));
+                cycleMembers.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'attendee-item';
+                    const isChecked = selectedAsistentes ? selectedList.includes(m) : true; // DEFAULT TRUE
+                    div.innerHTML = `<input type="checkbox" class="cycle-member-check" value="${m}" ${isChecked ? 'checked' : ''}><span>${m}</span>`;
+                    container.appendChild(div);
+                });
+            }
+
+            // --- SECCIÓN 2: EQUIPO DOCENTE (Del Grupo) ---
+            const eqDocStr = group.equipo_docente || "";
+            const eqDocMembers = eqDocStr.split(/\n+/).map(m => m.trim()).filter(m => m);
+            if (eqDocMembers.length > 0) {
+                container.appendChild(createHeader('🏫', `Equipo Docente (${group.nombre})`));
+                eqDocMembers.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'attendee-item';
+                    const isChecked = selectedAsistentes ? selectedList.includes(m) : false; // DEFAULT FALSE
+                    div.innerHTML = `<input type="checkbox" class="cycle-member-check" value="${m}" ${isChecked ? 'checked' : ''}><span>${m}</span>`;
+                    container.appendChild(div);
+                });
+            }
         }
         function openConfigModal() {
             const cycleId = parseInt(cycleSelect.value);
@@ -816,39 +1179,7 @@
             modal.style.display = "none";
             document.body.style.overflow = "";
         }
-        function editMeeting(m) {
-            modal.style.display = "block";
-            modalTitle.innerText = "Editar Reunión";
-            editingId.value = m.id;
-            mFecha.value = m.fecha;
-            mTemas.value = m.temas;
-            mAcuerdos.value = m.acuerdos;
-            if (currentMode === 'PADRES') {
-                groupAsistentes.style.display = 'block';
-                groupAsistentesCiclo.style.display = 'none';
-                mCycleGroup.style.display = 'none';
-                mAlumnoGroup.style.display = 'block';
-                mAlumnoSelect.value = m.alumno_id || "";
-                // Try to map assistants
-                const options = Array.from(mAsistentesSelect.options).map(o => o.value);
-                if (options.includes(m.asistentes)) {
-                    mAsistentesSelect.value = m.asistentes;
-                    mAsistentesOtro.style.display = 'none';
-                } else {
-                    mAsistentesSelect.value = "Otro";
-                    mAsistentesOtro.style.display = 'block';
-                    mAsistentesOtro.value = m.asistentes;
-                }
-            } else {
-                groupAsistentes.style.display = 'none';
-                groupAsistentesCiclo.style.display = 'block';
-                mCycleGroup.style.display = 'block';
-                mAlumnoGroup.style.display = 'none';
-                mCycleSelect.value = m.ciclo_id || "";
-                renderCycleAttendees(m.asistentes);
-                mAsistentesCiclo.value = "";
-            }
-        }
+        // eliminada duplicada
         function saveMeeting() {
             const id = editingId.value;
             const method = id ? 'PUT' : 'POST';
@@ -868,6 +1199,8 @@
                 fecha: mFecha.value,
                 asistentes: asistentes,
                 temas: mTemas.value,
+                dificultades: mDificultades.value,
+                propuestas_mejora: mPropuestas.value,
                 acuerdos: mAcuerdos.value,
                 tipo: currentMode,
                 alumno_id: currentMode === 'PADRES' ? mAlumnoSelect.value : null,

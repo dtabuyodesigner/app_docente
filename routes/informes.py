@@ -1738,6 +1738,19 @@ def informe_pdf_todos():
     
     grupo_id = session.get('active_group_id')
     
+    # Determinar el cargo_tutor (Tutor/a o Especialista)
+    cargo_tutor = "Tutor/a"
+    if grupo_id:
+        cur.execute(f"SELECT valor FROM config WHERE clave = 'grupo_{grupo_id}_rol'")
+        rol_row = cur.fetchone()
+        if rol_row and rol_row["valor"] == "especialista":
+            cargo_tutor = "Especialista"
+            if area_id:
+                cur.execute("SELECT nombre FROM areas WHERE id = ?", (area_id,))
+                area_row = cur.fetchone()
+                if area_row:
+                    cargo_tutor = f"Especialista de {area_row['nombre']}"
+    
     # Obtener nombre del grupo para el nombre del archivo
     cur.execute("SELECT nombre FROM grupos WHERE id = ?", (grupo_id,))
     row_g = cur.fetchone()
@@ -1968,9 +1981,9 @@ def informe_pdf_todos():
     
     # 4. Equipo Docente (Firmas)
     equipo_docente = ""
-    if row_inf:
+    if row_grupo:
         try:
-            equipo_docente = row_inf["equipo_docente"] if "equipo_docente" in row_inf.keys() else ""
+            equipo_docente = row_grupo["equipo_docente"] if "equipo_docente" in row_grupo.keys() else ""
         except:
             pass
             
@@ -2012,7 +2025,7 @@ def informe_pdf_todos():
     for al in alumnos:
         # Notas por criterios - Filtrar por área si necesario
         query_crit = """
-            SELECT ar.nombre, s.nombre, c.codigo, c.descripcion, e.nota, ar.tipo_escala, e.nivel, null as base
+            SELECT ar.nombre as area, s.nombre as sda, c.codigo as criterio_codigo, c.descripcion as criterio_desc, e.nota, ar.tipo_escala, e.nivel, c.comentario_base as base
             FROM evaluaciones e
             JOIN areas ar ON e.area_id = ar.id
             JOIN sda s ON e.sda_id = s.id
@@ -2026,7 +2039,7 @@ def informe_pdf_todos():
             
         query_crit += """
             UNION ALL
-            SELECT ar.nombre, 'Criterios Directos', c.codigo, c.descripcion, ec.nota, ar.tipo_escala, ec.nivel, ec.observaciones as base
+            SELECT ar.nombre as area, 'Criterios Directos' as sda, c.codigo as criterio_codigo, c.descripcion as criterio_desc, ec.nota, ar.tipo_escala, ec.nivel, c.comentario_base as base
             FROM evaluacion_criterios ec
             JOIN criterios c ON ec.criterio_id = c.id
             JOIN areas ar ON c.area_id = ar.id
@@ -2036,6 +2049,8 @@ def informe_pdf_todos():
         if area_id:
             query_crit += " AND ar.id = ?"
             params_crit.append(area_id)
+            
+        query_crit += " ORDER BY area, sda, criterio_codigo"
             
         # Mostrar alumnos incluso sin datos
         cur.execute(query_crit, params_crit)
@@ -2074,28 +2089,7 @@ def informe_pdf_todos():
         """, (al['id'], trimestre, al['id'], periodo))
         notas_area = cur.fetchall()
 
-        # Notas SDA con Criterios
-        cur.execute("""
-            SELECT a.nombre as area, s.nombre as sda, c.codigo as criterio_codigo,
-                   c.descripcion as criterio_desc, e.nota, a.tipo_escala, e.nivel, c.comentario_base
-            FROM evaluaciones e
-            JOIN sda s ON e.sda_id = s.id
-            JOIN areas a ON e.area_id = a.id
-            JOIN criterios c ON e.criterio_id = c.id
-            WHERE e.alumno_id = ? AND e.trimestre = ?
-            
-            UNION ALL
-            
-            SELECT a.nombre as area, 'Criterios Directos' as sda, c.codigo as criterio_codigo,
-                   c.descripcion as criterio_desc, ec.nota, a.tipo_escala, ec.nivel, c.comentario_base
-            FROM evaluacion_criterios ec
-            JOIN criterios c ON ec.criterio_id = c.id
-            JOIN areas a ON c.area_id = a.id
-            WHERE ec.alumno_id = ? AND ec.periodo = ?
-            
-            ORDER BY area, sda, criterio_codigo
-        """, (al['id'], trimestre, al['id'], periodo))
-        notas_criterios = cur.fetchall()
+        # Notas SDA con Criterios generadas anteriormente en query_crit
 
         # Detalle Faltas
         cur.execute("""

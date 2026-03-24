@@ -249,6 +249,9 @@
             padding: 15px;
             transition: box-shadow .2s;
             background: white;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         .book-card:hover {
             box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
@@ -619,11 +622,18 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <div class="container">
-<!-- Unified Navigation will be injected here automatically by navigation.js -->
+    <!-- Unified Navigation will be injected here automatically by navigation.js -->
+    
+    <!-- Tabs de Sección Recursos -->
+    <div class="section-tabs">
+        <a href="/biblioteca" class="section-tab-btn active">📚 Biblioteca</a>
+        <a href="/material" class="section-tab-btn">📦 Material</a>
+    </div>
+
     <div class="premium-card">
         <div class="page-header">
             <h1>📚 Biblioteca</h1>
@@ -1333,25 +1343,31 @@
                     });
 
                     // --- DIPLOMAS PENDIENTES ---
-                    // Pendiente = ganados > entregados
                     const conDiploma = data.filter(i => i.diplomas_ganados > i.diplomas_entregados);
                     const alertasDiv = document.getElementById('diplomaAlertas');
                     const listaDiv = document.getElementById('diplomaLista');
                     if (conDiploma.length > 0) {
                         alertasDiv.style.display = 'block';
-                        listaDiv.innerHTML = conDiploma.map(i => `
-                            <div style="background:white; border:1px solid #f6c90e; border-radius:10px; padding:10px 16px; display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:1.5rem;">🎓</span>
-                                <div style="flex:1;">
-                                    <div style="font-weight:700; color:#003366;">${i.nombre}</div>
-                                    <div style="font-size:0.8rem; color:#666;">${i.total_lecturas} libros • ${i.diplomas_ganados - i.diplomas_entregados} diploma${(i.diplomas_ganados - i.diplomas_entregados) > 1 ? 's' : ''} pendiente${(i.diplomas_ganados - i.diplomas_entregados) > 1 ? 's' : ''}</div>
+                        listaDiv.innerHTML = conDiploma.map(i => {
+                            const pendCount = i.diplomas_ganados - i.diplomas_entregados;
+                            const hito = (i.diplomas_entregados + 1) * 5; // Milestone for the NEXT diploma
+                            return `
+                                <div style="background:white; border:1px solid #f6c90e; border-radius:12px; padding:12px 18px; display:flex; align-items:center; gap:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                                    <div style="background:#fffbea; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">🎓</div>
+                                    <div style="flex:1;">
+                                        <div style="font-weight:800; color:#003366; font-size:1rem;">${i.nombre}</div>
+                                        <div style="font-size:0.85rem; color:#856404; font-weight:600;">¡Hito de ${hito} libros alcanzado!</div>
+                                        ${pendCount > 1 ? `<div style="font-size:0.75rem; color:#999;">${pendCount} diplomas pendientes</div>` : ''}
+                                    </div>
+                                    <div style="display:flex; gap:6px;">
+                                        <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${hito}, ${i.diplomas_entregados + 1})"
+                                            style="padding:8px 12px; background:#003366; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:700;">🖨️ Imprimir</button>
+                                        <button onclick="marcarEntregado(${i.alumno_id})"
+                                            style="padding:8px 12px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:700;">✅ Entregado</button>
+                                    </div>
                                 </div>
-                                <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.total_lecturas}, ${i.diplomas_ganados})"
-                                    style="padding:5px 10px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">🖨️ Imprimir</button>
-                                <button onclick="marcarEntregado(${i.alumno_id})"
-                                    style="padding:5px 10px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">✅ Entregado</button>
-                            </div>
-                        `).join('');
+                            `;
+                        }).join('');
                     } else {
                         alertasDiv.style.display = 'none';
                     }
@@ -1362,34 +1378,36 @@
                         tablaDiv.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">No hay libros devueltos aún.</p>';
                         return;
                     }
-                    let html = `<table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
-                        <thead><tr style="background:#f0f4f8;">
-                            <th style="padding:10px 12px; text-align:left; color:#003366;">Alumno</th>
-                            <th style="padding:10px 12px; text-align:center; color:#003366;">Devueltos</th>
-                            <th style="padding:10px 12px; text-align:center; color:#003366;">Progreso diploma</th>
-                            <th style="padding:10px 12px; text-align:center; color:#003366;">Diplomas</th>
-                            <th style="padding:10px 12px; text-align:center; color:#003366;">Acción</th>
+                    let html = `<table class="table">
+                        <thead><tr>
+                            <th>Alumno</th>
+                            <th style="text-align:center;">Total Libros</th>
+                            <th style="text-align:center;">Próximo Hito</th>
+                            <th style="text-align:center;">Diplomas</th>
+                            <th style="text-align:center;">Acción</th>
                         </tr></thead><tbody>`;
                     data.forEach((i, idx) => {
-                        const prog = i.progreso_actual; // 0-4
+                        const prog = i.total_lecturas % 5;
                         const pct = (prog / 5) * 100;
-                        const barColor = i.diplomas_ganados > 0 ? '#28a745' : '#007bff';
-                        html += `<tr style="border-bottom:1px solid #eef2f7; background:${idx%2===0?'white':'#fafafa'};">
-                            <td style="padding:10px 12px; font-weight:600;">${i.nombre}</td>
-                            <td style="padding:10px 12px; text-align:center;">${i.total_lecturas}</td>
-                            <td style="padding:10px 12px; min-width:120px;">
-                                <div style="background:#eef2f7; border-radius:8px; height:10px; overflow:hidden;">
+                        const barColor = i.diplomas_ganados > i.diplomas_entregados ? '#f6c90e' : '#28a745';
+                        html += `<tr>
+                            <td style="font-weight:600;">${i.nombre}</td>
+                            <td style="text-align:center; font-weight:700; color:var(--primary);">${i.total_lecturas}</td>
+                            <td style="min-width:140px;">
+                                <div style="background:#eef2f7; border-radius:8px; height:12px; overflow:hidden; border:1px solid #ddd;">
                                     <div style="background:${barColor}; width:${pct}%; height:100%; border-radius:8px; transition:width 0.4s;"></div>
                                 </div>
-                                <div style="font-size:0.75rem; color:#666; margin-top:3px; text-align:center;">${prog}/5</div>
+                                <div style="font-size:0.75rem; color:#666; margin-top:4px; text-align:center; font-weight:600;">${prog} / 5 para el siguiente</div>
                             </td>
-                            <td style="padding:10px 12px; text-align:center;">
-                                ${i.diplomas_ganados > i.diplomas_entregados ? `<span style="background:#d4edda; color:#155724; padding:3px 10px; border-radius:8px; font-weight:700;">🎓 ${i.diplomas_ganados - i.diplomas_entregados} pendiente${(i.diplomas_ganados - i.diplomas_entregados) > 1 ? 's' : ''}</span>` : i.diplomas_ganados > 0 ? '<span style="color:#28a745; font-size:0.85rem;">✅ Todos entregados</span>' : '<span style="color:#999;">—</span>'}
+                            <td style="text-align:center;">
+                                ${i.diplomas_ganados > i.diplomas_entregados ? `<span style="background:#fff3cd; color:#856404; padding:4px 12px; border-radius:10px; font-weight:700; border:1px solid #ffeeba;">🎓 ${i.diplomas_ganados - i.diplomas_entregados} PENDIENTE</span>` : i.diplomas_ganados > 0 ? '<span style="color:#28a745; font-size:0.85rem; font-weight:700;">✅ ENTREGADOS</span>' : '<span style="color:#999;">—</span>'}
                             </td>
-                            <td style="padding:10px 12px; text-align:center; display:flex; gap:5px; justify-content:center;">
+                            <td style="text-align:center; display:flex; gap:6px; justify-content:center;">
                                 ${i.diplomas_ganados > i.diplomas_entregados ? `
-                                    <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.total_lecturas}, ${i.diplomas_ganados})" style="padding:5px 10px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">🖨️</button>
-                                    <button onclick="marcarEntregado(${i.alumno_id})" style="padding:5px 10px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem;">✅</button>
+                                    <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${(i.diplomas_entregados+1)*5}, ${i.diplomas_entregados+1})" style="padding:6px 10px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer;" title="Imprimir diploma">🖨️</button>
+                                    <button onclick="marcarEntregado(${i.alumno_id})" style="padding:6px 10px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer;" title="Marcar como entregado">✅</button>
+                                ` : i.diplomas_entregados > 0 ? `
+                                    <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.diplomas_entregados*5}, ${i.diplomas_entregados})" style="padding:6px 10px; background:#6c757d; color:white; border:none; border-radius:6px; cursor:pointer;" title="Re-imprimir último diploma">🖨️</button>
                                 ` : ''}
                             </td>
                         </tr>`;
@@ -1414,40 +1432,55 @@
             }
         }
 
-        function imprimirDiploma(alumnoId, nombre, libros, diplomas) {
-            const win = window.open('', '_blank', 'width=800,height=600');
+        function imprimirDiploma(alumnoId, nombre, milestone, diplomaNum) {
+            const win = window.open('', '_blank', 'width=900,height=700');
             win.document.write(`<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Diploma - ${nombre}</title>
 <style>
-  body { margin:0; font-family: 'Georgia', serif; background:#fffef0; display:flex; justify-content:center; align-items:center; min-height:100vh; }
-  .diploma { width:700px; border:12px double #c8a000; border-radius:18px; padding:50px 60px; text-align:center; background:linear-gradient(135deg,#fffff5 0%,#fffde0 100%); box-shadow:0 8px 32px rgba(0,0,0,0.12); }
-  .estrella { font-size:3rem; }
-  .titulo { font-size:2.2rem; font-weight:bold; color:#8B6914; margin:16px 0 6px; letter-spacing:2px; }
-  .subtitulo { font-size:1rem; color:#a0852e; margin-bottom:24px; }
-  .nombre { font-size:2.4rem; color:#003366; font-style:italic; border-bottom:2px solid #c8a000; display:inline-block; padding:0 20px 8px; margin:10px 0 20px; }
-  .texto { font-size:1.1rem; color:#444; line-height:1.7; margin-bottom:20px; }
-  .libros { font-size:2.5rem; font-weight:bold; color:#28a745; }
-  .firma { margin-top:40px; font-size:0.9rem; color:#888; }
-  @media print { body { background:white; } .diploma { box-shadow:none; } }
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Great+Vibes&family=Montserrat:wght@400;700&display=swap');
+  body { margin:0; font-family: 'Montserrat', sans-serif; background:#f9f9f9; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+  .diploma { width:800px; height:560px; border:20px double #c8a000; border-radius:10px; padding:40px; text-align:center; background:#fff; position:relative; box-shadow:0 10px 40px rgba(0,0,0,0.1); }
+  .decor { position:absolute; font-size:4rem; color:rgba(200,160,0,0.1); z-index:0; }
+  .decor-tl { top:20px; left:20px; } .decor-tr { top:20px; right:20px; } .decor-bl { bottom:20px; left:20px; } .decor-br { bottom:20px; right:20px; }
+  .content { position:relative; z-index:1; }
+  .icon-top { font-size:4.5rem; margin-bottom:10px; }
+  .header { font-family: 'Cinzel', serif; font-size:2.8rem; color:#8B6914; margin:10px 0; text-transform:uppercase; letter-spacing:4px; }
+  .subheader { font-size:1.1rem; color:#b08d57; margin-bottom:30px; font-weight:700; }
+  .intro { font-style:italic; color:#666; font-size:1.2rem; }
+  .nombre { font-family: 'Great Vibes', cursive; font-size:4.5rem; color:#003366; margin:15px 0; display:block; }
+  .reason { font-size:1.3rem; color:#444; margin-bottom:15px; }
+  .milestone-box { display:inline-block; background:#fef9e7; padding:15px 30px; border:2px solid #c8a000; border-radius:50px; margin:20px 0; }
+  .milestone-text { font-size:2.2rem; font-weight:800; color:#c8a000; }
+  .footer { margin-top:50px; display:flex; justify-content:space-around; align-items:flex-end; }
+  .seal { font-size:3rem; opacity:0.6; }
+  .sign-box { border-top:2px solid #ccc; width:200px; padding-top:8px; font-size:0.9rem; color:#777; }
+  @media print { body { background:white; } .diploma { box-shadow:none; border-width:15px; } }
 </style>
 </head>
 <body>
 <div class="diploma">
-  <div class="estrella">⭐ 📚 ⭐</div>
-  <div class="titulo">DIPLOMA DE LECTURA</div>
-  <div class="subtitulo">Cuaderno del Tutor · Biblioteca Escolar</div>
-  <p style="color:#666; font-size:1rem;">Se otorga el presente diploma a</p>
-  <div class="nombre">${nombre}</div>
-  <p class="texto">por haber leído y devuelto</p>
-  <div class="libros">${libros} libros 📖</div>
-  <p class="texto" style="margin-top:12px;">demostrando dedicación, curiosidad y amor por la lectura.</p>
-  ${diplomas > 1 ? `<p style="color:#856404; font-weight:bold;">🏆 ¡${diplomas}º Diploma conseguido!</p>` : ''}
-  <div class="firma">
-    <p>___________________________</p>
-    <p>Firma del Tutor/a · ${new Date().toLocaleDateString('es-ES', {year:'numeric',month:'long',day:'numeric'})}</p>
+  <div class="decor decor-tl">📖</div><div class="decor decor-tr">🎓</div><div class="decor decor-bl">✨</div><div class="decor decor-br">🏆</div>
+  <div class="content">
+    <div class="icon-top">👑</div>
+    <div class="header">Diploma de Honor</div>
+    <div class="subheader">LECTÓMETRO · BIBLIOTECA ESCOLAR</div>
+    <p class="intro">Se otorga con orgullo el presente reconocimiento a:</p>
+    <div class="nombre">${nombre}</div>
+    <p class="reason">por completar con éxito y devoción el gran hito de:</p>
+    <div class="milestone-box">
+        <span class="milestone-text">${milestone} LIBROS LEÍDOS</span>
+    </div>
+    <p style="font-size:1.1rem; color:#555; margin-top:10px;">Demostrando un compromiso excepcional con la literatura,<br>la imaginación y el aprendizaje continuo.</p>
+    <div class="footer">
+        <div class="sign-box">Firma del Tutor/a</div>
+        <div class="seal">⭐</div>
+        <div class="sign-box">${new Date().toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'})}</div>
+    </div>
+  </div>
+</div>
   </div>
 </div>
 <script>window.onload = () => window.print();<\/script>
@@ -1607,10 +1640,12 @@
                         <div class="book-author">${b.autor || 'Autor desconocido'}</div>
                         <div class="book-meta">${[b.nivel_lectura, b.genero, b.año_publicacion].filter(Boolean).join(' · ')}</div>
                         <span class="avail-badge ${cls}">${b.cantidad_disponible}/${b.cantidad_total}${agotado ? ' — Sin existencias' : ' disponibles'}</span>
-                        ${!agotado ? `<button class="btn btn-success btn-sm" style="width:100%; margin-top: 10px;" onclick="openPrestamoRapido(${b.id}, '${b.titulo.replace(/'/g, "\\'")}', '${b.autor ? b.autor.replace(/'/g, "\\'") : ''}')">📤 Prestar</button>` : ''}
-                        <div class="book-actions">
-                            <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEdit(${b.id})">✏️ Editar</button>
-                            <button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')">🗑️</button>
+                        <div style="margin-top: auto;">
+                            ${!agotado ? `<button class="btn btn-success btn-sm" style="width:100%; margin-top: 10px;" onclick="openPrestamoRapido(${b.id}, '${b.titulo.replace(/'/g, "\\'")}', '${b.autor ? b.autor.replace(/'/g, "\\'") : ''}')">📤 Prestar</button>` : ''}
+                            <div class="book-actions">
+                                <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEdit(${b.id})">✏️ Editar</button>
+                                <button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')">🗑️</button>
+                            </div>
                         </div>
                     </div>`;
                 }
@@ -2306,13 +2341,24 @@
         async function confirmarDevolucion() {
             const id = document.getElementById('dev-id').value;
             const body = { fecha_devolucion: document.getElementById('dev-fecha').value, observaciones: document.getElementById('dev-obs').value };
-            const d = await (await fetch(`/api/prestamos/${id}/devolver`, {
+            const r = await fetch(`/api/prestamos/${id}/devolver`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() }, body: JSON.stringify(body)
-            })).json();
+            });
+            const d = await r.json();
             if (d.ok) {
                 closeDevModal();
                 showToast("✅ Devolución registrada correctamente");
                 
+                if (d.hito_alcanzado) {
+                    loadRankingChart();
+                    setTimeout(() => {
+                        const msg = `🎊 ¡ENHORABUENA! Ha alcanzado el hito de ${d.hito_alcanzado} libros. ¡Ya tiene un nuevo diploma listo!`;
+                        alert(msg);
+                    }, 500);
+                } else {
+                    loadRankingChart();
+                }
+
                 // Partial refresh
                 _prestamosLoaded = false;
                 initPrestamos();

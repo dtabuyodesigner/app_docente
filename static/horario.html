@@ -228,12 +228,21 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
+        
+        <!-- Tabs de Sección Gestión -->
+        <div class="section-tabs">
+            <a href="/alumnos" class="section-tab-btn">👦 Alumnos</a>
+            <a href="/asistencia" class="section-tab-btn">📋 Pasar Lista</a>
+            <a href="/horario" class="section-tab-btn active">⏰ Horario</a>
+            <a href="/reuniones" class="section-tab-btn">👨‍👩‍👧‍👦 Reuniones</a>
+        </div>
+        
             <div style="display: flex; align-items: center; gap: 15px;">
             </div>
         <div class="tabs">
@@ -430,6 +439,9 @@
         }
         // Recargar asignaturas cuando cambia el grupo activo
         document.addEventListener('grupoActivo:changed', () => {
+            // Limpiar campos del modal para evitar estado inconsistente
+            document.getElementById('modalAsignaturaInput').value = "";
+            document.getElementById('modalCursoInput').value = "";
             initDropdowns();
             loadData();
         });
@@ -574,22 +586,17 @@
                 document.getElementById('modalTitle').innerText = "Editar Clase";
                 document.getElementById('modalId').value = entry.id;
                 document.getElementById('modalDetalles').value = entry.detalles;
-                // Try to parse Subject - Course
                 const fullText = entry.asignatura || "";
-                // Improved split to handle custom inputs better
-                // We assume separator is " - " (space hyphen space)
                 const parts = fullText.split(" - ");
                 if (parts.length >= 2) {
-                    // Start from the end to find the course? Or start from beginning?
-                    // Given our format "Math - 5th", splitting by " - " is risky if subject has hyphen.
-                    // But we used " - " as glue.
-                    // Simple logic: Subject is parts[0], Course is parts[1] (joined if >2)
                     document.getElementById('modalAsignaturaInput').value = parts[0];
                     document.getElementById('modalCursoInput').value = parts.slice(1).join(" - ");
                 } else {
                     document.getElementById('modalAsignaturaInput').value = fullText;
-                    document.getElementById('modalCursoInput').value = ""; // No course
+                    document.getElementById('modalCursoInput').value = "";
                 }
+                // Recargar asignaturas según el grupo del entry
+                cargarAsignaturas(document.getElementById('modalCursoInput').value);
                 document.getElementById('btnDelete').style.display = 'block';
             } else {
                 document.getElementById('modalTitle').innerText = "Nueva Clase";
@@ -597,6 +604,8 @@
                 document.getElementById('modalDetalles').value = "";
                 document.getElementById('modalAsignaturaInput').value = "";
                 document.getElementById('modalCursoInput').value = "";
+                // Recargar asignaturas limpias para el grupo activo
+                cargarAsignaturas();
                 document.getElementById('btnDelete').style.display = 'none';
             }
             modal.style.display = 'flex';

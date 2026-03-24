@@ -206,6 +206,8 @@ def curricular_full():
             sda["actividades"] = [dict(act) for act in cur.fetchall()]
             cur.execute("SELECT c.id, c.codigo, c.descripcion FROM criterios c JOIN sda_criterios sc ON sc.criterio_id = c.id WHERE sc.sda_id = ?", (sda["id"],))
             sda["criterios"] = [dict(c) for c in cur.fetchall()]
+            cur.execute("SELECT ce.id, ce.codigo, ce.descripcion FROM competencias_especificas ce JOIN sda_competencias sc ON sc.competencia_id = ce.id WHERE sc.sda_id = ?", (sda["id"],))
+            sda["competencias"] = [dict(comp) for comp in cur.fetchall()]
         area["sdas"] = sdas
     return jsonify(areas)
 
@@ -477,7 +479,7 @@ def save_sesiones_actividad(act_id):
             s_id = s.get("id")
             num = int(s.get("numero_sesion", 1))
             desc = s.get("descripcion", "").strip()
-            fecha = s.get("fecha") or None
+            fecha = s.get("fecha") or ""  # Bug 13: Ensure NOT NULL constraint is met
             material = s.get("material", "").strip()
             evaluable = int(s.get("evaluable", 0))
 

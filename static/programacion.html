@@ -168,6 +168,16 @@
         .btn-info {
             background: var(--info);
         }
+        /* Bug 12: Tooltip and long text in calendar */
+        .fc-event-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .fc-event:hover {
+            z-index: 50;
+            cursor: pointer;
+        }
         /* Timeline & List */
         .timeline {
             margin-top: 30px;
@@ -536,6 +546,16 @@
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
+        
+        <!-- Tabs de Sección Docencia -->
+        <div class="section-tabs">
+            <a href="/diario" class="section-tab-btn">📖 Diario</a>
+            <a href="/programacion" class="section-tab-btn active">📅 Programación</a>
+            <a href="/static/clase_hoy.html" class="section-tab-btn">🏫 Clase de Hoy</a>
+            <a href="/rubricas" class="section-tab-btn">📊 Rúbricas</a>
+            <a href="/tareas" class="section-tab-btn">📝 Tareas</a>
+        </div>
+        
         <div class="premium-card"
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 15px;">
@@ -1492,6 +1512,12 @@
                 },
                 editable: true,
                 events: '/api/programacion',
+                eventDidMount: function(info) {
+                    // Bug 12: Tooltip for long text
+                    if (info.event.title) {
+                        info.el.setAttribute('title', info.event.title);
+                    }
+                },
                 dateClick: function (info) {
                     console.log('Date clicked:', info.dateStr);
                     openModal(null, info.dateStr);

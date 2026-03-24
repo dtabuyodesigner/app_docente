@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, send_file, session
 from utils.db import get_db, nivel_a_nota
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 import matplotlib
@@ -244,6 +244,10 @@ def informe_pdf_individual():
     faltas_detalle = cur.fetchall()
     
     
+    cur.execute("SELECT texto FROM informe_individual WHERE alumno_id = ? AND trimestre = ?", (alumno_id, trimestre))
+    obs_row = cur.fetchone()
+    obs_text = obs_row["texto"] if obs_row and obs_row["texto"] else ""
+
     # Generate PDF
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
@@ -356,7 +360,13 @@ def informe_pdf_individual():
     if chart_buf:
         elements.append(RLImage(chart_buf, width=16*cm, height=max(4, len(notas_area) * 0.7)*cm))
         elements.append(Spacer(1, 15))
-    
+
+    # Observaciones del tutor/a (texto libre guardado en informe_individual)
+    if obs_text:
+        elements.append(Paragraph("Observaciones del Tutor/a:", styles['Heading3']))
+        elements.append(Paragraph(obs_text.replace('\n', '<br/>'), styles['BodyText']))
+        elements.append(Spacer(1, 15))
+
     # 6. Observaciones Pedagógicas (Nuevo)
     elements.append(Paragraph("Observaciones Pedagógicas", styles['Heading3']))
     comentarios_por_area = {}
@@ -389,8 +399,17 @@ def informe_pdf_individual():
     elements.append(Spacer(1, 40))
     if tutor_nombre:
         rol_label = f"Especialista de {area_nombre_filtro}" if rol == "especialista" and area_nombre_filtro else "Especialista" if rol == "especialista" else "Tutor/a"
-        elements.append(Paragraph(f"Fdo: {tutor_nombre}", styles['Normal']))
-        elements.append(Paragraph(f"({rol_label})", styles['Normal']))
+        firma_data = [
+            [Paragraph(f"Fdo: {tutor_nombre}", styles['Normal'])],
+            [Paragraph(f"({rol_label})", styles['Normal'])]
+        ]
+        t_firma = Table(firma_data, colWidths=[10*cm])
+        t_firma.setStyle(TableStyle([
+            ('LEFTPADDING', (0,0), (-1,-1), 0),
+            ('TOPPADDING', (0,0), (-1,-1), 0),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ]))
+        elements.append(t_firma)
 
     doc.build(elements)
     buffer.seek(0)
@@ -535,7 +554,7 @@ def informe_reunion_pdf(rid):
     # --- Datos de la reunión ---
     cur.execute("""
         SELECT r.*, a.nombre as alumno_nombre, a.grupo_id as alumno_grupo_id,
-               g.nombre as ciclo_nombre
+               g.nombre as ciclo_nombre, g.id as grupo_id
         FROM reuniones r
         LEFT JOIN alumnos a ON r.alumno_id = a.id
         LEFT JOIN grupos g ON r.ciclo_id = g.id
@@ -554,9 +573,9 @@ def informe_reunion_pdf(rid):
     grupo_id = r["alumno_grupo_id"] or session.get("active_group_id")
     rol_label = "Tutor/a"
     if grupo_id:
-        cur.execute("SELECT rol FROM configuracion_grupo_rol WHERE grupo_id = ?", (grupo_id,))
+        cur.execute("SELECT valor FROM config WHERE clave = ?", (f"grupo_{grupo_id}_rol",))
         row_rol = cur.fetchone()
-        if row_rol and row_rol["rol"] == "especialista":
+        if row_rol and row_rol["valor"] == "especialista":
             rol_label = "Especialista"
 
     buffer = BytesIO()
@@ -607,15 +626,28 @@ def informe_reunion_pdf(rid):
     elements.append(t_info)
     elements.append(Spacer(1, 20))
 
-    elements.append(Paragraph("<b>Temas Tratados:</b>", styles['Heading3']))
-    elements.append(Paragraph(r['temas'] or "Sin contenido", styles['Normal']))
-    elements.append(Spacer(1, 15))
+    if not is_ciclo:
+        elements.append(Paragraph("<b>Temas Tratados:</b>", styles['Heading3']))
+        elements.append(Paragraph(r['temas'] or "Sin contenido", styles['Normal']))
+        elements.append(Spacer(1, 15))
+        elements.append(Paragraph("<b>Acuerdos / Conclusiones:</b>", styles['Heading3']))
+        elements.append(Paragraph(r['acuerdos'] or "Sin acuerdos registrados", styles['Normal']))
+    else:
+        # 3-point structure for CICLO
+        elements.append(Paragraph("<b>1. Temas a tratar:</b>", styles['Heading3']))
+        elements.append(Paragraph(r['temas'] or "Sin contenido", styles['Normal']))
+        elements.append(Spacer(1, 15))
 
-    elements.append(Paragraph("<b>Acuerdos / Conclusiones:</b>", styles['Heading3']))
-    elements.append(Paragraph(r['acuerdos'] or "Sin acuerdos registrados", styles['Normal']))
+        elements.append(Paragraph("<b>2. Acuerdos / Conclusiones:</b>", styles['Heading3']))
+        elements.append(Paragraph(r['acuerdos'] or "Sin acuerdos registrados", styles['Normal']))
+
     elements.append(Spacer(1, 40))
 
-    elements.append(Paragraph("<b>Firmas:</b>", styles['Heading4']))
+    if is_ciclo:
+        elements.append(Paragraph("<b>3. Miembros del Equipo Docente / Firmas:</b>", styles['Heading3']))
+    else:
+        elements.append(Paragraph("<b>Firmas:</b>", styles['Heading4']))
+        elements.append(Paragraph("<b>Firmas:</b>", styles['Heading4']))
     elements.append(Spacer(1, 10))
 
     firmantes = []
@@ -696,26 +728,31 @@ def grupo_obs():
     
     if request.method == "POST":
         d = request.json
+        print(f"[DEBUG] Saving grupo_obs: {d}")
         obs = d.get("observaciones", "")
         prop = d.get("propuestas_mejora", "")
         conc = d.get("conclusion", "")
         eq_doc = d.get("equipo_docente", "")
+        dif = d.get("dificultades", "")
+        print(f"[DEBUG] dificultades to save: '{dif}'")
         
         grupo_id = session.get('active_group_id')
+        print(f"[DEBUG] POST grupo_id from session: {grupo_id}")
         cur.execute("""
-            INSERT INTO informe_grupo (grupo_id, trimestre, observaciones, propuestas_mejora, conclusion, equipo_docente)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO informe_grupo (grupo_id, trimestre, observaciones, propuestas_mejora, conclusion, equipo_docente, dificultades)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(grupo_id, trimestre) DO UPDATE SET
                 observaciones = excluded.observaciones,
                 propuestas_mejora = excluded.propuestas_mejora,
                 conclusion = excluded.conclusion,
-                equipo_docente = excluded.equipo_docente
-        """, (grupo_id, trimestre, obs, prop, conc, eq_doc))
+                equipo_docente = excluded.equipo_docente,
+                dificultades = excluded.dificultades
+        """, (grupo_id, trimestre, obs, prop, conc, eq_doc, dif))
         conn.commit()
         return jsonify({"ok": True})
     else:
         grupo_id = session.get('active_group_id')
-        grupo_id = session.get('active_group_id')
+        print(f"[DEBUG] active_group_id from session: {grupo_id}")
         
         cur.execute("SELECT equipo_docente FROM grupos WHERE id = ?", (grupo_id,))
         g_row = cur.fetchone()
@@ -735,14 +772,27 @@ def grupo_obs():
                 equipo = row["equipo_docente"] if "equipo_docente" in row.keys() else ""
             except:
                 pass
-            return jsonify({
+            res = {
                 "observaciones": row["observaciones"],
                 "propuestas_mejora": row["propuestas_mejora"],
                 "conclusion": row["conclusion"],
                 "equipo_docente": equipo,
                 "equipo_docente_grupo": eq_doc_grupo
-            })
-        return jsonify({"equipo_docente_grupo": eq_doc_grupo})
+            }
+            # Robust access to 'dificultades'
+            try:
+                if "dificultades" in row.keys():
+                    res["dificultades"] = row["dificultades"]
+                else:
+                    res["dificultades"] = ""
+            except:
+                # Fallback to index if needed, but row should be Row or dict-like
+                try:
+                    res["dificultades"] = row[7] if len(row) > 7 else ""
+                except:
+                    res["dificultades"] = ""
+            return jsonify(res)
+        return jsonify({"equipo_docente_grupo": eq_doc_grupo, "dificultades": ""})
 
 @informes_bp.route("/api/informe/excel_individual")
 def excel_individual():
@@ -1086,7 +1136,7 @@ def acta_oficial():
     cur.execute("SELECT * FROM informe_grupo WHERE grupo_id = ? AND trimestre = ?", (grupo_id, trimestre))
     informe = cur.fetchone()
     valoracion = informe["observaciones"] if informe and informe["observaciones"] else ""
-    dificultades = ""
+    dificultades = informe["dificultades"] if informe and "dificultades" in informe.keys() and informe["dificultades"] else ""
     propuestas = informe["propuestas_mejora"] if informe and informe["propuestas_mejora"] else ""
     otras_obs = informe["conclusion"] if informe and informe["conclusion"] else ""
     equipo_informe = informe["equipo_docente"] if informe and informe["equipo_docente"] else equipo_docente_raw
@@ -1238,12 +1288,15 @@ def acta_oficial():
     elements.append(header_tbl)
     elements.append(HRFlowable(width="100%", thickness=1, color=rl_colors.black, spaceAfter=10))
 
-    # INTRO
+    # --- Lugar y Fecha al principio ---
     hora_display = hora_str if hora_str else "……"
     fecha_display = fecha_str if fecha_str else "…………………………"
+    lugar_fecha_str = f"<b>Lugar:</b> {nombre_centro}   |   <b>Fecha:</b> {fecha_display}   |   <b>Hora:</b> {hora_display}"
+    elements.append(Paragraph(lugar_fecha_str, style_sub)) 
+    elements.append(Spacer(1, 10))
+
     elements.append(Paragraph(
-        f"Siendo las {hora_display} horas del día {fecha_display} se reúnen en el {nombre_centro}, "
-        f"el Equipo Educativo de <b>{grupo_nombre}</b>, cuyos miembros asistentes se relacionan a continuación, "
+        f"Reunidos el Equipo Educativo de <b>{grupo_nombre}</b>, cuyos miembros asistentes se relacionan a continuación, "
         f"a fin de tratar el siguiente Orden del día:",
         style_body))
     elements.append(Spacer(1, 6))
@@ -1261,11 +1314,12 @@ def acta_oficial():
     elements.append(Paragraph("<b>Orden del Día:</b>", style_label))
     orden = [
         "1. Valoración del Grupo.",
-        f"   NÚMERO DE ALUMNADO: {total_alumnos}     ALUMNADO CON TODO APROBADO: {aprobados}     ÉXITO: {pct_exito}%",
-        "2. Dificultades encontradas en el grupo clase",
-        "3. Propuestas de mejora",
-        "4. Alumnado con áreas suspensas" if not es_infantil else "4. Observaciones generales",
-        "5. Otras Observaciones.",
+        "2. Dificultades encontradas en el grupo clase.",
+        "3. Propuestas de mejora.",
+        "4. Análisis de resultados de la evaluación.",
+        "5. Alumnado con áreas suspensas" if not es_infantil else "5. Observaciones pedagógicas",
+        "6. Conclusión y otras Observaciones.",
+        "7. Miembros del Equipo Docente / Firmas.",
     ]
     for item in orden:
         elements.append(Paragraph(item, style_body))
@@ -1288,8 +1342,14 @@ def acta_oficial():
     elements.append(Paragraph(propuestas if propuestas else " ", style_body))
     elements.append(Spacer(1, 8))
 
+    elements.append(Paragraph("<b>4. Análisis de resultados de la evaluación</b>", style_label))
+    elements.append(Paragraph(f"Número de alumnado: {total_alumnos}", style_body))
+    elements.append(Paragraph(f"Alumnado con todo aprobado / promoción: {aprobados}", style_body))
+    elements.append(Paragraph(f"Porcentaje de éxito: {pct_exito}%", style_body))
+    elements.append(Spacer(1, 8))
+
     if not es_infantil and alumnos_suspensos:
-        elements.append(Paragraph("<b>4. Alumnado con áreas suspensas</b>", style_label))
+        elements.append(Paragraph("<b>5. Alumnado con áreas suspensas</b>", style_label))
         data_susp = [["Alumno/a", "Áreas"]]
         for nombre_al, areas_al in alumnos_suspensos:
             data_susp.append([Paragraph(nombre_al, styles['Normal']), Paragraph(areas_al, styles['Normal'])])
@@ -1302,15 +1362,23 @@ def acta_oficial():
         ]))
         elements.append(t_susp)
         elements.append(Spacer(1, 8))
+    elif es_infantil:
+        elements.append(Paragraph("<b>5. Observaciones pedagógicas</b>", style_label))
+        elements.append(Paragraph("Ver informes individuales para detalle por alumno/a.", style_body))
+        elements.append(Spacer(1, 8))
+    else:
+        elements.append(Paragraph("<b>5. Alumnado con áreas suspensas</b>", style_label))
+        elements.append(Paragraph("✓ Todo el alumnado ha superado todas las áreas.", style_body))
+        elements.append(Spacer(1, 8))
 
-    elements.append(Paragraph("<b>5. Otras Observaciones</b>", style_label))
+    elements.append(Paragraph("<b>6. Conclusión y otras Observaciones</b>", style_label))
     elements.append(Paragraph(otras_obs if otras_obs else " ", style_body))
     elements.append(Spacer(1, 12))
 
     # CIERRE Y FIRMAS
     elements.append(Paragraph(f"En Valle de Guerra a {fecha_display}", style_body))
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b>Equipo Educativo</b>", style_label))
+    elements.append(Paragraph("<b>7. Miembros del Equipo Educativo / Firmas</b>", style_label))
     elements.append(Spacer(1, 6))
 
     if firmantes:
@@ -1618,13 +1686,43 @@ def asistencia_alumno_stats():
         GROUP BY estado
     """, (alumno_id, start_date, end_date))
     
-    stats = dict(cur.fetchall())
+    stats_rows = cur.fetchall()
+    stats = {row["estado"]: row[1] for row in stats_rows}
     
+    # Detalle mensual
+    cur.execute("""
+        SELECT strftime('%m', fecha) as mes, estado, COUNT(*) as cuenta
+        FROM asistencia
+        WHERE alumno_id = ? AND fecha BETWEEN ? AND ?
+          AND estado IN ('retraso', 'falta_justificada', 'falta_no_justificada')
+        GROUP BY mes, estado
+        ORDER BY mes
+    """, (alumno_id, start_date, end_date))
+    
+    mensual_rows = cur.fetchall()
+    mensual = {}
+    nombres_meses = {
+        "01": "Enero", "02": "Febrero", "03": "Marzo", "04": "Abril",
+        "05": "Mayo", "06": "Junio", "07": "Julio", "08": "Agosto",
+        "09": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
+    }
+    
+    for row in mensual_rows:
+        m = nombres_meses.get(row["mes"], row["mes"])
+        if m not in mensual:
+            mensual[m] = {"retrasos": 0, "faltas": 0}
+        
+        if row["estado"] == "retraso":
+            mensual[m]["retrasos"] += row["cuenta"]
+        else:
+            mensual[m]["faltas"] += row["cuenta"]
+            
     return jsonify({
         "retrasos": stats.get("retraso", 0),
         "f_justificada": stats.get("falta_justificada", 0),
         "f_no_justificada": stats.get("falta_no_justificada", 0),
-        "total_faltas": stats.get("falta_justificada", 0) + stats.get("falta_no_justificada", 0)
+        "total_faltas": stats.get("falta_justificada", 0) + stats.get("falta_no_justificada", 0),
+        "mensual": mensual
     })
 
 @informes_bp.route("/api/informe/pdf_general")
@@ -1769,6 +1867,17 @@ def informe_pdf_todos():
             elements.append(Paragraph("Valoración General:", styles['Heading3']))
             elements.append(Paragraph(txt_formatted, styles['BodyText']))
             elements.append(Spacer(1, 10))
+        # Campo dificultades (entre valoración y propuestas)
+        dificultades = ""
+        try:
+            dificultades = row_grupo["dificultades"] or ""
+        except (IndexError, KeyError):
+            pass
+        if dificultades:
+            txt_formatted = dificultades.replace('\n', '<br/>')
+            elements.append(Paragraph("Dificultades Encontradas:", styles['Heading3']))
+            elements.append(Paragraph(txt_formatted, styles['BodyText']))
+            elements.append(Spacer(1, 10))
         if row_grupo["propuestas_mejora"]:
             txt_formatted = row_grupo["propuestas_mejora"].replace('\n', '<br/>')
             elements.append(Paragraph("Propuestas de Mejora:", styles['Heading3']))
@@ -1809,7 +1918,6 @@ def informe_pdf_todos():
             JOIN areas ar ON c.area_id = ar.id
             WHERE ec.periodo = ? AND a.grupo_id = ?
         """
-        params_inf = [trimestre, grupo_id, periodo, grupo_id]
         params_inf = [periodo, grupo_id]
         if area_id:
             query_inf += " AND ar.id = ?"
@@ -2127,8 +2235,17 @@ def informe_pdf_todos():
         # Signature
         elements.append(Spacer(1, 40))
         if tutor_nombre:
-            elements.append(Paragraph(f"Fdo: {tutor_nombre}", styles['Normal']))
-            elements.append(Paragraph("(Tutor/a)", styles['Normal']))
+            firma_data = [
+                [Paragraph(f"Fdo: {tutor_nombre}", styles['Normal'])],
+                [Paragraph(f"({ cargo_tutor })", styles['Normal'])]
+            ]
+            t_firma = Table(firma_data, colWidths=[10*cm])
+            t_firma.setStyle(TableStyle([
+                ('LEFTPADDING', (0,0), (-1,-1), 0),
+                ('TOPPADDING', (0,0), (-1,-1), 0),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+            ]))
+            elements.append(t_firma)
 
         elements.append(PageBreak())
         
@@ -2579,6 +2696,9 @@ def pdf_grupo():
     cur.execute("SELECT count(*) FROM alumnos WHERE grupo_id = ?", (grupo_id,))
     total_alumnos = cur.fetchone()[0]
 
+    if total_alumnos <= 0:
+        return "No hay alumnos en este grupo para generar el informe.", 400
+
     susp_map = {}
     infantil_map = {'C': 0, 'EP': 0, 'NI': 0}
 
@@ -2615,20 +2735,20 @@ def pdf_grupo():
             else:
                 pass # Already handling NE by (total_alumnos - evaluados_infantil)
     else:
-        # Promoción (Suspensos)
+        # Promoción (Suspensos) - Modificado para capturar áreas
         cur.execute("""
-            SELECT a.nombre, COUNT(val.area_id) as num_suspensos
+            SELECT a.nombre, GROUP_CONCAT(ar.nombre || ' (' || ROUND(sub.media_area,1) || ')', ', ') as areas, COUNT(sub.area_id) as num_suspensos
             FROM alumnos a
-            LEFT JOIN (
+            JOIN (
                 SELECT alumno_id, area_id, AVG(nota) as media_area
                 FROM evaluaciones
                 WHERE trimestre = ?
                 GROUP BY alumno_id, area_id
                 HAVING media_area < 5
-            ) val ON a.id = val.alumno_id
-            WHERE a.grupo_id = ?
+            ) sub ON a.id = sub.alumno_id
+            JOIN areas ar ON sub.area_id = ar.id
+            WHERE a.grupo_id = ? AND a.deleted_at IS NULL
             GROUP BY a.id, a.nombre
-            HAVING num_suspensos > 0
         """, (trimestre, grupo_id))
         suspensos_data = cur.fetchall()
         
@@ -2747,7 +2867,7 @@ def pdf_grupo():
                     startangle=90,
                     textprops={'fontsize': 9})
         else:
-            ax1.text(0.5, 0.5, 'Sin datos evaluados', ha='center', va='center')
+            ax1.text(0.5, 0.5, 'Sin datos para la gráfica', ha='center', va='center')
             ax1.axis('off')
     else:
         colors_promo = ['#28a745', '#ffc107', '#fd7e14', '#dc3545']
@@ -2774,7 +2894,7 @@ def pdf_grupo():
                     startangle=140,
                     textprops={'fontsize': 9})
         else:
-            ax1.text(0.5, 0.5, 'Sin datos evaluados', ha='center', va='center')
+            ax1.text(0.5, 0.5, 'Sin datos para la gráfica', ha='center', va='center')
             ax1.axis('off')
     promo_chart_buf = BytesIO()
     plt.savefig(promo_chart_buf, format='png', bbox_inches='tight', dpi=300)
@@ -2831,25 +2951,37 @@ def pdf_grupo():
     if row_grupo:
         if row_grupo["observaciones"]:
             txt_formatted = row_grupo["observaciones"].replace('\n', '<br/>')
-            elements.append(Paragraph("Valoración General:", styles['Heading3']))
+            elements.append(Paragraph("1. Valoración General del Tutor:", styles['Heading3']))
             elements.append(Paragraph(txt_formatted, styles['BodyText']))
             elements.append(Spacer(1, 10))
+        
+        # Safe access to dificultades to avoid KeyError on older databases
+        dif_val = ""
+        try:
+            if "dificultades" in [k[0] for k in cur.description]:
+                dif_val = row_grupo["dificultades"]
+            elif "dificultades" in row_grupo.keys():
+                dif_val = row_grupo["dificultades"]
+        except:
+            pass
+            
+        if dif_val:
+            txt_formatted = dif_val.replace('\n', '<br/>')
+            elements.append(Paragraph("2. Dificultades encontradas en el grupo clase:", styles['Heading3']))
+            elements.append(Paragraph(txt_formatted, styles['BodyText']))
+            elements.append(Spacer(1, 10))
+            
         if row_grupo["propuestas_mejora"]:
             txt_formatted = row_grupo["propuestas_mejora"].replace('\n', '<br/>')
-            elements.append(Paragraph("Propuestas de Mejora:", styles['Heading3']))
-            elements.append(Paragraph(txt_formatted, styles['BodyText']))
-            elements.append(Spacer(1, 10))
-        if row_grupo["conclusion"]:
-            txt_formatted = row_grupo["conclusion"].replace('\n', '<br/>')
-            elements.append(Paragraph("Conclusión:", styles['Heading3']))
+            elements.append(Paragraph("3. Propuestas de Mejora:", styles['Heading3']))
             elements.append(Paragraph(txt_formatted, styles['BodyText']))
             elements.append(Spacer(1, 10))
     else:
         elements.append(Paragraph("No hay valoración grupal registrada.", styles['Normal']))
     elements.append(Spacer(1, 15))
     
-    # 2. Promoción con Gráfica
-    elements.append(Paragraph("Análisis de Promoción (Resultados):", styles['Heading3']))
+    # 4. Promoción con Gráfica
+    elements.append(Paragraph("4. Análisis de resultados de la evaluación (Promoción/Rendimiento):", styles['Heading3']))
     
     def calc_pct(n):
         return f"{round(n * 100 / total_alumnos, 1)}%" if total_alumnos > 0 else "0%"
@@ -2914,17 +3046,45 @@ def pdf_grupo():
         area_img = RLImage(area_chart_buf, width=16*cm, height=max(8, len(area_perf_data)*0.8)*cm)
         elements.append(area_img)
         
-    # Equipo Docente (Firmas)
+    # 5. Alumnado con áreas suspensas
+    if not es_infantil and suspensos_data:
+        elements.append(Paragraph("5. Alumnado con áreas suspensas:", styles['Heading3']))
+        data_susp = [["Alumno/a", "Áreas"]]
+        for r in suspensos_data:
+            data_susp.append([Paragraph(r["nombre"], styles['Normal']), Paragraph(r["areas"], styles['Normal'])])
+        t_susp = Table(data_susp, colWidths=[6*cm, 10*cm])
+        t_susp.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ]))
+        elements.append(t_susp)
+        elements.append(Spacer(1, 15))
+    elif es_infantil:
+        elements.append(Paragraph("5. Observaciones pedagógicas:", styles['Heading3']))
+        elements.append(Paragraph("Ver informes individuales para detalle por alumno/a.", styles['Normal']))
+        elements.append(Spacer(1, 15))
+
+    # 6. Conclusión Final / Otras Observaciones
+    if row_grupo and row_grupo["conclusion"]:
+        txt_formatted = row_grupo["conclusion"].replace('\n', '<br/>')
+        elements.append(Paragraph("6. Conclusión Final / Otras Observaciones:", styles['Heading3']))
+        elements.append(Paragraph(txt_formatted, styles['BodyText']))
+        elements.append(Spacer(1, 15))
+
+    # Equipo Docente (Firmas) - Renombrado a 7
     equipo_docente = ""
     if row_grupo:
         try:
-            equipo_docente = row_grupo["equipo_docente"] if "equipo_docente" in row_grupo.keys() else ""
+            # Usar get para evitar KeyError si la columna no existe en el objeto Row
+            equipo_docente = row_grupo["equipo_docente"] if "equipo_docente" in [k[0] for k in cur.description] else ""
         except:
-            pass
+            equipo_docente = ""
             
     if equipo_docente:
-        elements.append(Spacer(1, 20))
-        elements.append(Paragraph("Miembros del Equipo Docente", styles['Heading3']))
+        elements.append(Spacer(1, 10))
+        elements.append(Paragraph("7. Miembros del Equipo Docente (Firmas)", styles['Heading3']))
         
         firmantes = [line.strip() for line in equipo_docente.replace('\r', '').split('\n') if line.strip()]
         if firmantes:

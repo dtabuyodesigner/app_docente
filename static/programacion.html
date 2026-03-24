@@ -530,7 +530,7 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
@@ -1139,6 +1139,7 @@
                 const sdaTitle = document.createElement('h3');
                 sdaTitle.textContent = sda.nombre;
                 sdaTitle.style.cssText = 'margin:0; font-size:1.1rem; color:#1a2a3a; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing: -0.2px;';
+                sdaTitle.title = sda.nombre;
                 headerLeft.appendChild(trimBadge);
                 headerLeft.appendChild(sdaTitle);
                 const headerActions = document.createElement('div');
@@ -1235,11 +1236,13 @@
                         actInfo.style.cssText = 'flex:1; min-width:0;';
                         const actName = document.createElement('div');
                         actName.textContent = a.nombre;
+                        actName.title = a.nombre;
                         actName.style.cssText = 'font-weight:700; color:#2d3748; font-size:1rem; margin-bottom:4px;';
                         actInfo.appendChild(actName);
                         if (a.descripcion) {
                             const actDesc = document.createElement('div');
                             actDesc.textContent = a.descripcion;
+                            actDesc.title = a.descripcion;
                             actDesc.style.cssText = 'font-size:0.85rem; color:#718096; line-height:1.5;';
                             actInfo.appendChild(actDesc);
                         }

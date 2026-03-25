@@ -316,7 +316,8 @@ def informe_pdf_individual():
         sda_dict = area_sda_map.get(area_nombre, {})
         detail_lines = []
         for sda_name, criterios in sda_dict.items():
-            sda_avg = round(sum(c[2] for c in criterios) / len(criterios), 2) if criterios else 0
+            eval_notas = [c[2] for c in criterios if c[2] is not None]
+            sda_avg = round(sum(eval_notas) / len(eval_notas), 2) if eval_notas else 0
             fmt_sda_avg = format_nota(sda_avg, tipo_escala)
             detail_lines.append(f"<b>{sda_name}</b>: {fmt_sda_avg}")
             for crit_cod, crit_desc, nota, escala in criterios:
@@ -636,7 +637,8 @@ def informe_pdf_todos():
             alumnos_medias[aid].append(row["nota"])
         
         for aid, notas in alumnos_medias.items():
-            media_alumno = sum(notas) / len(notas)
+            notas_validas = [n for n in notas if n is not None]
+            media_alumno = sum(notas_validas) / len(notas_validas) if notas_validas else 0
             evaluados_infantil += 1
             if media_alumno >= 2.5:
                 infantil_map['C'] += 1
@@ -825,7 +827,8 @@ def informe_pdf_todos():
             sda_dict = area_sda_map.get(area_nombre, {})
             detail_lines = []
             for sda_name, criterios in sda_dict.items():
-                sda_avg = round(sum(c[2] for c in criterios) / len(criterios), 2) if criterios else 0
+                eval_notas = [c[2] for c in criterios if c[2] is not None]
+                sda_avg = round(sum(eval_notas) / len(eval_notas), 2) if eval_notas else 0
                 fmt_sda_avg = format_nota(sda_avg, tipo_escala)
                 detail_lines.append(f"<b>{sda_name}</b>: {fmt_sda_avg}")
                 for crit_cod, crit_desc, nota, escala in criterios:
@@ -1156,7 +1159,8 @@ def grupo_data():
         notas_inf = cur.fetchall()
         total_evals = len(notas_inf)
         if total_evals > 0:
-            media_general = round(sum(row["nota"] for row in notas_inf) / total_evals, 2)
+            notas_validas = [row["nota"] for row in notas_inf if row["nota"] is not None]
+            media_general = round(sum(notas_validas) / len(notas_validas), 2) if notas_validas else 0
             
             alumnos_medias = {}
             for row in notas_inf:
@@ -1166,7 +1170,8 @@ def grupo_data():
                 alumnos_medias[aid].append(row["nota"])
                 
             for aid, notas in alumnos_medias.items():
-                media_alumno = sum(notas) / len(notas)
+                notas_validas = [n for n in notas if n is not None]
+                media_alumno = sum(notas_validas) / len(notas_validas) if notas_validas else 0
                 if media_alumno >= 2.5:
                     suspensos_map[aid] = 'C'
                 elif media_alumno >= 1.5:
@@ -2225,7 +2230,8 @@ def pdf_grupo():
             aid = r[0]
             if aid in alumnos_medias:
                 evaluados_infantil += 1
-                media = sum(alumnos_medias[aid]) / len(alumnos_medias[aid])
+                notas_validas = [n for n in alumnos_medias[aid] if n is not None]
+                media = sum(notas_validas) / len(notas_validas) if notas_validas else 0
                 if media >= 2.5:
                     infantil_map['C'] += 1
                 elif media >= 1.5:

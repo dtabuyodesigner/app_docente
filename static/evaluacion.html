@@ -1195,7 +1195,10 @@
                     document.getElementById('mediaSDA').style.display = 'block';
                     document.getElementById('mediaArea').style.display = 'block';
                     document.querySelector('h3 + #resumenAlumno').parentElement.style.display = 'block';
-                    // Sincronizar datos al volver a individual
+                    
+                    // Asegurar que Individual use el mismo alumno/área/trimestre que teníamos en rejilla
+                    // Individual depende de los selectores globales que ya están sincronizados.
+                    // Solo forzamos recarga.
                     cargarNotasExistentes();
                     cargarMedia();
                     cargarResumenAlumno();
@@ -1253,19 +1256,24 @@
                     tbodyT.appendChild(tr);
                 });
             }
-            window.guardar = async function (criterio_id, nivel, isFromGrid = false, element = null) {
-                const alumId = alumnoSelect.value;
+            window.guardar = async function (criterio_id, nivel, isFromGrid = false, element = null, specificAlumId = null) {
+                const alumId = specificAlumId || alumnoSelect.value;
                 const conf = getAreaConfig();
-                const sda_id = sdaSelect.value || null;
+                const sda_id = sdaSelect.value === 'directo' ? null : (sdaSelect.value || null);
                 const trimestre = trimestreSelect.value;
                 
+                if (!alumId) { 
+                    if (!isFromGrid) alert("Selecciona un alumno."); 
+                    return; 
+                }
+
                 let targetNivel = nivel;
                 if (isFromGrid && element && element.classList.contains('active')) {
                     targetNivel = null;
                 }
 
-                // Feedback visual individual
-                if (!isFromGrid) {
+                // Feedback visual individual (solo si estamos evaluando al alumno seleccionado)
+                if (!isFromGrid && alumId === alumnoSelect.value) {
                     for (let i = 1; i <= 4; i++) {
                         let b = document.getElementById(`btn-${criterio_id}-${i}`);
                         if (b) b.classList.remove("selected");
@@ -1290,7 +1298,7 @@
                     trimestre: trimestre
                 };
 
-                const isDirecto = conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
+                const isDirecto = conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS' || sda_id === null;
                 const url = isDirecto ? "/api/evaluacion/directa/" : "/api/evaluacion/sda/";
                 if (isDirecto) payload.periodo = 'T' + trimestre;
 
@@ -1307,50 +1315,85 @@
                     if (!data.ok) {
                         alert("Error al guardar: " + (data.error || ''));
                     } else {
-                        // Actualizar medias solo si estamos en modo individual (para no saturar en rejilla)
-                        if (!isFromGrid) {
+                        // Actualizar medias solo si estamos en modo individual y es el alumno actual
+                        if (!isFromGrid && alumId === alumnoSelect.value) {
                             cargarMedia();
                             cargarResumenAlumno();
                         }
                     }
                 } catch (e) {
                     console.error("Error saving evaluation:", e);
-                    alert("Error de conexión al guardar.");
+                    // No alertar en rejilla para no molestar el flujo masivo, salvo error crítico
+                    if (!isFromGrid) alert("Error de conexión al guardar.");
                 }
             };
             // Alias para compatibilidad con la rejilla
             window.setNivelDirecto = (alumno_id, criterio_id, nivel, element) => {
-                // Sincronizar alumnoSelect si es necesario (el modo rejilla no usa alumnoSelect global pero la lógica unificada sí)
-                // En modo rejilla, pasamos el id directamente
-                const oldAlum = alumnoSelect.value;
-                alumnoSelect.value = alumno_id; 
-                window.guardar(criterio_id, nivel, true, element).then(() => {
-                    alumnoSelect.value = oldAlum; // Restaurar
-                });
+                window.guardar(criterio_id, nivel, true, element, alumno_id);
             };
-            window.rellenarTodos = function (nivel) {
+            window.rellenarTodos = async function (nivel) {
                 const alumId = alumnoSelect.value;
                 if (!alumId) { alert("Por favor, selecciona un alumno primero."); return; }
+                const conf = getAreaConfig();
+                if (!conf) return;
+
                 if (!confirm("¿Asignar nota " + nivel + " a todos los criterios visibles?")) return;
-                document.getElementById("tbody").querySelectorAll("tr").forEach(tr => {
-                    guardar(tr.id.replace("row-", ""), nivel);
-                });
+
+                const trs = document.getElementById("tbody").querySelectorAll("tr");
+                const sdaId = sdaSelect.value || null;
+                const periodo = 'T' + trimestreSelect.value;
+                
+                const evaluaciones = Array.from(trs).map(tr => ({
+                    alumno_id: alumId,
+                    criterio_id: tr.id.replace("row-", ""),
+                    nivel: nivel,
+                    sda_id: sdaId
+                }));
+
+                try {
+                    const res = await fetch("/api/evaluacion/guardar_masivo", {
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content 
+                        },
+                        body: JSON.stringify({
+                            periodo: periodo,
+                            evaluaciones: evaluaciones
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        cargarNotasExistentes();
+                        cargarMedia();
+                        cargarResumenAlumno();
+                    } else {
+                        alert("Error al rellenar: " + data.error);
+                    }
+                } catch (e) {
+                    console.error("Error rellenar massivo:", e);
+                    alert("Error de conexión al rellenar masivamente.");
+                }
             };
             window.limpiarTodos = function () {
                 const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
                 if (!alumId || !conf) { alert("Por favor, selecciona un alumno primero."); return; }
                 if (!confirm("¿Borrar todas las notas de este alumno en esta selección?")) return;
-                const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
-                const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
-                fetch(`/api/evaluacion/sda/?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`, { 
+                const sdaId = sdaSelect.value === 'directo' ? null : sdaSelect.value;
+                const areaId = conf.id;
+                const trimestre = trimestreSelect.value;
+                
+                // Usamos el endpoint de borrado de evaluacion
+                const url = sdaId ? `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=${sdaId}&trimestre=${trimestre}` 
+                                 : `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=null&area_id=${areaId}&trimestre=${trimestre}`;
+
+                fetch(url, { 
                     method: 'DELETE',
                     headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }
-                })
-                    .then(r => r.json()).then(d => {
+                }).then(r => r.json()).then(d => {
                         if (d.ok) {
                             cargarNotasExistentes();
-                            document.querySelectorAll("button.selected").forEach(b => b.classList.remove("selected"));
                             cargarMedia();
                             cargarResumenAlumno();
                         } else alert("Error: " + d.error);
@@ -1392,11 +1435,13 @@
                     if (data.ok) {
                         cerrarModalExtra();
                         cargarSDA().then(() => {
-                            let foundIndex = 0;
-                            Array.from(sdaSelect.options).forEach((opt, idx) => {
-                                if (opt.value == data.sda_id) foundIndex = idx;
-                            });
-                            sdaSelect.selectedIndex = foundIndex;
+                            // Buscar y seleccionar "Evaluación Directa" (generalmente el primer elemento o con valor 'directo')
+                            for (let i = 0; i < sdaSelect.options.length; i++) {
+                                if (sdaSelect.options[i].value === 'directo') {
+                                    sdaSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
                             cargarCriteriosSA();
                         });
                         let toast = document.createElement("div");

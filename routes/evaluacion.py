@@ -452,12 +452,18 @@ def post_criterio_extra():
     db = get_db()
     cur = db.cursor()
     try:
-        # Importante: para que aparezca en "Evaluación Directa", debe estar en criterios_periodo como activo
-        cur.execute("""
-            INSERT INTO criterios_periodo (criterio_id, grupo_id, periodo, activo)
-            VALUES (?, ?, ?, 1)
-            ON CONFLICT(criterio_id, grupo_id, periodo) DO UPDATE SET activo = 1
-        """, (criterio_id, grupo_id, periodo))
+        # Lógica compatible con todas las versiones de SQLite (evitamos ON CONFLICT)
+        cur.execute("SELECT id FROM criterios_periodo WHERE criterio_id=? AND grupo_id=? AND periodo=?", (criterio_id, grupo_id, periodo))
+        exists = cur.fetchone()
+        
+        if exists:
+            cur.execute("UPDATE criterios_periodo SET activo = 1 WHERE id = ?", (exists["id"],))
+        else:
+            cur.execute("""
+                INSERT INTO criterios_periodo (criterio_id, grupo_id, periodo, activo)
+                VALUES (?, ?, ?, 1)
+            """, (criterio_id, grupo_id, periodo))
+            
         db.commit()
         return jsonify({"ok": True, "sda_id": "directo"})
     except Exception as e:

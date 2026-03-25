@@ -444,7 +444,8 @@ def clase_hoy():
     db = get_db()
     cur = db.cursor()
     
-    # 1. Obtener la primera sesión del día para el grupo activo
+    # 1. Obtener la sesión más relevante del día para el grupo activo
+    # Priorizamos: 1. Sesiones del grupo, 2. Sesiones con criterio (evaluables), 3. Primera sesión creada
     cur.execute("""
         SELECT pd.id, pd.descripcion as actividad, pd.criterio_id, pd.sda_id, 
                c.codigo as criterio_codigo, c.descripcion as criterio_desc,
@@ -453,7 +454,10 @@ def clase_hoy():
         LEFT JOIN criterios c ON pd.criterio_id = c.id
         LEFT JOIN sda s ON pd.sda_id = s.id
         WHERE pd.fecha = ? AND (s.grupo_id = ? OR s.grupo_id IS NULL)
-        ORDER BY (CASE WHEN s.grupo_id = ? THEN 0 ELSE 1 END) ASC, pd.id ASC
+        ORDER BY 
+            (CASE WHEN s.grupo_id = ? THEN 0 ELSE 1 END) ASC,
+            (CASE WHEN pd.criterio_id IS NOT NULL THEN 0 ELSE 1 END) ASC,
+            pd.id ASC
         LIMIT 1
     """, (fecha_hoy, grupo_id, grupo_id))
     
@@ -482,11 +486,20 @@ def clase_hoy():
     else: trimestre = 3
     
     if sesion and sesion["criterio_id"]:
-        cur.execute("""
-            SELECT alumno_id, nivel
-            FROM evaluaciones
-            WHERE criterio_id = ? AND trimestre = ? AND sda_id IS NULL
-        """, (sesion["criterio_id"], trimestre))
+        sda_id = sesion["sda_id"]
+        if sda_id:
+            cur.execute("""
+                SELECT alumno_id, nivel
+                FROM evaluaciones
+                WHERE criterio_id = ? AND trimestre = ? AND sda_id = ?
+            """, (sesion["criterio_id"], trimestre, sda_id))
+        else:
+            cur.execute("""
+                SELECT alumno_id, nivel
+                FROM evaluaciones
+                WHERE criterio_id = ? AND trimestre = ? AND sda_id IS NULL
+            """, (sesion["criterio_id"], trimestre))
+        
         evals = {r["alumno_id"]: r["nivel"] for r in cur.fetchall()}
         
         for a in alumnos:

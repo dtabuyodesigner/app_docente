@@ -44,10 +44,12 @@
 - Configuración (logos, actualizaciones, rol especialista)
 
 ### 📊 Evaluación y Currículo (SDA)
-- Rejilla de evaluación con ciclo de notas (`NI/PA`, `EP/A`, `CO/MA`)
-- Evaluación masiva reactiva ("Evaluar Todo")
-- Gestión de SDAs completa (Importación CSV, sesiones múltiples)
-- Actividades con descripciones completas (`textarea`)
+- [x] Rejilla de evaluación robusta con ciclo `data-nivel` (`NI/PA`, `EP/A`, `CO/MA`).
+- [x] Evaluación masiva reactiva ("Evaluar Todo") con prefijos de API unificados.
+- [x] Gestión de SDAs completa (Importación CSV, sesiones múltiples, sincronización de carga).
+- [x] Visualización de promedios (SDA y Área) en tiempo real en vista individual.
+- [x] Actividades con descripciones completas (`textarea`) y tooltips informativos.
+- [x] Selector de etapa inteligente (se oculta si el grupo ya la define).
 
 ### 📑 Informes y Diario
 - Generación de informes individuales (PDF/Excel) sincronizada

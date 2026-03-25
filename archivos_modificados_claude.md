@@ -14,7 +14,8 @@ Esta es la lista de los archivos que han sido modificados para asegurar que la b
 
 ## 4. Refinamientos de Evaluación, Informes y UI (Última Fase)
 Se han realizado los siguientes ajustes para mejorar la experiencia de usuario y la consistencia visual:
-*   `static/evaluacion.html`: Implementada lógica de ciclo de notas para Infantil (`NI/PA` -> `EP/A` -> `CO/MA`).
+*   `static/evaluacion.html`: Implementada lógica de ciclo de notas para Infantil (`NI/PA` -> `EP/A` -> `CO/MA`). Refactorizado a un sistema `data-nivel` para robustecer el ciclo de notas y optimizada la carga de datos para evitar race-conditions.
+*   `routes/evaluacion_sda.py`: Normalizados todos los endpoints para asegurar que los parámetros numéricos se conviertan a `int`, garantizando la compatibilidad con SQLite para el cálculo de medias y la recuperación de evaluaciones.
 *   `static/programacion.html`: Convertidos campos de descripción de sesiones en `textarea` para soportar textos largos sin recortes.
 *   `static/progreso_clase.html`: Añadida preselección automática de etapa basada en el grupo activo y ajuste dinámico de escalas en gráficos (1-3 o 1-4).
 *   `static/informes.html` y `static/diario.html`: Eliminados estilos inline de inputs de fecha y otros elementos para delegar en `theme.css`.

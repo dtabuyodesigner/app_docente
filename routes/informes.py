@@ -481,7 +481,7 @@ def informe_pdf_todos():
     suspensos_data = cur.fetchall()
 
     susp_map = {0: 0, 1: 0, 2: 0, 3: 0}
-    for r in suspensos_
+    for r in suspensos_data:
         n = r["num_suspensos"]
         if n > 2:
             susp_map[3] += 1
@@ -2243,14 +2243,11 @@ def pdf_grupo():
                 GROUP BY alumno_id, area_id
                 HAVING media_area < 5
             ) sub ON a.id = sub.alumno_id
-            JOIN areas ar ON sub.area_id = ar.id
-            WHERE a.grupo_id = ? AND a.deleted_at IS NULL
-            GROUP BY a.id, a.nombre
-        """, (trimestre, grupo_id))
         suspensos_data = cur.fetchall()
-        
+    if not es_infantil and suspensos_data:
         susp_map = {0: 0, 1: 0, 2: 0, 3: 0}
-        for r in suspensos_
+        header_row = [Paragraph("<b>Resumen Promoción</b>", styles['Normal']), ""]
+        for r in suspensos_data:
             n = r["num_suspensos"]
             if n > 2:
                 susp_map[3] += 1
@@ -2510,11 +2507,10 @@ def pdf_grupo():
         area_img = RLImage(area_chart_buf, width=16*cm, height=max(8, len(area_perf_data)*0.8)*cm)
         elements.append(area_img)
         
-    if not es_infantil and suspensos_
+    if not es_infantil and suspensos_data:
         elements.append(Paragraph("5. Alumnado con áreas suspensas:", styles['Heading3']))
         data_susp = [["Alumno/a", "Áreas"]]
-        for r in suspensos_
-            data_susp.append([Paragraph(r["nombre"], styles['Normal']), Paragraph(r["areas"], styles['Normal'])])
+        for r in suspensos_data:            data_susp.append([Paragraph(r["nombre"], styles['Normal']), Paragraph(r["areas"], styles['Normal'])])
         t_susp = Table(data_susp, colWidths=[6*cm, 10*cm])
         t_susp.setStyle(TableStyle([
             ('GRID', (0,0), (-1,-1), 0.5, colors.grey),

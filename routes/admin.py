@@ -197,16 +197,17 @@ def apply_update():
     import subprocess
     import threading
 
-    project_dir = os.path.dirname(os.path.abspath(__file__))
+    import sys
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     try:
         # Crear backup antes de actualizar
         create_backup(label="pre_update")
 
-        # Ejecutar git pull
+        # Ejecutar git pull desde la raíz del proyecto
         result = subprocess.run(
             ["git", "pull"],
-            cwd=project_dir,
+            cwd=root_dir,
             capture_output=True,
             text=True,
             timeout=30
@@ -224,8 +225,13 @@ def apply_update():
         def restart():
             import time
             time.sleep(1.5)
-            os.execv(__file__.replace('routes/admin.py', 'desktop.py'),
-                     ['desktop.py'])
+            # En Windows/Linux necesitamos el ejecutable de python para lanzar un .py
+            desktop_py = os.path.join(root_dir, "desktop.py")
+            if os.name == 'nt': # Windows
+                subprocess.Popen([sys.executable, desktop_py])
+            else: # Linux/Mac
+                os.execl(sys.executable, sys.executable, desktop_py)
+            os._exit(0)
 
         threading.Thread(target=restart, daemon=True).start()
 

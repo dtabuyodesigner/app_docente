@@ -575,12 +575,13 @@
             }
             // Convierte nota interna (1,2,3) o antigua (2.5, 5, 7.5, 10) a texto Infantil
             function notaToNivel(nota) {
-                if (!nota) return "—";
-                let n = nota;
+                if (nota === null || nota === undefined || nota === 0 || nota === "0" || nota === "—") return "—";
+                let n = parseFloat(nota);
+                if (isNaN(n)) return "—";
                 // Manejo de datos antiguos (escala 1-10 para Infantil)
-                if (n > 3) {
-                    if (n <= 3.5) n = 1;
-                    else if (n <= 6.5) n = 2;
+                if (n > 3.5) {
+                    if (n <= 5.5) n = 1;
+                    else if (n <= 8.5) n = 2;
                     else n = 3;
                 }
                 if (n <= 1.5) return "NI/PA";
@@ -590,9 +591,9 @@
             function getColorNota(nota, tipoEscala) {
                 if (tipoEscala === 'INFANTIL_NI_EP_C') {
                     const lab = notaToNivel(nota);
-                    if (lab === "NI") return "#dc3545";
-                    if (lab === "EP") return "#e0a800";
-                    return "#28a745";
+                    if (lab === "NI/PA") return "#dc3545";
+                    if (lab === "EP/A") return "#e0a800";
+                    return "#28a745"; // CO/MA
                 }
                 if (nota < 5) return "#dc3545";
                 if (nota < 7) return "#ffc107";
@@ -600,9 +601,9 @@
                 return "#0056a0"; // Sobresaliente 9-10
             }
             function formatNota(nota, tipoEscala) {
-                if (!nota) return "—";
+                if (nota === null || nota === undefined || nota === 0 || nota === "0" || nota === "—") return "—";
                 if (tipoEscala === 'INFANTIL_NI_EP_C') return notaToNivel(nota);
-                return nota;
+                return typeof nota === 'number' ? nota.toFixed(2) : nota;
             }
             // Inicialización — auto-detecta etapa desde el grupo activo
             document.addEventListener('DOMContentLoaded', async () => {
@@ -612,7 +613,10 @@
                     const gr = await fetch('/api/grupo_activo');
                     const g = await gr.json();
                     if (g && g.etapa_id) {
-                        document.getElementById('etapaFiltro').value = g.etapa_id;
+                        const etapaSel = document.getElementById('etapaFiltro');
+                        etapaSel.value = g.etapa_id;
+                        // Ocultar selector de etapa si ya viene del grupo (feedback usuario)
+                        etapaSel.parentElement.style.display = 'none';
                         await cargarAreas(g.etapa_id);
                     } else {
                         await cargarAreas(); // sin filtro si no hay grupo
@@ -1132,6 +1136,10 @@
                     if (lblAlumno) lblAlumno.style.display = 'none';
                     alumnoSelect.style.display = 'none';
                     document.getElementById('quickActions').style.display = 'none';
+                    // Ocultar resultados de media y resumen en modo tabla (feedback usuario)
+                    document.getElementById('mediaSDA').style.display = 'none';
+                    document.getElementById('mediaArea').style.display = 'none';
+                    document.querySelector('h3 + #resumenAlumno').parentElement.style.display = 'none';
                     cargarDatosTabla();
                 } else {
                     btn.innerText = "📋 Ver en Rejilla";
@@ -1141,6 +1149,10 @@
                     if (lblAlumno) lblAlumno.style.display = 'flex';
                     alumnoSelect.style.display = 'inline-block';
                     document.getElementById('quickActions').style.display = 'flex';
+                    // Mostrar resultados de media y resumen en modo individual
+                    document.getElementById('mediaSDA').style.display = 'block';
+                    document.getElementById('mediaArea').style.display = 'block';
+                    document.querySelector('h3 + #resumenAlumno').parentElement.style.display = 'block';
                     if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
                 }
             };
@@ -1191,8 +1203,8 @@
             window.siguienteNivel = async function(alumno_id, criterio_id, cell, max) {
                 let current = parseInt(cell.innerText) || 0;
                 if (isNaN(current)) {
-                    // Handle labels NI, EP, C
-                    const label = cell.innerText;
+                    // Handle labels NI, EP, C with trimming
+                    const label = (cell.innerText || "").trim().toUpperCase();
                     if (label === "NI" || label === "NI/PA") current = 1;
                     else if (label === "EP" || label === "EP/A") current = 2;
                     else if (label === "C" || label === "CO/MA") current = 3;
@@ -1217,6 +1229,8 @@
                     const label = esInfantil ? (next === 1 ? "NI/PA" : next === 2 ? "EP/A" : "CO/MA") : next;
                     cell.innerText = label;
                 }
+                // Actualizar color inmediatamente en la rejilla (feedback usuario)
+                cell.className = `eval-cell val-${next}`;
                 // Save to backend
                 if (next === 0) {
                     // Optional: call delete if needed, but saving level 0 might be enough if handled
@@ -1231,6 +1245,8 @@
                     sda_id: sdaSelect.value || null,
                     trimestre: trimestreSelect.value
                 };
+                // Si es nivel 0, informar al backend para borrar o tratar como nulo
+                if (next === 0) payload.nivel = null;
                 const isDirecto = getAreaConfig().modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
                 const url = isDirecto ? "/api/evaluacion/directa/" : "/api/evaluacion/sda/";
                 if (isDirecto) payload.periodo = 'T' + trimestreSelect.value;

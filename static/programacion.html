@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Cuaderno del Tutor - Programación</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -621,8 +622,11 @@
         <div id="eventModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
-                <h3 id="modalTitle" style="margin-top:0;">Nuevo Evento</h3>
+                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; position: relative;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 id="modalTitle" style="margin:0;">Nuevo Evento</h3>
+                    <button onclick="closeModal()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                </div>
                 <input type="hidden" id="eventId">
                 <div style="margin-bottom:15px; display:flex; gap:15px;">
                     <div style="flex:1;">

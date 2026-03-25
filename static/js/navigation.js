@@ -92,7 +92,8 @@ function initNavigation() {
                 </div>
                 <a href="/configuracion" class="nav-link" title="Configuración">⚙️</a>
                 <a href="/ayuda" class="nav-link" title="Ayuda">💡</a>
-                <a href="/logout" class="nav-link" title="Salir" style="color: #ff4d4d">🚪</a>
+                <a href="/logout" class="nav-link" title="Cerrar Sesión" style="color: #ffb300">🚪</a>
+                <a href="javascript:void(0)" onclick="confirmExitApp()" class="nav-link" title="Cerrar Aplicación" style="color: #ff4d4d">✖</a>
             </div>
         </div>
     `;
@@ -113,6 +114,35 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initNavigation);
 } else {
     initNavigation();
+}
+
+async function confirmExitApp() {
+    if (confirm("¿Estás seguro de que deseas cerrar la aplicación por completo? El servidor se detendrá.")) {
+        try {
+            // Intento de cerrar el servidor
+            await fetch('/api/exit', { 
+                method: 'POST',
+                headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+            });
+            
+            // Mostrar mensaje de despedida
+            document.body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#003366; color:white; font-family:sans-serif;">
+                    <h1 style="font-size:3rem;">👋 ¡Hasta luego!</h1>
+                    <p>La aplicación se está cerrando y el servidor se ha detenido.</p>
+                    <p style="color:rgba(255,255,255,0.6); font-size:0.8rem;">Ya puedes cerrar esta pestaña/ventana.</p>
+                </div>
+            `;
+            
+            // Intentar cerrar la ventana (solo funcionará si fue abierta por script o PWA)
+            setTimeout(() => {
+                window.close();
+            }, 1500);
+        } catch (e) {
+            console.error("Error al cerrar la aplicación:", e);
+            alert("No se pudo cerrar el servidor de forma remota.");
+        }
+    }
 }
 // Global Keyboard Shortcuts (Enter to confirm, Esc to close)
 document.addEventListener('keydown', (e) => {

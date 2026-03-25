@@ -436,7 +436,7 @@ def resumen_areas_sda_alumno():
     return resumen_areas_alumno() # Reuse existing logic
 
 
-@evaluacion_bp.route("/clase_hoy")
+@evaluacion_bp.route("/api/evaluacion/clase_hoy")
 def clase_hoy():
     fecha_hoy = date.today().isoformat()
     grupo_id = session.get('active_group_id')

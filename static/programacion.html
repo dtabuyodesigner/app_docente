@@ -685,7 +685,7 @@
                     <div>
                         <button class="btn" onclick="closeModal()"
                             style="background:#ccc; color:#333;">Cancelar</button>
-                        <button class="btn btn-success" onclick="saveEvent()">💾 Guardar</button>
+                        <button id="btnSaveEvent" class="btn btn-success" onclick="saveEvent()">💾 Guardar</button>
                     </div>
                 </div>
             </div>
@@ -1713,7 +1713,7 @@
                     if (btn) selectType(btn);
                     document.querySelectorAll('.btn-type').forEach(b => b.classList.add('disabled-btn'));
                     btnDelete.style.display = 'none';
-                    document.querySelector('.btn-success').style.display = 'none';
+                    document.getElementById('btnSaveEvent').style.display = 'none';
                 } else {
                     document.getElementById('eventActivity').disabled = false;
                     document.getElementById('eventObs').disabled = false;
@@ -1721,7 +1721,7 @@
                     document.getElementById('eventDate').disabled = false;
                     document.getElementById('eventTime').disabled = false;
                     document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
-                    document.querySelector('.btn-success').style.display = 'inline-block';
+                    document.getElementById('btnSaveEvent').style.display = 'inline-block';
                     const btn = document.querySelector(`.btn-type[data-type="${type}"]`);
                     if (btn) selectType(btn);
                 }
@@ -1736,7 +1736,7 @@
                 document.getElementById('eventSda').disabled = false;
                 document.getElementById('eventDate').disabled = false;
                 document.getElementById('eventTime').disabled = false;
-                document.querySelector('.btn-success').style.display = 'inline-block';
+                document.getElementById('btnSaveEvent').style.display = 'inline-block';
                 document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
                 selectType(document.querySelector('.btn-type[data-type="clase"]'));
             }
@@ -1856,8 +1856,9 @@
                 showToast(validation.error, 'error');
                 return;
             }
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/api/programacion/${id}` : '/api/programacion';
+            const cleanId = id ? id.replace('ses_', '') : null;
+            const method = cleanId ? 'PUT' : 'POST';
+            const url = cleanId ? `/api/programacion/${cleanId}` : '/api/programacion';
             toggleLoading(true, id ? 'Actualizando evento...' : 'Guardando evento...');
             fetch(url, {
                 method: method,

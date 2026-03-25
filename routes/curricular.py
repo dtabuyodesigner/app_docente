@@ -29,8 +29,13 @@ def listar_areas():
 
     conn = get_db()
     cur = conn.cursor()
-    if etapa_id:
-        cur.execute("SELECT id, nombre, modo_evaluacion, tipo_escala, etapa_id FROM areas WHERE etapa_id = ? AND activa = 1 ORDER BY nombre", (etapa_id,))
+    # Asegurar que etapa_id sea un entero para el filtro
+    if etapa_id is not None:
+        try:
+            etapa_id = int(etapa_id)
+            cur.execute("SELECT id, nombre, modo_evaluacion, tipo_escala, etapa_id FROM areas WHERE etapa_id = ? AND activa = 1 ORDER BY nombre", (etapa_id,))
+        except (ValueError, TypeError):
+            cur.execute("SELECT id, nombre, modo_evaluacion, tipo_escala, etapa_id FROM areas WHERE activa = 1 ORDER BY nombre")
     else:
         cur.execute("SELECT id, nombre, modo_evaluacion, tipo_escala, etapa_id FROM areas WHERE activa = 1 ORDER BY nombre")
     return jsonify([dict(r) for r in cur.fetchall()])
@@ -301,14 +306,24 @@ def importar_sda_csv():
         else:
             reader = csv.DictReader(stream)
 
-        # Pre-procesar para contar sesiones por actividad si no viene el campo Actividad_Sesiones
-        rows = list(reader)
-        act_counts = {} # (sda_tit, act_tit) -> count
+        # Pre-procesar para contar sesiones por actividad
+        # Normalizar cabeceras eliminando espacios
+        rows_raw = list(reader)
+        rows = []
+        for r in rows_raw:
+            # Eliminar espacios en las llaves (cabeceras) y valores
+            clean_row = { (k.strip() if k else ""): (v.strip() if v else "") for k, v in r.items() }
+            rows.append(clean_row)
+
+        act_counts = {} # (sda_tit, act_ref) -> count
         for row in rows:
-            sda_tit = row.get("SDA_Titulo", "").strip()
-            act_tit = row.get("Actividad_Titulo", "").strip()
-            if sda_tit and act_tit:
-                key = (sda_tit, act_tit)
+            sda_tit = row.get("SDA_Titulo", "")
+            act_tit = row.get("Actividad_Titulo", "")
+            act_id_csv = row.get("Actividad_ID", "")
+            if sda_tit and (act_tit or act_id_csv):
+                # Usar ID de actividad si existe, sino el título
+                act_ref = act_id_csv if act_id_csv else act_tit
+                key = (sda_tit.lower(), act_ref.lower())
                 act_counts[key] = act_counts.get(key, 0) + 1
 
         conn = get_db()
@@ -419,7 +434,8 @@ def importar_sda_csv():
                     if act_sesiones_csv and act_sesiones_csv.isdigit():
                         total_sesiones = int(act_sesiones_csv)
                     else:
-                        total_sesiones = act_counts.get((sda_tit, act_tit), 1)
+                        act_ref = act_cod if act_cod else act_tit
+                        total_sesiones = act_counts.get((sda_tit.lower(), act_ref.lower()), 1)
 
                     if act_cod:
                         cur.execute("SELECT id FROM actividades_sda WHERE codigo_actividad = ? AND sda_id = ?", (act_cod, sda_id))

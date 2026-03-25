@@ -1353,20 +1353,30 @@
             const btnDelete = document.getElementById('btnDeleteSa');
             const title = document.getElementById('saModalTitle');
 
-            // Siempre recargamos áreas para asegurar que coincidan con la etapa del grupo actual
-            try {
-                const r = await fetch('/api/curricular/areas?_t=' + Date.now());
-                const areas = await r.json();
-                saAreaSelect.innerHTML = '<option value="">-- Selecciona --</option>';
-                areas.forEach(a => {
+            // Poblamos el select de áreas. Priorizamos usar lo que ya tenemos en fullCurriculo
+            // ya que eso ya viene filtrado por la etapa del grupo actual.
+            saAreaSelect.innerHTML = '<option value="">-- Selecciona --</option>';
+            if (window.fullCurriculo && window.fullCurriculo.length > 0) {
+                window.fullCurriculo.forEach(a => {
                     const opt = document.createElement('option');
                     opt.value = a.id;
                     opt.textContent = a.nombre;
                     saAreaSelect.appendChild(opt);
                 });
-            } catch (e) {
-                console.error("Error cargando áreas:", e);
-                showToast("Error al cargar áreas", "error");
+            } else {
+                // Si por alguna razón no hay currículo cargado, hacemos el fetch como fallback
+                try {
+                    const r = await fetch('/api/curricular/areas?_t=' + Date.now());
+                    const areas = await r.json();
+                    areas.forEach(a => {
+                        const opt = document.createElement('option');
+                        opt.value = a.id;
+                        opt.textContent = a.nombre;
+                        saAreaSelect.appendChild(opt);
+                    });
+                } catch (e) {
+                    console.error("Error cargando áreas:", e);
+                }
             }
 
             document.getElementById('saCriteriosContainer').innerHTML = '';

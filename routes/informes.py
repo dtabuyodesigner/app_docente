@@ -54,9 +54,14 @@ def generar_grafica_rendimiento(notas_area, alumno_nombre, es_infantil):
     if not notas_area:
         return None
     
-    areas = [row[1] for row in notas_area]
-    notas = [row[2] for row in notas_area]
-    escalas = [row[3] for row in notas_area]
+    # Filtrar áreas que no tienen ninguna evaluación para evitar errores con NoneType
+    datos_validos = [row for row in notas_area if row[2] is not None]
+    if not datos_validos:
+        return None
+        
+    areas = [row[1] for row in datos_validos]
+    notas = [row[2] for row in datos_validos]
+    escalas = [row[3] for row in datos_validos]
 
     fig, ax = plt.subplots(figsize=(8, max(3, len(areas) * 0.5)))
 
@@ -1947,6 +1952,8 @@ def excel_grupo():
     def detail_format_nota(row):
         n = row['Nota']
         e = row['tipo_escala']
+        if n is None or (isinstance(n, float) and pd.isna(n)):
+            return "—"
         if e == "INFANTIL_NI_EP_C":
             val = round(n) if n <= 3 else 0
             if val == 0:

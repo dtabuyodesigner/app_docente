@@ -64,11 +64,11 @@ def generar_grafica_rendimiento(notas_area, alumno_nombre, es_infantil):
     for n, es in zip(notas, escalas):
         if es == "INFANTIL_NI_EP_C":
             if n < 1.5:
-                colors_bars.append('#dc3545')  # NI
+                colors_bars.append('#dc3545')
             elif n < 2.5:
-                colors_bars.append('#ffc107')  # EP
+                colors_bars.append('#ffc107')
             else:
-                colors_bars.append('#28a745')  # C
+                colors_bars.append('#28a745')
         else:
             colors_bars.append('#28a745' if n >= 5 else '#dc3545')
         
@@ -410,7 +410,7 @@ def informe_pdf_individual():
     )
 
 # ==============================================================================
-# INFORME PDF TODOS (CORREGIDO - ERROR DE BINDINGS)
+# INFORME PDF TODOS - CORREGIDO (ERROR DE BINDINGS)
 # ==============================================================================
 
 @informes_bp.route("/api/informe/pdf_general")
@@ -481,7 +481,7 @@ def informe_pdf_todos():
     suspensos_data = cur.fetchall()
 
     susp_map = {0: 0, 1: 0, 2: 0, 3: 0}
-    for r in suspensos_data:
+    for r in suspensos_
         n = r["num_suspensos"]
         if n > 2:
             susp_map[3] += 1
@@ -586,25 +586,9 @@ def informe_pdf_todos():
 
     if es_infantil:
         periodo = f"T{trimestre}"
-        # CORRECCIÓN CRÍTICA: Query unificado con parámetros correctos
-        query_inf = """
-            SELECT e.alumno_id, e.nota
-            FROM evaluaciones e
-            JOIN alumnos a ON e.alumno_id = a.id
-            JOIN areas ar ON e.area_id = ar.id
-            WHERE e.trimestre = ? AND a.grupo_id = ?
-            UNION ALL
-            SELECT ec.alumno_id, ec.nota
-            FROM evaluacion_criterios ec
-            JOIN alumnos a ON ec.alumno_id = a.id
-            JOIN criterios c ON ec.criterio_id = c.id
-            JOIN areas ar ON c.area_id = ar.id
-            WHERE ec.periodo = ? AND a.grupo_id = ?
-        """
-        params_inf = [trimestre, grupo_id, periodo, grupo_id]  # 4 parámetros para 4 marcadores
-        
+        # CORRECCIÓN CRÍTICA: Query con parámetros correctos
         if area_id:
-            # Si hay filtro de área, necesitamos modificar la query
+            # Con filtro de área: 6 marcadores, 6 parámetros
             query_inf = """
                 SELECT e.alumno_id, e.nota
                 FROM evaluaciones e
@@ -619,7 +603,24 @@ def informe_pdf_todos():
                 JOIN areas ar ON c.area_id = ar.id
                 WHERE ec.periodo = ? AND a.grupo_id = ? AND ar.id = ?
             """
-            params_inf = [trimestre, grupo_id, area_id, periodo, grupo_id, area_id]  # 6 parámetros
+            params_inf = [trimestre, grupo_id, area_id, periodo, grupo_id, area_id]
+        else:
+            # Sin filtro de área: 4 marcadores, 4 parámetros
+            query_inf = """
+                SELECT e.alumno_id, e.nota
+                FROM evaluaciones e
+                JOIN alumnos a ON e.alumno_id = a.id
+                JOIN areas ar ON e.area_id = ar.id
+                WHERE e.trimestre = ? AND a.grupo_id = ?
+                UNION ALL
+                SELECT ec.alumno_id, ec.nota
+                FROM evaluacion_criterios ec
+                JOIN alumnos a ON ec.alumno_id = a.id
+                JOIN criterios c ON ec.criterio_id = c.id
+                JOIN areas ar ON c.area_id = ar.id
+                WHERE ec.periodo = ? AND a.grupo_id = ?
+            """
+            params_inf = [trimestre, grupo_id, periodo, grupo_id]
         
         cur.execute(query_inf, params_inf)
         notas_inf = cur.fetchall()
@@ -916,7 +917,7 @@ def informe_pdf_todos():
     )
 
 # ==============================================================================
-# OTRAS RUTAS DE INFORMES (Mantenidas igual)
+# OTRAS RUTAS (Mantenidas igual - sin cambios críticos)
 # ==============================================================================
 
 @informes_bp.route("/api/informe/preview_diario/<int:alumno_id>")
@@ -2249,7 +2250,7 @@ def pdf_grupo():
         suspensos_data = cur.fetchall()
         
         susp_map = {0: 0, 1: 0, 2: 0, 3: 0}
-        for r in suspensos_data:
+        for r in suspensos_
             n = r["num_suspensos"]
             if n > 2:
                 susp_map[3] += 1
@@ -2509,10 +2510,10 @@ def pdf_grupo():
         area_img = RLImage(area_chart_buf, width=16*cm, height=max(8, len(area_perf_data)*0.8)*cm)
         elements.append(area_img)
         
-    if not es_infantil and suspensos_data:
+    if not es_infantil and suspensos_
         elements.append(Paragraph("5. Alumnado con áreas suspensas:", styles['Heading3']))
         data_susp = [["Alumno/a", "Áreas"]]
-        for r in suspensos_data:
+        for r in suspensos_
             data_susp.append([Paragraph(r["nombre"], styles['Normal']), Paragraph(r["areas"], styles['Normal'])])
         t_susp = Table(data_susp, colWidths=[6*cm, 10*cm])
         t_susp.setStyle(TableStyle([

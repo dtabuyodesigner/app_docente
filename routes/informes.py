@@ -2242,7 +2242,10 @@ def pdf_grupo():
                 WHERE trimestre = ?
                 GROUP BY alumno_id, area_id
                 HAVING media_area < 5
-            ) sub ON a.id = sub.alumno_id
+            JOIN areas ar ON sub.area_id = ar.id
+            WHERE a.grupo_id = ? AND a.deleted_at IS NULL
+            GROUP BY a.id, a.nombre
+        """, (trimestre, grupo_id))
         suspensos_data = cur.fetchall()
     if not es_infantil and suspensos_data:
         susp_map = {0: 0, 1: 0, 2: 0, 3: 0}

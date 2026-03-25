@@ -168,6 +168,19 @@ def check_updates():
         latest_sha = commits[0]["sha"] if commits else ""
         update_available = bool(latest_sha and local_sha and latest_sha != local_sha)
 
+        # Obtener archivos cambiados para categorización
+        archivos_cambiados = []
+        if update_available:
+            try:
+                diff_output = subprocess.check_output(
+                    ["git", "diff", "--name-only", local_sha, latest_sha],
+                    cwd=root_dir,
+                    stderr=subprocess.DEVNULL
+                ).decode().strip().split("\n")
+                archivos_cambiados = [f for f in diff_output if f]
+            except Exception:
+                pass
+
         # Construir lista de cambios pendientes
         cambios = []
         for c in commits:
@@ -184,7 +197,8 @@ def check_updates():
             "current_version": APP_VERSION,
             "local_sha": local_sha[:7] if local_sha else "desconocido",
             "latest_sha": latest_sha[:7] if latest_sha else "desconocido",
-            "cambios": cambios if update_available else []
+            "cambios": cambios if update_available else [],
+            "archivos": archivos_cambiados
         })
 
     except Exception as e:
@@ -193,18 +207,30 @@ def check_updates():
 
 @admin_bp.route('/api/admin/apply_update', methods=['POST'])
 def apply_update():
-    """Hace git pull y reinicia la app."""
+    """Hace git pull y opcionalmente revierte carpetas no deseadas."""
     import subprocess
     import threading
-
     import sys
+
+    data = request.json or {}
+    skip_cats = data.get('skip', []) # Ej: ['ui', 'docs']
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     try:
-        # Crear backup antes de actualizar
+        # 1. Obtener SHA actual antes de tirar
+        try:
+            sha_before = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], 
+                cwd=root_dir, 
+                stderr=subprocess.DEVNULL
+            ).decode().strip()
+        except:
+            sha_before = None
+
+        # 2. Crear backup antes de actualizar
         create_backup(label="pre_update")
 
-        # Ejecutar git pull desde la raíz del proyecto
+        # 3. Ejecutar git pull
         result = subprocess.run(
             ["git", "pull"],
             cwd=root_dir,
@@ -221,23 +247,37 @@ def apply_update():
 
         output = result.stdout.strip()
 
-        # Reiniciar en un hilo separado para que la respuesta llegue primero
+        # 4. Revertir selectivamente si se solicitó skip
+        reversions = []
+        if sha_before:
+            if 'ui' in skip_cats:
+                subprocess.run(["git", "checkout", sha_before, "--", "static/"], cwd=root_dir)
+                reversions.append("Interfaz")
+            if 'docs' in skip_cats:
+                # Revertir archivos markdown y manuales
+                subprocess.run(["git", "checkout", sha_before, "--", "*.md"], cwd=root_dir)
+                reversions.append("Documentación")
+
+        # Reiniciar en un hilo separado
         def restart():
             import time
             time.sleep(1.5)
-            # En Windows/Linux necesitamos el ejecutable de python para lanzar un .py
             desktop_py = os.path.join(root_dir, "desktop.py")
-            if os.name == 'nt': # Windows
+            if os.name == 'nt':
                 subprocess.Popen([sys.executable, desktop_py])
-            else: # Linux/Mac
+            else:
                 os.execl(sys.executable, sys.executable, desktop_py)
             os._exit(0)
 
         threading.Thread(target=restart, daemon=True).start()
 
+        msg = "Actualización aplicada correctamente."
+        if reversions:
+            msg += f" (Se han mantenido versiones anteriores de: {', '.join(reversions)})"
+
         return jsonify({
             "ok": True,
-            "mensaje": "Actualización aplicada. La app se reiniciará en unos segundos.",
+            "mensaje": msg,
             "detalle": output
         })
 

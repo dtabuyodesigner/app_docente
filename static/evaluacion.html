@@ -1170,6 +1170,7 @@
                 const vInd = document.getElementById('vistaIndividual');
                 const vTable = document.getElementById('vistaTabla');
                 const lblAlumno = document.getElementById('labelAlumno');
+                const alumnoSelect = document.getElementById('alumno');
                 
                 if (modoTabla) {
                     btn.innerText = "👤 Vista Individual";
@@ -1179,7 +1180,6 @@
                     if (lblAlumno) lblAlumno.style.display = 'none';
                     alumnoSelect.style.display = 'none';
                     document.getElementById('quickActions').style.display = 'none';
-                    // Ocultar resultados de media y resumen en modo tabla (feedback usuario)
                     document.getElementById('mediaSDA').style.display = 'none';
                     document.getElementById('mediaArea').style.display = 'none';
                     document.querySelector('h3 + #resumenAlumno').parentElement.style.display = 'none';
@@ -1192,11 +1192,13 @@
                     if (lblAlumno) lblAlumno.style.display = 'flex';
                     alumnoSelect.style.display = 'inline-block';
                     document.getElementById('quickActions').style.display = 'flex';
-                    // Mostrar resultados de media y resumen en modo individual
                     document.getElementById('mediaSDA').style.display = 'block';
                     document.getElementById('mediaArea').style.display = 'block';
                     document.querySelector('h3 + #resumenAlumno').parentElement.style.display = 'block';
-                    if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
+                    // Sincronizar datos al volver a individual
+                    cargarNotasExistentes();
+                    cargarMedia();
+                    cargarResumenAlumno();
                 }
             };
             async function cargarDatosTabla() {
@@ -1251,20 +1253,36 @@
                     tbodyT.appendChild(tr);
                 });
             }
-            window.setNivelDirecto = async function(alumno_id, criterio_id, nivel, element) {
-                const isDelete = element.classList.contains('active');
-                const targetNivel = isDelete ? null : nivel;
-                const parent = element.parentElement;
+            window.guardar = async function (criterio_id, nivel, isFromGrid = false, element = null) {
+                const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
                 const sda_id = sdaSelect.value || null;
                 const trimestre = trimestreSelect.value;
+                
+                let targetNivel = nivel;
+                if (isFromGrid && element && element.classList.contains('active')) {
+                    targetNivel = null;
+                }
 
-                // Feedback visual inmediato
-                parent.querySelectorAll('.eval-pill').forEach(p => p.classList.remove('active'));
-                if (!isDelete) element.classList.add('active');
+                // Feedback visual individual
+                if (!isFromGrid) {
+                    for (let i = 1; i <= 4; i++) {
+                        let b = document.getElementById(`btn-${criterio_id}-${i}`);
+                        if (b) b.classList.remove("selected");
+                    }
+                    if (targetNivel) {
+                        let b = document.getElementById(`btn-${criterio_id}-${targetNivel}`);
+                        if (b) b.classList.add("selected");
+                    }
+                } else if (element) {
+                    // Feedback visual rejilla
+                    const parent = element.parentElement;
+                    parent.querySelectorAll('.eval-pill').forEach(p => p.classList.remove('active'));
+                    if (targetNivel) element.classList.add('active');
+                }
 
                 const payload = {
-                    alumno_id: alumno_id,
+                    alumno_id: alumId,
                     criterio_id: criterio_id,
                     nivel: targetNivel,
                     area_id: conf.id,
@@ -1277,7 +1295,7 @@
                 if (isDirecto) payload.periodo = 'T' + trimestre;
 
                 try {
-                    await fetch(url, {
+                    const res = await fetch(url, {
                         method: "POST",
                         headers: { 
                             "Content-Type": "application/json",
@@ -1285,58 +1303,30 @@
                         },
                         body: JSON.stringify(payload)
                     });
+                    const data = await res.json();
+                    if (!data.ok) {
+                        alert("Error al guardar: " + (data.error || ''));
+                    } else {
+                        // Actualizar medias solo si estamos en modo individual (para no saturar en rejilla)
+                        if (!isFromGrid) {
+                            cargarMedia();
+                            cargarResumenAlumno();
+                        }
+                    }
                 } catch (e) {
-                    console.error("Error al guardar:", e);
+                    console.error("Error saving evaluation:", e);
+                    alert("Error de conexión al guardar.");
                 }
             };
-            window.guardar = function (criterio_id, nivel) {
-                const alumId = alumnoSelect.value;
-                const conf = getAreaConfig();
-                if (!alumId || !conf) { alert("Selecciona un alumno."); return; }
-                // Limpiar selección visual (para ambas escalas 1-4 y 1-3)
-                for (let i = 1; i <= 4; i++) {
-                    let b = document.getElementById(`btn-${criterio_id}-${i}`);
-                    if (b) b.classList.remove("selected");
-                }
-                let b = document.getElementById(`btn-${criterio_id}-${nivel}`);
-                if (b) b.classList.add("selected");
-                const esDirecto = conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
-                if (esDirecto) {
-                    // Modo Directo (Infantil/Sec): guardar en evaluacion_criterios con periodo TEXT
-                    const periodo = 'T' + trimestreSelect.value;
-                    fetch("/api/evaluacion/directa/", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            alumno_id: alumId,
-                            criterio_id: criterio_id,
-                            periodo: periodo,
-                            nivel: nivel,
-                            escala: conf.tipo_escala
-                        })
-                    }).then(r => r.json()).then(data => {
-                        if (data.ok) { cargarMedia(); cargarResumenAlumno(); }
-                        else alert("Error al guardar: " + (data.error || ''));
-                    });
-                } else {
-                    // Modo POR_SA: guardar en evaluaciones (tabla histórica SDA)
-                    const sdaId = sdaSelect.value || null;
-                    fetch("/api/evaluacion/sda/", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            alumno_id: alumId,
-                            area_id: conf.id,
-                            sda_id: sdaId,
-                            criterio_id: criterio_id,
-                            trimestre: trimestreSelect.value,
-                            nivel: nivel
-                        })
-                    }).then(r => r.json()).then(data => {
-                        if (data.ok) { cargarMedia(); cargarResumenAlumno(); }
-                        else alert("Error al guardar");
-                    });
-                }
+            // Alias para compatibilidad con la rejilla
+            window.setNivelDirecto = (alumno_id, criterio_id, nivel, element) => {
+                // Sincronizar alumnoSelect si es necesario (el modo rejilla no usa alumnoSelect global pero la lógica unificada sí)
+                // En modo rejilla, pasamos el id directamente
+                const oldAlum = alumnoSelect.value;
+                alumnoSelect.value = alumno_id; 
+                window.guardar(criterio_id, nivel, true, element).then(() => {
+                    alumnoSelect.value = oldAlum; // Restaurar
+                });
             };
             window.rellenarTodos = function (nivel) {
                 const alumId = alumnoSelect.value;
@@ -1353,7 +1343,10 @@
                 if (!confirm("¿Borrar todas las notas de este alumno en esta selección?")) return;
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
                 const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
-                fetch(`/api/evaluacion/sda/?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`, { method: 'DELETE' })
+                fetch(`/api/evaluacion/sda/?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`, { 
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }
+                })
                     .then(r => r.json()).then(d => {
                         if (d.ok) {
                             cargarNotasExistentes();
@@ -1390,7 +1383,10 @@
                 if (!alumnoSelect.value) { alert("Selecciona un alumno primero."); return; }
                 fetch('/api/evaluacion/criterio_extra', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                    },
                     body: JSON.stringify({ area_id: areaSelect.value, trimestre: trimestreSelect.value, criterio_id })
                 }).then(r => r.json()).then(data => {
                     if (data.ok) {
@@ -1470,7 +1466,10 @@
                 const periodo = 'T' + trimestreSelect.value;
                 const r = await fetch('/api/criterios/periodo', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                    },
                     body: JSON.stringify({
                         grupo_id: grupo_id,
                         area_id: parseInt(area_id),

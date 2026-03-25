@@ -438,8 +438,31 @@ def get_criterios_completos_area(area_id):
 
 @evaluacion_bp.route("/criterio_extra", methods=["POST"])
 def post_criterio_extra():
-    # El frontend espera ok=True y un sda_id para redirigir
-    return jsonify({"ok": True, "sda_id": "directo"})
+    """Vincular un criterio extra al grupo y trimestre actual."""
+    data = request.json
+    area_id = data.get("area_id")
+    trimestre = data.get("trimestre")
+    criterio_id = data.get("criterio_id")
+    grupo_id = session.get('active_group_id')
+    periodo = f"T{trimestre}"
+    
+    if not (area_id and trimestre and criterio_id and grupo_id):
+        return jsonify({"ok": False, "error": "Faltan parámetros o grupo no activo"}), 400
+        
+    db = get_db()
+    cur = db.cursor()
+    try:
+        # Importante: para que aparezca en "Evaluación Directa", debe estar en criterios_periodo como activo
+        cur.execute("""
+            INSERT INTO criterios_periodo (criterio_id, grupo_id, periodo, activo)
+            VALUES (?, ?, ?, 1)
+            ON CONFLICT(criterio_id, grupo_id, periodo) DO UPDATE SET activo = 1
+        """, (criterio_id, grupo_id, periodo))
+        db.commit()
+        return jsonify({"ok": True, "sda_id": "directo"})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 @evaluacion_bp.route("/sda/resumen_areas")
 def resumen_areas_sda_alumno():

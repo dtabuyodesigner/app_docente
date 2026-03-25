@@ -64,7 +64,7 @@ from utils.backup import run_startup_tasks
 run_startup_tasks()
 
 # ==============================================================================
-# REGISTRO DE BLUEPRINTS
+# REGISTRO DE BLUEPRINTS (CORREGIDO: SIN DUPLICADOS)
 # ==============================================================================
 from routes.main import main_bp
 from routes.alumnos import alumnos_bp
@@ -95,7 +95,7 @@ from routes.rubricas import rubricas_bp
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
 app.register_blueprint(asistencia_bp)
-app.register_blueprint(evaluacion_bp)
+app.register_blueprint(evaluacion_bp)  # Solo una vez, sin prefijo
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(horario_bp)
 app.register_blueprint(comedor_bp)
@@ -114,7 +114,7 @@ app.register_blueprint(criterios_bp)
 app.register_blueprint(curricular_bp, url_prefix='/api/curricular')
 app.register_blueprint(evaluacion_sda_bp, url_prefix='/api/evaluacion/sda')
 app.register_blueprint(evaluacion_directa_bp, url_prefix='/api/evaluacion/directa')
-app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion')
+# ELIMINADO: app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion') <- ESTO CAUSABA EL ERROR
 app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
 app.register_blueprint(rubricas_bp)
@@ -138,8 +138,6 @@ csrf.exempt(alumnos_bp)
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
     return {"ok": True, "csrf_token": generate_csrf()}
-
-# Nota: El endpoint /api/admin/backup se ha movido a routes/admin.py
 
 @app.route('/service-worker.js')
 def serve_sw():

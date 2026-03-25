@@ -37,7 +37,22 @@ if os.path.exists(_LEGACY_DB) and not os.path.exists(_NEW_DB):
         print(f"Error migrando BD: {e}")
 
 def get_db_path():
-    return os.environ.get("DATABASE_PATH", _NEW_DB if os.path.exists(_NEW_DB) or not os.path.exists(_LEGACY_DB) else _LEGACY_DB)
+    """Determina la ruta de la base de datos priorizando la ubicación persistente con datos."""
+    env_path = os.environ.get("DATABASE_PATH")
+    if env_path:
+        return env_path
+
+    # Verificar si existen y tienen contenido
+    new_exists = os.path.exists(_NEW_DB) and os.path.getsize(_NEW_DB) > 0
+    legacy_exists = os.path.exists(_LEGACY_DB) and os.path.getsize(_LEGACY_DB) > 0
+
+    if new_exists:
+        return _NEW_DB
+    if legacy_exists:
+        return _LEGACY_DB
+    
+    # Fallback por defecto (se usará la nueva ubicación)
+    return _NEW_DB
 
 def run_migrations():
     """Aplica migraciones automáticas para BDs antiguas."""
@@ -60,6 +75,7 @@ def run_migrations():
         # --- informe_grupo ---
         ("ALTER TABLE informe_grupo ADD COLUMN grupo_id INTEGER", "informe_grupo.grupo_id"),
         ("ALTER TABLE informe_grupo ADD COLUMN equipo_docente TEXT", "informe_grupo.equipo_docente"),
+        ("ALTER TABLE informe_grupo ADD COLUMN dificultades TEXT", "informe_grupo.dificultades"),
         # --- alumnos ---
         ("ALTER TABLE alumnos ADD COLUMN deleted_at DATETIME", "alumnos.deleted_at"),
         ("ALTER TABLE alumnos ADD COLUMN tiene_ayuda_material INTEGER DEFAULT 0", "alumnos.tiene_ayuda_material"),
@@ -86,6 +102,8 @@ def run_migrations():
         ("ALTER TABLE horario ADD COLUMN tipo TEXT DEFAULT 'clase'", "horario.tipo"),
         # --- reuniones ---
         ("ALTER TABLE reuniones ADD COLUMN ciclo_id INTEGER REFERENCES config_ciclo(id)", "reuniones.ciclo_id"),
+        ("ALTER TABLE reuniones ADD COLUMN dificultades TEXT", "reuniones.dificultades"),
+        ("ALTER TABLE reuniones ADD COLUMN propuestas_mejora TEXT", "reuniones.propuestas_mejora"),
         # --- evaluaciones ---
         ("ALTER TABLE evaluaciones ADD COLUMN nota REAL", "evaluaciones.nota"),
         # --- usuarios ---
@@ -259,6 +277,10 @@ def nivel_a_nota(nivel, escala=None):
     return mapping.get(nivel, 0.0)
 
 def infantil_nivel_a_texto(nivel):
-    """Devuelve el texto legible para una evaluación Infantil (NI/EP/C)."""
-    mapping = {1: "NI", 2: "EP", 3: "C"}
+    """Devuelve el texto legible para una evaluación Infantil (Combinado)."""
+    mapping = {
+        1: "NI - Poco adecuado", 
+        2: "EP - Adecuado", 
+        3: "CO - Muy adecuado"
+    }
     return mapping.get(nivel, "—")

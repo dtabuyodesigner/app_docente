@@ -37,14 +37,25 @@ def get_sda_criterios(sda_id):
 
 @evaluacion_sda_bp.route("/", methods=["POST"])
 def guardar_evaluacion_sda():
-    # Si sda_id es 'null' (string de JS) o está vacío, tratarlo como None (NULL en DB)
-    if sda_id == 'null' or sda_id == '': sda_id = None
+    d = request.json
+    try:
+        alumno_id   = int(d.get("alumno_id"))
+        area_id     = int(d.get("area_id"))
+        trimestre   = int(d.get("trimestre"))
+        criterio_id = int(d.get("criterio_id"))
+        nivel       = d.get("nivel")
+        nivel       = int(nivel) if nivel is not None else None
+        sda_id      = d.get("sda_id")
+        if sda_id == 'null' or sda_id == '' or sda_id is None: sda_id = None
+        else: sda_id = int(sda_id)
+    except (ValueError, TypeError):
+        return jsonify({"ok": False, "error": "Parámetros inválidos"}), 400
     
     conn = get_db()
     cur = conn.cursor()
     
     # Get scale of the area
-    cur.execute("SELECT tipo_escala FROM areas WHERE id = ?", (d["area_id"],))
+    cur.execute("SELECT tipo_escala FROM areas WHERE id = ?", (area_id,))
     area_row = cur.fetchone()
     escala = area_row["tipo_escala"] if area_row else None
     
@@ -57,7 +68,7 @@ def guardar_evaluacion_sda():
             VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
             DO UPDATE SET nivel = excluded.nivel, nota = excluded.nota
-        """, (d["alumno_id"], d["area_id"], d["trimestre"], sda_id, d["criterio_id"], nivel, nota))
+        """, (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
@@ -70,9 +81,21 @@ def evaluacion_sda_alumno():
     sda_id    = request.args.get("sda_id")
     trimestre = request.args.get("trimestre")
     area_id   = request.args.get("area_id")
+    
+    try:
+        if alumno_id: alumno_id = int(alumno_id)
+        if trimestre: trimestre = int(trimestre)
+        if area_id: area_id = int(area_id)
+        if sda_id and sda_id != 'null' and sda_id != 'None':
+            sda_id = int(sda_id)
+        else:
+            sda_id = None
+    except (ValueError, TypeError):
+        return jsonify({})
+
     conn = get_db()
     cur = conn.cursor()
-    if sda_id and sda_id != 'null' and sda_id != 'None':
+    if sda_id:
         cur.execute("""
             SELECT criterio_id, nivel FROM evaluaciones
             WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
@@ -91,9 +114,21 @@ def media_sda():
     sda_id    = request.args.get("sda_id")
     trimestre = request.args.get("trimestre")
     area_id   = request.args.get("area_id")
+
+    try:
+        if alumno_id: alumno_id = int(alumno_id)
+        if trimestre: trimestre = int(trimestre)
+        if area_id: area_id = int(area_id)
+        if sda_id and sda_id != 'null' and sda_id != 'None':
+            sda_id = int(sda_id)
+        else:
+            sda_id = None
+    except (ValueError, TypeError):
+        return jsonify({"media": 0})
+
     conn = get_db()
     cur = conn.cursor()
-    if sda_id and sda_id != 'null' and sda_id != 'None':
+    if sda_id:
         cur.execute("""
             SELECT ROUND(AVG(nota), 2) FROM evaluaciones
             WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
@@ -111,6 +146,13 @@ def media_area():
     alumno_id = request.args.get("alumno_id")
     area_id = request.args.get("area_id")
     trimestre = request.args.get("trimestre")
+    if not all([alumno_id, area_id, trimestre]): return jsonify({"media": 0})
+    try:
+        alumno_id = int(alumno_id)
+        area_id = int(area_id)
+        trimestre = int(trimestre)
+    except (ValueError, TypeError):
+        return jsonify({"media": 0})
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT modo_evaluacion, tipo_escala FROM areas WHERE id = ?", (area_id,))
@@ -137,7 +179,13 @@ def media_area():
 def resumen_areas_alumno():
     alumno_id = request.args.get("alumno_id")
     trimestre = request.args.get("trimestre")
-    periodo = f"T{trimestre}"
+    if not all([alumno_id, trimestre]): return jsonify([])
+    try:
+        alumno_id = int(alumno_id)
+        trimestre = int(trimestre)
+    except (ValueError, TypeError):
+        return jsonify([])
+    
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
@@ -227,7 +275,13 @@ def datos_tabla_evaluacion():
     trimestre = request.args.get("trimestre")
     grupo_id = session.get('active_group_id')
     
-    if sda_id == 'null' or sda_id == '': sda_id = None
+    try:
+        area_id = int(area_id)
+        trimestre = int(trimestre)
+        if sda_id and sda_id != 'null': sda_id = int(sda_id)
+        else: sda_id = None
+    except (ValueError, TypeError):
+        return jsonify({"alumnos": [], "criterios": [], "evaluaciones": {}})
     
     conn = get_db()
     cur = conn.cursor()

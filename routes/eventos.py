@@ -11,79 +11,67 @@ def obtener_programacion():
     conn = get_db()
     cur = conn.cursor()
 
-    # 1. Fetch from programacion_diaria
+    # Consulta unificada para evitar duplicados
+    # Priorizamos mostrar la información de la actividad vinculada si existe
     sql = """
-        SELECT id, fecha, descripcion, tipo, color, sda_id, evaluable, criterio_id
-        FROM programacion_diaria
+        SELECT 
+            pd.id, pd.fecha, pd.descripcion as pd_desc, pd.tipo, pd.color, pd.evaluable, pd.criterio_id, pd.numero_sesion,
+            pd.sda_id as pd_sda_id, pd.actividad_id,
+            act.nombre as act_nombre, 
+            sda.nombre as sda_nombre, sda.id as sda_id
+        FROM programacion_diaria pd
+        LEFT JOIN actividades_sda act ON pd.actividad_id = act.id
+        LEFT JOIN sda ON (act.sda_id = sda.id OR pd.sda_id = sda.id)
         WHERE 1=1
     """
     params = []
 
     if start:
-        sql += " AND fecha >= ?"
+        sql += " AND pd.fecha >= ?"
         params.append(start)
     if end:
-        sql += " AND fecha <= ?"
+        sql += " AND pd.fecha <= ?"
         params.append(end)
+
+    # Agrupar por el id de programacion_diaria para evitar filas duplicadas por los joins
+    sql += " GROUP BY pd.id"
 
     cur.execute(sql, params)
     rows = cur.fetchall()
     
     events = []
     for r in rows:
+        sda_name = r["sda_nombre"] or ""
+        act_name = r["act_nombre"] or ""
+        desc = r["pd_desc"] or ""
+        
+        # Construir título inteligente
+        if r["actividad_id"]:
+            title = f"[{sda_name}] {act_name}"
+            if r["numero_sesion"]: title += f" - Ses. {r['numero_sesion']}"
+            if desc and desc != act_name: title += f": {desc}"
+            color = "#17a2b8" # Teal para sesiones
+            tipo = "sesion_actividad"
+        else:
+            title = desc if desc else (f"[{sda_name}]" if sda_name else "(Sin título)")
+            color = r["color"] or "#3788d8" # Blue para general
+            tipo = r["tipo"] or "general"
+
         events.append({
             "id": r["id"],
-            "title": r["descripcion"] or "(Sin título)",
-            "start": r["fecha"],
-            "color": r["color"] or "#3788d8",
-            "extendedProps": {
-                "tipo": r["tipo"],
-                "sda_id": r["sda_id"],
-                "evaluable": r["evaluable"],
-                "criterio_id": r["criterio_id"]
-            }
-        })
-        
-    # 2. Fetch from sesiones_actividad (Actualizado a programacion_diaria segun el nuevo esquema)
-    # Sin embargo, para mantener compatibilidad con el frontend que espera sesiones de actividades_sda:
-    sql_sesiones = """
-        SELECT sa.id, sa.fecha, sa.descripcion, sa.numero_sesion, sa.actividad_id, act.nombre as act_nombre, sda.nombre as sda_nombre, sda.id as sda_id, sa.evaluable, sa.criterio_id
-        FROM programacion_diaria sa
-        JOIN actividades_sda act ON sa.actividad_id = act.id
-        JOIN sda ON act.sda_id = sda.id
-        WHERE sa.actividad_id IS NOT NULL
-    """
-    params_ses = []
-
-    if start:
-        sql_sesiones += " AND sa.fecha >= ?"
-        params_ses.append(start)
-    if end:
-        sql_sesiones += " AND sa.fecha <= ?"
-        params_ses.append(end)
-
-    cur.execute(sql_sesiones, params_ses)
-    rows_sesiones = cur.fetchall()
-    
-    for r in rows_sesiones:
-        title = f"[{r['sda_nombre']}] {r['act_nombre']} - Sesión {r['numero_sesion']}"
-        if r['descripcion']:
-            title += f": {r['descripcion']}"
-            
-        events.append({
-            "id": f"ses_{r['id']}", 
             "title": title,
             "start": r["fecha"],
-            "color": "#17a2b8", 
+            "color": color,
             "extendedProps": {
-                "tipo": "sesion_actividad",
-                "observaciones": r["descripcion"] or "",
-                "sda_id": r["sda_id"],
+                "tipo": tipo,
+                "sda_id": r["sda_id"] or r["pd_sda_id"],
                 "actividad_id": r["actividad_id"],
-                "sesion_id": r["id"],
                 "numero_sesion": r["numero_sesion"],
                 "evaluable": r["evaluable"],
-                "criterio_id": r["criterio_id"]
+                "criterio_id": r["criterio_id"],
+                "observaciones": desc,
+                "sda_nombre": sda_name,
+                "act_nombre": act_name
             }
         })
         

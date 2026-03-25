@@ -1588,10 +1588,14 @@
                 editable: true,
                 events: '/api/programacion',
                 eventDidMount: function(info) {
-                    // Bug 12: Tooltip for long text
-                    if (info.event.title) {
-                        info.el.setAttribute('title', info.event.title);
+                    // Tooltip enriquecido
+                    const ep = info.event.extendedProps;
+                    let tooltip = info.event.title;
+                    if (ep.sda_nombre) tooltip = `SDA: ${ep.sda_nombre}\n${tooltip}`;
+                    if (ep.observaciones && ep.observaciones !== ep.act_nombre) {
+                        tooltip += `\nDesc: ${ep.observaciones}`;
                     }
+                    info.el.setAttribute('title', tooltip);
                 },
                 dateClick: function (info) {
                     console.log('Date clicked:', info.dateStr);
@@ -1804,7 +1808,7 @@
                     document.getElementById('eventActivity').value = `${event.title}`;
                     document.getElementById('eventActivity').disabled = true;
                     document.getElementById('eventObs').disabled = false;
-                    document.getElementById('eventSda').disabled = true;
+                    document.getElementById('eventSda').disabled = false; // Habilitado para ver el área
                     document.getElementById('eventDate').disabled = false;
                     document.getElementById('eventHour').disabled = false;
                     document.getElementById('eventMinute').disabled = false;

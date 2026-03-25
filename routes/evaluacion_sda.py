@@ -37,15 +37,19 @@ def get_sda_criterios(sda_id):
 
 @evaluacion_sda_bp.route("/", methods=["POST"])
 def guardar_evaluacion_sda():
-    d = request.json
-    nivel = int(d["nivel"])
-    nota = nivel_a_nota(nivel)
-    sda_id = d.get("sda_id")
     # Si sda_id es 'null' (string de JS) o está vacío, tratarlo como None (NULL en DB)
     if sda_id == 'null' or sda_id == '': sda_id = None
     
     conn = get_db()
     cur = conn.cursor()
+    
+    # Get scale of the area
+    cur.execute("SELECT tipo_escala FROM areas WHERE id = ?", (d["area_id"],))
+    area_row = cur.fetchone()
+    escala = area_row["tipo_escala"] if area_row else None
+    
+    nota = nivel_a_nota(nivel, escala)
+    
     try:
         cur.execute("BEGIN")
         cur.execute("""
@@ -328,17 +332,22 @@ def guardar_evaluacion_rapida():
     nivel = data.get("nivel")
     
     trimestre = int(periodo.replace('T', ''))
-    nota = nivel_a_nota(nivel) if nivel is not None else None
-
+    
     db = get_db()
     cur = db.cursor()
 
-    # Get area_id for the criterion
+    # Get area_id and scale for the criterion
     cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
     row = cur.fetchone()
     if not row:
         return jsonify({"error": "Criterio no encontrado"}), 404
     area_id = row["area_id"]
+    
+    cur.execute("SELECT tipo_escala FROM areas WHERE id = ?", (area_id,))
+    area_data = cur.fetchone()
+    escala = area_data["tipo_escala"] if area_data else None
+    
+    nota = nivel_a_nota(nivel, escala) if nivel is not None else None
 
     try:
         cur.execute("BEGIN")
@@ -424,15 +433,17 @@ def guardar_masivo():
             nivel = item.get("nivel")
             if nivel is None: continue
             
-            nota = nivel_a_nota(nivel)
             alumno_id = item["alumno_id"]
             criterio_id = item["criterio_id"]
             
-            # Obtener area_id del criterio si no se tiene
-            cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+            # Obtener area_id y escala del criterio
+            cur.execute("SELECT area_id, tipo_escala FROM areas WHERE id = (SELECT area_id FROM criterios WHERE id = ?)", (criterio_id,))
             row = cur.fetchone()
             if not row: continue
             area_id = row["area_id"]
+            escala = row["tipo_escala"]
+            
+            nota = nivel_a_nota(nivel, escala)
 
             cur.execute("""
                 INSERT INTO evaluaciones (alumno_id, criterio_id, area_id, trimestre, sda_id, nivel, nota)
@@ -464,12 +475,13 @@ def aplicar_general():
     try:
         cur.execute("BEGIN")
         
-        # Obtener area_id
-        cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+        # Obtener area_id y escala
+        cur.execute("SELECT area_id, tipo_escala FROM areas WHERE id = (SELECT area_id FROM criterios WHERE id = ?)", (criterio_id,))
         row = cur.fetchone()
         if not row:
             return jsonify({"error": "Criterio no encontrado"}), 404
         area_id = row["area_id"]
+        escala = row["tipo_escala"]
 
         # Obtener todos los alumnos del grupo
         alumnos = cur.execute("SELECT id FROM alumnos WHERE grupo_id = ?", (grupo_id,)).fetchall()
@@ -480,7 +492,7 @@ def aplicar_general():
                 VALUES (?, ?, ?, ?, NULL, ?, ?)
                 ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
                 DO UPDATE SET nivel=excluded.nivel, nota=excluded.nota
-            """, (alumno["id"], criterio_id, area_id, trimestre, nivel, nota))
+            """, (alumno["id"], criterio_id, area_id, trimestre, nivel, nivel_a_nota(nivel, escala)))
 
         db.commit()
         return jsonify({"status": "ok"})

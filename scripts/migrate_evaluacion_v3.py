@@ -20,7 +20,8 @@ import os
 import shutil
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "app_evaluar.db")
+from utils.db import get_db_path
+DB_PATH = get_db_path()
 
 def backup(db_path):
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")

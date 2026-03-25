@@ -27,3 +27,4 @@ APP_EVALUAR.zip
 *.zip
 *.db
 *.db.bak
+.env

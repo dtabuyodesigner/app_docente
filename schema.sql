@@ -92,6 +92,7 @@ CREATE TABLE informe_grupo (
     grupo_id INTEGER,
     trimestre INTEGER,
     observaciones TEXT,
+    dificultades TEXT,
     propuestas_mejora TEXT,
     conclusion TEXT,
     equipo_docente TEXT,
@@ -276,6 +277,7 @@ CREATE TABLE encargados (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     fecha DATE NOT NULL UNIQUE,
     alumno_id INTEGER NOT NULL,
+    estado TEXT DEFAULT 'realizado',
     FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
 );
 
@@ -285,6 +287,8 @@ CREATE TABLE reuniones (
     fecha TEXT,
     asistentes TEXT,
     temas TEXT,
+    dificultades TEXT,
+    propuestas_mejora TEXT,
     acuerdos TEXT,
     tipo TEXT DEFAULT 'PADRES',
     ciclo_id INTEGER REFERENCES config_ciclo(id),

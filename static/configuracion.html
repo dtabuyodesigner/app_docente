@@ -183,7 +183,7 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
@@ -244,6 +244,22 @@
                     <option value="externa">Gestión Externa (Empresa)</option>
                 </select>
             </div>
+            <div class="section-title">Fechas de Evaluación</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px;">
+                <div class="form-group">
+                    <label>Fin 1er Trim:</label>
+                    <input type="date" id="fecha_fin_t1">
+                </div>
+                <div class="form-group">
+                    <label>Fin 2do Trim:</label>
+                    <input type="date" id="fecha_fin_t2">
+                </div>
+                <div class="form-group">
+                    <label>Fin 3er Trim:</label>
+                    <input type="date" id="fecha_fin_t3">
+                </div>
+            </div>
+            <p style="font-size:0.8rem; color:#64748b; margin-top:-10px;">Estas fechas se usan para delimitar los informes trimestrales.</p>
             <button class="btn-save" onclick="saveConfig()">💾 Guardar Configuración</button>
             <div id="status" class="status-msg"></div>
         </div>
@@ -378,7 +394,7 @@
             }
         }
         async function saveConfig() {
-            const keys = ['nombre_centro', 'curso_escolar', 'nombre_tutor', 'max_dias_prestamo', 'tipo_comedor'];
+            const keys = ['nombre_centro', 'curso_escolar', 'nombre_tutor', 'max_dias_prestamo', 'tipo_comedor', 'fecha_fin_t1', 'fecha_fin_t2', 'fecha_fin_t3'];
             const data = {};
             keys.forEach(k => {
                 const el = document.getElementById(k);

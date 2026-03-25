@@ -428,11 +428,13 @@ def manage_grupo_activo():
     if request.method == "POST":
         data = request.json
         grupo_id = data.get("grupo_id")
-        if not grupo_id:
-            return jsonify({"ok": False, "error": "Falta grupo_id"}), 400
+        
+        if grupo_id:
+            session['active_group_id'] = grupo_id
+        else:
+            session.pop('active_group_id', None)
             
-        session['active_group_id'] = grupo_id
-        security_logger.info(f"User '{session.get('username')}' changed active group to {grupo_id}. IP: {request.remote_addr}")
+        security_logger.info(f"User '{session.get('username')}' changed active group to {grupo_id or 'None (All)'}. IP: {request.remote_addr}")
         return jsonify({"ok": True, "active_group_id": grupo_id})
     else:
         # GET

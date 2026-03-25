@@ -114,3 +114,47 @@ if (document.readyState === 'loading') {
 } else {
     initNavigation();
 }
+// Global Keyboard Shortcuts (Enter to confirm, Esc to close)
+document.addEventListener('keydown', (e) => {
+    // Find any visible modal
+    const activeModal = Array.from(document.querySelectorAll('.modal-overlay, .modal, .modal-wrapper')).find(m => {
+        const style = window.getComputedStyle(m);
+        return (style.display !== 'none' && style.visibility !== 'hidden' && m.offsetHeight > 0);
+    });
+    
+    if (!activeModal) return;
+
+    if (e.key === 'Escape') {
+        // Find close button: .modal-close, .modal-close-btn, .close, .btn-outline, .btn-secondary, .btn-cancel
+        const closeBtn = activeModal.querySelector('.modal-close, .modal-close-btn, .close, .btn-outline, .btn-secondary, .btn-cancel') || 
+                         Array.from(activeModal.querySelectorAll('button')).find(b => 
+                            b.textContent.toLowerCase().includes('cerrar') || 
+                            b.textContent.toLowerCase().includes('cancelar') ||
+                            b.textContent.includes('✕') ||
+                            b.textContent.includes('×')
+                         );
+        if (closeBtn) {
+            closeBtn.click();
+        } else {
+            activeModal.style.display = 'none';
+        }
+    } else if (e.key === 'Enter') {
+        // Don't trigger if in a textarea or if a button is already focused (to avoid double click)
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+        
+        // Find the primary button (success, primary, save, or common naming patterns)
+        const confirmBtn = activeModal.querySelector('.btn-success, .btn-primary, .btn-confirm, .btn-save, .btn-save-task') || 
+                           Array.from(activeModal.querySelectorAll('button')).find(b => 
+                                b.textContent.toLowerCase().includes('confirmar') || 
+                                b.textContent.toLowerCase().includes('guardar') ||
+                                b.textContent.toLowerCase().includes('aceptar') ||
+                                b.textContent.toLowerCase().includes('importar') ||
+                                b.textContent.toLowerCase().includes('añadir')
+                           );
+        
+        if (confirmBtn) {
+            e.preventDefault();
+            confirmBtn.click();
+        }
+    }
+});

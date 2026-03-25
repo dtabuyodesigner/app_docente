@@ -213,9 +213,23 @@ def devolver_prestamo(pid):
         """, (fecha_devolucion, observaciones, pid))
         cur.execute("UPDATE libros SET cantidad_disponible = cantidad_disponible + 1 WHERE id = ?",
                     (prestamo["libro_id"],))
+        
+        # Check for milestone (multiple of 5)
+        alumno_id = prestamo["alumno_id"]
+        cur.execute("SELECT COUNT(*) as total FROM prestamos_libros WHERE alumno_id = ? AND estado = 'devuelto'", (alumno_id,))
+        total_devueltos = cur.fetchone()["total"]
+        
+        hito = None
+        if total_devueltos > 0 and total_devueltos % 5 == 0:
+            hito = total_devueltos
+            
         conn.commit()
-        return jsonify({"ok": True, "dias_lectura": dias_lectura,
-                        "mensaje": f"Devolución registrada. El alumno tuvo el libro {dias_lectura} días."})
+        return jsonify({
+            "ok": True, 
+            "dias_lectura": dias_lectura,
+            "hito_alcanzado": hito,
+            "mensaje": f"Devolución registrada. El alumno tuvo el libro {dias_lectura} días."
+        })
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
@@ -382,11 +396,9 @@ def get_prestamos_activos():
         JOIN libros l ON pl.libro_id = l.id
         WHERE pl.estado = 'activo'
     """
+    # Eliminamos el filtro por grupo para que se vean todos los préstamos activos
     params = []
-    if active_group_id:
-        query += " AND a.grupo_id = ?"
-        params.append(active_group_id)
-        
+    
     query += " ORDER BY pl.fecha_prestamo ASC"
     cur.execute(query, params)
     return jsonify([dict(row) for row in cur.fetchall()])
@@ -410,9 +422,7 @@ def get_historial_prestamos():
         WHERE 1=1
     """
     params = []
-    if active_group_id:
-        query += " AND a.grupo_id = ?"
-        params.append(active_group_id)
+    # Eliminamos el filtro por grupo para que se vea el historial completo
         
     query += " ORDER BY pl.fecha_prestamo DESC LIMIT 200"
     cur.execute(query, params)

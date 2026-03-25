@@ -448,12 +448,21 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
+        
+        <!-- Tabs de Sección Gestión -->
+        <div class="section-tabs">
+            <a href="/alumnos" class="section-tab-btn">👦 Alumnos</a>
+            <a href="/asistencia" class="section-tab-btn active">📋 Pasar Lista</a>
+            <a href="/horario" class="section-tab-btn">⏰ Horario</a>
+            <a href="/reuniones" class="section-tab-btn">👨‍👩‍👧‍👦 Reuniones</a>
+        </div>
+        
         <div class="header">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <h2 style="margin:0;">📋 Pasar lista</h2>
@@ -510,10 +519,34 @@
                     <h3>📜 Historial de Faltas</h3>
                     <button class="modal-close" onclick="closeHistory()">&times;</button>
                 </div>
-                <div style="margin-bottom: 20px; text-align: center;">
-                    <label>Mes:</label>
-                    <input type="month" id="mesHistorial"
-                        style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                <div style="margin-bottom: 25px; padding: 25px; background: #fdfdfd; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; width: 100%;">
+                        <div style="justify-self: end;">
+                            <div id="divMesHistorial" style="display: flex; align-items: center; gap: 12px;">
+                                <label style="font-weight: 700; color: #4a5568; font-size: 0.95rem;">Mes:</label>
+                                <input type="month" id="mesHistorial"
+                                    style="padding: 10px 15px; height: 44px; width: 220px; border-radius: 10px; border: 1.5px solid #cbd5e0; font-family: inherit; font-size: 1rem;">
+                            </div>
+                            <div id="divTrimHistorial" style="display: none; align-items: center; gap: 12px;">
+                                <label style="font-weight: 700; color: #4a5568; font-size: 0.95rem;">Trimestre:</label>
+                                <select id="trimHistorial" style="padding: 10px 15px; height: 44px; width: 220px; border-radius: 10px; border: 1.5px solid #cbd5e0; font-family: inherit; font-size: 1rem; background: white;">
+                                    <option value="1">1º Trimestre (Sep-Dic)</option>
+                                    <option value="2">2º Trimestre (Ene-Mar)</option>
+                                    <option value="3">3º Trimestre (Abr-Jun)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="width: 2px; height: 30px; background: #e2e8f0;"></div>
+                        <div style="justify-self: start;">
+                            <button onclick="toggleHistoryView()" id="btnToggleHistory" 
+                                style="padding: 0 25px; height: 44px; border-radius: 10px; border: none; background: #6b46c1; color: white; cursor: pointer; font-size: 0.95rem; font-weight: 700; transition: all 0.2s; white-space: nowrap; box-shadow: 0 4px 12px rgba(107, 70, 193, 0.2);">
+                                Ver Trimestre
+                            </button>
+                        </div>
+                    </div>
+                    <div id="historyLabel" style="margin-top: 15px; font-size: 0.85rem; color: #718096; font-weight: 600; text-align: center; letter-spacing: 0.5px;">
+                        📌 MOSTRANDO HISTORIAL MENSUAL
+                    </div>
                 </div>
                 <div id="historyContent">
                     <!-- Table will here -->
@@ -594,6 +627,16 @@
                         style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #6c757d; background: white; color: #6c757d; cursor: pointer;">
                         🔄
                     </button>
+                </div>
+                <!-- Nuevo Selector de Modo -->
+                <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <label style="font-size: 0.75rem; color: #666; font-weight: 600;">Modo:</label>
+                    <div style="display: flex; background: #eee; border-radius: 20px; padding: 2px;">
+                        <button id="btnModoAleatorio" onclick="setEncargadoModo('aleatorio')" 
+                            style="font-size: 0.7rem; padding: 2px 8px; border-radius: 15px; border: none; cursor: pointer; background: #6f42c1; color: white;">🎲 Aleatorio</button>
+                        <button id="btnModoLista" onclick="setEncargadoModo('lista')" 
+                            style="font-size: 0.7rem; padding: 2px 8px; border-radius: 15px; border: none; cursor: pointer; background: transparent; color: #666;">📋 Lista</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -934,11 +977,34 @@
                 p.style.fontWeight = "normal";
             }
         }
+        let encargadoModo = localStorage.getItem('encargado_modo') || 'aleatorio';
+
+        function setEncargadoModo(modo) {
+            encargadoModo = modo;
+            localStorage.setItem('encargado_modo', modo);
+            updateEncargadoModoUI();
+        }
+
+        function updateEncargadoModoUI() {
+            const btnA = document.getElementById('btnModoAleatorio');
+            const btnL = document.getElementById('btnModoLista');
+            if (!btnA || !btnL) return;
+            
+            if (encargadoModo === 'aleatorio') {
+                btnA.style.background = '#6f42c1'; btnA.style.color = 'white';
+                btnL.style.background = 'transparent'; btnL.style.color = '#666';
+            } else {
+                btnL.style.background = '#6f42c1'; btnL.style.color = 'white';
+                btnA.style.background = 'transparent'; btnA.style.color = '#666';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateEncargadoModoUI);
+
         async function seleccionarEncargado() {
             const res = await fetch("/api/asistencia/encargado/seleccionar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
-                body: JSON.stringify({ fecha: selectedDate })
+                body: JSON.stringify({ fecha: selectedDate, modo: encargadoModo })
             });
             const data = await res.json();
             if (data.error) {
@@ -946,6 +1012,20 @@
             } else {
                 document.getElementById("nombreEncargado").innerText = data.nombre;
                 document.getElementById("nombreEncargado").style.fontWeight = "bold";
+                
+                // Notificaciones de ciclo
+                if (data.ausentes_en_turno && data.ausentes_en_turno.length > 0) {
+                    const nombres = data.ausentes_en_turno.map(a => a.nombre).join(", ");
+                    setTimeout(() => {
+                        alert(`⚠️ Alumnos que faltaron hoy y no han sido encargados en este ciclo: ${nombres}.\n\nSe les asignará en cuanto asistan.`);
+                    }, 100);
+                }
+                
+                if (data.final_ciclo) {
+                    setTimeout(() => {
+                        alert(`🎯 ¡Final de ciclo! ${data.nombre} es el último en participar. El ciclo comenzará de nuevo mañana.`);
+                    }, 500);
+                }
             }
         }
         async function reiniciarCiclo() {
@@ -965,20 +1045,59 @@
             const res = await fetch("/api/asistencia/encargado/historial");
             const data = await res.json();
             const history = data.historial;
-            const groupSize = data.total_alumnos || 11;
+            const students = data.estudiantes || [];
+            const minVeces = data.min_veces_global || 0;
+            const groupSize = data.total_alumnos || (students.length || 11);
             const container = document.getElementById("encargadoHistoryContent");
             container.innerHTML = "";
+            
+            // 1. Cycle Status Section (New)
+            const statusDiv = document.createElement("div");
+            statusDiv.style.marginBottom = "25px";
+            statusDiv.style.padding = "15px";
+            statusDiv.style.background = "#fff";
+            statusDiv.style.borderRadius = "10px";
+            statusDiv.style.border = "1px solid #e2e8f0";
+            
+            let statusHtml = `<h4 style="margin: 0 0 10px 0; color: #4a5568; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Estado del Ciclo Actual</h4>`;
+            statusHtml += `<div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+            
+            students.sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(s => {
+                const isDone = s.veces > minVeces;
+                const color = isDone ? "#3182ce" : "#e53e3e";
+                const bg = isDone ? "#ebf8ff" : "#fff5f5";
+                const border = isDone ? "#bee3f8" : "#fed7d7";
+                statusHtml += `
+                    <span style="padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: ${color}; background: ${bg}; border: 1px solid ${border};">
+                        ${s.nombre}
+                    </span>
+                `;
+            });
+            statusHtml += `</div>`;
+            statusHtml += `<p style="font-size: 0.75rem; color: #718096; margin-top: 10px;">
+                <span style="color: #e53e3e;">●</span> Pendientes en esta vuelta | 
+                <span style="color: #3182ce;">●</span> Ya han participado
+            </p>`;
+            statusDiv.innerHTML = statusHtml;
+            container.appendChild(statusDiv);
+
             if (history.length === 0) {
-                container.innerHTML = "<p style='text-align: center; color: #666;'>No hay historial todavía.</p>";
+                container.innerHTML += "<p style='text-align: center; color: #666;'>No hay historial todavía.</p>";
                 return;
             }
-            // Group by cycles of dynamic size
+            
+            // 2. Chronological History (Existing)
+            const historyTitle = document.createElement("h4");
+            historyTitle.innerHTML = "Historial por Ciclos";
+            historyTitle.style.margin = "20px 0 10px 0";
+            historyTitle.style.color = "#4a5568";
+            container.appendChild(historyTitle);
+
             const chronological = [...history].reverse();
             const cycles = [];
             for (let i = 0; i < chronological.length; i += groupSize) {
                 cycles.push(chronological.slice(i, i + groupSize));
             }
-            // Show latest cycle first
             cycles.reverse().forEach((cycle, index) => {
                 const cycleNum = cycles.length - index;
                 const block = document.createElement("div");
@@ -990,15 +1109,15 @@
                     </div>
                     <div class="cycle-list">
                         ${cycle.reverse().map(item => {
-                    const [y, m, d] = item.fecha.split('-');
-                    const formattedDate = `${d}-${m}-${y}`;
-                    return `
+                            const [y, m, d] = item.fecha.split('-');
+                            const formattedDate = `${d}-${m}-${y}`;
+                            return `
                                 <div class="cycle-item">
                                     <strong>${formattedDate}</strong>
                                     <span>${item.nombre}</span>
                                 </div>
                             `;
-                }).join('')}
+                        }).join('')}
                     </div>
                 `;
                 container.appendChild(block);
@@ -1088,14 +1207,49 @@
                     }
                 });
         }
+        // Historial View Logic
+        let historyView = 'mes'; 
+        function toggleHistoryView() {
+            const btn = document.getElementById('btnToggleHistory');
+            const divMes = document.getElementById('divMesHistorial');
+            const divTrim = document.getElementById('divTrimHistorial');
+            const label = document.getElementById('historyLabel');
+            
+            if (historyView === 'mes') {
+                historyView = 'trimestre';
+                btn.innerText = 'Cambiar a Mes';
+                divMes.style.display = 'none';
+                divTrim.style.display = 'flex';
+                label.innerText = 'Mostrando historial del trimestre seleccionado';
+            } else {
+                historyView = 'mes';
+                btn.innerText = 'Ver Trimestre';
+                divMes.style.display = 'flex';
+                divTrim.style.display = 'none';
+                label.innerText = 'Mostrando historial del mes seleccionado';
+            }
+            loadHistory();
+        }
+
         monthInput.addEventListener("change", loadHistory);
+        document.getElementById('trimHistorial').addEventListener('change', loadHistory);
+
         async function loadHistory() {
             const mes = monthInput.value;
-            if (!mes) return;
+            const trim = document.getElementById('trimHistorial').value;
+            
+            let url = `/api/asistencia/mes?`;
+            if (historyView === 'mes') {
+                if (!mes) return;
+                url += `mes=${mes}`;
+            } else {
+                url += `trimestre=${trim}`;
+            }
+
             const content = document.getElementById("historyContent");
             content.innerHTML = "<p style='text-align:center'>Cargando...</p>";
             try {
-                const res = await fetch(`/api/asistencia/mes?mes=${mes}`);
+                const res = await fetch(url);
                 const responseData = await res.json();
                 let data = responseData;
                 let stats = null;
@@ -1131,33 +1285,56 @@
                     <table class="history-table">
                         <thead>
                             <tr>
-                                <th>Alumno</th>
-                                <th>Resumen</th>
-                                <th>Detalle</th>
+                                <th style="width: 30%;">Alumno</th>
+                                <th style="text-align:center; width: 12%;">Justif.</th>
+                                <th style="text-align:center; width: 12%;">Injust.</th>
+                                <th style="text-align:center; width: 12%;">Retrasos</th>
+                                <th style="text-align:center; width: 12%; background: #edf2f7;">TOTAL</th>
+                                <th style="width: 22%;">Detalle</th>
                             </tr>
                         </thead>
                         <tbody>
                 `;
                 data.forEach(item => {
-                    // Create detail tags
+                    const totalFaltas = item.justificadas + item.injustificadas;
+                    
+                    // Create detail tags with month separator if needed
+                    let currentMonth = "";
                     const tags = item.detalles.map(d => {
                         let cls = d.estado;
                         let label = d.fecha.slice(8); // just the day
+                        let monthInfo = "";
+                        const m = d.fecha.slice(5, 7);
+                        
+                        if (historyView === 'trimestre') {
+                             if (m !== currentMonth) {
+                                 currentMonth = m;
+                                 const mesTxt = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][parseInt(m)];
+                                 monthInfo = `<div style="width:100%; font-size:0.65rem; color:#888; border-bottom:1px solid #eee; margin-top:5px; font-weight:bold;">${mesTxt}</div>`;
+                             }
+                        }
+                        
                         let title = d.estado.replace('_', ' ');
-                        return `<span class="tag ${cls}" title="${title} ${d.fecha}">${label}</span>`;
-                    }).join(" ");
+                        return `${monthInfo}<span class="tag ${cls}" title="${title} ${d.fecha}">${label}</span>`;
+                    }).join("");
+
                     html += `
-                        <tr>
-                            <td><strong>${item.nombre}</strong></td>
-                            <td>
-                                <div style="display:flex; gap:10px; font-size:0.85rem;">
-                                    ${item.retrasos ? `<span style="color:#856404">🟠 ${item.retrasos}</span>` : ''}
-                                    ${item.justificadas ? `<span style="color:#0c5460">🔵 ${item.justificadas}</span>` : ''}
-                                    ${item.injustificadas ? `<span style="color:#721c24">🔴 ${item.injustificadas}</span>` : ''}
-                                </div>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td><strong style="color: #2d3748; font-size: 0.95rem;">${item.nombre}</strong></td>
+                            <td style="text-align:center;">
+                                <span style="font-weight:700; color: #3182ce;">${item.justificadas}</span>
+                            </td>
+                            <td style="text-align:center;">
+                                <span style="font-weight:700; color: #e53e3e;">${item.injustificadas}</span>
+                            </td>
+                            <td style="text-align:center;">
+                                <span style="font-weight:700; color: #d69e2e;">${item.retrasos}</span>
+                            </td>
+                            <td style="text-align:center; background: #f8fafc; border-left: 1px solid #edf2f7; border-right: 1px solid #edf2f7;">
+                                <span style="font-weight:800; font-size:1.1rem; color: #1a365d;">${totalFaltas}</span>
                             </td>
                             <td>
-                                ${tags}
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: baseline;">${tags}</div>
                             </td>
                         </tr>
                     `;

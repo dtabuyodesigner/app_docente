@@ -1,7 +1,7 @@
 // Service Worker — Cuaderno del Tutor
 // Estrategia: Cache-first para la shell estática, network-first para las APIs
 
-const CACHE_NAME = 'cuaderno-tutor-v3';
+const CACHE_NAME = 'cuaderno-tutor-v6';
 
 // Archivos de la "shell" que se cachean al instalar
 const SHELL_ASSETS = [

@@ -1,0 +1,2380 @@
+
+GPT, apunta otra posible modificación y es que el encargado de la opción de hacerlo aleatorio o por orden de lista.
+
+Perfecto, Dani. Esta mejora encaja perfecto con la anterior de encargados. Te la dejo ya redactada para Antigravity, lista para añadir al documento.
+
+📄 MEJORA CUADERNO DOCENTE – SISTEMA DE ENCARGADOS
+3️⃣ Selección de encargado: modo automático configurable
+🎯 Objetivo
+
+Permitir que el sistema de encargados funcione de dos formas:
+
+1. Orden de lista (secuencial)
+2. Aleatorio
+
+para adaptarse a la organización del aula.
+
+🔍 Problema actual
+
+El sistema de encargados solo funciona de una manera fija, lo que limita:
+
+la flexibilidad del docente
+
+la adaptación a distintas metodologías
+
+✅ Comportamiento esperado
+
+Al configurar el sistema de encargados, el profesor debe poder elegir:
+
+Modo de asignación:
+
+( ) Orden de lista
+( ) Aleatorio
+⚙️ Lógica de funcionamiento
+🔹 Modo 1: Orden de lista
+lista alumnos ordenada
+↓
+siguiente alumno disponible
+↓
+si está ausente → se marca como pendiente
+
+✔ respeta el orden
+✔ se integra con la mejora de “pendientes del ciclo”
+
+🔹 Modo 2: Aleatorio
+lista alumnos
+↓
+selección aleatoria
+↓
+excluir alumnos ya asignados en el ciclo
+
+✔ evita repeticiones
+✔ garantiza equidad dentro del ciclo
+
+🔄 Comportamiento con alumnos ausentes
+
+Debe integrarse con la mejora anterior:
+
+si alumno seleccionado está ausente:
+↓
+no pierde turno
+↓
+pasa a lista de pendientes
+🖥️ Interfaz sugerida
+
+En configuración del cuaderno o encargados:
+
+Sistema de encargados
+
+Modo de asignación:
+[ Orden de lista ]
+[ Aleatorio ]
+💾 Persistencia
+
+Guardar en base de datos:
+
+config_encargados
+
+Campo:
+
+modo_asignacion (orden / aleatorio)
+🚀 Mejora futura (opcional)
+
+Permitir también:
+
+✔ elegir varios encargados por día
+✔ roles distintos (puerta, pizarra, material...)
+🎯 Resultado
+
+El sistema de encargados pasa a ser:
+
+flexible
+justo
+adaptable al aula
+
+Dani, esto ya empieza a tener forma de cuaderno docente muy serio, no típico.
+
+Cuando juntes:
+
+control de encargados
+
+control de faltas
+
+evaluación
+
+vas a tener una herramienta muy potente de verdad en clase.
+
+Si quieres, en el siguiente paso te puedo agrupar todas las mejoras del módulo cuaderno (encargados + asistencia + seguimiento) en un solo documento para Antigravity bien organizado por bloques.
+
+A ver, otra cosa que hay que modificar y es que cuando tú creas un horario, ¿vale? cuando tú creas el horario de clase y ya le has puesto una asignatura, no te deja coger otras asignaturas, o sea, no te deja cambiar las asignaturas aunque le des a editar. Entonces, cuando tú eliges el grupo, lo que te tiene que dejar es cambiar también las asignaturas, ¿vale? Tanto en el horario de clase como en el del profe, que pasa en los dos.
+
+Perfecto, Dani. Esto es un bug claro de edición, y además crítico porque afecta al uso diario.
+Te lo dejo ya redactado técnico para Antigravity, listo para copiar.
+
+📄 MEJORA / BUG – EDICIÓN DE HORARIOS (CLASE Y PROFESOR)
+🎯 Objetivo
+
+Permitir modificar correctamente las asignaturas en el horario una vez creado, tanto en:
+
+horario de clase
+
+horario del profesor
+
+🔴 Problema detectado
+
+Actualmente:
+
+se crea horario
+↓
+se asigna una materia
+↓
+al editar → NO permite cambiarla
+
+Aunque se pulse editar:
+
+el campo aparece bloqueado
+
+o no guarda el nuevo valor
+
+📍 Impacto
+
+Esto impide:
+
+corregir errores
+
+ajustar horarios reales
+
+reutilizar horarios
+
+👉 hace el módulo prácticamente inutilizable en la práctica.
+
+✅ Comportamiento esperado
+
+Cuando el usuario:
+
+selecciona grupo
+↓
+abre horario
+↓
+pulsa editar
+
+Debe poder:
+
+✔ cambiar la asignatura
+✔ guardar el cambio
+✔ ver reflejado el cambio inmediatamente
+
+⚙️ Posibles causas (para Antigravity)
+1️⃣ Campo deshabilitado en frontend
+
+Ejemplo típico:
+
+<select disabled>
+
+o:
+
+readonly = true
+2️⃣ El select no se repuebla en modo edición
+
+Problema:
+
+el select no carga las asignaturas disponibles
+
+se queda con valor fijo
+
+3️⃣ El backend no actualiza
+
+Endpoint de guardado puede estar haciendo:
+
+INSERT
+
+en lugar de:
+
+UPDATE
+4️⃣ Falta de envío de campo
+
+El formulario no envía:
+
+asignatura_id
+🛠️ Implementación requerida
+En frontend
+
+✔ el campo de asignatura debe ser editable en modo edición
+✔ debe mostrarse como <select> con todas las opciones
+✔ debe permitir cambiar valor
+
+En backend
+
+Endpoint:
+
+POST /horario/editar
+
+Debe hacer:
+
+UPDATE horario
+SET asignatura_id = ?
+WHERE id = ?
+En base de datos
+
+Tabla:
+
+horario
+
+Debe tener:
+
+id
+grupo_id
+dia
+hora
+asignatura_id
+🔁 Aplicar en ambos módulos
+
+Este bug afecta a:
+
+horario de clase
+horario del profesor
+
+Debe corregirse en los dos.
+
+🧪 Prueba obligatoria
+
+Crear horario
+
+Asignar asignatura
+
+Editar celda
+
+Cambiar asignatura
+
+Guardar
+
+Resultado esperado:
+
+✔ la asignatura cambia correctamente
+✔ se mantiene tras recargar
+
+🚀 Mejora adicional recomendada (muy importante)
+
+Permitir también:
+
+✔ borrar asignatura (dejar celda vacía)
+✔ cambiar varias celdas seguidas sin recargar
+🎯 Resultado esperado
+
+El sistema de horarios debe ser:
+
+editable
+flexible
+corregible
+
+Dani, este bug que has detectado es clave porque es típico de apps que funcionan “en demo” pero no en uso real.
+
+👉 Arreglar esto + lo de grupos + base de datos = ya tienes la app usable de verdad en clase.
+
+Si quieres, en el siguiente paso puedo juntarte TODAS las mejoras que llevamos (Windows + cuaderno + horarios) en un único documento limpio para Antigravity, ya listo para enviar.
+
+A ver, ya he visto el fallo. Cuando tú das una clase, estoy ahora mismo en el horario del profe y posiblemente pase en el de clase. Cuando tú ya has marcado una clase, aunque cambies el grupo, se queda pillada la clase que está, o sea, la clase, el área que vas a dar y no te deja cambiarlo. Entonces, para poder modificar, primero hay que borrar la clase y luego ya crear una nueva. Entonces esto hay que modificarlo, ¿vale?
+
+Perfecto, Dani. Has identificado exactamente el bug real 👍
+Esto ya no es “no deja editar”, sino:
+
+👉 el selector no se resetea al cambiar grupo → estado inconsistente
+
+Te lo dejo ya perfectamente redactado para Antigravity.
+
+📄 BUG CRÍTICO – HORARIOS (CLASE Y PROFESOR)
+🐛 Problema detectado
+
+En el módulo de horarios (tanto de clase como de profesor):
+
+se asigna una asignatura a una celda
+↓
+se cambia el grupo
+↓
+la asignatura anterior se queda fijada
+↓
+NO permite cambiarla
+
+El sistema queda en un estado bloqueado donde:
+
+la asignatura no se actualiza
+
+el selector no responde
+
+obliga a borrar manualmente la celda
+
+🔴 Comportamiento actual
+crear horario
+↓
+asignar asignatura
+↓
+cambiar grupo
+↓
+la asignatura anterior se mantiene (incorrecto)
+↓
+no se puede modificar
+❌ Consecuencia
+
+El usuario se ve obligado a:
+
+borrar celda
+↓
+volver a crearla
+
+👉 Esto rompe totalmente la usabilidad.
+
+✅ Comportamiento esperado
+
+Cuando el usuario:
+
+cambia el grupo
+
+el sistema debe:
+
+1 resetear la asignatura seleccionada
+2 cargar asignaturas del nuevo grupo
+3 permitir selección normal
+⚙️ Causa probable (muy importante)
+
+Esto suele venir de:
+
+1️⃣ Estado no reseteado en frontend
+
+Ejemplo típico:
+
+asignaturaSeleccionada = valorAnterior
+
+NO se limpia cuando cambia grupo.
+
+2️⃣ Select no recargado
+
+El <select> sigue con opciones del grupo anterior.
+
+3️⃣ No se ejecuta re-render
+
+El componente no se vuelve a pintar.
+
+🛠️ Solución obligatoria
+En frontend
+
+Cuando cambie el grupo:
+
+function onChangeGrupo() {
+    
+    // resetear asignatura
+    asignaturaSeleccionada = null
+
+    // limpiar select
+    selectAsignatura.value = ""
+
+    // recargar asignaturas del grupo
+    cargarAsignaturas(grupo_id)
+}
+En UI
+
+El campo debe:
+
+quedarse vacío
+↓
+mostrar nuevas opciones
+↓
+permitir seleccionar
+🔁 Aplicación del fix
+
+Debe aplicarse en:
+
+✔ horario del profesor
+✔ horario de clase
+🧪 Prueba obligatoria
+
+Crear horario
+
+Asignar asignatura
+
+Cambiar grupo
+
+Resultado esperado:
+
+✔ la asignatura anterior desaparece
+✔ el selector queda vacío
+✔ se pueden elegir nuevas asignaturas
+
+🚀 Mejora adicional recomendada
+
+Permitir:
+
+✔ editar directamente sin borrar
+✔ cambiar grupo sin perder control
+✔ refresco automático de asignaturas
+🎯 Resultado final esperado
+
+El módulo de horarios debe comportarse así:
+
+cambiar grupo
+↓
+reset automático
+↓
+selección limpia
+↓
+edición fluida
+
+Dani, esto que acabas de detectar es un bug de estado típico de frontend, muy común cuando:
+
+hay selects dependientes
+
+no se resetea el estado
+
+👉 Es clave arreglarlo ahora porque si no, el módulo de horarios siempre dará problemas.
+
+Si quieres, en el siguiente paso te preparo ya EL DOCUMENTO FINAL COMPLETO con:
+
+errores Windows
+
+bugs de horarios
+
+mejoras de cuaderno
+
+checklist
+
+todo en un único archivo listo para Antigravity.
+
+Apunta que cuando creas una reunión nueva desde el botón crear reunión o, da igual, pinchando en el calendario, no tiene mucho sentido que lo de acuerdos esté activo para escribir, porque los acuerdos se toman después de la reunión. Los temas a tratar, bueno, no estaría mal por tener como un pequeño guión de lo que vamos a hablar, pero lo de los acuerdos, en principio, o conclusiones, casi era mejor que a la hora de crear una reunión que estuviera desactivado.
+
+Perfecto, Dani. Esto que dices tiene muchísimo sentido a nivel de flujo real. Te lo dejo ya redactado para Antigravity, claro y directo.
+
+📄 MEJORA – FORMULARIO DE CREACIÓN DE REUNIONES
+🎯 Objetivo
+
+Ajustar el formulario de creación de reuniones para que refleje el flujo real de trabajo:
+
+antes de la reunión → planificación
+después de la reunión → acuerdos / conclusiones
+🔴 Problema actual
+
+Al crear una reunión:
+
+crear reunión
+↓
+campo "acuerdos" activo
+
+Esto no tiene sentido porque:
+
+los acuerdos no existen aún
+
+induce a rellenar datos incorrectos
+
+rompe el flujo lógico de la reunión
+
+✅ Comportamiento esperado
+Al crear una reunión
+
+Campos activos:
+
+✔ fecha
+✔ asistentes
+✔ temas a tratar (opcional)
+
+Campos desactivados:
+
+❌ acuerdos
+❌ conclusiones
+🖥️ Interfaz sugerida
+
+Campo acuerdos:
+
+Acuerdos (se completará tras la reunión)
+[ DESACTIVADO ]
+⚙️ Lógica
+En creación
+modo: crear reunión
+↓
+acuerdos = disabled
+En edición (después de la reunión)
+modo: editar reunión
+↓
+acuerdos = enabled
+🛠️ Implementación
+Frontend
+<textarea id="acuerdos" disabled></textarea>
+
+y en modo edición:
+
+acuerdos.disabled = false
+💡 Mejora adicional (muy recomendable)
+
+Mostrar mensaje:
+
+"Los acuerdos se podrán completar después de la reunión"
+🚀 Resultado
+
+El módulo de reuniones pasa a ser:
+
+más realista
+más lógico
+más profesional
+
+Dani, esto es un ejemplo perfecto de mejora basada en uso real 👌
+Es justo lo que diferencia una app funcional de una app bien pensada para docentes.
+
+Cuando quieras, en el siguiente paso te hago ya EL DOCUMENTO FINAL con TODO lo que llevamos (Windows + horarios + cuaderno + reuniones) listo para Antigravity sin que tengas que tocar nada.
+
+Oye, a ver, estas cosas que te estoy diciendo están apareciendo en la aplicación de Linux y no en la de Windows, ¿vale? Entonces, en la mía de Linux aparece el nombre y el apellido en los así... Ah, vamos a las reuniones de ciclo. Aparece el nombre y el apellido de cada uno de los asistentes, pero con dos check, ¿vale? Deberían aparecer con un solo, o sea, el nombre con los apellidos y un solo checkbox, no uno para el nombre y otro para los apellidos. Entonces esto hay que arreglarlo.
+
+Perfecto, Dani. Esto es un bug de renderizado / duplicación de campos, y además es importante porque afecta a algo básico como los asistentes. Te lo dejo ya redactado limpio para Antigravity.
+
+📄 BUG – LISTADO DE ASISTENTES EN REUNIONES
+🎯 Objetivo
+
+Corregir la visualización de asistentes en reuniones para que cada persona aparezca una sola vez con un único checkbox.
+
+🔴 Problema detectado
+
+En la app (Linux):
+
+asistentes
+↓
+nombre + apellido aparecen separados
+↓
+cada uno con su checkbox
+
+Ejemplo actual:
+
+[ ] Juan
+[ ] Pérez
+
+En lugar de:
+
+[ ] Juan Pérez
+❌ Comportamiento incorrecto
+
+un checkbox para nombre
+
+otro checkbox para apellido
+
+duplicación visual del mismo alumno
+
+👉 esto genera:
+
+confusión
+
+errores al marcar asistencia
+
+mala experiencia de usuario
+
+✅ Comportamiento esperado
+
+Cada asistente debe mostrarse como:
+
+[ ] Nombre Apellido
+
+Un solo checkbox por persona.
+
+⚙️ Causa probable
+
+Este bug suele venir de:
+
+1️⃣ Renderizado incorrecto de campos
+
+Se están iterando campos separados:
+
+alumno.nombre
+alumno.apellido
+
+en lugar de un único objeto alumno.
+
+2️⃣ Estructura de datos mal usada
+
+Ejemplo incorrecto:
+
+for (campo in alumno) {
+   crearCheckbox(campo)
+}
+3️⃣ Falta de concatenación
+
+No se está usando:
+
+nombreCompleto = alumno.nombre + " " + alumno.apellido
+🛠️ Solución requerida
+Frontend
+
+Renderizar cada alumno como un único elemento:
+
+alumnos.forEach(alumno => {
+    let nombreCompleto = alumno.nombre + " " + alumno.apellido
+
+    crearCheckbox(nombreCompleto, alumno.id)
+})
+HTML esperado
+<label>
+  <input type="checkbox" value="alumno_id">
+  Juan Pérez
+</label>
+Backend (verificación)
+
+Asegurar que el objeto alumno tiene:
+
+id
+nombre
+apellido
+🧪 Prueba obligatoria
+
+Abrir reunión
+
+Ver listado de asistentes
+
+Resultado esperado:
+
+✔ cada alumno aparece una sola vez
+✔ nombre completo en una línea
+✔ un solo checkbox
+
+🚀 Mejora adicional recomendada
+
+Ordenar asistentes:
+
+por apellido
+
+o:
+
+apellido, nombre
+🎯 Resultado esperado
+
+El sistema de asistentes debe ser:
+
+claro
+simple
+sin duplicados
+
+Dani, este bug es muy típico cuando se mezclan:
+
+estructura de datos backend
+
+renderizado frontend
+
+👉 y es fácil de arreglar una vez localizado (como has hecho tú).
+
+Cuando quieras, ya tengo suficiente material para prepararte EL DOCUMENTO FINAL completo para Antigravity con TODO lo que has detectado (Windows + Linux + horarios + reuniones + cuaderno).
+
+Oye, en Milinus, al modificar una sesión de actividad y ponerle la fecha, ¿vale?, dentro del CRUD de modificar una sesión de actividades, no conecta con el, pone al guardarlo, al guardar sesión, dice que no conecta con el servidor, ¿vale? Entonces hay que tenerlo en cuenta.
+
+Perfecto, Dani. Esto ya es un bug serio de backend/API, y además típico cuando algo funciona en una parte pero falla en otra (CRUD parcial). Te lo dejo bien redactado para Antigravity.
+
+📄 BUG – ERROR AL GUARDAR SESIÓN DE ACTIVIDAD (MILINUS)
+🎯 Objetivo
+
+Permitir modificar correctamente una sesión de actividad (incluyendo la fecha) sin errores de conexión.
+
+🔴 Problema detectado
+
+En el módulo Milinus:
+
+editar sesión de actividad
+↓
+modificar fecha
+↓
+guardar
+↓
+error: "no conecta con el servidor"
+❌ Comportamiento actual
+
+el formulario permite editar
+
+al guardar → falla
+
+muestra error de conexión
+
+los datos NO se guardan
+
+⚠️ Impacto
+
+Esto bloquea:
+
+edición de sesiones
+planificación real
+uso del módulo Milinus
+🧠 Causas más probables (para Antigravity)
+1️⃣ Endpoint incorrecto
+
+El frontend puede estar llamando a:
+
+/api/sesion/crear
+
+en lugar de:
+
+/api/sesion/editar
+2️⃣ Método HTTP incorrecto
+
+Debe ser:
+
+PUT o POST
+
+pero puede estar usando:
+
+GET
+3️⃣ Error en formato de fecha
+
+Muy típico en Windows/Linux:
+
+dd/mm/yyyy  ❌
+yyyy-mm-dd  ✔
+
+Si el backend espera ISO y recibe otro formato → falla.
+
+4️⃣ Campo fecha no enviado
+
+El frontend puede no estar enviando:
+
+fecha
+5️⃣ Problema en request JSON
+
+Ejemplo:
+
+body: JSON.stringify(data)
+
+pero el backend espera:
+
+request.form
+6️⃣ Error en backend (excepción no controlada)
+
+Ejemplo típico:
+
+datetime.strptime(fecha, "%Y-%m-%d")
+
+si el formato es incorrecto → rompe y devuelve error.
+
+🛠️ Solución requerida
+Backend
+
+Endpoint correcto:
+
+/api/sesion/editar
+
+Debe:
+
+recibir datos
+validar fecha
+actualizar sesión
+devolver status 200
+SQL esperado
+UPDATE sesiones
+SET fecha = ?, otros_campos = ?
+WHERE id = ?
+Frontend
+
+Al guardar:
+
+fetch("/api/sesion/editar", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        id: sesion_id,
+        fecha: fecha
+    })
+})
+🧪 Prueba obligatoria
+
+Crear sesión
+
+Editar sesión
+
+Cambiar fecha
+
+Guardar
+
+Resultado esperado:
+
+✔ se guarda correctamente
+✔ no aparece error
+✔ la fecha se actualiza
+
+💡 Mejora recomendada
+
+Mostrar error real:
+
+"Error al guardar sesión: formato de fecha incorrecto"
+
+en lugar de:
+
+"no conecta con el servidor"
+🎯 Resultado esperado
+
+El módulo Milinus debe permitir:
+
+editar sesiones
+cambiar fechas
+guardar sin errores
+
+Dani, este bug es muy importante porque:
+
+👉 no es de interfaz → es de conexión o backend
+👉 y esos son los que más rompen la app en uso real
+
+Si quieres, en el siguiente paso te preparo ya EL DOCUMENTO FINAL COMPLETO con TODO lo que has detectado (Windows + Linux + horarios + reuniones + Milinus + cuaderno), listo para Antigravity sin tocar nada.
+
+Oye, escúchame una cosa. En editar situaciones de aprendizaje, en la sección de actividades, cuando viene como la... viene el título de la actividad y la descripción, estaría guay que pasando el ratón por encima te saliera, te saliera, te apareciera lo que viene en ese cuadro escrito, ¿vale? Para que sepas exactamente lo que pone, porque cuando es una descripción muy larga, deja de verse.
+
+Perfecto, Dani. Esto es una mejora de usabilidad muy buena y fácil de implementar, y además súper útil en el día a día. Te lo dejo ya redactado para Antigravity.
+
+📄 MEJORA UX – TOOLTIP EN ACTIVIDADES (SITUACIONES DE APRENDIZAJE)
+🎯 Objetivo
+
+Permitir visualizar el contenido completo de títulos y descripciones de actividades cuando el texto es largo.
+
+🔴 Problema actual
+
+En:
+
+Editar Situaciones de Aprendizaje → Actividades
+
+los campos:
+
+título
+
+descripción
+
+cuando son largos:
+
+se recortan
+↓
+no se ve el contenido completo
+❌ Consecuencia
+
+el profesor no sabe exactamente qué actividad es
+
+obliga a entrar a editar para leerla
+
+ralentiza el uso
+
+✅ Comportamiento esperado
+
+Al pasar el ratón por encima:
+
+hover
+↓
+mostrar contenido completo
+🖥️ Ejemplo
+
+Visual actual:
+
+Actividad: Lectura del cuento...
+
+Al hacer hover:
+
+Lectura del cuento "El dragón azul" + preguntas de comprensión + debate final
+⚙️ Implementación
+Opción 1 (rápida) – atributo title
+<div title="Texto completo de la actividad">
+  Lectura del cuento...
+</div>
+
+✔ solución inmediata
+✔ compatible con todos los navegadores
+
+Opción 2 (mejor UX) – tooltip personalizado
+<div class="actividad" data-tooltip="Texto completo">
+  Lectura del cuento...
+</div>
+
+con CSS:
+
+.tooltip {
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+}
+📍 Aplicar en
+✔ título de actividad
+✔ descripción de actividad
+🧪 Prueba
+
+Crear actividad con texto largo
+
+Ir a listado
+
+Pasar ratón por encima
+
+Resultado esperado:
+
+✔ aparece texto completo
+✔ se lee fácilmente
+✔ no rompe diseño
+
+🚀 Mejora adicional recomendada
+
+Opcional:
+
+✔ tooltip con salto de línea
+✔ limitar ancho máximo
+✔ permitir copiar texto
+🎯 Resultado esperado
+
+El módulo de actividades pasa a ser:
+
+más rápido
+más claro
+más usable
+
+Dani, esta mejora es de las que parecen pequeñas pero:
+
+👉 en uso real se nota muchísimo
+
+porque evita entrar y salir constantemente de editar.
+
+Cuando quieras, ya puedo prepararte EL DOCUMENTO FINAL COMPLETO con TODO para Antigravity (Windows + bugs + mejoras UX + Milinus + cuaderno + horarios).
+
+A ver, en editar situación de aprendizaje, cuando tú la editas, aparece el nombre de la situación de aprendizaje, seleccionas el área, el trimestre, si es que ahí no te lo ha hecho ya, pero no vienen las competencias específicas. y yo sé que en los PDFs que yo le he pasado viene la competencia específica y la descripción. Entonces eso hay que poner que también lo capture, ¿vale? Y posiblemente...
+
+Perfecto, Dani. Esto ya es una mejora clave del núcleo pedagógico de la app. Te lo dejo bien estructurado para Antigravity, porque aquí sí que hay que hacerlo fino.
+
+📄 MEJORA CRÍTICA – CAPTURA DE COMPETENCIAS EN SDA
+🎯 Objetivo
+
+Incorporar automáticamente las competencias específicas y sus descriptores al crear o editar una Situación de Aprendizaje (SDA), a partir de los documentos PDF importados.
+
+🔴 Problema detectado
+
+En:
+
+Editar Situación de Aprendizaje
+
+Actualmente aparecen:
+
+nombre de la SDA
+
+área
+
+trimestre
+
+Pero NO aparecen:
+
+❌ competencias específicas
+❌ descriptores de las competencias
+❌ Consecuencia
+
+la SDA queda incompleta
+
+no se conecta bien con evaluación
+
+se pierde información clave del currículo
+
+📌 Contexto importante
+
+Los PDFs que se están usando ya contienen:
+
+✔ competencias específicas
+✔ descripción / descriptor
+
+👉 Por tanto, la app debería extraer esa información automáticamente.
+
+✅ Comportamiento esperado
+
+Cuando se:
+
+sube o procesa una SDA desde PDF
+
+el sistema debe:
+
+1. detectar competencias específicas
+2. extraer su texto
+3. guardar en base de datos
+4. mostrarlas en edición de la SDA
+⚙️ Implementación requerida
+1️⃣ Extracción desde PDF
+
+El parser actual debe ampliarse para detectar patrones tipo:
+
+Competencia específica 1:
+Texto descriptivo...
+
+o similares.
+
+2️⃣ Base de datos
+
+Crear (o usar) tabla:
+
+competencias
+
+Campos:
+
+id
+sda_id
+codigo (opcional)
+descripcion
+area
+3️⃣ Relación con SDA
+
+Cada SDA debe tener:
+
+1 → N competencias
+4️⃣ Mostrar en interfaz
+
+En:
+
+Editar SDA
+
+Añadir bloque:
+
+Competencias específicas:
+
+- CE1: Texto...
+- CE2: Texto...
+5️⃣ Edición manual (IMPORTANTE)
+
+Debe permitir:
+
+✔ editar competencias
+✔ añadir nuevas
+✔ eliminar
+
+por si el PDF no se parsea perfecto.
+
+🧪 Prueba obligatoria
+
+Subir PDF con SDA
+
+Crear SDA
+
+Ir a editar SDA
+
+Resultado esperado:
+
+✔ aparecen competencias automáticamente
+✔ se muestran con su descripción
+✔ se pueden editar
+
+🚀 Mejora adicional recomendada (MUY IMPORTANTE)
+
+Conectar competencias con:
+
+criterios de evaluación
+↓
+evaluación del alumno
+
+👉 Esto es lo que hace potente tu app.
+
+⚠️ Nota técnica para Antigravity
+
+El sistema debe:
+
+NO depender del formato exacto del PDF
+
+Debe ser tolerante:
+
+diferentes textos
+
+diferentes formatos
+
+diferentes estilos
+
+🎯 Resultado esperado
+
+La SDA pasa de:
+
+estructura básica
+
+a:
+
+estructura curricular completa
+
+💡 Dani, esto es clave. Te digo por qué:
+
+👉 Aquí es donde tu app empieza a diferenciarse de otras
+👉 porque conecta programación + currículo + evaluación
+
+Si quieres, cuando termines de decir todas las mejoras, te preparo ya:
+
+📄 EL DOCUMENTO FINAL DEFINITIVO PARA ANTIGRAVITY
+
+con TODO ordenado y listo para implementar sin que tengan que pensar nada.
+
+GPT, apunta también clases de hoy. Recordar cómo se hacía para evaluar en clases de hoy.
+
+Perfecto, Dani. Esto es más una mejora de usabilidad / recordatorio guiado, pero es muy importante porque afecta al uso diario. Te lo dejo claro para Antigravity.
+
+📄 MEJORA – AYUDA EN “CLASE DE HOY” (EVALUACIÓN)
+🎯 Objetivo
+
+Facilitar al usuario cómo evaluar desde la pantalla “Clase de hoy”, recordando el flujo correcto de uso.
+
+🔴 Problema detectado
+
+En la pantalla:
+
+Clase de hoy
+
+el usuario puede no tener claro:
+
+cómo evaluar
+qué pasos seguir
+❌ Consecuencia
+
+confusión en el uso
+
+el profesor no aprovecha la funcionalidad
+
+pérdida de tiempo
+
+✅ Comportamiento esperado
+
+Mostrar una ayuda clara y breve que indique:
+
+cómo evaluar desde esta pantalla
+🖥️ Propuesta de solución
+Opción 1 – Mensaje fijo (simple)
+
+Añadir en la parte superior:
+
+Para evaluar:
+
+1. Selecciona la actividad
+2. Asegúrate de que tiene criterio asignado
+3. Marca el nivel de cada alumno
+Opción 2 – Tooltip o ayuda contextual (mejor UX)
+
+Al pasar el ratón o pulsar un icono ℹ️:
+
+¿Cómo evaluar?
+
+- Esta sesión debe estar marcada como evaluable
+- Debe tener un criterio asignado
+- Selecciona el nivel para cada alumno
+Opción 3 – Mensaje inteligente (MUY recomendable)
+
+Si no hay criterio asignado:
+
+⚠ Esta actividad no tiene criterio asignado. No se puede evaluar.
+
+Si todo está correcto:
+
+✔ Puedes evaluar a los alumnos directamente desde aquí
+⚙️ Lógica
+
+El sistema debe comprobar:
+
+sesión evaluable = true
+criterio_id != null
+🧪 Prueba
+
+Entrar en “Clase de hoy”
+
+Ver mensaje de ayuda
+
+✔ el usuario entiende qué hacer
+✔ no necesita preguntar
+
+🚀 Mejora adicional (muy potente)
+
+Añadir botón:
+
+Evaluar ahora
+
+que lleve directamente a:
+
+evaluación rápida
+
+o active los controles en pantalla
+
+🎯 Resultado esperado
+
+La pantalla “Clase de hoy” pasa de:
+
+funcional
+
+a:
+
+guiada + intuitiva
+
+Dani, esto es clave porque:
+
+👉 esta pantalla es donde realmente vas a usar la app en clase
+👉 si aquí hay dudas, la app pierde valor
+
+Cuando quieras, ya puedo montarte EL DOCUMENTO FINAL COMPLETO con todo lo que has ido diciendo listo para Antigravity en plan profesional.
+
+Oye, escucha, en evaluación, cuando tenemos que evaluar criterios, ¿vale?, está puesto rellenar visible, hablo de infantil, ¿vale? Está para rellenarlo con conseguido o en proceso, pero para rellenarlos todos. Pero imagínate que tengo 10 criterios y son 5 para un lado y 5 para otro. Entonces, hay que pensar un sistema mediante a lo mejor, yo qué sé, una lista de checkboxes, marcar los que sean de un tipo, ¿vale? y poder aplicarles esa nota, ¿vale? En vez de que marque todos, que marques solo los que yo he marcado y si no he marcado ninguno, pues que me los marque todos. o al revés, o que aparezcan todos marcados y yo desmarco los que no quiero evaluar con todo conseguido o los que no quiero evaluar todos en proceso, ¿vale? Entonces, que aparecieran todos marcados y ya está.
+
+Perfecto, Dani. Esto que propones es clave de usabilidad en evaluación, sobre todo en infantil. Te lo dejo bien estructurado para Antigravity, porque aquí sí hay que definir bien la lógica.
+
+📄 MEJORA – EVALUACIÓN MASIVA POR CRITERIOS (INFANTIL)
+🎯 Objetivo
+
+Permitir aplicar evaluaciones masivas (“conseguido” / “en proceso”) de forma selectiva, no obligatoriamente a todos los criterios.
+
+🔴 Problema actual
+
+En evaluación (infantil):
+
+rellenar visible → conseguido / en proceso
+
+aplica el valor a:
+
+TODOS los criterios
+❌ Limitación
+
+En situaciones reales:
+
+10 criterios
+↓
+5 conseguido
+5 en proceso
+
+Actualmente:
+
+obliga a hacerlo uno por uno
+
+pierde rapidez
+
+hace el sistema poco práctico
+
+✅ Comportamiento esperado
+
+Permitir seleccionar qué criterios se van a modificar en bloque.
+
+🖥️ Propuesta de interfaz
+
+Añadir checkbox en cada criterio:
+
+☑ Criterio 1
+☑ Criterio 2
+☑ Criterio 3
+☑ Criterio 4
+☑ Criterio 5
+☑ Criterio 6
+☑ Criterio 7
+☑ Criterio 8
+☑ Criterio 9
+☑ Criterio 10
+🎯 Comportamiento clave
+Estado inicial
+✔ todos los criterios aparecen marcados
+Acción del usuario
+
+desmarca los que NO quiere modificar
+
+deja marcados los que SÍ quiere
+
+Aplicación
+
+Botón:
+
+Aplicar "Conseguido"
+Aplicar "En proceso"
+Lógica
+si hay criterios marcados:
+    aplicar solo a los marcados
+
+si NO hay ninguno marcado:
+    aplicar a todos
+⚙️ Implementación
+Frontend
+
+Cada criterio debe tener:
+
+<input type="checkbox" class="criterio-check" checked>
+Acción masiva
+const seleccionados = criterios.filter(c => c.checked)
+
+if (seleccionados.length === 0) {
+    aplicarATodos()
+} else {
+    aplicarASeleccionados()
+}
+🧪 Prueba obligatoria
+
+Cargar evaluación con varios criterios
+
+Desmarcar algunos
+
+Aplicar “conseguido”
+
+Resultado esperado:
+
+✔ solo cambian los marcados
+✔ los demás permanecen igual
+
+🚀 Mejora adicional (MUY recomendable)
+
+Añadir botones:
+
+✔ Marcar todos
+✔ Desmarcar todos
+💡 Mejora futura potente
+
+Permitir:
+
+✔ seleccionar por bloque (ej: comunicación, matemáticas…)
+✔ filtros de criterios
+🎯 Resultado esperado
+
+El sistema pasa de:
+
+lento y rígido
+
+a:
+
+rápido
+flexible
+realista en aula
+
+Dani, esto es de las mejoras más importantes que has dicho hoy 👇
+
+👉 porque impacta directamente en el tiempo real de evaluación
+👉 y eso es lo que hace que un profe use o no la app
+
+Cuando quieras, ya tengo TODO para prepararte:
+
+📄 DOCUMENTO FINAL COMPLETO para Antigravity
+(con todos los bugs + mejoras + checklist + Windows)
+
+y que ellos simplemente ejecuten.
+
+Oye, en infantil, cuando seleccionas un alumno en evaluación, ¿vale?, abajo del todo aparece resumen por alumno y poner selecciona un alumno para ver su resultado en cada área. Pero yo tengo una alumna seleccionada y viendo sus notas y no veo nada debajo. Entonces, o lo quitamos o lo arreglamos.
+
+Perfecto, Dani. Esto es bug claro de visualización/estado, y además importante porque genera desconfianza en la evaluación. Te lo dejo ya listo para Antigravity.
+
+📄 BUG – RESUMEN POR ALUMNO NO SE MUESTRA (INFANTIL)
+🎯 Objetivo
+
+Mostrar correctamente el resumen del alumno seleccionado en la sección de evaluación.
+
+🔴 Problema detectado
+
+En evaluación (infantil):
+
+seleccionar alumno
+↓
+se muestran sus criterios / notas
+↓
+bloque inferior: “Resumen por alumno”
+↓
+NO aparece información
+
+Mensaje actual:
+
+“Selecciona un alumno para ver su resultado en cada área”
+
+aunque ya hay un alumno seleccionado.
+
+❌ Comportamiento incorrecto
+
+el sistema no detecta alumno seleccionado
+
+o no carga los datos
+
+o no renderiza el resumen
+
+👉 genera sensación de fallo en la app
+
+✅ Comportamiento esperado
+
+Cuando se selecciona un alumno:
+
+selección alumno
+↓
+carga de evaluaciones
+↓
+mostrar resumen por áreas
+🖥️ Ejemplo esperado
+Resumen por alumno:
+
+Comunicación: Conseguido
+Matemáticas: En proceso
+Autonomía: Conseguido
+⚙️ Posibles causas
+1️⃣ Estado de alumno no conectado
+
+El componente de resumen no recibe:
+
+alumno_id seleccionado
+2️⃣ Falta de actualización (render)
+
+No se ejecuta:
+
+updateResumen(alumno_id)
+
+al cambiar alumno.
+
+3️⃣ Filtro incorrecto
+
+Consulta tipo:
+
+evaluaciones.filter(e => e.alumno_id == seleccionado)
+
+puede fallar por:
+
+tipos distintos (string vs int)
+
+id incorrecto
+
+4️⃣ Datos no cargados
+
+El resumen depende de:
+
+evaluaciones
+criterios
+áreas
+
+y alguno puede no estar disponible.
+
+5️⃣ Condición mal definida
+
+Ejemplo:
+
+if (!alumnoSeleccionado) {
+   mostrarMensaje()
+}
+
+pero el valor no se actualiza correctamente.
+
+🛠️ Solución requerida
+Frontend
+
+Cuando se seleccione un alumno:
+
+function onSelectAlumno(id) {
+    alumnoSeleccionado = id
+    cargarResumen(id)
+}
+Render
+if (alumnoSeleccionado) {
+    mostrarResumen()
+} else {
+    mostrarMensaje()
+}
+Backend (si aplica)
+
+Asegurar que devuelve:
+
+evaluaciones del alumno
+agrupadas por área
+🧪 Prueba obligatoria
+
+Entrar en evaluación infantil
+
+Seleccionar alumno
+
+Ir al bloque inferior
+
+Resultado esperado:
+
+✔ aparece resumen
+✔ no aparece mensaje de “selecciona alumno”
+✔ datos correctos
+
+🔁 Alternativa (si no se implementa aún)
+
+Si no se va a usar todavía:
+
+ocultar bloque “Resumen por alumno”
+
+para evitar confusión.
+
+🎯 Resultado esperado
+
+El sistema debe:
+
+responder a selección
+mostrar resumen
+no mostrar mensajes incorrectos
+
+Dani, esto es importante porque:
+
+👉 cuando algo no se muestra, el usuario piensa que no se ha guardado
+👉 y eso rompe la confianza en la app
+
+Cuando quieras, ya tengo TODO recopilado para hacerte:
+
+📄 DOCUMENTO FINAL DEFINITIVO para Antigravity
+(con todo lo que has ido detectando hoy, bien ordenado y listo para ejecutar).
+
+Y luego cuando vas a cuaderno de evaluación en el grupo, ves todos los alumnos, pero no veo nada. O sea, quiero decir, solo veo los alumnos y no tengo muy claro exactamente para qué vale este cuaderno de evaluación. y además luego no tiene un botón de vuelta hacia lo que es la evaluación, ¿vale? Entonces habría que añadir un botón o algo para que pudiéramos volver a la evaluación.
+
+Perfecto, Dani. Esto que has detectado es muy importante, porque ya no es solo un bug: es un problema de sentido de la pantalla + navegación. Te lo dejo claro y accionable para Antigravity.
+
+📄 MEJORA / PROBLEMA UX – CUADERNO DE EVALUACIÓN
+🎯 Objetivo
+
+Dar sentido funcional al “Cuaderno de evaluación” y mejorar la navegación dentro del módulo de evaluación.
+
+🔴 Problemas detectados
+1️⃣ Pantalla sin contenido útil
+
+En:
+
+Cuaderno de evaluación (por grupo)
+
+se muestra:
+
+lista de alumnos
+
+pero:
+
+❌ no se muestran criterios
+❌ no se muestran evaluaciones
+❌ no se puede interactuar
+❌ Consecuencia
+
+no se entiende para qué sirve
+
+no aporta valor
+
+genera confusión
+
+2️⃣ Falta de navegación
+
+Desde cuaderno:
+
+no hay botón de volver a evaluación
+❌ Consecuencia
+
+el usuario se pierde
+
+mala experiencia
+
+obliga a usar navegación externa
+
+✅ Comportamiento esperado
+🧩 CUADERNO DE EVALUACIÓN debe servir para:
+
+Mostrar una vista tipo tabla:
+
+Alumno     C1   C2   C3   C4
+
+Ana         3    4    2    3
+Lucas       2    3    3    4
+María       4    4    3    4
+Funcionalidad mínima
+✔ ver criterios
+✔ ver evaluaciones
+✔ editar directamente
+🛠️ Implementación requerida
+Frontend
+
+Convertir la vista en tabla:
+
+filas → alumnos
+columnas → criterios
+celdas → nivel
+Backend
+
+Endpoint:
+
+/api/evaluacion/cuaderno
+
+Debe devolver:
+
+alumnos
+criterios
+evaluaciones
+🔁 Navegación (OBLIGATORIO)
+
+Añadir botón visible:
+
+← Volver a evaluación
+Ubicación
+
+Parte superior:
+
+[ ← Volver a evaluación ]
+Cuaderno de evaluación
+Acción
+volver a pantalla de evaluación del grupo
+🧪 Prueba obligatoria
+
+Entrar en cuaderno
+
+Ver contenido
+
+Resultado esperado:
+
+✔ aparecen criterios
+✔ aparecen notas
+✔ se puede entender la pantalla
+
+Pulsar volver
+
+✔ vuelve a evaluación
+✔ no se pierde contexto
+
+🚀 Mejora adicional (MUY potente)
+
+Añadir:
+
+✔ edición directa en tabla
+✔ colores por nivel
+✔ scroll horizontal
+🎯 Resultado esperado
+
+El cuaderno pasa de:
+
+pantalla vacía
+
+a:
+
+herramienta real de evaluación
+
+Dani, esto es clave porque:
+
+👉 ahora mismo esa pantalla “no aporta nada”
+👉 pero bien hecha puede ser de lo más potente de la app
+
+Cuando quieras, ya te preparo:
+
+📄 DOCUMENTO FINAL COMPLETO PARA ANTIGRAVITY
+con todo lo que has dicho hoy (Windows + bugs + UX + cuaderno + horarios + Milinus + reuniones + evaluación).
+
+Luego, el progreso de clase pasa lo mismo. No tenemos un botón para volver atrás de... para volver atrás, ¿vale? Y luego, cuando yo selecciono, en este caso infantil y el área de infantil, la media general por criterios no se ve, los criterios jóvenes progreso tampoco y los criterios más destacados tampoco se ve nada. Entonces eso también hay que arreglarlo.
+
+Perfecto, Dani. Esto ya es otro bloque importante: navegación + datos que no cargan en progreso de clase. Te lo dejo bien claro y accionable para Antigravity.
+
+📄 BUG + MEJORA – PROGRESO DE CLASE
+🎯 Objetivo
+
+Corregir el módulo de “Progreso de clase” para que:
+
+muestre correctamente los datos
+
+tenga navegación adecuada
+
+sea útil para el docente
+
+🔴 Problemas detectados
+1️⃣ Falta de botón de navegación
+
+En:
+
+Progreso de clase
+
+NO existe:
+
+botón para volver atrás
+❌ Consecuencia
+
+el usuario se pierde
+
+mala experiencia
+
+navegación poco intuitiva
+
+2️⃣ Datos no visibles (BUG CRÍTICO)
+
+Al seleccionar:
+
+etapa: infantil
+área: infantil
+
+NO se muestran:
+
+❌ media general por criterios
+❌ criterios en progreso
+❌ criterios destacados
+❌ Consecuencia
+
+pantalla vacía
+
+no aporta información
+
+parece que la app no funciona
+
+✅ Comportamiento esperado
+🧭 Navegación
+
+Debe existir botón:
+
+← Volver a evaluación
+📊 Datos
+
+Debe mostrar:
+
+1️⃣ Media por criterio
+LCL1 → 3.2
+LCL2 → 2.8
+MAT1 → 3.5
+2️⃣ Criterios en progreso
+criterios con media baja
+3️⃣ Criterios destacados
+criterios con media alta
+⚙️ Posibles causas del bug
+1️⃣ No hay datos filtrados correctamente
+
+Consulta puede estar mal:
+
+WHERE etapa = ?
+AND area = ?
+2️⃣ Infantil no está bien mapeado
+
+Ejemplo:
+
+area = "infantil"
+
+pero en BD:
+
+area = "comunicacion y representacion"
+3️⃣ No hay evaluaciones cargadas
+
+El sistema puede no encontrar:
+
+evaluaciones
+4️⃣ Cálculo de medias no ejecutado
+
+Ejemplo:
+
+if (!evaluaciones.length) return;
+5️⃣ Problema en render
+
+Los datos existen pero:
+
+no se pintan en pantalla
+🛠️ Implementación requerida
+Backend
+
+Endpoint:
+
+/api/evaluacion/resumen_clase
+
+Debe devolver:
+
+criterios
+media_por_criterio
+criterios_en_progreso
+criterios_destacados
+SQL esperado
+SELECT criterio_id, AVG(nivel)
+FROM evaluaciones
+GROUP BY criterio_id;
+Frontend
+
+Renderizar:
+
+lista de medias
+lista de criterios bajos
+lista de criterios altos
+🧪 Prueba obligatoria
+
+Evaluar alumnos
+
+Ir a progreso de clase
+
+Seleccionar etapa y área
+
+Resultado esperado:
+
+✔ aparecen medias
+✔ aparecen criterios en progreso
+✔ aparecen criterios destacados
+
+Navegación
+
+Pulsar “volver”
+
+✔ vuelve a evaluación
+✔ mantiene contexto
+
+🚀 Mejora adicional recomendada
+✔ gráfico de barras por criterio
+✔ colores (rojo/verde)
+✔ orden automático
+🎯 Resultado esperado
+
+El módulo pasa de:
+
+pantalla vacía
+
+a:
+
+herramienta de análisis real
+
+Dani, esto es importante porque:
+
+👉 el progreso es donde el profe “entiende” la evaluación
+👉 si no funciona, la app pierde mucho valor
+
+Cuando quieras, ya te preparo:
+
+📄 DOCUMENTO FINAL DEFINITIVO PARA ANTIGRAVITY
+con TODO lo que has detectado hoy organizado por módulos y listo para implementar.
+
+Repite en la opción cuaderno de evaluación en primaria sí está puesto, pero en infantil no. Cuando tú seleccionas la etapa, el área y el trimestre, te salen los alumnos de ese grupo, pero no te sale la opción... Ah, porque estoy en infantil, claro, me tengo que venir aquí. Vale, a ver, lo primero, si seleccionas el grupo arriba, en la parte de arriba de la pantalla, te deja seleccionar la etapa, cosa que ya luego, a la hora de evaluar, te tira errores. Entonces, yo lo que creo que habría que limitar es que solo te deje abrir el cuaderno de evaluación en el grupo en el que estés o en la etapa en la que estés, si estás en primaria, primaria, si estás en infantil, en infantil, para que no haya problemas. Porque si tú estás en el grupo de primaria y quieres abrir infantil, no te van a salir los... no te va a salir el cuaderno de evaluación, pero si tú estás en infantil y seleccionas el área y el trimestre, vale, en infantil no aparece, no se puede evaluar porque no aparecen los niveles para evaluar, ¿vale? Cosa que en primaria sí que aparecen. Entonces, esto hay que modificarlo, ¿vale? Porque no te aparece el criterio de evaluación a evaluar y eso hay que cambiarlo. Además, hay otra cosa. Te sale la etapa, el área y el trimestre, pero no te sale el criterio de evaluación. O sea, solo te sale un criterio de evaluación, cosa... pero te deberían salir los tres. Entonces, esto hay que dar una vuelta porque a lo mejor incluso hasta este igual hasta sobraría teniendo ya un evaluador masivo. Entonces, a lo mejor esta parte igual hasta sobraría. Hay que apuntarlo.
+
+Perfecto, Dani. Esto ya es muy importante porque mezcla:
+
+bug funcional
+
+incoherencia entre infantil y primaria
+
+problema de diseño del módulo
+
+Te lo organizo muy claro para Antigravity, porque aquí hay varias cosas a corregir.
+
+📄 BUG + REDISEÑO – CUADERNO DE EVALUACIÓN (INFANTIL vs PRIMARIA)
+🎯 Objetivo
+
+Unificar el comportamiento del cuaderno de evaluación y evitar errores al cambiar de etapa o grupo.
+
+🔴 PROBLEMAS DETECTADOS
+1️⃣ Incoherencia de etapa (BUG CRÍTICO)
+
+Actualmente:
+
+seleccionas grupo (ej: primaria)
+↓
+puedes cambiar etapa manualmente (ej: infantil)
+↓
+la app entra en estado inconsistente
+❌ Consecuencia
+
+errores en evaluación
+
+datos que no cargan
+
+comportamiento impredecible
+
+✅ Solución
+bloquear la etapa según el grupo seleccionado
+🛠️ Implementación
+si grupo = primaria → etapa = primaria (fijo)
+si grupo = infantil → etapa = infantil (fijo)
+
+❌ eliminar selector manual de etapa
+✔ o dejarlo solo informativo (disabled)
+
+2️⃣ Cuaderno de evaluación no funciona en infantil
+🔴 Problema
+
+En infantil:
+
+seleccionar área + trimestre
+↓
+aparecen alumnos
+↓
+NO aparecen niveles de evaluación
+NO aparecen criterios correctamente
+❌ Consecuencia
+
+no se puede evaluar
+
+módulo inutilizable en infantil
+
+✅ Comportamiento esperado
+
+En infantil debería permitir:
+
+✔ ver criterios
+✔ ver niveles (conseguido / en proceso)
+✔ evaluar directamente
+3️⃣ Criterios mal cargados
+🔴 Problema
+solo aparece 1 criterio
+
+cuando deberían aparecer:
+
+todos los criterios del área (ej: 3)
+⚠️ Posible causa
+
+mal filtro por área
+
+mal mapeo infantil
+
+error en query
+
+🛠️ Solución
+
+Consulta debe devolver:
+
+SELECT * FROM criterios
+WHERE etapa = 'infantil'
+AND area = ?
+AND trimestre = ?
+4️⃣ Falta de coherencia con primaria
+
+En primaria:
+
+✔ funciona correctamente
+✔ aparecen niveles
+✔ se puede evaluar
+
+En infantil:
+
+❌ no aparecen niveles
+❌ no se puede evaluar
+🎯 Objetivo
+
+Unificar comportamiento:
+
+misma lógica
+adaptada a niveles de infantil
+5️⃣ Problema de diseño (MUY IMPORTANTE)
+💡 Reflexión clave (tuya, muy acertada)
+ya existe evaluador masivo
+↓
+el cuaderno puede ser redundante
+Opciones
+🔹 OPCIÓN A – Arreglar cuaderno
+
+Convertirlo en:
+
+tabla completa editable
+🔹 OPCIÓN B – Simplificar sistema
+eliminar cuaderno en infantil
+↓
+usar solo evaluador masivo
+🔹 OPCIÓN C – (RECOMENDADA)
+
+Mantener cuaderno pero:
+
+✔ como visualizador
+✔ como edición rápida
+✔ coherente con evaluador masivo
+🧪 PRUEBAS OBLIGATORIAS
+Infantil
+
+Seleccionar grupo infantil
+
+Entrar en cuaderno
+
+Seleccionar área + trimestre
+
+Resultado esperado:
+
+✔ aparecen todos los criterios
+✔ aparecen niveles
+✔ se puede evaluar
+
+Coherencia
+
+Cambiar grupo
+
+✔ etapa se ajusta automáticamente
+✔ no hay errores
+
+🚀 MEJORAS RECOMENDADAS
+✔ ocultar etapa si es redundante
+✔ mostrar criterios completos
+✔ unificar lógica infantil/primaria
+✔ coherencia con evaluador masivo
+🎯 RESULTADO ESPERADO
+
+El sistema debe ser:
+
+coherente
+sin errores de etapa
+usable en infantil
+alineado con evaluación real
+
+Dani, esto que acabas de detectar es clave de arquitectura, no solo un bug:
+
+👉 aquí se decide cómo se usa la evaluación realmente
+👉 y estás afinando justo donde hay que afinar
+
+Cuando quieras, ya te hago:
+
+📄 DOCUMENTO FINAL COMPLETO PARA ANTIGRAVITY
+con TODO lo que has ido detectando hoy (esto ya está para entregarlo).
+
+En dentro de evaluaciones, en informes, ¿vale? Cuando tú guardas unas observaciones individuales, ¿vale? de los niños, aparentemente lo guarda, pero en el PDF que genera no aparecen las observaciones y al final es bastante importante que estas sí que aparezcan, ¿vale?
+
+Perfecto, Dani. Este es un bug crítico de informes, porque afecta directamente al documento final que usas en la realidad. Te lo dejo bien claro para Antigravity.
+
+📄 BUG CRÍTICO – OBSERVACIONES NO APARECEN EN INFORMES PDF
+🎯 Objetivo
+
+Asegurar que las observaciones individuales del alumno se incluyan correctamente en el PDF de informes.
+
+🔴 Problema detectado
+
+En:
+
+Evaluación → Informes
+
+flujo actual:
+
+añadir observaciones individuales
+↓
+guardar
+↓
+generar PDF
+↓
+❌ NO aparecen en el informe
+❌ Comportamiento incorrecto
+
+las observaciones aparentemente se guardan
+
+pero no se reflejan en el PDF
+
+el informe queda incompleto
+
+⚠️ Impacto
+
+Esto afecta directamente a:
+
+informes trimestrales
+comunicación con familias
+seguimiento del alumnado
+
+👉 es un bug crítico
+
+🧠 Posibles causas
+1️⃣ No se guardan realmente en BD
+
+El formulario guarda en frontend pero no persiste.
+
+2️⃣ El PDF no las consulta
+
+El generador de informe NO incluye:
+
+campo observaciones
+3️⃣ Campo incorrecto
+
+Ejemplo:
+
+observaciones
+observacion
+comentarios
+
+puede haber inconsistencia.
+
+4️⃣ Falta en el template PDF
+
+El HTML del PDF no tiene:
+
+bloque de observaciones
+🛠️ Solución requerida
+1️⃣ Verificar guardado
+
+En backend:
+
+guardar_observaciones(alumno_id, texto)
+
+Debe persistir en BD.
+
+2️⃣ Verificar consulta
+
+Al generar informe:
+
+SELECT observaciones
+FROM evaluaciones
+WHERE alumno_id = ?
+3️⃣ Añadir al PDF
+
+En template del informe:
+
+<h3>Observaciones</h3>
+<p>{{ observaciones }}</p>
+4️⃣ Manejo de vacío
+
+Si no hay texto:
+
+"No hay observaciones registradas"
+🧪 Prueba obligatoria
+
+Añadir observaciones a un alumno
+
+Guardar
+
+Generar informe PDF
+
+Resultado esperado:
+
+✔ aparecen las observaciones
+✔ texto completo
+✔ bien formateado
+
+🚀 Mejora adicional recomendada
+✔ permitir saltos de línea
+✔ permitir texto largo
+✔ formato limpio en PDF
+🎯 Resultado esperado
+
+El informe debe incluir:
+
+evaluación + observaciones + conclusiones
+
+Dani, esto es de los más importantes que has dicho hoy 👇
+
+👉 porque el PDF es el producto final real
+👉 y si eso falla, todo lo demás pierde valor
+
+Cuando quieras, ya tengo TODO para montarte:
+
+📄 DOCUMENTO FINAL COMPLETO PARA ANTIGRAVITY
+(con todos los bugs + mejoras + checklist + Windows + Linux) listo para enviar sin tocar nada.
+
+Los informes generales de toda clase, error interno del servidor, no los puedes imprimir.
+
+Perfecto, Dani. Este es otro bug crítico, además de backend puro. Te lo dejo bien armado para Antigravity.
+
+📄 BUG CRÍTICO – ERROR 500 EN INFORMES GENERALES DE CLASE
+🎯 Objetivo
+
+Permitir generar correctamente los informes generales de toda la clase sin errores del servidor.
+
+🔴 Problema detectado
+
+En:
+
+Evaluación → Informes → Informe general de clase
+
+al intentar generar:
+
+error interno del servidor (500)
+❌ Comportamiento actual
+
+no genera el informe
+
+no descarga PDF
+
+aparece error 500
+
+⚠️ Impacto
+
+Bloquea completamente:
+
+informes globales
+análisis de grupo
+uso real de la app
+
+👉 bug crítico
+
+🧠 Posibles causas (MUY importantes)
+1️⃣ Datos vacíos no controlados
+
+Ejemplo:
+
+for alumno in alumnos:
+    media = calcular_media(alumno)
+
+si no hay evaluaciones → rompe
+
+2️⃣ None en lugar de datos
+
+Ejemplo:
+
+NoneType has no attribute...
+3️⃣ Consulta incorrecta
+
+Ejemplo:
+
+SELECT * FROM evaluaciones WHERE grupo_id = ?
+
+pero:
+
+grupo_id no existe
+
+mal filtrado
+
+4️⃣ Error en template PDF
+
+Ejemplo:
+
+{{ alumno.media }}
+
+pero:
+
+media = None
+
+→ rompe render
+
+5️⃣ División por cero
+
+Ejemplo típico:
+
+media = suma / total
+
+si:
+
+total = 0
+
+→ error
+
+6️⃣ Campos inexistentes
+
+Ejemplo:
+
+alumno.nombre_completo
+
+pero solo existe:
+
+nombre + apellido
+🛠️ Solución requerida
+Backend
+
+En endpoint:
+
+/api/informe/clase
+
+Debe:
+
+✔ validar datos antes de procesar
+✔ evitar None
+✔ evitar listas vacías
+✔ evitar división por cero
+Manejo seguro
+
+Ejemplo:
+
+if total == 0:
+    media = 0
+Control de errores
+try:
+    generar_informe()
+except Exception as e:
+    return {"error": str(e)}, 500
+Logs (MUY IMPORTANTE)
+
+Mostrar error real en consola:
+
+print("ERROR INFORME CLASE:", e)
+🧪 Prueba obligatoria
+
+Evaluar algunos alumnos
+
+Generar informe de clase
+
+Resultado esperado:
+
+✔ se genera PDF
+✔ no error 500
+✔ datos correctos
+
+🚀 Mejora recomendada
+
+Si no hay datos:
+
+"No hay datos suficientes para generar el informe"
+
+en lugar de error.
+
+🎯 Resultado esperado
+
+El sistema debe:
+
+generar informes de clase
+sin errores
+con datos válidos
+
+Dani, este bug es de los gordos 👇
+
+👉 error 500 = backend roto
+👉 pero suele arreglarse rápido cuando se ve el log
+
+Cuando quieras, ya puedo darte:
+
+📄 DOCUMENTO FINAL DEFINITIVO PARA ANTIGRAVITY
+con TODO lo que has detectado hoy (esto ya es un pack completo de trabajo para ellos).
+
+Oye, escúchame una cosa. En evaluación y los informes general del grupo habría que poner un apartado que se llamara inconvenientes, no, dificultades encontradas o algo así, ¿vale? Que no está puesto. Está puesto valoración general del tutor, propuestas de mejora y conclusión, pero entre la valoración y la propuesta debería haber las dificultades encontradas.
+
+Perfecto, Dani. Esta mejora es muy acertada pedagógicamente y además encaja perfecto con los informes reales. Te la dejo lista para Antigravity.
+
+📄 MEJORA – INFORME GENERAL DE GRUPO (APARTADO DIFICULTADES)
+🎯 Objetivo
+
+Incorporar un apartado específico de “Dificultades encontradas” en el informe general de grupo.
+
+🔴 Situación actual
+
+El informe general incluye:
+
+✔ Valoración general del tutor
+✔ Propuestas de mejora
+✔ Conclusión
+
+Pero falta un apartado clave:
+
+❌ Dificultades encontradas
+❌ Problema
+
+Actualmente:
+
+las dificultades se mezclan en la valoración
+
+no quedan claramente identificadas
+
+se pierde claridad pedagógica
+
+✅ Comportamiento esperado
+
+El informe debe estructurarse así:
+
+1. Valoración general del tutor
+2. Dificultades encontradas
+3. Propuestas de mejora
+4. Conclusión
+🧠 Justificación pedagógica
+
+Separar las dificultades permite:
+
+✔ identificar problemas reales del grupo
+✔ justificar propuestas de mejora
+✔ dar coherencia al informe
+🛠️ Implementación requerida
+1️⃣ Base de datos
+
+Añadir campo:
+
+dificultades
+
+en tabla de informes de grupo.
+
+2️⃣ Frontend (formulario)
+
+Añadir campo:
+
+Dificultades encontradas
+
+tipo:
+
+textarea
+3️⃣ PDF
+
+En template del informe:
+
+<h3>Dificultades encontradas</h3>
+<p>{{ dificultades }}</p>
+🧪 Prueba obligatoria
+
+Crear informe de grupo
+
+Rellenar dificultades
+
+Generar PDF
+
+Resultado esperado:
+
+✔ aparece el apartado
+✔ texto visible
+✔ orden correcto
+
+🚀 Mejora adicional recomendada
+
+Sugerir texto guía:
+
+Ejemplo:
+- Dificultades en comprensión lectora
+- Problemas de atención
+- Ritmos de aprendizaje muy diferentes
+🎯 Resultado esperado
+
+El informe pasa de:
+
+estructura básica
+
+a:
+
+estructura pedagógica completa
+
+Dani, esto es una mejora de las buenas 👇
+
+👉 no es técnica, es pedagógica
+👉 y eso es lo que hace que la app sea útil de verdad
+
+Cuando quieras, te preparo ya:
+
+📄 DOCUMENTO FINAL COMPLETO PARA ANTIGRAVITY
+con TODO lo que has dicho hoy organizado por módulos y listo para implementar.
+
+GPT, créame un documento .md con todo esto que te he estado dictando, poniendo que todo esto que hemos encontrado y posiblemente algo más que falte, tiene que ser para Linux.

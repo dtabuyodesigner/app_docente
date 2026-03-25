@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Evaluación sencilla</title>
+    <title>Cuaderno de Evaluación</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -73,19 +73,15 @@
             border-color: #007bff;
         }
         /* Botones modo Infantil NI/EP/C */
-        .btn-nivel[data-label="NI"].selected {
-            background: #dc3545;
-            border-color: #dc3545;
-        }
-        .btn-nivel[data-label="EP"].selected {
-            background: #ffc107;
-            border-color: #ffc107;
-            color: #333;
-        }
-        .btn-nivel[data-label="C"].selected {
-            background: #28a745;
-            border-color: #28a745;
-        }
+        .btn-nivel[data-label="NI"].selected { background: #ef4444; border-color: #ef4444; color: white; }
+        .btn-nivel[data-label="EP"].selected { background: #f59e0b; border-color: #f59e0b; color: white; }
+        .btn-nivel[data-label="C"].selected { background: #10b981; border-color: #10b981; color: white; }
+        .btn-nivel[data-label="NI-PA"].selected { background: #ef4444; border-color: #ef4444; color: white; }
+        .btn-nivel[data-label="EP-A"].selected { background: #f59e0b; border-color: #f59e0b; color: white; }
+        .btn-nivel[data-label="CO-MA"].selected { background: #10b981; border-color: #10b981; color: white; }
+        .btn-nivel[data-label="NI/PA"].selected { background: #ef4444; border-color: #ef4444; color: white; }
+        .btn-nivel[data-label="EP/A"].selected { background: #f59e0b; border-color: #f59e0b; color: white; }
+        .btn-nivel[data-label="CO/MA"].selected { background: #10b981; border-color: #10b981; color: white; }
         /* Rubric Tooltip */
         .rubric-tooltip {
             position: relative;
@@ -111,6 +107,25 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             pointer-events: none;
             font-weight: normal;
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: var(--primary);
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+        .btn-back:hover {
+            background: var(--primary);
+            color: white;
         }
         .rubric-tooltip .tooltiptext::after {
             content: "";
@@ -248,12 +263,22 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
     <div class="container">
-        <!-- Unified Navigation injected by navigation.js -->
+        <!-- Navigation injected by navigation.js -->
+        
+        <!-- Tabs de Sección Evaluación -->
+        <div class="section-tabs">
+            <a href="/static/evaluacion.html" class="section-tab-btn active">📊 Evaluación</a>
+            <a href="/static/evaluar_todo.html" class="section-tab-btn">📝 Evaluar Todo</a>
+            <a href="/static/cuaderno_evaluacion.html" class="section-tab-btn">📔 Cuaderno</a>
+            <a href="/static/progreso_clase.html" class="section-tab-btn">📈 Progreso</a>
+            <a href="/informes" class="section-tab-btn">📑 Informes</a>
+        </div>
+        
         <div class="tabs-eval"
             style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px;">
             <button class="tab-btn-eval active" onclick="showEvalTab('eval-pane', this)">📊 Evaluación</button>
@@ -263,7 +288,7 @@
             <div
                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
                 <div style="display:flex; align-items:center; gap:15px;">
-                    <h2 style="margin:0;">📊 Evaluación</h2>
+                    <h2 style="margin:0;">📔 Cuaderno de Evaluación</h2>
                     <div class="group-selector-container">
                     </div>
                     <div id="modoBadge" class="modo-badge" style="display:none;"></div>
@@ -295,9 +320,6 @@
                     </select>
                 </label>
                 <div id="directControls" style="display:none; flex:1; min-width:200px;">
-                    <button onclick="abrirModalPeriodo()"
-                        style="background:var(--primary); color:white; font-size:0.85rem; padding:8px 12px; border-radius:8px; width:100%; cursor:pointer;">🎯
-                        Seleccionar Criterios Periodo</button>
                 </div>
                 <label id="lblSDA"
                     style="display:flex;align-items:center;gap:5px;margin:0; flex:1; min-width:300px;">SDA:
@@ -305,25 +327,42 @@
                         style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;"></select>
                 </label>
             </div>
-            <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap; padding:12px; background:#f8f9fa; border-radius:8px; border:1px solid #e9ecef; align-items:center;">
-                <button id="btnModoTablaToggle" onclick="toggleModoTabla()"
-                    style="background:var(--primary); color:white; font-weight:bold; padding:8px 15px; border-radius:5px; border:none; cursor:pointer; min-width:220px;">👥 Ver a todos los alumnos</button>
+            <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap; align-items:center; background:#fff; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                <!-- Vistas y Navegación principal -->
+                <div style="display:flex; gap:8px;">
+                    <button id="btnModoTablaToggle" onclick="toggleModoTabla()"
+                        style="background:var(--primary); color:white; font-weight:600; padding:10px 18px; border-radius:8px; border:none; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📋 Ver en Rejilla</button>
+                    
+                    <a href="/static/cuaderno_evaluacion.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#6366f1; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📔 Cuaderno Completo</a>
+                    <a href="/static/progreso_clase.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#14b8a6; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📈 Progreso</a>
+                    <a href="/static/evaluar_todo.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#475569; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">🚀 Masivo</a>
+                </div>
 
-                <!-- Controles de evaluación rápida -->
-                <button id="btnRellenar3" onclick="rellenarTodos(3)"
-                    style="background:#007bff; color:white; display:none; border:none; border-radius:4px; padding:6px 12px;">⚡ Rellenar Visible a 3</button>
-                <button class="btnRellenarNI" onclick="rellenarTodos(2)"
-                    style="background:#ffc107; color:#333; display:none; border:none; border-radius:4px; padding:6px 12px;">⚡ Rellenar Visible a [EP]</button>
-                <button class="btnRellenarC" onclick="rellenarTodos(3)"
-                    style="background:#28a745; color:white; display:none; border:none; border-radius:4px; padding:6px 12px;">⚡ Rellenar Visible a [C]</button>
-                <button onclick="limpiarTodos()" style="background:#fff; color:#dc3545; border:1px solid #dc3545; border-radius:4px; padding:6px 12px;">🗑️ Limpiar Visibles</button>
-                <button id="btnCriterioExtra" onclick="abrirModalExtra()"
-                    style="background:#28a745; color:white; border:none; border-radius:4px; padding:6px 12px; font-weight:bold; display:none;">➕ Criterio Extra</button>
-            </div>
-            <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap;">
-                <a href="/static/cuaderno_evaluacion.html" style="text-decoration:none; display:inline-flex; align-items:center; background:#6366f1; color:white; padding:8px 15px; border-radius:6px; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📔 Cuaderno Completo</a>
-                <a href="/static/progreso_clase.html" style="text-decoration:none; display:inline-flex; align-items:center; background:#17a2b8; color:white; padding:8px 15px; border-radius:6px; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📈 Progreso de Clase</a>
-                <a href="/static/evaluar_todo.html" style="text-decoration:none; display:inline-flex; align-items:center; background:#28a745; color:white; padding:8px 15px; border-radius:6px; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">🚀 Evaluador Masivo</a>
+                <div style="height:24px; width:1px; background:#e2e8f0; margin:0 10px;"></div>
+
+                <!-- Acciones rápidas (Rellenar/Limpiar) -->
+                <div id="quickActions" style="display:flex; gap:8px; align-items:center;">
+                    <button id="btnRellenar3" onclick="rellenarTodos(3)"
+                        style="background:#3b82f6; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar con 3</button>
+                    <button class="btnRellenarNI" onclick="rellenarTodos(1)"
+                        style="background:#f59e0b; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar E.Proceso / Adecuado</button>
+                    <button class="btnRellenarC" onclick="rellenarTodos(3)"
+                        style="background:#10b981; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar Conseguido / M.Adecuado</button>
+                    
+                    <button id="btnCriterioExtra" onclick="abrirModalExtra()"
+                        style="background:#8b5cf6; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; display:none;">➕ Criterio Extra</button>
+                    
+                    <button onclick="limpiarTodos()" style="background:#fff; color:#ef4444; border:1px solid #fee2e2; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;">🗑️ Limpiar Visibles</button>
+                </div>
+                <div style="flex:1;"></div>
+
+                <!-- Botón de selección de criterios (reubicado) -->
+                <div id="directControlsAction" style="display:none;">
+                    <button onclick="abrirModalPeriodo()"
+                        title="Seleccionar Criterios del Periodo"
+                        style="background:var(--primary); color:white; font-size:1.2rem; padding:8px 12px; border-radius:12px; border:none; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; min-width:50px; height:50px;">🎯</button>
+                    <div style="font-size:0.65rem; color:var(--primary); font-weight:700; text-align:center; margin-top:4px;">CRITERIOS</div>
+                </div>
             </div>
             <div id="vistaIndividual">
                 <table>
@@ -356,7 +395,6 @@
         <!-- TAB 2: GESTIÓN DE CRITERIOS -->
         <div id="crit-pane" class="tab-pane-eval">
             <div style="display:flex; align-items:center; margin-bottom:20px; flex-wrap: wrap; gap: 10px;">
-                <a id="btnBackConfig" href="/configuracion" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:white; color:var(--primary); padding:7px 14px; border-radius:8px; font-weight:600; border:2px solid var(--primary); font-size:0.85rem;" onmouseover="this.style.background='var(--primary)'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='var(--primary)';">⬅️ Configuración</a>
                 <h2 style="margin:0;">🎯 Gestión de Criterios de Evaluación</h2>
             </div>
             <div class="toolbar"
@@ -530,15 +568,24 @@
             // Helpers Etiqueta/Escala
             // Según spec: NI→nivel 1, EP→nivel 2, C→nivel 3
             function nivelLabel(n) {
-                if (n === 1) return "NI";
-                if (n === 2) return "EP";
-                return "C";  // nivel 3
-            }
-            // Convierte nota interna (1,2,3) a texto Infantil
-            function notaToNivel(nota) {
-                if (nota <= 1) return "NI";
-                if (nota <= 2) return "EP";
+                if (n === 1) return "NI - Poco adecuado";
+                if (n === 2) return "EP - Adecuado";
+                if (n === 3) return "CO - Muy adecuado";
                 return "C";
+            }
+            // Convierte nota interna (1,2,3) o antigua (2.5, 5, 7.5, 10) a texto Infantil
+            function notaToNivel(nota) {
+                if (!nota) return "—";
+                let n = nota;
+                // Manejo de datos antiguos (escala 1-10 para Infantil)
+                if (n > 3) {
+                    if (n <= 3.5) n = 1;
+                    else if (n <= 6.5) n = 2;
+                    else n = 3;
+                }
+                if (n <= 1.5) return "NI/PA";
+                if (n <= 2.5) return "EP/A";
+                return "CO/MA";
             }
             function getColorNota(nota, tipoEscala) {
                 if (tipoEscala === 'INFANTIL_NI_EP_C') {
@@ -875,12 +922,12 @@
                 if (conf.modo_evaluacion === 'POR_SA') {
                     lblSDA.style.display = 'flex';
                     btnCriterioExtra.style.display = 'inline-block';
-                    document.getElementById("directControls").style.display = 'none';
+                    document.getElementById("directControlsAction").style.display = 'none';
                     cargarSDA();
                 } else {
                     lblSDA.style.display = 'none';
                     btnCriterioExtra.style.display = 'none';
-                    document.getElementById("directControls").style.display = 'block';
+                    document.getElementById("directControlsAction").style.display = 'block';
                     cargarCriteriosDirectos();
                 }
                 cargarNotasExistentes();
@@ -966,20 +1013,19 @@
                 tbody.innerHTML = "";
                 criterios.forEach(c => {
                     const tr = document.createElement("tr");
-                    tr.id = `row-${c.id}`;
                     if (esInfantil) {
-                        // Spec definitiva: NI→nivel 1, EP→nivel 2, C→nivel 3
+                        // Spec definitiva combinada: NI / Poco adecuado, EP / Adecuado, CO / Muy adecuado
                         const mappingInfantil = [
-                            { n: 1, label: "NI" },
-                            { n: 2, label: "EP" },
-                            { n: 3, label: "C" }
+                            { n: 1, label: "NI: Poco adecuado", db: "NI/PA" },
+                            { n: 2, label: "EP: Adecuado", db: "EP/A" },
+                            { n: 3, label: "CO: Muy adecuado", db: "CO/MA" }
                         ];
                         tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
-                        <td>${mappingInfantil.map(m => {
-                            return `<button class="btn-nivel" data-label="${m.label}" data-criterio="${c.id}" data-nivel="${m.n}"
+                        <td><div style="display:flex; gap:6px; justify-content:center;">${mappingInfantil.map(m => {
+                            return `<button class="btn-nivel" data-label="${m.db}" data-criterio="${c.id}" data-nivel="${m.n}"
                                 onclick="guardar(${c.id},${m.n})" id="btn-${c.id}-${m.n}"
-                                style="font-weight:700; min-width:60px; margin: 0 5px;">${m.label}</button>`;
-                        }).join('')}</td>`;
+                                style="font-weight:700; min-width:110px; padding:6px 4px; font-size:0.7rem;">${m.label}</button>`;
+                        }).join('')}</div></td>`;
                     } else {
                         tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
                         <td>${[1, 2, 3, 4].map(n => `
@@ -991,6 +1037,8 @@
                     tbody.appendChild(tr);
                 });
                 cargarNotasExistentes();
+                // BUG 8: El resumen también se carga aquí para asegurar que se actualice al cambiar de área/periodo
+                cargarResumenAlumno();
             }
             function cargarNotasExistentes() {
                 const alumId = alumnoSelect.value;
@@ -1077,20 +1125,22 @@
                 const lblAlumno = document.getElementById('labelAlumno');
                 
                 if (modoTabla) {
-                    btn.innerText = "👤 Volver a vista individual";
-                    btn.style.background = "#6c757d";
+                    btn.innerText = "👤 Vista Individual";
+                    btn.style.background = "#64748b";
                     vInd.style.display = 'none';
                     vTable.style.display = 'block';
                     if (lblAlumno) lblAlumno.style.display = 'none';
                     alumnoSelect.style.display = 'none';
+                    document.getElementById('quickActions').style.display = 'none';
                     cargarDatosTabla();
                 } else {
-                    btn.innerText = "📋 Cambiar a Vista de Rejilla";
+                    btn.innerText = "📋 Ver en Rejilla";
                     btn.style.background = "var(--primary)";
                     vInd.style.display = 'block';
                     vTable.style.display = 'none';
                     if (lblAlumno) lblAlumno.style.display = 'flex';
                     alumnoSelect.style.display = 'inline-block';
+                    document.getElementById('quickActions').style.display = 'flex';
                     if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
                 }
             };
@@ -1345,13 +1395,14 @@
                     allCrits.forEach(c => {
                         const checked = activeIds.includes(c.id) ? 'checked' : '';
                         const item = document.createElement('div');
-                        item.style.padding = '8px';
-                        item.style.borderBottom = '1px solid #eee';
+                        item.style.padding = '12px';
+                        item.style.borderBottom = '1px solid #f1f5f9';
                         item.innerHTML = `
-                            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
-                                <input type="checkbox" class="periodo-check" value="${c.id}" ${checked}>
-                                <div>
-                                    <strong>${c.codigo}</strong>: ${c.descripcion}
+                            <label style="display:flex; align-items:flex-start; gap:12px; cursor:pointer;">
+                                <input type="checkbox" class="periodo-check" value="${c.id}" ${checked} style="margin-top: 5px; width: 18px; height: 18px;">
+                                <div style="flex:1;">
+                                    <div style="font-weight: 700; color: var(--primary); margin-bottom: 2px;">${c.codigo}</div>
+                                    <div style="font-size: 0.85rem; color: #4b5563; line-height: 1.4;">${c.descripcion}</div>
                                 </div>
                             </label>
                         `;
@@ -1385,7 +1436,10 @@
                 const res = await r.json();
                 if (res.ok) {
                     cerrarModalPeriodo();
-                    cargarCriteriosDirectos();
+                    // BUG 17: Recargar la página o los criterios visibles
+                    if (areaSelect.value) {
+                         areaSelect.dispatchEvent(new Event('change'));
+                    }
                 } else {
                     alert("Error: " + res.error);
                 }

@@ -1,0 +1,21 @@
+REUNIONES CON FAMILIAS
+HA DESAPARECIDO ICALC PARA EXPORTARLAS
+COLAPSAR APARECE PERO AL COLAPSAR NO SE VEN LAS REUNIONES QUE ESTÁN HECHAS, DEBERÍA VERSE EL ENCABEZADO 
+DENTRO DE LAS REUNIONES REALIZADAS SIGUE APARECIENDO GOOGLE CALENDAR Y ESO DEBERÍA ESTAR FUERA O DESAPARECER YA QUE HE VISTO QUE AL GENERAR UNA REUNIÓN TE DA OPCIÓN DE PONERLA EN GOOGLE CALENDAR AUNQUE SI LE DAS A CANCELAR NO SE GUARDA. ESO SE PODRÍA ARREGLAR DEJANDO LA OPCIÓN DE QUE SOLO SE GUARDE EN LA APP O EN AMBAS PORQUE SINO QUIERO GUARDARLO EN MI CALENDAR NO ME DEJA GUARDARLA
+BORRAR FUNCIONA
+EDITAR FUNCIONA
+IMPRIMIR PDF NO FUNCIONA. ERROR SQLITE3.OPERATIONALERROR : NO SUCH TABLE: CONFIGURACION_GRUPO_ROL
+
+REUNIÓN CICLO
+EL SELECTOR DE CICLO FUNCIONA
+CREAR NUEVA REUNIÓN FUNCIONA
+IMPRIMIR PDF MISMO ERROR QUE EN REUNIONES CON FAMILIAS.
+EXPORTAR PDF FUNCIONA
+GOOGLE CALENDAR SALE EN LAS REUNIONES REALIZADAS Y ESO HABRÍA QUE CAMBIARLO
+BORRAR FUNCIONA
+EDITAR FUNCIONA
+COLAPSAR MISMO PROBLEMA QUE EL OTRO
+LOS ASISTENTES DEL CICLO APARECEN PERO HAY QUE COLOCARLOS QUE AHORA APARECEN DESORDENADOS Y NO APARECEN MARCADOS Y NO APARECE EL TUTOR QUE ES EL MÁS IMPORTANTE
+CREO QUE HAY UNA INCOHERENCIA. EL SELECTOR DE ARRIBA A LA DERECHA DE GRUPO Y EL DE REUNIONES DE CICLO. Fría está en que si tú tienes seleccionado el grupo, por ejemplo, yo tengo tres grupos primero de primaria letra A infantil cinco años a y quinto de primaria letra de, vale? Si yo tengo seleccionado el, eh? Si yo tengo seleccionado el grupo de 1º de primaria, eh? La reunión de ciclo la reunión de ciclo en principio, sólo debería dejarme hacerla seleccionando el Ese grupo sabes? No debería dejarme crear una reunión fuera de ese ciclo, vale? Lo suyo sería que lanzara un ALERT y dijera. Y que dijera oye, estás en el grupo de primero de primaria o sexto O quinto o el que fuera y vas a crear una reunión de ciclo en otro grupo diferente, vale? Entonces eso por ahí, si tú le das a aceptar asumes ese riesgo o directamente no le dejamos que la genere tiene que irse al grupo correcto eso para mí sería una de las primeras una de las cosas que también habría que cambiar y otra cosa que he visto es que tú cuando te vas a reuniones de ciclo, vale? El título pone reuniones con familias, vale? Y ahí habría que cambiarlo y habría que poner reuniones de ciclo.
+
+

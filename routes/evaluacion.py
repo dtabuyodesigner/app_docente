@@ -1,6 +1,13 @@
-from flask import Blueprint, jsonify, request, session
 from utils.db import get_db, nivel_a_nota
 from datetime import date
+import csv
+import json
+from io import StringIO, BytesIO
+from flask import send_file, Blueprint, request, jsonify, session
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 evaluacion_bp = Blueprint('evaluacion', __name__)
 
@@ -296,12 +303,27 @@ def obtener_cuaderno():
         ORDER BY nombre
     """, (grupo_id,)).fetchall()
 
-    criterios = cur.execute("""
-        SELECT c.id, c.codigo, c.descripcion
-        FROM criterios c
-        JOIN criterios_periodo cp ON cp.criterio_id = c.id
-        WHERE cp.periodo = ? AND c.area_id = ? AND cp.grupo_id = ? AND cp.activo = 1
-    """, (periodo, area_id, grupo_id)).fetchall()
+    # Fetch criteria. For Infantil (etapa_id=1), we show all active criteria of the area.
+    # Otherwise, we use the criterios_periodo table for fine-grained selection.
+    cur.execute("SELECT etapa_id FROM areas WHERE id = ?", (area_id,))
+    area_row = cur.fetchone()
+    etapa_id = area_row["etapa_id"] if area_row else None
+
+    if etapa_id == 1: # Infantil
+        criterios = cur.execute("""
+            SELECT id, codigo, descripcion
+            FROM criterios
+            WHERE area_id = ? AND activo = 1
+            ORDER BY codigo
+        """, (area_id,)).fetchall()
+    else:
+        criterios = cur.execute("""
+            SELECT c.id, c.codigo, c.descripcion
+            FROM criterios c
+            JOIN criterios_periodo cp ON cp.criterio_id = c.id
+            WHERE cp.periodo = ? AND c.area_id = ? AND cp.grupo_id = ? AND cp.activo = 1
+            ORDER BY c.codigo
+        """, (periodo, area_id, grupo_id)).fetchall()
 
     evaluaciones = cur.execute("""
         SELECT alumno_id, criterio_id, nivel
@@ -332,16 +354,87 @@ def resumen_clase():
     db = get_db()
     cur = db.cursor()
 
+    # UNIFIED: Get data from both evaluaciones (SDA) and evaluacion_criterios (Direct)
     rows = cur.execute("""
-        SELECT c.codigo, c.descripcion, AVG(e.nivel) as media
-        FROM evaluaciones e
-        JOIN criterios c ON c.id = e.criterio_id
-        JOIN alumnos a ON e.alumno_id = a.id
-        WHERE c.area_id = ? AND e.trimestre = ? AND a.grupo_id = ?
+        SELECT c.codigo, c.descripcion, AVG(val.nivel) as media
+        FROM (
+            SELECT criterio_id, nivel FROM evaluaciones WHERE area_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT criterio_id, nivel FROM evaluacion_criterios WHERE periodo = ?
+        ) val
+        JOIN criterios c ON c.id = val.criterio_id
+        JOIN (SELECT id FROM alumnos WHERE grupo_id = ?) a ON val.criterio_id IN (SELECT id FROM criterios WHERE area_id = ?) -- This is just to ensure we only get relevant data
+        WHERE c.area_id = ?
         GROUP BY c.codigo
-    """, (area_id, trimestre, grupo_id)).fetchall()
-
+    """, (area_id, trimestre, periodo, grupo_id, area_id, area_id)).fetchall()
+    
+    # Actually simpler:
+    cur.execute("""
+        SELECT c.codigo, c.descripcion, AVG(v.nivel) as media
+        FROM criterios c
+        LEFT JOIN (
+            SELECT criterio_id, nivel, alumno_id FROM evaluaciones WHERE area_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT criterio_id, nivel, alumno_id FROM evaluacion_criterios WHERE periodo = ?
+        ) v ON c.id = v.criterio_id
+        JOIN alumnos a ON v.alumno_id = a.id
+        WHERE c.area_id = ? AND a.grupo_id = ?
+        GROUP BY c.id, c.codigo, c.descripcion
+        HAVING media IS NOT NULL
+    """, (area_id, trimestre, periodo, area_id, grupo_id))
+    
+    rows = cur.fetchall()
     return jsonify([dict(r) for r in rows])
+
+@evaluacion_bp.route("/directa/", methods=["GET"])
+def get_directa():
+    alumno_id = request.args.get("alumno_id")
+    area_id = request.args.get("area_id")
+    periodo = request.args.get("periodo")
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("""
+        SELECT ec.criterio_id, ec.nivel
+        FROM evaluacion_criterios ec
+        JOIN criterios c ON ec.criterio_id = c.id
+        WHERE ec.alumno_id = ? AND ec.periodo = ? AND c.area_id = ?
+    """, (alumno_id, periodo, area_id))
+    rows = cur.fetchall()
+    return jsonify({r["criterio_id"]: r["nivel"] for r in rows})
+
+@evaluacion_bp.route("/directa/", methods=["POST"])
+def save_directa():
+    data = request.json
+    alumno_id = data.get("alumno_id")
+    criterio_id = data.get("criterio_id")
+    periodo = data.get("periodo")
+    nivel = data.get("nivel")
+    db = get_db()
+    cur = db.cursor()
+    try:
+        cur.execute("SELECT area_id, tipo_escala FROM areas WHERE id = (SELECT area_id FROM criterios WHERE id = ?)", (criterio_id,))
+        area_row = cur.fetchone()
+        area_id = area_row["area_id"]
+        escala = area_row["tipo_escala"]
+        nota = nivel_a_nota(nivel, escala)
+        cur.execute("DELETE FROM evaluacion_criterios WHERE alumno_id = ? AND criterio_id = ? AND periodo = ?", (alumno_id, criterio_id, periodo))
+        if nivel > 0:
+            cur.execute("""
+                INSERT INTO evaluacion_criterios (alumno_id, criterio_id, periodo, nivel, nota)
+                VALUES (?, ?, ?, ?, ?)
+            """, (alumno_id, criterio_id, periodo, nivel, nota))
+        db.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@evaluacion_bp.route("/sda/resumen_areas")
+def resumen_areas_sda_alumno():
+    # Placeholder for the endpoint requested by frontend (line 1051)
+    # Actually should be unified
+    return resumen_areas_alumno() # Reuse existing logic
+
 
 @evaluacion_bp.route("/clase_hoy")
 def clase_hoy():
@@ -395,11 +488,18 @@ def clase_hoy():
         for a in alumnos:
             a["nivel"] = evals.get(a["id"])
             
+    etapa_id = None
+    if sesion:
+        cur.execute("SELECT etapa_id FROM areas WHERE id = ?", (sesion["area_id"],))
+        area_row = cur.fetchone()
+        if area_row: etapa_id = area_row["etapa_id"]
+
     return jsonify({
         "sesion": dict(sesion) if sesion else None,
         "alumnos": alumnos,
         "trimestre": trimestre,
         "fecha": fecha_hoy,
+        "etapa_id": etapa_id,
         "ok": True
     })
 
@@ -415,11 +515,14 @@ def informe_alumno():
     cur = db.cursor()
     
     cur.execute("""
-        SELECT c.codigo, c.descripcion, e.nivel, c.comentario_base
-        FROM evaluaciones e
-        JOIN criterios c ON e.criterio_id = c.id
-        WHERE e.alumno_id = ? AND e.trimestre = ?
-    """, (alumno_id, trimestre))
+        SELECT c.codigo, c.descripcion, v.nivel, c.comentario_base
+        FROM (
+            SELECT criterio_id, nivel FROM evaluaciones WHERE alumno_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT criterio_id, nivel FROM evaluacion_criterios WHERE alumno_id = ? AND periodo = ?
+        ) v
+        JOIN criterios c ON v.criterio_id = c.id
+    """, (alumno_id, trimestre, alumno_id, f"T{trimestre}"))
     
     evaluaciones = cur.fetchall()
     comentarios = []
@@ -449,3 +552,78 @@ def informe_alumno():
         "trimestre": trimestre,
         "comentarios": comentarios
     })
+
+def get_cuaderno_data(cur, area_id, periodo):
+    """Helper to fetch notebook data for exports."""
+    cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = (SELECT id FROM grupos WHERE activo = 1) ORDER BY nombre")
+    alumnos = [dict(row) for row in cur.fetchall()]
+    
+    cur.execute("SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? ORDER BY codigo", (area_id,))
+    criterios = [dict(row) for row in cur.fetchall()]
+    
+    trimestre = periodo.replace('T', '')
+    cur.execute("""
+        SELECT alumno_id, criterio_id, nivel FROM evaluaciones WHERE area_id = ? AND trimestre = ? AND sda_id IS NULL
+        UNION ALL
+        SELECT alumno_id, criterio_id, nivel FROM evaluacion_criterios WHERE periodo = ?
+    """, (area_id, trimestre, periodo))
+    rows = cur.fetchall()
+    evaluaciones = {f"{r['alumno_id']}_{r['criterio_id']}": r['nivel'] for r in rows}
+    
+    return {"alumnos": alumnos, "criterios": criterios, "evaluaciones": evaluaciones}
+
+@evaluacion_bp.route("/cuaderno/csv")
+def cuaderno_csv():
+    area_id = request.args.get("area_id")
+    periodo = request.args.get("periodo", "T1")
+    if not area_id: return "Falta area_id", 400
+    conn = get_db()
+    cur = conn.cursor()
+    data = get_cuaderno_data(cur, area_id, periodo)
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Alumno"] + [c["codigo"] for c in data["criterios"]])
+    for a in data["alumnos"]:
+        row = [a["nombre"]]
+        for c in data["criterios"]:
+            nivel = data["evaluaciones"].get(f"{a['id']}_{c['id']}", "")
+            row.append(nivel)
+        writer.writerow(row)
+    output.seek(0)
+    return send_file(BytesIO(output.getvalue().encode('utf-8-sig')), mimetype="text/csv", as_attachment=True, download_name=f"Cuaderno_{area_id}_{periodo}.csv")
+
+@evaluacion_bp.route("/cuaderno/pdf")
+def cuaderno_pdf():
+    area_id = request.args.get("area_id")
+    periodo = request.args.get("periodo", "T1")
+    if not area_id: return "Falta area_id", 400
+    conn = get_db()
+    cur = conn.cursor()
+    data = get_cuaderno_data(cur, area_id, periodo)
+    cur.execute("SELECT nombre FROM areas WHERE id = ?", (area_id,))
+    area_nombre = cur.fetchone()["nombre"]
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
+    elements = []
+    styles = getSampleStyleSheet()
+    elements.append(Paragraph(f"Cuaderno de Evaluación: {area_nombre} ({periodo})", styles['Title']))
+    elements.append(Spacer(1, 12))
+    table_data = [["Alumno"] + [c["codigo"] for c in data["criterios"]]]
+    for a in data["alumnos"]:
+        row = [a["nombre"]]
+        for c in data["criterios"]:
+            nivel = data["evaluaciones"].get(f"{a['id']}_{c['id']}", "-")
+            row.append(str(nivel))
+        table_data.append(row)
+    t = Table(table_data)
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTSIZE', (0, 0), (-1, -1), 8)
+    ]))
+    elements.append(t)
+    doc.build(elements)
+    buffer.seek(0)
+    return send_file(buffer, mimetype="application/pdf", as_attachment=True, download_name=f"Cuaderno_{area_nombre}.pdf")

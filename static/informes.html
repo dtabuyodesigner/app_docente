@@ -142,20 +142,51 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
-        <div
-            style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        
+        <!-- Tabs de Sección Evaluación -->
+        <div class="section-tabs">
+            <a href="/static/evaluacion.html" class="section-tab-btn">📊 Evaluación</a>
+            <a href="/static/evaluar_todo.html" class="section-tab-btn">📝 Evaluar Todo</a>
+            <a href="/static/cuaderno_evaluacion.html" class="section-tab-btn">📔 Cuaderno</a>
+            <a href="/static/progreso_clase.html" class="section-tab-btn">📈 Progreso</a>
+            <a href="/informes" class="section-tab-btn active">📑 Informes</a>
         </div>
+        
         <h1>📜 Gestión de Informes</h1>
         <!-- PESTAÑAS -->
-        <div class="tab-container" style="margin-bottom: 20px;"><button class="tab-button active"
-                onclick="switchTab('tabIndividual')">👤 Informes Individuales</button><button class="tab-button"
-                onclick="switchTab('tabGrupo', true)">👨‍👩‍👧‍👦 Informe de Grupo (Global)</button></div>
+        <div class="tab-container" style="margin-bottom: 20px;">
+            <button class="tab-button active" onclick="switchTab('tabIndividual')">👤 Informes Individuales</button>
+            <button class="tab-button" onclick="switchTab('tabGrupo', true)">👨‍👩‍👧‍👦 Informe de Grupo (Global)</button>
+        </div>
+
+        <!-- Barra de Acciones (Botones de Descarga) con fondo sutil y alineación -->
+        <div id="quickDownloadButtons" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:25px; justify-content:flex-start; background:#f1f5f9; padding:12px 20px; border-radius:12px; border:1px solid #e2e8f0; align-items:center;">
+            <div style="font-weight:700; color:var(--primary); font-size:0.85rem; margin-right:8px; display:flex; align-items:center; gap:5px;">
+                <span>🚀</span> ACCIONES RÁPIDAS:
+            </div>
+            <button onclick="generarPDFIndividual()"
+                style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:6px; font-size:0.85rem; box-shadow:0 2px 4px rgba(40,167,69,0.2);">
+                <span style="font-size:1rem;">📄</span> PDF Alumno
+            </button>
+            <button onclick="generarExcelIndividual()"
+                style="padding: 8px 15px; background: #1D6F42; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:6px; font-size:0.85rem; box-shadow:0 2px 4px rgba(29,111,66,0.2);">
+                <span style="font-size:1rem;">📊</span> Excel Notas
+            </button>
+            <button onclick="generarExcelClase()"
+                style="padding: 8px 15px; background: #155724; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:6px; font-size:0.85rem; box-shadow:0 2px 4px rgba(21,87,36,0.2);">
+                <span style="font-size:1rem;">📗</span> Excel Clase
+            </button>
+            <button onclick="generarPDFGeneral()"
+                style="padding: 8px 15px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:6px; font-size:0.85rem; box-shadow:0 2px 4px rgba(23,162,184,0.2);">
+                <span style="font-size:1rem;">📑</span> PDF Clase (ZIP)
+            </button>
+        </div>
         <!-- MODAL DETALLE ASISTENCIA -->
         <div id="modalAsistencia" class="modal">
             <div class="modal-content">
@@ -218,24 +249,7 @@
                     </div>
                 </div>
 
-                <div style="display:flex; gap:15px; flex-wrap:wrap; padding-top:15px; border-top:1px solid #eee; justify-content:flex-end;">
-                    <button onclick="generarPDFIndividual()"
-                        style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.2rem;">📄</span> Descargar Informe Individual
-                    </button>
-                    <button onclick="generarExcelIndividual()"
-                        style="padding: 12px 20px; background: #1D6F42; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.2rem;">📊</span> Exportar Notas a Excel
-                    </button>
-                    <button onclick="generarExcelClase()"
-                        style="padding: 12px 20px; background: #155724; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.2rem;">📗</span> Excel Clase Completa
-                    </button>
-                    <button onclick="generarPDFGeneral()"
-                        style="padding: 12px 20px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight:600; display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.2rem;">📑</span> Informes de toda la Clase (PDF ZIP)
-                    </button>
-                </div>
+
             </div>
 
             <div style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
@@ -320,28 +334,43 @@
             </div>
             <div class="report-section">
                 <h3>📊 Valoración del Grupo</h3>
-                <div style="margin-bottom: 15px;"><label><strong>7. Valoración General del
-                            Tutor:</strong></label><textarea id="grupoObservaciones" rows="4"
-                        style="width: 100%; margin-top: 5px; padding: 10px;"
-                        placeholder="Escribe aquí la valoración general del grupo..."></textarea><label
-                        style="display: block; margin-top: 15px;"><strong>8. Propuestas de
-                            Mejora:</strong></label><textarea id="grupoPropuestas" rows="4"
-                        style="width: 100%; margin-top: 5px; padding: 10px;"
-                        placeholder="Escribe aquí las propuestas de mejora..."></textarea><label
-                        style="display: block; margin-top: 15px;"><strong>9. Conclusión
-                            Final:</strong></label>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-top: 15px;"><strong id="labelPunt1">1. Valoración General del Tutor:</strong></label>
+                    <textarea id="grupoObservaciones" rows="4" style="width: 100%; margin-top: 5px; padding: 10px;" placeholder="Escribe aquí la valoración general..."></textarea>
+                    
+                    <label style="display: block; margin-top: 15px;"><strong id="labelPunt2">2. Dificultades encontradas:</strong></label>
+                    <textarea id="grupoDificultades" rows="4" style="width: 100%; margin-top: 5px; padding: 10px;" placeholder="Dificultades detectadas..."></textarea>
+
+                    <label style="display: block; margin-top: 15px;"><strong id="labelPunt3">3. Propuestas de Mejora:</strong></label>
+                    <textarea id="grupoPropuestas" rows="4" style="width: 100%; margin-top: 5px; padding: 10px;" placeholder="Propuestas de mejora..."></textarea>
+
+                    <label id="labelPunt4" style="display: block; margin-top: 15px;"><strong>4. Análisis de resultados de la evaluación (Automático):</strong></label>
+                    <div id="grupoResultadosAuto" style="margin-top: 5px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #e9ecef; font-size: 0.95rem;">
+                        Cargando estadísticas...
+                    </div>
+
+                    <label id="labelPunt5" style="display: block; margin-top: 15px;"><strong>5. Alumnado con áreas suspensas (Automático):</strong></label>
+                    <div id="grupoSuspensoAuto" style="margin-top: 5px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #e9ecef; font-size: 0.95rem; max-height: 200px; overflow-y: auto;">
+                        Cargando listado...
+                    </div>
+                    
+                    <label style="display: block; margin-top: 15px;"><strong>6. Conclusión Final / Otras Observaciones:</strong></label>
                     <div style="display: flex; gap: 10px; align-items: flex-start; margin-top: 5px;">
-                        <textarea id="grupoConclusion" rows="4" style="flex-grow: 1; padding: 10px;"
-                            placeholder="Conclusión final del trimestre..."></textarea>
+                        <textarea id="grupoConclusion" rows="4" style="flex-grow: 1; padding: 10px;" placeholder="Conclusión final..."></textarea>
                     </div>
-                    <label style="display: block; margin-top: 15px;"><strong>10. Miembros del Equipo Docente (Firmas):</strong><br/>
-                    <small style="font-weight: normal; color: #555;">Selecciona los docentes que han asistido (se configuran globalmente en la pestaña Configuración &gt; Grupos).</small></label>
-                    <div style="margin-top: 5px; margin-bottom: 5px;">
-                        <button onclick="toggleAllDocentes(true)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.85rem; padding: 0; text-decoration: underline;">Marcar todos</button>
-                        <span style="margin: 0 5px; color: #ccc;">|</span>
-                        <button onclick="toggleAllDocentes(false)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.85rem; padding: 0; text-decoration: underline;">Desmarcar todos</button>
+                    
+                    <div id="equipoDocentePunto7" style="margin-top: 15px;">
+                        <label><strong>7. Miembros del Equipo Docente (Firmas):</strong><br/>
+                        <small style="font-weight: normal; color: #555;">Selecciona los docentes que han asistido.</small></label>
+                        <div style="margin-top: 5px; margin-bottom: 5px;">
+                            <button onclick="toggleAllDocentes(true)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.85rem; padding: 0; text-decoration: underline;">Marcar todos</button>
+                            <span style="margin: 0 5px; color: #ccc;">|</span>
+                            <button onclick="toggleAllDocentes(false)" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.85rem; padding: 0; text-decoration: underline;">Desmarcar todos</button>
+                        </div>
+                        <div id="grupoEquipoDocenteContainer" style="margin-top: 10px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fafafa; max-height: 200px; overflow-y: auto;">
+                            <p style="color: #666; font-style: italic;">Selecciona un trimestre del historial para cargar los docentes.</p>
+                        </div>
                     </div>
-                    <div id="grupoEquipoDocenteContainer" style="margin-top: 10px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fafafa; max-height: 200px; overflow-y: auto;">
                         <p style="color: #666; font-style: italic;">Selecciona un trimestre del historial para cargar los docentes.</p>
                     </div>
                 </div>
@@ -423,7 +452,13 @@
                     });
                 });
             alumnoSelect.addEventListener("change", cargarInforme);
-            trimInd.addEventListener("change", cargarInforme);
+            trimInd.addEventListener("change", () => {
+                cargarInforme();
+                if (typeof actualizarFechasUI === 'function') actualizarFechasUI();
+            });
+            trimGrp.addEventListener("change", () => {
+                if (typeof actualizarFechasUI === 'function') actualizarFechasUI();
+            });
             function getColorNota(nota) {
                 if (nota < 5) return "#dc3545";
                 if (nota < 7) return "#ffc107";
@@ -431,30 +466,28 @@
             }
             function formatNotaText(nota, escala) {
                 if (escala === 'INFANTIL_NI_EP_C') {
-                    // Robust mapping for both 1-3 scale and old 2.5-10 scale
-                    let n = Math.round(nota);
-                    if (n > 3) {
-                        if (nota <= 3.5) n = 1;
-                        else if (nota <= 6.5) n = 2;
-                        else n = 3;
+                    let n = nota;
+                    if (n > 3) { // Old scale logic
+                        if (n <= 3.5) return 'NI';
+                        if (n <= 6.5) return 'EP';
+                        return 'C';
                     }
-                    if (n === 1) return 'NI';
-                    if (n === 2) return 'EP';
-                    if (n === 3) return 'C';
-                    return '—';
+                    if (n < 1.5) return 'NI';
+                    if (n < 2.5) return 'EP';
+                    return 'C';
                 }
                 return nota.toFixed(2);
             }
             function getColorNotaEscala(nota, escala) {
                 if (escala === 'INFANTIL_NI_EP_C') {
                     let n = nota;
-                    if (n > 3) { // Old scale (2.5, 5, 7.5, 10)
-                        if (nota <= 3.5) n = 1;
-                        else if (nota <= 6.5) n = 2;
+                    if (n > 3) {
+                        if (n <= 3.5) n = 1;
+                        else if (n <= 6.5) n = 2;
                         else n = 3;
                     }
-                    if (n < 2) return "#dc3545"; // NI
-                    if (n < 3) return "#ffc107"; // EP
+                    if (n < 1.5) return "#dc3545"; // NI
+                    if (n < 2.5) return "#ffc107"; // EP
                     return "#28a745"; // C
                 }
                 if (nota < 5) return "#dc3545";
@@ -520,13 +553,28 @@
                 fetch(`/api/informe/asistencia_alumno?alumno_id=${alumnoId}&trimestre=${trimestre}`)
                     .then(r => r.json())
                     .then(d => {
+                        let mensualHtml = '';
+                        if (d.mensual && Object.keys(d.mensual).length > 0) {
+                            mensualHtml = '<div style="margin-top:10px; border-top:1px solid #eee; padding-top:10px;"><div style="font-size:0.85rem; color:#666; font-weight:700; margin-bottom:5px;">Desglose mensual:</div>';
+                            for (const mes in d.mensual) {
+                                mensualHtml += `
+                                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:2px; padding:2px 5px; background:#f8f9fa; border-radius:4px;">
+                                        <span>${mes}:</span>
+                                        <span>Retrasos: <b>${d.mensual[mes].retrasos}</b> | Faltas: <b>${d.mensual[mes].faltas}</b></span>
+                                    </div>
+                                `;
+                            }
+                            mensualHtml += '</div>';
+                        }
+
                         document.getElementById("asistenciaAlumno").innerHTML = `
                         <div style="display:flex; gap:20px; flex-wrap:wrap;">
                             <span style="padding:6px 14px; background:#d4edda; border-radius:20px; font-size:0.9rem;">✅ Retrasos: <b>${d.retrasos}</b></span>
                             <span style="padding:6px 14px; background:#fff3cd; border-radius:20px; font-size:0.9rem;">⚠️ Justificadas: <b>${d.f_justificada}</b></span>
                             <span style="padding:6px 14px; background:#f8d7da; border-radius:20px; font-size:0.9rem;">❌ Injustificadas: <b>${d.f_no_justificada}</b></span>
-                            <span style="padding:6px 14px; background:#e2e8f0; border-radius:20px; font-size:0.9rem;">📊 Total Faltas: <b>${d.total_faltas}</b></span>
+                            <span style="padding:6px 14px; background:#e2e8f0; border-radius:20px; font-size:0.9rem; border:2px solid #003366;">📊 TOTAL FALTAS: <b>${d.total_faltas}</b></span>
                         </div>
+                        ${mensualHtml}
                     `;
                     });
             }
@@ -546,6 +594,7 @@
                     .then(r => r.json())
                     .then(d => {
                         document.getElementById("grupoObservaciones").value = d.observaciones || "";
+                        document.getElementById("grupoDificultades").value = d.dificultades || "";
                         document.getElementById("grupoPropuestas").value = d.propuestas_mejora || "";
                         document.getElementById("grupoConclusion").value = d.conclusion || "";
                         
@@ -562,8 +611,10 @@
                             } else {
                                 container.innerHTML = globales.map((docente) => {
                                     const checked = (esNuevoInforme || guardados_str.includes(docente)) ? 'checked' : '';
+                                    // Mantenemos el estado disabled basado en _modoEdicion
+                                    const disabledAttr = _modoEdicion ? '' : 'disabled';
                                     return `<label style="display: block; margin-bottom: 8px; font-weight: normal; cursor: pointer;">
-                                                <input type="checkbox" class="docente-checkbox" value="${docente.replace(/"/g, '&quot;')}" ${checked} style="width: auto; margin-right: 8px;"> ${docente}
+                                                <input type="checkbox" class="docente-checkbox" value="${docente.replace(/"/g, '&quot;')}" ${checked} ${disabledAttr} style="width: auto; margin-right: 8px;"> ${docente}
                                             </label>`;
                                 }).join('');
                             }
@@ -577,6 +628,35 @@
                         const g = d.generales;
                         const a = d.asistencia;
                         const p = d.promocion;
+                        
+                        // Punto 4: Análisis de resultados
+                        const resContainer = document.getElementById("grupoResultadosAuto");
+                        if (resContainer) {
+                            resContainer.innerHTML = `
+                                <ul style="margin:0; padding-left:20px;">
+                                    <li><b>Alumnado total:</b> ${d.generales.total_alumnos}</li>
+                                    <li><b>Alumnado con todo aprobado:</b> ${p.todo ? p.todo.num : (p.C ? p.C.num : 0)}</li>
+                                    <li><b>Tasa de éxito / promoción:</b> ${p.todo ? p.todo.pct : (p.C ? p.C.pct : 0)}%</li>
+                                </ul>
+                            `;
+                        }
+
+                        // Punto 5: Alumnado con áreas suspensas
+                        const suspContainer = document.getElementById("grupoSuspensoAuto");
+                        if (suspContainer) {
+                            if (d.suspensos && d.suspensos.length > 0) {
+                                let htmlSusp = '<table style="width:100%; border-collapse:collapse; font-size:0.85rem;">';
+                                htmlSusp += '<tr style="background:#eee;"> <th style="border:1px solid #ccc; padding:4px;">Alumno/a</th> <th style="border:1px solid #ccc; padding:4px;">Áreas</th> </tr>';
+                                d.suspensos.forEach(s => {
+                                    htmlSusp += `<tr> <td style="border:1px solid #ccc; padding:4px;">${s.nombre}</td> <td style="border:1px solid #ccc; padding:4px;">${s.areas}</td> </tr>`;
+                                });
+                                htmlSusp += '</table>';
+                                suspContainer.innerHTML = htmlSusp;
+                            } else {
+                                suspContainer.innerHTML = '<p style="margin:0; color:#28a745;">✓ No hay alumnado con áreas suspensas en este trimestre.</p>';
+                            }
+                        }
+
                         let mediaHtml = '';
                         let promocionHtml = '';
                         if (g.is_infantil) {
@@ -642,6 +722,7 @@
             function guardarGrupoObs() {
                 const trimestre = trimGrp.value;
                 const obs = document.getElementById("grupoObservaciones").value;
+                const dif = document.getElementById("grupoDificultades").value;
                 const prop = document.getElementById("grupoPropuestas").value;
                 const conc = document.getElementById("grupoConclusion").value;
                 
@@ -654,7 +735,7 @@
                 fetch("/api/informe/grupo_obs", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ trimestre: trimestre, observaciones: obs, propuestas_mejora: prop, conclusion: conc, equipo_docente: eqDoc })
+                    body: JSON.stringify({ trimestre: trimestre, observaciones: obs, dificultades: dif, propuestas_mejora: prop, conclusion: conc, equipo_docente: eqDoc })
                 }).then(r => r.json()).then(data => {
                     if (data.ok) {
                         loadHistoryDashboard();
@@ -675,21 +756,47 @@
                 window.location.href = `/api/informe/acta_oficial?${params}`;
             }
 
-            // Inicializar Tutor y Rol
-            const storedTutor = localStorage.getItem("tutorName");
-            if (storedTutor) {
-                document.getElementById("tutorName").value = storedTutor;
-            } else {
-                fetch("/api/configuracion")
-                    .then(r => r.json())
-                    .then(config => {
-                        const tutor = config.nombre_tutor;
-                        if (tutor) {
-                            document.getElementById("tutorName").value = tutor;
-                            localStorage.setItem("tutorName", tutor);
-                        }
-                    });
+            let configFechas = {};
+            const today = new Date().toISOString().split('T')[0];
+            
+            function actualizarFechasUI() {
+                const fInd = configFechas[trimInd.value] || today;
+                document.getElementById("fechaInforme").value = fInd;
+                
+                const fGrp = configFechas[trimGrp.value] || today;
+                document.getElementById("fechaInformeGrupo").value = fGrp;
+                
+                if (document.getElementById("actaFecha")) {
+                    document.getElementById("actaFecha").value = fGrp;
+                }
             }
+            
+            // Inicializar Tutor, Rol y Fechas
+            fetch("/api/configuracion")
+                .then(r => r.json())
+                .then(config => {
+                    // Tutor
+                    const storedTutor = localStorage.getItem("tutorName");
+                    if (storedTutor) {
+                        document.getElementById("tutorName").value = storedTutor;
+                    } else if (config.nombre_tutor) {
+                        document.getElementById("tutorName").value = config.nombre_tutor;
+                        localStorage.setItem("tutorName", config.nombre_tutor);
+                    }
+                    
+                    // Fechas
+                    if (config.fecha_fin_t1) configFechas['1'] = config.fecha_fin_t1;
+                    if (config.fecha_fin_t2) configFechas['2'] = config.fecha_fin_t2;
+                    if (config.fecha_fin_t3) configFechas['3'] = config.fecha_fin_t3;
+                    
+                    actualizarFechasUI();
+                })
+                .catch(() => {
+                    const storedTutor = localStorage.getItem("tutorName");
+                    if (storedTutor) document.getElementById("tutorName").value = storedTutor;
+                    actualizarFechasUI();
+                });
+
             // Cargar rol del grupo activo
             fetch("/api/configuracion/mi_rol")
                 .then(r => r.json())
@@ -697,6 +804,15 @@
                     const esEsp = d.rol === 'especialista';
                     document.getElementById('rolBadge').style.display = esEsp ? 'inline' : 'none';
                     document.getElementById('rolLabel').textContent = esEsp ? 'Tu nombre (Especialista):' : 'Tutor/a del Grupo:';
+                    
+                    // Refinar Informe de Grupo para Especialistas
+                    if (esEsp) {
+                        const l1 = document.getElementById('labelPunt1');
+                        if (l1) l1.textContent = "1. Valoración General del Especialista:";
+                        const p7 = document.getElementById('equipoDocentePunto7');
+                        if (p7) p7.style.display = 'none';
+                    }
+
                     const areaContainer = document.getElementById('areaEspecialistaContainer');
                     const areaSel = document.getElementById('areaEspecialistaSelect');
                     if (esEsp && d.area_nombres && d.area_nombres.length > 0) {
@@ -707,17 +823,29 @@
                             opt.textContent = a.nombre;
                             areaSel.appendChild(opt);
                         });
-                        // Auto-seleccionar si solo hay una área
                         if (d.area_nombres.length === 1) areaSel.value = d.area_nombres[0].id;
                     }
+
+                    // Filtrar Áreas por Etapa (Feedback Usuario)
+                    const etapaId = d.etapa_id; 
+                    fetch("/api/areas")
+                        .then(r => r.json())
+                        .then(areas => {
+                            const areaSelGrp = document.getElementById("areaFiltroGrupo");
+                            if (areaSelGrp) {
+                                areaSelGrp.innerHTML = '<option value="">-- Todas las Áreas --</option>';
+                                areas.forEach(a => {
+                                    // Mostrar si coincide etapa O es área común de especialista
+                                    const comunes = ['inglés', 'música', 'educación física', 'religión', 'valores'];
+                                    const esComun = comunes.some(c => a.nombre.toLowerCase().includes(c));
+                                    if (a.etapa_id == etapaId || esComun) {
+                                        areaSelGrp.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+                                    }
+                                });
+                            }
+                        });
                 })
                 .catch(() => {});
-
-            // Inicializar Fecha hoy
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById("fechaInforme").value = today;
-            document.getElementById("fechaInformeGrupo").value = today;
-            if (document.getElementById("actaFecha")) document.getElementById("actaFecha").value = today;
 
             function generarExcelClase() {
                 window.location.href = `/api/informe/excel_clase?trimestre=${trimInd.value}`;
@@ -864,13 +992,29 @@
                 document.getElementById("formGrupoTitle").textContent = titulo;
 
                 // Habilitar/deshabilitar campos
-                const campos = ["grupoObservaciones", "grupoPropuestas", "grupoConclusion"];
+                const campos = ["grupoObservaciones", "grupoDificultades", "grupoPropuestas", "grupoConclusion"];
                 campos.forEach(id => {
                     document.getElementById(id).disabled = !modoEdicion;
                     document.getElementById(id).style.background = modoEdicion ? "white" : "#f8f9fa";
                 });
+                const cbContainer = document.getElementById("grupoEquipoDocenteContainer");
+                if (cbContainer) {
+                    cbContainer.style.background = modoEdicion ? "white" : "#f8f9fa";
+                    cbContainer.style.opacity = modoEdicion ? "1" : "0.7";
+                }
                 document.querySelectorAll(".docente-checkbox").forEach(cb => cb.disabled = !modoEdicion);
                 document.querySelector("[onclick*='toggleAllDocentes']")?.parentElement.querySelectorAll("button").forEach(b => b.style.display = modoEdicion ? "" : "none");
+
+                // Estilizar Punto 4 y 5 como deshabilitados
+                const auto4 = document.getElementById("grupoResultadosAuto");
+                const auto5 = document.getElementById("grupoSuspensoAuto");
+                const lbl4 = document.getElementById("labelPunt4");
+                const lbl5 = document.getElementById("labelPunt5");
+                
+                if (auto4) auto4.style.opacity = modoEdicion ? "1" : "0.7";
+                if (auto5) auto5.style.opacity = modoEdicion ? "1" : "0.7";
+                if (lbl4) lbl4.style.color = modoEdicion ? "inherit" : "#888";
+                if (lbl5) lbl5.style.color = modoEdicion ? "inherit" : "#888";
 
                 // Barra de botones
                 const barraAcciones = document.getElementById("barraAcciones");
@@ -893,7 +1037,7 @@
                             <option value="30">30</option>
                             <option value="45">45</option>
                         </select>
-                        <input type="date" id="actaFecha" style="padding:8px; border:1px solid #ccc; border-radius:4px;" value="${new Date().toISOString().split('T')[0]}">
+                        <input type="date" id="actaFecha" style="padding:8px; border:1px solid #ccc; border-radius:4px;" value="${configFechas[t] || new Date().toISOString().split('T')[0]}">
                         <button onclick="generarActaOficial()" style="padding:10px 18px; background:#8B0000; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">📄 Acta Oficial</button>
                         <button onclick="generarPDFGrupo()" style="padding:10px 16px; background:#17a2b8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">🖨️ PDF</button>
                         <button onclick="generarExcelGrupo()" style="padding:10px 16px; background:#1D6F42; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">📊 Excel</button>

@@ -4,7 +4,8 @@ import os
 def migrate_lectura(db_path="APP_EVALUAR.db"):
     # Determine the actual DB path, the app uses app_evaluar.db based on utils/db.py
     # or let's use the explicit one if passed. Usually it's app_evaluar.db
-    actual_db_path = "app_evaluar.db"
+    from utils.db import get_db_path
+    actual_db_path = get_db_path()
     
     if not os.path.exists(actual_db_path):
         print(f"Database {actual_db_path} not found. Skipping migration.")

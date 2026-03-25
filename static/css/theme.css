@@ -366,3 +366,38 @@ input:focus {
 .premium-card:hover {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
+
+/* Navigation Tabs for Sections */
+.section-tabs {
+    display: flex;
+    overflow-x: auto;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 25px;
+    background-color: transparent;
+    border-radius: 0;
+}
+
+.section-tab-btn {
+    text-decoration: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-tab-btn:hover {
+    color: #003366; /* var(--primary) but using hardcoded to be safe if not in scope */
+    background-color: rgba(0, 51, 102, 0.05);
+}
+
+.section-tab-btn.active {
+    color: #003366;
+    border-bottom-color: #003366;
+    background-color: transparent;
+}

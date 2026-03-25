@@ -15,15 +15,16 @@ def api_reuniones():
         fecha = d.get("fecha")
         asistentes = d.get("asistentes")
         temas = d.get("temas")
+        dificultades = d.get("dificultades")
         acuerdos = d.get("acuerdos")
         tipo = d.get("tipo", "PADRES")
         ciclo_id = d.get("ciclo_id")  # Solo para tipo=CICLO
         
         try:
             cur.execute("""
-                INSERT INTO reuniones (alumno_id, fecha, asistentes, temas, acuerdos, tipo, ciclo_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (alumno_id, fecha, asistentes, temas, acuerdos, tipo, ciclo_id))
+                INSERT INTO reuniones (alumno_id, fecha, asistentes, temas, dificultades, acuerdos, tipo, ciclo_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (alumno_id, fecha, asistentes, temas, dificultades, acuerdos, tipo, ciclo_id))
             conn.commit()
             return jsonify({"ok": True, "id": cur.lastrowid})
         except Exception as e:
@@ -110,9 +111,9 @@ def editar_reunion(rid):
     try:
         cur.execute("""
             UPDATE reuniones 
-            SET fecha = ?, asistentes = ?, temas = ?, acuerdos = ?, alumno_id = ?, ciclo_id = ?
+            SET fecha = ?, asistentes = ?, temas = ?, dificultades = ?, acuerdos = ?, alumno_id = ?, ciclo_id = ?
             WHERE id = ?
-        """, (d.get("fecha"), d.get("asistentes"), d.get("temas"), d.get("acuerdos"), d.get("alumno_id"), d.get("ciclo_id"), rid))
+        """, (d.get("fecha"), d.get("asistentes"), d.get("temas"), d.get("dificultades"), d.get("acuerdos"), d.get("alumno_id"), d.get("ciclo_id"), rid))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
@@ -145,7 +146,7 @@ def patch_reunion(rid):
     # Construir consulta dinámica basada en los campos proporcionados
     fields = []
     params = []
-    for key in ["fecha", "asistentes", "temas", "acuerdos", "alumno_id", "ciclo_id"]:
+    for key in ["fecha", "asistentes", "temas", "dificultades", "acuerdos", "alumno_id", "ciclo_id"]:
         if key in d:
             fields.append(f"{key} = ?")
             params.append(d[key])

@@ -156,10 +156,10 @@ def dashboard_resumen():
 
         # 9. Últimas Reuniones (Padres + Ciclo)
         cur.execute("""
-            SELECT r.fecha, a.nombre as alumno, r.temas, r.tipo
+            SELECT r.fecha, a.nombre as alumno, r.temas, r.tipo, r.id
             FROM reuniones r
             LEFT JOIN alumnos a ON a.id = r.alumno_id
-            WHERE (r.tipo = 'CICLO' OR a.grupo_id = ?)
+            WHERE (r.tipo = 'CICLO' OR a.grupo_id = ? OR r.alumno_id IS NULL)
               AND r.fecha <= ?
             ORDER BY r.fecha DESC
             LIMIT 5

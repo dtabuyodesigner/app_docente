@@ -109,24 +109,41 @@ def guardar_asistencia():
 
 @asistencia_bp.route("/api/asistencia/mes")
 def asistencia_mes():
-    mes = request.args.get("mes", date.today().strftime("%Y-%m"))
+    mes = request.args.get("mes")
+    trimestre = request.args.get("trimestre")
+    
     conn = get_db()
     cur = conn.cursor()
-
     grupo_id = session.get('active_group_id')
-    cur.execute("""
-        SELECT 
-            a.nombre,
-            asist.estado,
-            asist.fecha
+    
+    conditions = ["a.grupo_id = ?", "asist.estado IN ('retraso', 'falta_justificada', 'falta_no_justificada')"]
+    params = [grupo_id]
+    
+    if trimestre:
+        year = date.today().year
+        # T1: Sep-Dec (prev year), T2: Jan-Mar (current), T3: Apr-Jun (current)
+        if trimestre == "1":
+            start, end = f"{year-1}-09-01", f"{year-1}-12-31"
+        elif trimestre == "2":
+            start, end = f"{year}-01-01", f"{year}-03-31"
+        else:
+            start, end = f"{year}-04-01", f"{year}-06-30"
+        
+        conditions.append("asist.fecha BETWEEN ? AND ?")
+        params.extend([start, end])
+    else:
+        if not mes: mes = date.today().strftime("%Y-%m")
+        conditions.append("asist.fecha LIKE ?")
+        params.append(f"{mes}%")
+    
+    query = f"""
+        SELECT a.nombre, asist.estado, asist.fecha
         FROM alumnos a
         JOIN asistencia asist ON asist.alumno_id = a.id
-        WHERE strftime('%Y-%m', asist.fecha) = ?
-          AND asist.estado IN ('retraso', 'falta_justificada', 'falta_no_justificada')
-          AND a.grupo_id = ?
+        WHERE {" AND ".join(conditions)}
         ORDER BY a.nombre, asist.fecha
-    """, (mes, grupo_id))
-
+    """
+    cur.execute(query, tuple(params))
     datos = cur.fetchall()
 
     resumen = {}
@@ -269,6 +286,7 @@ def seleccionar_encargado():
     import random
     data = request.json
     fecha = data.get("fecha", date.today().isoformat())
+    modo = data.get("modo", "aleatorio") # aleatorio | lista
     
     conn = get_db()
     cur = conn.cursor()
@@ -287,37 +305,76 @@ def seleccionar_encargado():
     if not presentes:
         return jsonify({"error": "No hay alumnos presentes hoy"}), 400
     
-    # 2. Count how many times each present student has been encargado
+    # 2. Count how many times each student has been encargado
+    # We only count those that were 'realizado'
     cur.execute("""
         SELECT e.alumno_id, COUNT(*) as veces
         FROM encargados e
         JOIN alumnos a ON e.alumno_id = a.id
-        WHERE a.grupo_id = ?
+        WHERE a.grupo_id = ? AND e.estado = 'realizado'
         GROUP BY e.alumno_id
     """, (grupo_id,))
     conteos = {row["alumno_id"]: row["veces"] for row in cur.fetchall()}
     
-    # 3. Find the minimum count among present students
-    present_counts = [(p["id"], p["nombre"], conteos.get(p["id"], 0)) for p in presentes]
-    min_veces = min(c[2] for c in present_counts)
+    # 3. Find the minimum count among ALL students in the group
+    cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ?", (grupo_id,))
+    todos = cur.fetchall()
+    if not todos:
+        return jsonify({"error": "No hay alumnos en el grupo"}), 400
     
-    # 4. Filter candidates (those with the minimum count)
-    candidatos = [c for c in present_counts if c[2] == min_veces]
+    all_counts = {a["id"]: conteos.get(a["id"], 0) for a in todos}
+    min_veces_global = min(all_counts.values())
     
-    # 5. Pick one randomly
-    elegido = random.choice(candidatos)
-    alumno_id, nombre = elegido[0], elegido[1]
+    # 4. Candidates are those who have the min_veces_global
+    candidatos_ids = [aid for aid, v in all_counts.items() if v == min_veces_global]
     
-    # 6. Save (overwrite if exists for that date)
+    # 5. Check which candidates are present today
+    presentes_ids = [p["id"] for p in presentes]
+    candidatos_presentes = [p for p in presentes if p["id"] in candidatos_ids]
+    
+    # Si no hay ningún candidato presente, significa que todos los que faltan por ser encargado hoy no han venido.
+    # En este caso, buscamos a los que tengan min_veces_global + 1 y estén presentes?
+    # O simplemente notificamos? El usuario quiere que si faltó, lo pongamos el último día.
+    
+    if not candidatos_presentes:
+        # Buscamos al siguiente nivel si no hay candidatos de nivel mínimo presentes
+        min_veces_sig = min_veces_global + 1
+        candidatos_presentes = [p for p in presentes if all_counts.get(p["id"], 0) == min_veces_sig]
+        if not candidatos_presentes:
+             # Fallback: pick any present
+             candidatos_presentes = presentes
+
+    # 6. Pick one based on mode
+    if modo == "lista":
+        # Sort candidates by name
+        candidatos_presentes.sort(key=lambda x: x["nombre"])
+        elegido = candidatos_presentes[0]
+    else:
+        elegido = random.choice(candidatos_presentes)
+        
+    alumno_id, nombre = elegido["id"], elegido["nombre"]
+    
+    # 7. Check for skip: students who have min_veces_global but are ABSENT today
+    ausentes_candidatos = [a for a in todos if a["id"] in candidatos_ids and a["id"] not in presentes_ids]
+    
+    # 8. Save
     cur.execute("""
-        INSERT INTO encargados (fecha, alumno_id) 
-        VALUES (?, ?)
-        ON CONFLICT(fecha) DO UPDATE SET alumno_id = excluded.alumno_id
+        INSERT INTO encargados (fecha, alumno_id, estado) 
+        VALUES (?, ?, 'realizado')
+        ON CONFLICT(fecha) DO UPDATE SET alumno_id = excluded.alumno_id, estado = 'realizado'
     """, (fecha, alumno_id))
+    
+    # Record absentees for this cycle if needed? 
+    # Actually, just knowing they have min_veces_global and are absent is enough to notify.
     
     conn.commit()
     
-    return jsonify({"id": alumno_id, "nombre": nombre})
+    return jsonify({
+        "id": alumno_id, 
+        "nombre": nombre,
+        "ausentes_en_turno": [{"id": a["id"], "nombre": a["nombre"]} for a in ausentes_candidatos],
+        "final_ciclo": len(candidatos_ids) <= 1 # If only this one was left
+    })
 
 @asistencia_bp.route("/api/asistencia/encargado/reiniciar", methods=["POST"])
 def reiniciar_encargados():
@@ -333,10 +390,32 @@ def historial_encargados():
     cur = conn.cursor()
     
     grupo_id = session.get('active_group_id')
-    # Get total active students
-    cur.execute("SELECT COUNT(*) as total FROM alumnos WHERE grupo_id = ?", (grupo_id,))
-    total_alumnos = cur.fetchone()["total"]
     
+    # 1. Get all students and their counts
+    cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ?", (grupo_id,))
+    todos = cur.fetchall()
+    
+    cur.execute("""
+        SELECT e.alumno_id, COUNT(*) as veces
+        FROM encargados e
+        JOIN alumnos a ON e.alumno_id = a.id
+        WHERE a.grupo_id = ? AND e.estado = 'realizado'
+        GROUP BY e.alumno_id
+    """, (grupo_id,))
+    conteos = {row["alumno_id"]: row["veces"] for row in cur.fetchall()}
+    
+    estudiantes_info = []
+    for s in todos:
+        estudiantes_info.append({
+            "id": s["id"],
+            "nombre": s["nombre"],
+            "veces": conteos.get(s["id"], 0)
+        })
+    
+    min_veces_global = min([s["veces"] for s in estudiantes_info]) if estudiantes_info else 0
+    total_alumnos = len(estudiantes_info)
+    
+    # 2. Get chronological history
     cur.execute("""
         SELECT e.fecha, a.nombre 
         FROM encargados e
@@ -348,6 +427,8 @@ def historial_encargados():
     
     return jsonify({
         "total_alumnos": total_alumnos,
+        "min_veces_global": min_veces_global,
+        "estudiantes": estudiantes_info,
         "historial": [{"fecha": row["fecha"], "nombre": row["nombre"]} for row in datos]
     })
 

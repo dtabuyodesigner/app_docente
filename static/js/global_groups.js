@@ -58,10 +58,12 @@ async function loadGroupSelectorData() {
             return;
         }
 
-        select.innerHTML = groups.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
-
+        select.innerHTML = '<option value="">🌐 Todos los grupos</option>' + groups.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+        
         if (activeData && activeData.id) {
             select.value = activeData.id;
+        } else {
+            select.value = "";
         }
         console.log("[Groups] Selector cargado con éxito.");
     } catch (e) {
@@ -74,7 +76,6 @@ async function loadGroupSelectorData() {
 
 async function changeActiveGroup(groupId) {
     console.log("Changing active group to:", groupId);
-    if (!groupId) return;
     try {
         const res = await fetch('/api/grupo_activo', {
             method: 'POST',

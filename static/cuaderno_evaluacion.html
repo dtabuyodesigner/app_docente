@@ -14,7 +14,7 @@
             padding: 0;
         }
         .container {
-            max-width: 1300px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -36,6 +36,7 @@
             padding: 15px;
             border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            align-items: center;
         }
         select {
             padding: 8px 15px;
@@ -108,7 +109,7 @@
             background: white;
             padding: 30px;
             border-radius: 20px;
-            width: 300px;
+            width: 350px;
             text-align: center;
         }
         .eval-grid {
@@ -124,15 +125,43 @@
             font-weight: bold;
             cursor: pointer;
         }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: var(--primary);
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+        .btn-back:hover {
+            background: var(--primary);
+            color: white;
+        }
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
 <!-- Unified Navigation injected by navigation.js -->
     <div class="container">
+        <!-- Tabs de Sección Evaluación -->
+        <div class="section-tabs">
+            <a href="/static/evaluacion.html" class="section-tab-btn">📊 Evaluación</a>
+            <a href="/static/evaluar_todo.html" class="section-tab-btn">📝 Evaluar Todo</a>
+            <a href="/static/cuaderno_evaluacion.html" class="section-tab-btn active">📔 Cuaderno</a>
+            <a href="/static/progreso_clase.html" class="section-tab-btn">📈 Progreso</a>
+            <a href="/informes" class="section-tab-btn">📑 Informes</a>
+        </div>
+        
         <div class="header">
             <h1>Cuaderno de Evaluación</h1>
             <div id="group-name" style="font-weight: 600; color: var(--primary);">---</div>
@@ -146,9 +175,14 @@
             </select>
             <select id="periodo-select" onchange="loadCuaderno()">
                 <option value="T1">Trimestre 1</option>
-                <option value="T2">Trimestre 2</option>
+                <option value="T2" selected>Trimestre 2</option>
                 <option value="T3">Trimestre 3</option>
             </select>
+            <button id="btn-masivo" class="btn-success" style="display:none; padding: 8px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white;" onclick="openMasivo()">Evaluación Masiva</button>
+            <div id="export-actions" style="display:none; gap:10px;">
+                <button onclick="exportarCSV()" style="padding: 8px 15px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font-weight: bold;">📊 CSV</button>
+                <button onclick="exportarPDF()" style="padding: 8px 15px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font-weight: bold;">📄 PDF</button>
+            </div>
         </div>
         <div class="table-container">
             <table id="cuaderno-table">
@@ -167,25 +201,25 @@
         <div class="modal-content">
             <h3 id="modal-title">Evaluar</h3>
             <div class="eval-grid">
-                <button class="btn-l l-1" onclick="submitEval(1)">1</button>
-                <button class="btn-l l-2" onclick="submitEval(2)">2</button>
-                <button class="btn-l l-3" onclick="submitEval(3)">3</button>
-                <button class="btn-l l-4" onclick="submitEval(4)">4</button>
+                <button class="btn-l l-1" id="btn-l-1" onclick="submitEval(1)">1</button>
+                <button class="btn-l l-2" id="btn-l-2" onclick="submitEval(2)">2</button>
+                <button class="btn-l l-3" id="btn-l-3" onclick="submitEval(3)">3</button>
+                <button class="btn-l l-4" id="btn-l-4" onclick="submitEval(4)">4</button>
             </div>
             <button style="margin-top: 20px; background: none; border: none; color: #64748b; cursor: pointer;" onclick="closeModal()">Cancelar</button>
         </div>
     </div>
     <script>
         let currentCell = null;
+        let data_global_cuaderno = null;
+
         async function init() {
             try {
-                // Cargar nombre del grupo activo
                 const groupRes = await fetch('/api/grupo_activo');
                 const groupData = await groupRes.json();
                 if (groupData.nombre) {
                     document.getElementById('group-name').innerText = groupData.nombre;
                 }
-                // Cargar etapas
                 const etapaRes = await fetch('/api/etapas');
                 const etapas = await etapaRes.json();
                 const etapaSelect = document.getElementById('etapa-select');
@@ -195,15 +229,16 @@
                     opt.textContent = e.nombre;
                     etapaSelect.appendChild(opt);
                 });
-                // Si hay un grupo activo, preseleccionar su etapa y cargar sus áreas
                 if (groupData.etapa_id) {
                     etapaSelect.value = groupData.etapa_id;
+                    etapaSelect.disabled = true;
                     await loadAreasByEtapa();
                 }
             } catch (e) {
                 console.error("Error en init:", e);
             }
         }
+
         async function loadAreasByEtapa() {
             const etapaId = document.getElementById('etapa-select').value;
             const areaSelect = document.getElementById('area-select');
@@ -218,72 +253,171 @@
                     opt.textContent = a.nombre;
                     areaSelect.appendChild(opt);
                 });
-                // Limpiar la tabla si cambiamos de etapa
                 document.getElementById('table-body').innerHTML = '';
             } catch (e) {
                 console.error("Error cargando áreas:", e);
             }
         }
+
         async function loadCuaderno() {
             const areaId = document.getElementById('area-select').value;
             const periodo = document.getElementById('periodo-select').value;
             if (!areaId) return;
             try {
                 const res = await fetch(`/api/evaluacion/cuaderno?area_id=${areaId}&periodo=${periodo}`);
-                const data = await res.json();
-                renderTable(data);
+                data_global_cuaderno = await res.json();
+                renderTable(data_global_cuaderno);
             } catch (e) {}
         }
+
         function renderTable(data) {
             const headerRow = document.getElementById('table-header');
             const body = document.getElementById('table-body');
-            headerRow.innerHTML = '<th class="sticky-col">Alumno</th>';
+            const btnMasivo = document.getElementById('btn-masivo');
+            
+            headerRow.innerHTML = '<th style="width:40px"><input type="checkbox" onclick="toggleAllAlumnos(this)"></th><th class="sticky-col">Alumno</th>';
             data.criterios.forEach(c => {
-                headerRow.innerHTML += `<th title="${c.descripcion || c.codigo}">${c.codigo}</th>`;
+                headerRow.innerHTML += `<th title="${c.descripcion || c.codigo}" data-crit-id="${c.id}">${c.codigo}</th>`;
             });
             body.innerHTML = '';
             data.alumnos.forEach(a => {
-                let row = `<tr><td class="sticky-col">${a.nombre}</td>`;
+                let row = `<tr>
+                    <td><input type="checkbox" class="alumno-check" value="${a.id}"></td>
+                    <td class="sticky-col" style="cursor:pointer; color:var(--primary); font-weight:700;" onclick="cargarResumenAlumno(${a.id}, '${a.nombre.replace(/'/g, "\\'")}')">${a.nombre}</td>`;
                 data.criterios.forEach(c => {
                     const level = data.evaluaciones[`${a.id}_${c.id}`];
+                    let label = level || '-';
+                    const etapaId = document.getElementById('etapa-select').value;
+                    if (etapaId == "1" && level) {
+                        if (level == 1) label = "NI/PA";
+                        if (level == 2) label = "EP/A";
+                        if (level == 3) label = "CO/MA";
+                    }
                     const classLevel = level ? `l-${level}` : '';
-                    row += `<td class="level-cell ${classLevel}" onclick="openEval(${a.id}, ${c.id}, '${a.nombre}', '${c.codigo}', '${c.descripcion || ''}')">${level || '-'}</td>`;
+                    row += `<td class="level-cell ${classLevel}" onclick="openEval(${a.id}, ${c.id}, '${a.nombre.replace(/'/g, "\\'")}', '${c.codigo}', '${escapeHtml(c.descripcion || '')}')">${label}</td>`;
                 });
                 row += '</tr>';
                 body.innerHTML += row;
             });
+            btnMasivo.style.display = data.alumnos.length > 0 ? 'inline-block' : 'none';
+            document.getElementById('export-actions').style.display = data.alumnos.length > 0 ? 'flex' : 'none';
         }
+
+        function toggleAllAlumnos(master) {
+            document.querySelectorAll('.alumno-check').forEach(cb => cb.checked = master.checked);
+        }
+
+        function openMasivo() {
+            const checkedCheckboxes = document.querySelectorAll('.alumno-check:checked');
+            if (checkedCheckboxes.length === 0) return alert("Selecciona alumnos primero");
+            const headerThs = document.querySelectorAll('#table-header th');
+            if (headerThs.length < 3) return alert("No hay criterios cargados");
+            // Usamos el primer criterio de la tabla
+            const firstCritLabel = headerThs[2].innerText;
+            const firstCritTitle = headerThs[2].title || firstCritLabel;
+            const firstCritIdString = headerThs[2].getAttribute('data-crit-id');
+            openEval('MASIVO', firstCritIdString, 'Evaluación Masiva', firstCritLabel, firstCritTitle);
+        }
+
+        function escapeHtml(text) { return text.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
         function openEval(alumnoId, criterioId, alumnoNombre, critCodigo, critDesc) {
             currentCell = { alumnoId, criterioId };
+            const etapaId = document.getElementById('etapa-select').value;
+            const b4 = document.getElementById('btn-l-4');
+            if (etapaId == "1") {
+                document.getElementById('btn-l-1').innerText = "NI - Poco adecuado";
+                document.getElementById('btn-l-2').innerText = "EP - Adecuado";
+                document.getElementById('btn-l-3').innerText = "CO - Muy adecuado";
+                b4.style.display = "none";
+                document.querySelectorAll('.btn-l').forEach(b => b.style.fontSize = "0.7rem");
+            } else {
+                [1,2,3,4].forEach(n => {
+                   const b = document.getElementById(`btn-l-${n}`);
+                   b.innerText = n;
+                   b.style.fontSize = "1rem";
+                });
+                b4.style.display = "block";
+            }
             document.getElementById('modal-title').innerHTML = `
                 <div style="font-size: 1.1rem; margin-bottom: 5px;">${alumnoNombre}</div>
                 <div style="font-size: 0.85rem; color: #64748b; font-weight: normal;">${critCodigo}: ${critDesc}</div>
             `;
             document.getElementById('eval-modal').style.display = 'flex';
         }
-        function closeModal() {
-            document.getElementById('eval-modal').style.display = 'none';
-        }
+
         async function submitEval(nivel) {
+            if (!currentCell) return;
             const periodo = document.getElementById('periodo-select').value;
+            let evals = [];
+            if (currentCell.alumnoId === 'MASIVO') {
+                evals = Array.from(document.querySelectorAll('.alumno-check:checked')).map(cb => ({
+                    alumno_id: cb.value, criterio_id: currentCell.criterioId, nivel: nivel
+                }));
+            } else {
+                evals.push({ alumno_id: currentCell.alumnoId, criterio_id: currentCell.criterioId, nivel: nivel });
+            }
             try {
                 const res = await fetch('/api/evaluacion/guardar_masivo', {
                     method: 'POST',
-                    body: JSON.stringify({
-                        periodo: periodo,
-                        evaluaciones: [{
-                            alumno_id: currentCell.alumnoId,
-                            criterio_id: currentCell.criterioId,
-                            nivel: nivel
-                        }]
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ periodo, evaluaciones: evals })
                 });
-                if (res.ok) {
-                    closeModal();
-                    loadCuaderno();
-                }
-            } catch (e) {}
+                if (res.ok) { closeModal(); loadCuaderno(); }
+            } catch (e) { console.error(e); }
         }
+
+        async function cargarResumenAlumno(alumnoId, nombre) {
+            const trimestre = document.getElementById('periodo-select').value.replace('T', '');
+            let resDiv = document.getElementById('resumen-alumno-notebook');
+            if (!resDiv) {
+                resDiv = document.createElement('div');
+                resDiv.id = 'resumen-alumno-notebook';
+                resDiv.style = 'margin-top:30px; background:white; padding:25px; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.05); border:1px solid #e2e8f0;';
+                document.querySelector('.container').appendChild(resDiv);
+            }
+            resDiv.innerHTML = `<h3 style="color:var(--primary); margin:0 0 15px 0;">📊 Resumen de ${nombre}</h3><div id="resumen-content">Cargando...</div>`;
+            try {
+                const r = await fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoId}&trimestre=${trimestre}`);
+                const datos = await r.json();
+                const content = document.getElementById('resumen-content');
+                if (datos.length === 0) { content.innerHTML = `<p style="color:#64748b;">No hay evaluaciones registradas para este trimestre.</p>`; return; }
+                content.innerHTML = datos.map(a => `
+                    <div style="margin-bottom:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <strong style="font-size:1.1rem; color:#1e293b;">${a.area}</strong>
+                            <span style="background:#e0f2fe; color:#0369a1; padding:4px 12px; border-radius:20px; font-weight:700; font-size:0.85rem;">MEDIA: ${a.media}</span>
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            ${a.criterios.map(c => `<div style="background:#f8fafc; border:1px solid #e2e8f0; padding:6px 12px; border-radius:10px; font-size:0.8rem;"><span style="color:#64748b; font-weight:600;">${c.codigo}:</span> <span style="color:var(--primary); font-weight:700;">${c.nota}</span></div>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
+                resDiv.scrollIntoView({ behavior: 'smooth' });
+            } catch (e) { document.getElementById('resumen-content').innerHTML = "Error al cargar resumen."; }
+        }
+
+        function exportarCSV() {
+            const areaId = document.getElementById('area-select').value;
+            const periodo = document.getElementById('periodo-select').value;
+            if (!areaId) return alert("Selecciona área primero");
+            window.location.href = `/api/evaluacion/cuaderno/csv?area_id=${areaId}&periodo=${periodo}`;
+        }
+        function exportarPDF() {
+            const areaId = document.getElementById('area-select').value;
+            const periodo = document.getElementById('periodo-select').value;
+            if (!areaId) return alert("Selecciona área primero");
+            window.location.href = `/api/evaluacion/cuaderno/pdf?area_id=${areaId}&periodo=${periodo}`;
+        }
+
+        function closeModal() { document.getElementById('eval-modal').style.display = 'none'; }
+        window.addEventListener('keydown', (e) => { 
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closeModal(); 
+            }
+        });
+
         init();
     </script>
 </body>

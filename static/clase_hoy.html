@@ -85,12 +85,21 @@
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
-    <script src="/static/js/navigation.js?v=1.4"></script>
+    <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
 <body>
 <!-- Unified Navigation injected by navigation.js -->
     <div class="container">
+        <!-- Tabs de Sección Docencia -->
+        <div class="section-tabs">
+            <a href="/diario" class="section-tab-btn">📖 Diario</a>
+            <a href="/programacion" class="section-tab-btn">📅 Programación</a>
+            <a href="/static/clase_hoy.html" class="section-tab-btn active">🏫 Clase de Hoy</a>
+            <a href="/rubricas" class="section-tab-btn">📊 Rúbricas</a>
+            <a href="/tareas" class="section-tab-btn">📝 Tareas</a>
+        </div>
+        
         <div class="session-card" id="session-info">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <h1>Clase de Hoy</h1>
@@ -101,6 +110,17 @@
                 Criterio: ---
             </div>
         </div>
+
+        <!-- Bug 16: Guía de evaluación -->
+        <div id="eval-guide" style="margin-bottom: 25px; background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="font-size: 1.5rem;">💡</div>
+            <div style="font-size: 0.9rem; color: #92400e;">
+                <strong>Guía rápida:</strong> Haz clic en los círculos para evaluar. 
+                <span id="guide-labels">1: Insuficiente, 2: Suficiente, 3: Notable, 4: Sobresaliente.</span> 
+                Haz clic de nuevo para desmarcar.
+            </div>
+        </div>
+
         <div class="list-card">
             <h2 style="margin-top:0; font-size: 1.2rem; color: #1e293b;">Alumnos de la clase</h2>
             <div id="student-list">
@@ -132,6 +152,15 @@
                     document.getElementById('criterio-tag').innerText = 'Criterio: ---';
                     document.getElementById('session-info').classList.add('no-session');
                 }
+                
+                // Actualizar labels de la guía según etapa
+                const guideLabels = document.getElementById('guide-labels');
+                if (data.etapa_id == 1) { // Infantil
+                    guideLabels.innerText = "NI/PA: Poco adecuado, EP/A: Adecuado, CO/MA: Muy adecuado.";
+                } else {
+                    guideLabels.innerText = "1: Insuficiente, 2: Suficiente, 3: Notable, 4: Sobresaliente.";
+                }
+
                 renderList();
             } catch (e) {
                 console.error(e);
@@ -151,11 +180,19 @@
                         </span>
                     </div>
                     <div class="eval-dots" style="${!currentData.sesion ? 'opacity:0.3; pointer-events:none;' : ''}">
-                        ${[1,2,3,4].map(n => `
-                            <div class="dot ${s.nivel == n ? 'active' : ''}" 
-                                 data-n="${n}" 
-                                 onclick="quickEval(${s.id}, ${n})">${n}</div>
-                        `).join('')}
+                        ${[1,2,3,4].map(n => {
+                            if (currentData.etapa_id == 1 && n == 4) return ''; // Solo 3 niveles en Infantil
+                            let label = n;
+                            if (currentData.etapa_id == 1) {
+                                if (n == 1) label = 'NI/PA';
+                                if (n == 2) label = 'EP/A';
+                                if (n == 3) label = 'CO/MA';
+                            }
+                            return `<div class="dot ${s.nivel == n ? 'active' : ''}" 
+                                         data-n="${n}" 
+                                         onclick="quickEval(${s.id}, ${n})"
+                                         style="${currentData.etapa_id == 1 ? 'width: 32px; border-radius: 6px;' : ''}">${label}</div>`;
+                        }).join('')}
                     </div>
                 </div>
             `).join('');

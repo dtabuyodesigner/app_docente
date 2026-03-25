@@ -230,9 +230,9 @@ h4 {
     cursor: pointer;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
     .nav-menu {
-        display: none; /* Logic will handle this */
+        display: none; /* Logic will handle this if implemented later */
     }
 }
 
@@ -320,10 +320,24 @@ textarea {
     font-family: inherit;
 }
 
-input:focus {
+input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--secondary);
-    box-shadow: 0 0 0 3px hsla(var(--secondary-h), var(--secondary-s), var(--secondary-l), 0.1);
+    box-shadow: 0 4px 12px hsla(var(--secondary-h), var(--secondary-s), var(--secondary-l), 0.15);
+    background: white;
+}
+
+input[type="time"], input[type="date"] {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--primary);
+    transition: all 0.2s ease;
+    min-height: 42px;
+}
+
+input[type="time"]:hover, input[type="date"]:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
 }
 
 /* Group Selector Component */

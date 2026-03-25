@@ -443,25 +443,31 @@ def clase_hoy():
     
     db = get_db()
     cur = db.cursor()
+    session_id = request.args.get("session_id")
     
-    # 1. Obtener la sesión más relevante del día para el grupo activo
-    # Priorizamos: 1. Sesiones del grupo, 2. Sesiones con criterio (evaluables), 3. Primera sesión creada
+    # 1. Obtener todas las sesiones del día para el grupo activo
     cur.execute("""
         SELECT pd.id, pd.descripcion as actividad, pd.criterio_id, pd.sda_id, 
                c.codigo as criterio_codigo, c.descripcion as criterio_desc,
-               c.area_id
+               c.area_id, a.nombre as area_nombre
         FROM programacion_diaria pd
         LEFT JOIN criterios c ON pd.criterio_id = c.id
         LEFT JOIN sda s ON pd.sda_id = s.id
-        WHERE pd.fecha = ? AND (s.grupo_id = ? OR s.grupo_id IS NULL)
+        LEFT JOIN areas a ON c.area_id = a.id
+        WHERE pd.fecha = ? AND (s.grupo_id = ? OR s.grupo_id IS NULL OR pd.actividad_id IS NULL)
         ORDER BY 
             (CASE WHEN s.grupo_id = ? THEN 0 ELSE 1 END) ASC,
             (CASE WHEN pd.criterio_id IS NOT NULL THEN 0 ELSE 1 END) ASC,
             pd.id ASC
-        LIMIT 1
     """, (fecha_hoy, grupo_id, grupo_id))
     
-    sesion = cur.fetchone()
+    sesiones = [dict(r) for r in cur.fetchall()]
+    
+    if session_id:
+        target_ses = next((s for s in sesiones if str(s["id"]) == session_id), None)
+        sesion = target_ses if target_ses else (sesiones[0] if sesiones else None)
+    else:
+        sesion = sesiones[0] if sesiones else None
     
     # 2. Alumnos y su asistencia hoy (SIEMPRE se cargan si hay grupo_id)
     if not grupo_id:
@@ -512,6 +518,7 @@ def clase_hoy():
         if area_row: etapa_id = area_row["etapa_id"]
 
     return jsonify({
+        "sesiones": sesiones,
         "sesion": dict(sesion) if sesion else None,
         "alumnos": alumnos,
         "trimestre": trimestre,

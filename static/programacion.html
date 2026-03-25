@@ -630,8 +630,59 @@
                         <input type="date" id="eventDate">
                     </div>
                     <div style="flex:1;">
-                        <label>Hora (Opcional):</label>
-                        <input type="time" id="eventTime">
+                        <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+                            <div>
+                                <label style="display:block; font-size:0.8rem; margin-bottom:2px;">Desde:</label>
+                                <div style="display:flex; gap:5px; align-items:center;">
+                                    <select id="eventHour" style="width:70px; padding:8px;">
+                                        <option value="">--</option>
+                                        <option value="00">00</option><option value="01">01</option><option value="02">02</option>
+                                        <option value="03">03</option><option value="04">04</option><option value="05">05</option>
+                                        <option value="06">06</option><option value="07">07</option><option value="08">08</option>
+                                        <option value="09">09</option><option value="10">10</option><option value="11">11</option>
+                                        <option value="12">12</option><option value="13">13</option><option value="14">14</option>
+                                        <option value="15">15</option><option value="16">16</option><option value="17">17</option>
+                                        <option value="18">18</option><option value="19">19</option><option value="20">20</option>
+                                        <option value="21">21</option><option value="22">22</option><option value="23">23</option>
+                                    </select>
+                                    <span>:</span>
+                                    <select id="eventMinute" style="width:70px; padding:8px;">
+                                        <!-- Will be populated via JS for brevity in HTML if needed, but keeping static for now -->
+                                        <option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option>
+                                        <option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
+                                        <option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option>
+                                        <option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option>
+                                        <option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option>
+                                        <option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:0.8rem; margin-bottom:2px;">Hasta:</label>
+                                <div style="display:flex; gap:5px; align-items:center;">
+                                    <select id="eventEndHour" style="width:70px; padding:8px;">
+                                        <option value="">--</option>
+                                        <option value="00">00</option><option value="01">01</option><option value="02">02</option>
+                                        <option value="03">03</option><option value="04">04</option><option value="05">05</option>
+                                        <option value="06">06</option><option value="07">07</option><option value="08">08</option>
+                                        <option value="09">09</option><option value="10">10</option><option value="11">11</option>
+                                        <option value="12">12</option><option value="13">13</option><option value="14">14</option>
+                                        <option value="15">15</option><option value="16">16</option><option value="17">17</option>
+                                        <option value="18">18</option><option value="19">19</option><option value="20">20</option>
+                                        <option value="21">21</option><option value="22">22</option><option value="23">23</option>
+                                    </select>
+                                    <span>:</span>
+                                    <select id="eventEndMinute" style="width:70px; padding:8px;">
+                                        <option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option>
+                                        <option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
+                                        <option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option>
+                                        <option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option>
+                                        <option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option>
+                                        <option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div style="margin-bottom:15px;">
@@ -647,6 +698,8 @@
                             onclick="selectType(this)">🎉 Festivo</button>
                         <button type="button" class="btn-type" data-color="#ff8c00" data-type="reunion"
                             onclick="selectType(this)">🤝 Reunión</button>
+                        <button type="button" class="btn-type" data-color="#9b59b6" data-type="otro"
+                            onclick="selectType(this)">❓ Otro</button>
                     </div>
                     <input type="hidden" id="eventType" value="clase">
                     <input type="hidden" id="eventColor" value="#3788d8">
@@ -1683,14 +1736,37 @@
             if (event) {
                 document.getElementById('eventId').value = event.id;
                 document.getElementById('eventDate').value = event.startStr.split('T')[0];
-                // Extract time from title if it matches the format [HH:MM] Title
+                // Extract hour and minute from title if it matches the format [HH:MM] or [HH:MM-HH:MM] Title
                 let title = event.title;
-                let timeMatched = title.match(/^\[(\d{2}:\d{2})\]\s*(.*)/);
-                if (timeMatched) {
-                    document.getElementById('eventTime').value = timeMatched[1];
-                    document.getElementById('eventActivity').value = timeMatched[2];
+                let rangeMatched = title.match(/^\[(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})\]\s*(.*)/);
+                let singleMatched = title.match(/^\[(\d{1,2}):(\d{2})\]\s*(.*)/);
+                
+                if (rangeMatched) {
+                    let h1 = rangeMatched[1];
+                    let m1 = rangeMatched[2];
+                    let h2 = rangeMatched[3];
+                    let m2 = rangeMatched[4];
+                    if (h1.length === 1) h1 = '0' + h1;
+                    if (h2.length === 1) h2 = '0' + h2;
+                    document.getElementById('eventHour').value = h1;
+                    document.getElementById('eventMinute').value = m1;
+                    document.getElementById('eventEndHour').value = h2;
+                    document.getElementById('eventEndMinute').value = m2;
+                    document.getElementById('eventActivity').value = rangeMatched[5];
+                } else if (singleMatched) {
+                    let h = singleMatched[1];
+                    let m = singleMatched[2];
+                    if (h.length === 1) h = '0' + h;
+                    document.getElementById('eventHour').value = h;
+                    document.getElementById('eventMinute').value = m;
+                    document.getElementById('eventEndHour').value = '';
+                    document.getElementById('eventEndMinute').value = '00';
+                    document.getElementById('eventActivity').value = singleMatched[3];
                 } else {
-                    document.getElementById('eventTime').value = '';
+                    document.getElementById('eventHour').value = '';
+                    document.getElementById('eventMinute').value = '00';
+                    document.getElementById('eventEndHour').value = '';
+                    document.getElementById('eventEndMinute').value = '00';
                     document.getElementById('eventActivity').value = title;
                 }
                 document.getElementById('eventObs').value = event.extendedProps.observaciones || "";
@@ -1708,7 +1784,10 @@
                     document.getElementById('eventObs').disabled = false;
                     document.getElementById('eventSda').disabled = true;
                     document.getElementById('eventDate').disabled = false;
-                    document.getElementById('eventTime').disabled = false;
+                    document.getElementById('eventHour').disabled = false;
+                    document.getElementById('eventMinute').disabled = false;
+                    document.getElementById('eventEndHour').disabled = false;
+                    document.getElementById('eventEndMinute').disabled = false;
                     const btn = document.querySelector(`.btn-type[data-type="${type}"]`);
                     if (btn) selectType(btn);
                     document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
@@ -1719,7 +1798,10 @@
                     document.getElementById('eventObs').disabled = false;
                     document.getElementById('eventSda').disabled = false;
                     document.getElementById('eventDate').disabled = false;
-                    document.getElementById('eventTime').disabled = false;
+                    document.getElementById('eventHour').disabled = false;
+                    document.getElementById('eventMinute').disabled = false;
+                    document.getElementById('eventEndHour').disabled = false;
+                    document.getElementById('eventEndMinute').disabled = false;
                     document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
                     document.getElementById('btnSaveEvent').style.display = 'inline-block';
                     const btn = document.querySelector(`.btn-type[data-type="${type}"]`);
@@ -1728,14 +1810,20 @@
             } else {
                 document.getElementById('eventId').value = "";
                 document.getElementById('eventDate').value = dateStr;
-                document.getElementById('eventTime').value = "";
+                document.getElementById('eventHour').value = "";
+                document.getElementById('eventMinute').value = "00";
+                document.getElementById('eventEndHour').value = "";
+                document.getElementById('eventEndMinute').value = "00";
                 document.getElementById('eventActivity').value = "";
                 document.getElementById('eventActivity').disabled = false;
                 document.getElementById('eventObs').value = "";
                 document.getElementById('eventObs').disabled = false;
                 document.getElementById('eventSda').disabled = false;
                 document.getElementById('eventDate').disabled = false;
-                document.getElementById('eventTime').disabled = false;
+                document.getElementById('eventHour').disabled = false;
+                document.getElementById('eventMinute').disabled = false;
+                document.getElementById('eventEndHour').disabled = false;
+                document.getElementById('eventEndMinute').disabled = false;
                 document.getElementById('btnSaveEvent').style.display = 'inline-block';
                 document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
                 selectType(document.querySelector('.btn-type[data-type="clase"]'));
@@ -1832,13 +1920,21 @@
         function saveEvent() {
             const id = document.getElementById('eventId').value;
             let activityText = document.getElementById('eventActivity').value;
-            const eventTime = document.getElementById('eventTime').value;
+            const h = document.getElementById('eventHour').value;
+            const m = document.getElementById('eventMinute').value;
+            const eh = document.getElementById('eventEndHour').value;
+            const em = document.getElementById('eventEndMinute').value;
             let fullDateStr = document.getElementById('eventDate').value;
-            // Si hay hora, la añadimos al título para que la muestre en el calendario (no requiere DB schema change ahora)
-            if (eventTime) {
-                activityText = `[${eventTime}] ${activityText}`;
-                // Optional: We could also append the time to the date if we want it to parse as datetime in calendar
-                // fullDateStr = `${fullDateStr}T${eventTime}:00`; 
+
+            // Si hay hora, la añadimos al título para que la muestre en el calendario
+            if (h) {
+                let eventTime = `${h}:${m}`;
+                if (eh) {
+                    eventTime += `-${eh}:${em}`;
+                }
+                // Ensure we don't double prepend if somehow it was already there
+                const cleanActivity = activityText.replace(/^\[\d{1,2}:\d{2}(-\d{1,2}:\d{2})?\]\s*/, "");
+                activityText = `[${eventTime}] ${cleanActivity}`;
             }
             const data = {
                 fecha: fullDateStr,
@@ -2399,6 +2495,20 @@
         }
         // Init
         loadInitialData();
+
+        // Handle Escape key to close modal
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('eventModal');
+                if (modal && modal.style.display === 'flex') {
+                    closeModal();
+                }
+                const importModal = document.getElementById('sdaImportModal');
+                 if (importModal && importModal.style.display === 'flex') {
+                    closeImportSdaModal();
+                }
+            }
+        });
     </script>
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">

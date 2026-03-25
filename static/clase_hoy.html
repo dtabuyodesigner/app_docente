@@ -82,6 +82,45 @@
         }
         .presente { color: #10b981; background: #dcfce7; }
         .falta { color: #ef4444; background: #fee2e2; }
+        .session-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+        }
+        .session-pill {
+            padding: 8px 18px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #64748b;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        .session-pill.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+        }
+        .session-nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .session-nav-btn:hover {
+            background: rgba(255,255,255,0.4);
+        }
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
@@ -92,7 +131,7 @@
 <!-- Unified Navigation injected by navigation.js -->
     <div class="container">
         <!-- Tabs de Sección Docencia -->
-        <div class="section-tabs">
+        <div class="session-tabs">
             <a href="/diario" class="section-tab-btn">📖 Diario</a>
             <a href="/programacion" class="section-tab-btn">📅 Programación</a>
             <a href="/static/clase_hoy.html" class="section-tab-btn active">🏫 Clase de Hoy</a>
@@ -100,10 +139,21 @@
             <a href="/tareas" class="section-tab-btn">📝 Tareas</a>
         </div>
         
+        <div id="session-selector" class="session-selector"></div>
+        
         <div class="session-card" id="session-info">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <h1>Clase de Hoy</h1>
-                <span id="clase-fecha" style="font-weight:600; background:rgba(255,255,255,0.2); padding:5px 12px; border-radius:10px;">--/--/----</span>
+                <div>
+                    <h1>Clase de Hoy</h1>
+                    <div id="area-tag" style="margin-top:5px; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: rgba(255,255,255,0.8);">---</div>
+                </div>
+                <div style="text-align: right;">
+                    <span id="clase-fecha" style="font-weight:600; background:rgba(255,255,255,0.2); padding:5px 12px; border-radius:10px; display: block; margin-bottom: 10px;">--/--/----</span>
+                    <div id="nav-btns" style="display: none; gap: 8px;">
+                        <button onclick="changeSession(-1)" class="session-nav-btn">◀</button>
+                        <button onclick="changeSession(1)" class="session-nav-btn">▶</button>
+                    </div>
+                </div>
             </div>
             <p id="actividad-nombre">Investigando sesiones...</p>
             <div id="criterio-tag" style="display:inline-block; margin-top:15px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 10px; font-size: 0.9rem; max-width: 100%;">
@@ -155,10 +205,11 @@
     </div>
     <script>
         let currentData = null;
-        async function loadToday() {
+        async function loadToday(sessionId = null) {
             try {
-                // Añadimos un timestamp para evitar cacheo del navegador
-                const res = await fetch(`/api/evaluacion/clase_hoy?t=${new Date().getTime()}`);
+                let url = `/api/evaluacion/clase_hoy?t=${new Date().getTime()}`;
+                if (sessionId) url += `&session_id=${sessionId}`;
+                const res = await fetch(url);
                 const data = await res.json();
                 currentData = data;
                 
@@ -173,6 +224,7 @@
                 }
 
                 if (data.sesion) {
+                    document.getElementById('area-tag').innerText = data.sesion.area_nombre || 'General';
                     document.getElementById('actividad-nombre').innerText = data.sesion.actividad;
                     let critText = `<strong>${data.sesion.criterio_codigo || 'N/A'}</strong>`;
                     if (data.sesion.criterio_desc) {
@@ -184,12 +236,30 @@
                     noSessionHelp.style.display = 'none';
                     evalGuide.style.display = 'flex';
                 } else {
+                    document.getElementById('area-tag').innerText = '---';
                     document.getElementById('actividad-nombre').innerText = 'Sin actividad evaluable hoy';
                     document.getElementById('criterio-tag').innerText = 'Criterio: ---';
                     sessionInfo.classList.add('no-session');
-                    sessionInfo.style.display = 'none'; // Ocultamos la card principal para mostrar la de ayuda
+                    sessionInfo.style.display = 'none';
                     noSessionHelp.style.display = 'block';
                     evalGuide.style.display = 'none';
+                }
+                
+                // Render session selector
+                const selector = document.getElementById('session-selector');
+                const navBtns = document.getElementById('nav-btns');
+                if (data.sesiones && data.sesiones.length > 1) {
+                    selector.style.display = 'flex';
+                    navBtns.style.display = 'flex';
+                    selector.innerHTML = data.sesiones.map(s => `
+                        <div class="session-pill ${data.sesion && data.sesion.id === s.id ? 'active' : ''}" 
+                             onclick="loadToday(${s.id})">
+                            ${s.actividad}
+                        </div>
+                    `).join('');
+                } else {
+                    selector.style.display = 'none';
+                    navBtns.style.display = 'none';
                 }
                 
                 // Actualizar labels de la guía según etapa
@@ -284,6 +354,14 @@
                 console.error("[ERROR] Excepción en quickEval:", e);
                 alert("Error de conexión al guardar evaluación.");
             }
+        }
+        function changeSession(delta) {
+            if (!currentData || !currentData.sesiones || currentData.sesiones.length <= 1) return;
+            const currentIndex = currentData.sesiones.findIndex(s => s.id === currentData.sesion.id);
+            let nextIndex = currentIndex + delta;
+            if (nextIndex >= currentData.sesiones.length) nextIndex = 0;
+            if (nextIndex < 0) nextIndex = currentData.sesiones.length - 1;
+            loadToday(currentData.sesiones[nextIndex].id);
         }
         loadToday();
     </script>

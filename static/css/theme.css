@@ -318,6 +318,8 @@ textarea {
     border-radius: var(--radius-sm);
     font-size: 1rem;
     font-family: inherit;
+    min-height: 42px;
+    box-sizing: border-box;
 }
 
 input:focus, select:focus, textarea:focus {

@@ -1177,7 +1177,7 @@
                     let htmlRow = `<td class="alumno-name">${alum.nombre}</td>`;
                     data.criterios.forEach(crit => {
                         const val = data.evaluaciones[`${alum.id}_${crit.id}`] || "";
-                        const label = esInfantil ? (val === 1 ? "NI" : val === 2 ? "EP" : val === 3 ? "C" : "") : val;
+                        const label = esInfantil ? (val === 1 ? "NI/PA" : val === 2 ? "EP/A" : val === 3 ? "CO/MA" : "") : val;
                         htmlRow += `<td>
                             <div class="eval-cell val-${val}" 
                                  onclick="siguienteNivel(${alum.id}, ${crit.id}, this, ${esInfantil ? 3 : 4})"
@@ -1193,9 +1193,9 @@
                 if (isNaN(current)) {
                     // Handle labels NI, EP, C
                     const label = cell.innerText;
-                    if (label === "NI") current = 1;
-                    else if (label === "EP") current = 2;
-                    else if (label === "C") current = 3;
+                    if (label === "NI" || label === "NI/PA") current = 1;
+                    else if (label === "EP" || label === "EP/A") current = 2;
+                    else if (label === "C" || label === "CO/MA") current = 3;
                     else current = 0;
                 }
                 let next = current + 1;
@@ -1214,7 +1214,7 @@
                     // For now, let's keep it simple and just save level 0 if backend handles it or use the delete endpoint
                     // Actually, let's just save next if it's > 0
                 } else {
-                    const label = esInfantil ? (next === 1 ? "NI" : next === 2 ? "EP" : "C") : next;
+                    const label = esInfantil ? (next === 1 ? "NI/PA" : next === 2 ? "EP/A" : "CO/MA") : next;
                     cell.innerText = label;
                 }
                 // Save to backend

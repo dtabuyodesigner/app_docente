@@ -12,10 +12,12 @@ Esta es la lista de los archivos que han sido modificados para asegurar que la b
 *   `routes/alumnos.py`: Actualizada la ruta de subida de fotos de los alumnos para que se guarden en `get_app_data_dir() + "/uploads"`.
 *   `routes/comedor.py`: Actualizada la ruta de subida de los menús del comedor para que se guarden en `get_app_data_dir() + "/uploads"`.
 
-## 3. Frontend (HTML/JS)
-Se han actualizado todas las referencias a imágenes de alumnos y menús que antes apuntaban a `/static/uploads/...` para que ahora apunten al nuevo endpoint `/uploads/...`:
-*   `static/alumnos.html`
-*   `static/perfil.html`
-*   `static/diario.html`
-*   `static/asistencia.html`
-*   `static/horario.html`
+## 4. Refinamientos de Evaluación, Informes y UI (Última Fase)
+Se han realizado los siguientes ajustes para mejorar la experiencia de usuario y la consistencia visual:
+*   `static/evaluacion.html`: Implementada lógica de ciclo de notas para Infantil (`NI/PA` -> `EP/A` -> `CO/MA`).
+*   `static/programacion.html`: Convertidos campos de descripción de sesiones en `textarea` para soportar textos largos sin recortes.
+*   `static/progreso_clase.html`: Añadida preselección automática de etapa basada en el grupo activo y ajuste dinámico de escalas en gráficos (1-3 o 1-4).
+*   `static/informes.html` y `static/diario.html`: Eliminados estilos inline de inputs de fecha y otros elementos para delegar en `theme.css`.
+*   `static/css/theme.css`: Estandarizada la altura mínima (`min-height: 42px`) para todos los inputs y selects del sistema, asegurando una estética premium y consistente.
+*   `routes/curricular.py`: Mejorada la robustez en la importación de SDAs (conteo de sesiones y gestión de descripciones).
+*   `app.py`: Correcciones en el enrutamiento y registro de blueprints.

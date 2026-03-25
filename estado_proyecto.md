@@ -1,5 +1,5 @@
 # Cuaderno del Tutor — Estado del Proyecto
-*Actualizado: 20/03/2026*
+*Actualizado: 25/03/2026*
 
 ---
 
@@ -39,14 +39,21 @@
 ## 🔄 MÓDULOS PENDIENTES DE PROBAR EN WINDOWS
 
 - Reuniones
-- Diario / Observaciones
-- Evaluación (criterios, notas, SDA)
-- Informes individuales (PDF, Excel)
-- Informe de grupo + Acta Oficial
 - Biblioteca (catálogo, préstamos, devoluciones, diplomas, lectómetro)
-- Programación
 - Dashboard
 - Configuración (logos, actualizaciones, rol especialista)
+
+### 📊 Evaluación y Currículo (SDA)
+- Rejilla de evaluación con ciclo de notas (`NI/PA`, `EP/A`, `CO/MA`)
+- Evaluación masiva reactiva ("Evaluar Todo")
+- Gestión de SDAs completa (Importación CSV, sesiones múltiples)
+- Actividades con descripciones completas (`textarea`)
+
+### 📑 Informes y Diario
+- Generación de informes individuales (PDF/Excel) sincronizada
+- Diario de clase e incidencias con diseño unificado
+- Progreso de clase con preselección automática de etapa y gráficos dinámicos
+- Estandarización de inputs y selects (42px) en toda la UI
 
 ---
 
@@ -57,6 +64,7 @@
 3. **Horario** — mejoras futuras: asignaturas editables, más opciones
 4. **Dashboard** — widget últimas reuniones no carga
 5. **Reuniones de Ciclo** — config_ciclo vacía en BD nueva
+6. **Programación duplicados** — algunas sesiones se muestran repetidas en el calendario (refactorizar `obtener_programacion`)
 
 ---
 

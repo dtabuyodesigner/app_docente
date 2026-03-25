@@ -208,11 +208,11 @@
                 <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
                     <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:200px;">
                         <label for="alumno" style="font-weight:600; color:var(--dark);">Seleccionar Alumno:</label>
-                        <select id="alumno" style="padding: 10px; border-radius:6px; border:1px solid #ccc;"></select>
+                        <select id="alumno"></select>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:5px; width:150px;">
                         <label for="trimestreIndividual" style="font-weight:600; color:var(--dark);">Trimestre:</label>
-                        <select id="trimestreIndividual" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                        <select id="trimestreIndividual">
                             <option value="1">1º Trimestre</option>
                             <option value="2" selected>2º Trimestre</option>
                             <option value="3">3º Trimestre</option>
@@ -224,7 +224,7 @@
                             <span id="rolBadge" style="display:none; margin-left:8px; padding:2px 8px; background:#e3f2fd; color:#1565c0; border-radius:10px; font-size:0.75rem; font-weight:700;">ESPECIALISTA</span>
                         </label>
                         <div style="display:flex; gap:10px;">
-                            <input type="text" id="tutorName" placeholder="Escribe tu nombre..." style="flex:1; padding: 10px; border-radius:6px; border:1px solid #ccc;" oninput="document.getElementById('btnGuardarTutor').style.display='inline-block'">
+                            <input type="text" id="tutorName" placeholder="Escribe tu nombre..." style="flex:1;" oninput="document.getElementById('btnGuardarTutor').style.display='inline-block'">
                             <button id="btnGuardarTutor" onclick="localStorage.setItem('tutorName', document.getElementById('tutorName').value); this.style.display='none'; this.nextElementSibling.style.display='inline'; setTimeout(()=>this.nextElementSibling.style.display='none',2000);" style="padding: 10px 15px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; display:none;" title="Guardar tutor">💾 Recordar</button>
                             <span style="display:none; color:#28a745; font-weight:bold; align-self:center;">✓</span>
                         </div>
@@ -232,7 +232,7 @@
                     <!-- Selector de área para especialista -->
                     <div id="areaEspecialistaContainer" style="display:none; flex-direction:column; gap:5px; min-width:220px;">
                         <label style="font-weight:600; color:var(--dark);">Área que impartes:</label>
-                        <select id="areaEspecialistaSelect" style="padding:10px; border-radius:6px; border:1px solid #ccc;">
+                        <select id="areaEspecialistaSelect">
                             <option value="">-- Todas las áreas --</option>
                         </select>
                     </div>
@@ -241,11 +241,11 @@
                 <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
                     <div style="display:flex; flex-direction:column; gap:5px; flex:2; min-width:300px;">
                         <label for="colegioName" style="font-weight:600; color:var(--dark);">Nombre del Centro:</label>
-                        <input type="text" id="colegioName" value="CEIP AYATIMAS" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                        <input type="text" id="colegioName" value="CEIP AYATIMAS">
                     </div>
                     <div style="display:flex; flex-direction:column; gap:5px; width:200px;">
                         <label for="fechaInforme" style="font-weight:600; color:var(--dark);">Fecha Informe:</label>
-                        <input type="date" id="fechaInforme" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                        <input type="date" id="fechaInforme">
                     </div>
                 </div>
 
@@ -303,11 +303,11 @@
                 <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end;">
                     <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:250px;">
                         <label for="colegioNameGrupo" style="font-weight:600; color:var(--dark);">Centro:</label>
-                        <input type="text" id="colegioNameGrupo" value="CEIP AYATIMAS" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                        <input type="text" id="colegioNameGrupo" value="CEIP AYATIMAS">
                     </div>
                     <div style="display:flex; flex-direction:column; gap:5px; width:150px;">
                         <label for="trimestreGrupo" style="font-weight:600; color:var(--dark);">Trimestre:</label>
-                        <select id="trimestreGrupo" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                        <select id="trimestreGrupo">
                             <option value="1">1º Trimestre</option>
                             <option value="2" selected>2º Trimestre</option>
                             <option value="3">3º Trimestre</option>
@@ -315,14 +315,14 @@
                     </div>
                     <div style="display:flex; flex-direction:column; gap:5px; width:180px;">
                         <label for="fechaInformeGrupo" style="font-weight:600; color:var(--dark);">Fecha:</label>
-                        <input type="date" id="fechaInformeGrupo" style="padding: 10px; border-radius:6px; border:1px solid #ccc;">
+                        <input type="date" id="fechaInformeGrupo">
                     </div>
                 </div>
                 
                 <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end; padding-top:15px; border-top:1px solid #eee;">
                     <div style="display:flex; flex-direction:column; gap:5px; flex:1; min-width:250px;">
                         <label for="areaFiltroGrupo" style="font-weight:600; color:var(--dark);">Filtrar por Área (Opcional - Para Especialistas):</label>
-                        <select id="areaFiltroGrupo" style="padding: 10px; border-radius:6px; border:1px solid #ccc;" onchange="cargarInformeGrupo()">
+                        <select id="areaFiltroGrupo" onchange="cargarInformeGrupo()">
                             <option value="">-- Todas las Áreas --</option>
                         </select>
                     </div>
@@ -1037,7 +1037,7 @@
                             <option value="30">30</option>
                             <option value="45">45</option>
                         </select>
-                        <input type="date" id="actaFecha" style="padding:8px; border:1px solid #ccc; border-radius:4px;" value="${configFechas[t] || new Date().toISOString().split('T')[0]}">
+                        <input type="date" id="actaFecha" value="${configFechas[t] || new Date().toISOString().split('T')[0]}">
                         <button onclick="generarActaOficial()" style="padding:10px 18px; background:#8B0000; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">📄 Acta Oficial</button>
                         <button onclick="generarPDFGrupo()" style="padding:10px 16px; background:#17a2b8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">🖨️ PDF</button>
                         <button onclick="generarExcelGrupo()" style="padding:10px 16px; background:#1D6F42; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">📊 Excel</button>

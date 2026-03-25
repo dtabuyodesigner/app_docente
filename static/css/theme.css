@@ -346,7 +346,7 @@ input:focus {
     color: var(--primary, #003366) !important;
     cursor: pointer;
     outline: none;
-    width: 110px;
+    width: 140px;
     margin: 0 !important;
     padding: 2px 0 !important;
     text-overflow: ellipsis;

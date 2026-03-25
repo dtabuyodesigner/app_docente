@@ -1,5 +1,5 @@
 # Cuaderno del Tutor — Estado del Proyecto
-*Actualizado: 25/03/2026*
+*Actualizado: 25/03/2026 (Noche)*
 
 ---
 
@@ -41,11 +41,16 @@
 - Reuniones
 - Biblioteca (catálogo, préstamos, devoluciones, diplomas, lectómetro)
 - Dashboard
-- Configuración (logos, actualizaciones, rol especialista)
+- **Configuración (Actualizaciones Silenciosas/Git Pull) — PROBAR MAÑANA EN WINDOWS**
+- Configuración (logos, rol especialista)
 
-### 📊 Evaluación y Currículo (SDA)
+### 📊 Evaluación y Currículo (SDA) — PROBAR MAÑANA EN WINDOWS
 - [x] Rejilla de evaluación robusta con ciclo `data-nivel` (`NI/PA`, `EP/A`, `CO/MA`).
 - [x] Evaluación masiva reactiva ("Evaluar Todo") con prefijos de API unificados.
+- [x] **NUEVO**: Guardado masivo atómico en "Rellenar" (evita fallos de red/bloqueos).
+- [x] **NUEVO**: Sincronización bidireccional inmediata Rejilla <-> Individual (recarga automática).
+- [x] **NUEVO**: Persistencia de Área y Trimestre al cambiar de vista (UX mejorada).
+- [x] **NUEVO**: Criterios Extra plenamente operativos (Backend compatible y UI auto-recarga).
 - [x] Gestión de SDAs completa (Importación CSV, sesiones múltiples, sincronización de carga).
 - [x] Visualización de promedios (SDA y Área) en tiempo real en vista individual.
 - [x] Actividades con descripciones completas (`textarea`) y tooltips informativos.
@@ -75,6 +80,7 @@
 ### Alta prioridad
 - Micrófono 🎤 en campos de texto largos (observaciones, valoración grupo, informe)
 - Completar `run_migrations()` con todas las columnas de todas las tablas
+- **PROBAR MAÑANA EN WINDOWS**: Verificación de CSRF y Actualización Silenciosa (Git Pull)
 
 ### Media prioridad  
 - Filtro áreas por etapa en Horario (ya hecho)

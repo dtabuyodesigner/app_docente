@@ -253,13 +253,48 @@
             font-weight: 800;
             font-size: 1.1rem;
         }
-        .eval-cell:hover {
-            background: #f0f7ff;
+        /* --- Nueva Interfaz de Globos (Rejilla) --- */
+        .eval-grid-cell {
+            padding: 4px !important;
+            vertical-align: middle;
         }
-        .eval-cell.val-1 { background: #fee2e2; color: #991b1b; }
-        .eval-cell.val-2 { background: #fef3c7; color: #92400e; }
-        .eval-cell.val-3 { background: #d1fae5; color: #065f46; }
-        .eval-cell.val-4 { background: #dbeafe; color: #1e40af; }
+        .pill-group {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            align-items: center;
+        }
+        .eval-pill {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            color: #aaa;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+        .eval-pill:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            border-color: #999;
+        }
+        .eval-pill.active {
+            color: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .eval-pill.p-1.active { background-color: #ff4d4d !important; }
+        .eval-pill.p-2.active { background-color: #ffcc00 !important; color: #333 !important; }
+        .eval-pill.p-3.active { background-color: #2ecc71 !important; }
+        .eval-pill.p-4.active { background-color: #3498db !important; }
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
@@ -1196,70 +1231,62 @@
                     const tr = document.createElement('tr');
                     let htmlRow = `<td class="alumno-name">${alum.nombre}</td>`;
                     data.criterios.forEach(crit => {
-                        const val = data.evaluaciones[`${alum.id}_${crit.id}`] || "";
-                        const label = esInfantil ? (val === 1 ? "NI/PA" : val === 2 ? "EP/A" : val === 3 ? "CO/MA" : "") : val;
-                        htmlRow += `<td>
-                            <div class="eval-cell val-${val}" 
-                                 data-nivel="${val || 0}"
-                                 onclick="siguienteNivel(${alum.id}, ${crit.id}, this, ${esInfantil ? 3 : 4})"
-                                 id="cell-${alum.id}-${crit.id}">${label || "—"}</div>
-                        </td>`;
+                        const val = data.evaluaciones[`${alum.id}_${crit.id}`] || 0;
+                        let cellContent = `<div class="pill-group">`;
+                        if (esInfantil) {
+                            cellContent += `
+                                <div class="eval-pill p-1 ${val==1?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 1, this)">NI</div>
+                                <div class="eval-pill p-2 ${val==2?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 2, this)">EP</div>
+                                <div class="eval-pill p-3 ${val==3?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 3, this)">CO</div>
+                            `;
+                        } else {
+                            for (let n=1; n<=4; n++) {
+                                cellContent += `<div class="eval-pill p-${n} ${val==n?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, ${n}, this)">${n}</div>`;
+                            }
+                        }
+                        cellContent += `</div>`;
+                        htmlRow += `<td class="eval-grid-cell" id="cell-${alum.id}-${crit.id}">${cellContent}</td>`;
                     });
                     tr.innerHTML = htmlRow;
                     tbodyT.appendChild(tr);
                 });
             }
-            window.siguienteNivel = async function(alumno_id, criterio_id, cell, max) {
-                let current = parseInt(cell.getAttribute('data-nivel')) || 0;
-                let next = current + 1;
-                if (next > max) next = 0;
-                // Update UI immediately
-                cell.className = `eval-cell val-${next}`;
+            window.setNivelDirecto = async function(alumno_id, criterio_id, nivel, element) {
+                const isDelete = element.classList.contains('active');
+                const targetNivel = isDelete ? null : nivel;
+                const parent = element.parentElement;
                 const conf = getAreaConfig();
-                const esInfantil = conf.tipo_escala === 'INFANTIL_NI_EP_C';
-                if (next === 0) {
-                    cell.innerText = "—";
-                    // Delete evaluation
-                    const area_id = areaSelect.value;
-                    const sda_id = sdaSelect.value || 'null';
-                    const trimestre = trimestreSelect.value;
-                    // Note: need a way to delete specific criterion evaluation or just let it be level 0/null
-                    // For now, let's keep it simple and just save level 0 if backend handles it or use the delete endpoint
-                    // Actually, let's just save next if it's > 0
-                } else {
-                    const label = esInfantil ? (next === 1 ? "NI/PA" : next === 2 ? "EP/A" : "CO/MA") : next;
-                    cell.innerText = label;
-                }
-                // Actualizar atributos para la siguiente interacción
-                cell.setAttribute('data-nivel', next);
-                cell.className = `eval-cell val-${next}`;
-                // Save to backend
-                if (next === 0) {
-                    // Optional: call delete if needed, but saving level 0 might be enough if handled
-                    // For now, let's just not save or handle it as deletion in a custom way
-                    return;
-                }
+                const sda_id = sdaSelect.value || null;
+                const trimestre = trimestreSelect.value;
+
+                // Feedback visual inmediato
+                parent.querySelectorAll('.eval-pill').forEach(p => p.classList.remove('active'));
+                if (!isDelete) element.classList.add('active');
+
                 const payload = {
                     alumno_id: alumno_id,
                     criterio_id: criterio_id,
-                    nivel: next,
-                    area_id: areaSelect.value,
-                    sda_id: sdaSelect.value || null,
-                    trimestre: trimestreSelect.value
+                    nivel: targetNivel,
+                    area_id: conf.id,
+                    sda_id: sda_id,
+                    trimestre: trimestre
                 };
-                // Si es nivel 0, informar al backend para borrar o tratar como nulo
-                if (next === 0) payload.nivel = null;
-                const isDirecto = getAreaConfig().modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
+
+                const isDirecto = conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
                 const url = isDirecto ? "/api/evaluacion/directa/" : "/api/evaluacion/sda/";
-                if (isDirecto) payload.periodo = 'T' + trimestreSelect.value;
+                if (isDirecto) payload.periodo = 'T' + trimestre;
+
                 try {
                     await fetch(url, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content 
+                        },
                         body: JSON.stringify(payload)
                     });
                 } catch (e) {
-                    console.error("Error saving evaluation:", e);
+                    console.error("Error al guardar:", e);
                 }
             };
             window.guardar = function (criterio_id, nivel) {

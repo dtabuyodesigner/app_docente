@@ -612,17 +612,24 @@
             }
         }
         async function borrarGrupo(id, nombre) {
-            if (!confirm(`⚠️ ATENCIÓN: Al borrar el grupo "${nombre}" se eliminarán TODOS sus alumnos, asistencias y evaluaciones. ¿Estás absolutamente SEGURO?`)) return;
+            const msgConfirm = `⚠️ ATENCIÓN: Al borrar el grupo "${nombre}" se eliminarán TODOS sus alumnos, asistencias y evaluaciones.\n\n` +
+                               `NOTA: Si el grupo tiene alumnos activos, el sistema no permitirá borrarlo: primero deberás transferirlos a otro grupo o eliminarlos uno a uno.\n\n` +
+                               `¿Estás absolutamente SEGURO?`;
+                               
+            if (!confirm(msgConfirm)) return;
             try {
                 const res = await fetch(`/api/grupos/${id}`, { method: 'DELETE' });
-                if (res.ok) {
+                const data = await res.json();
+                
+                if (res.ok && data.ok) {
                     loadGruposAjustes();
                     if (typeof loadGroupSelectorData === 'function') loadGroupSelectorData();
                 } else {
-                    alert("Error al borrar el grupo.");
+                    // Si hay error (ej: 400 por tener alumnos), mostramos el error detallado
+                    alert("No se pudo borrar el grupo:\n\n" + (data.error || "Error desconocido"));
                 }
             } catch (e) {
-                alert("Error de conexión al borrar.");
+                alert("Error de conexión al intentar borrar el grupo.");
             }
         }
         let _areasGuardadasTutor = [];

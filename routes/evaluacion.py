@@ -9,7 +9,7 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
-evaluacion_bp = Blueprint('evaluacion', __name__)
+evaluacion_bp = Blueprint('evaluacion_curricular', __name__)
 
 @evaluacion_bp.route("/areas")
 def listar_areas():

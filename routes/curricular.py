@@ -16,9 +16,17 @@ def listar_etapas():
     return jsonify([dict(r) for r in cur.fetchall()])
 
 @curricular_bp.route("/areas")
-@simple_cache(timeout=300)
 def listar_areas():
     etapa_id = request.args.get("etapa_id")
+    if not etapa_id:
+        grupo_id = session.get('active_group_id')
+        if grupo_id:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT etapa_id FROM grupos WHERE id = ?", (grupo_id,))
+            g = cur.fetchone()
+            if g: etapa_id = g["etapa_id"]
+
     conn = get_db()
     cur = conn.cursor()
     if etapa_id:
@@ -184,7 +192,6 @@ def eliminar_sa(sda_id):
     return jsonify({"ok": True})
 
 @curricular_bp.route("/full")
-@simple_cache(timeout=300)
 def curricular_full():
     conn = get_db()
     cur = conn.cursor()
@@ -279,16 +286,31 @@ def importar_sda_csv():
         stream.seek(0)
         dialect = 'excel'
         if sample:
-            if ';' in sample and ',' not in sample: dialect = 'excel-tab' # close enough for DictReader with delimiter
+            if ';' in sample and ',' not in sample:
+                dialect = 'excel-tab'
+                reader = csv.DictReader(stream, delimiter=';')
             elif ';' in sample:
                 # Manual check
                 first_line = sample.split('\n')[0]
-                if ';' in first_line: reader = csv.DictReader(stream, delimiter=';')
-                else: reader = csv.DictReader(stream)
-            else: reader = csv.DictReader(stream)
+                if ';' in first_line:
+                    reader = csv.DictReader(stream, delimiter=';')
+                else:
+                    reader = csv.DictReader(stream)
+            else:
+                reader = csv.DictReader(stream)
         else:
             reader = csv.DictReader(stream)
-        
+
+        # Pre-procesar para contar sesiones por actividad si no viene el campo Actividad_Sesiones
+        rows = list(reader)
+        act_counts = {} # (sda_tit, act_tit) -> count
+        for row in rows:
+            sda_tit = row.get("SDA_Titulo", "").strip()
+            act_tit = row.get("Actividad_Titulo", "").strip()
+            if sda_tit and act_tit:
+                key = (sda_tit, act_tit)
+                act_counts[key] = act_counts.get(key, 0) + 1
+
         conn = get_db()
         cur = conn.cursor()
         
@@ -298,7 +320,10 @@ def importar_sda_csv():
         
         cur.execute("BEGIN TRANSACTION")
         
-        for row in reader:
+        # Track session numbers manually within the loop for each activity in this import
+        act_session_tracker = {} # (sda_id, act_id) -> current_ses_num
+
+        for row in rows:
             try:
                 # 1. Etapa y Área
                 etapa_nom = row.get("Etapa", "").strip()
@@ -323,8 +348,7 @@ def importar_sda_csv():
                 sda_cod = row.get("SDA_ID", "").strip()
                 sda_tit = row.get("SDA_Titulo", "").strip()
                 trim_str = row.get("Trimestre", "1").strip()
-                # Handle "T1", "T2", "T3" or just "1", "2", "3"
-                trim = int(trim_str.replace("T", "")) if trim_str else 1
+                trim = int(trim_str.replace("T", "")) if trim_str and any(c.isdigit() for c in trim_str) else 1
                 duracion = row.get("Duracion_Semanas")
                 duracion = int(duracion) if duracion and duracion.isdigit() else None
                 
@@ -387,7 +411,16 @@ def importar_sda_csv():
                 # 4. Actividades
                 act_cod = row.get("Actividad_ID", "").strip()
                 act_tit = row.get("Actividad_Titulo", "").strip()
+                act_desc = row.get("Actividad_Descripcion", "").strip()
+                act_sesiones_csv = row.get("Actividad_Sesiones")
+                
                 if act_tit:
+                    # Determinar número total de sesiones para esta actividad
+                    if act_sesiones_csv and act_sesiones_csv.isdigit():
+                        total_sesiones = int(act_sesiones_csv)
+                    else:
+                        total_sesiones = act_counts.get((sda_tit, act_tit), 1)
+
                     if act_cod:
                         cur.execute("SELECT id FROM actividades_sda WHERE codigo_actividad = ? AND sda_id = ?", (act_cod, sda_id))
                     else:
@@ -396,45 +429,53 @@ def importar_sda_csv():
                     act_row = cur.fetchone()
                     if act_row:
                         act_id = act_row["id"]
+                        cur.execute("UPDATE actividades_sda SET sesiones = ?, descripcion = ? WHERE id = ?", (total_sesiones, act_desc, act_id))
                     else:
-                        cur.execute("INSERT INTO actividades_sda (sda_id, nombre, codigo_actividad) VALUES (?, ?, ?)",
-                                   (sda_id, act_tit, act_cod))
+                        cur.execute("INSERT INTO actividades_sda (sda_id, nombre, codigo_actividad, sesiones, descripcion) VALUES (?, ?, ?, ?, ?)",
+                                   (sda_id, act_tit, act_cod, total_sesiones, act_desc))
                         act_id = cur.lastrowid
                         stats["actividades"] += 1
                     
-                    # 5. Sesiones
+                    # 5. Sesiones (Programación Diaria)
+                    tracker_key = (sda_id, act_id)
+                    act_session_tracker[tracker_key] = act_session_tracker.get(tracker_key, 0) + 1
+                    
                     ses_num = row.get("Sesion_Numero")
-                    ses_num = int(ses_num) if ses_num and ses_num.isdigit() else None
+                    ses_num = int(ses_num) if ses_num and ses_num.isdigit() else act_session_tracker[tracker_key]
+                    
                     ses_tit = row.get("Sesion_Titulo", "").strip()
                     ses_desc = row.get("Descripcion_Sesion", "").strip()
                     material = row.get("Material", "").strip()
                     evaluable = 1 if row.get("Evaluable", "").lower() in ("si", "sí", "true", "1") else 0
                     fecha = row.get("Fecha", "").strip()
                     
-                    if ses_num:
-                        cur.execute("SELECT id FROM programacion_diaria WHERE actividad_id = ? AND numero_sesion = ?", (act_id, ses_num))
-                        pd_row = cur.fetchone()
-                        
+                    # Solo insertamos en programacion_diaria si hay fecha (es obligatoria en el esquema)
+                    if fecha:
                         db_fecha = None
-                        if fecha:
-                            for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y"):
-                                try:
-                                    db_fecha = datetime.strptime(fecha, fmt).strftime("%Y-%m-%d")
-                                    break
-                                except: continue
+                        for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y"):
+                            try:
+                                db_fecha = datetime.strptime(fecha, fmt).strftime("%Y-%m-%d")
+                                break
+                            except ValueError: continue
                         
-                        if pd_row:
-                            cur.execute("""
-                                UPDATE programacion_diaria 
-                                SET descripcion = ?, material = ?, evaluable = ?, sda_id = ?, fecha = COALESCE(?, fecha)
-                                WHERE id = ?
-                            """, (ses_desc or ses_tit, material, evaluable, sda_id, db_fecha, pd_row["id"]))
-                        elif db_fecha:
-                            cur.execute("""
-                                INSERT INTO programacion_diaria (fecha, sda_id, actividad_id, numero_sesion, descripcion, material, evaluable)
-                                VALUES (?, ?, ?, ?, ?, ?, ?)
-                            """, (db_fecha, sda_id, act_id, ses_num, ses_desc or ses_tit, material, evaluable))
-                            stats["sesiones"] += 1
+                        if db_fecha:
+                            cur.execute("SELECT id FROM programacion_diaria WHERE actividad_id = ? AND numero_sesion = ?", (act_id, ses_num))
+                            pd_row = cur.fetchone()
+                            
+                            desc_final = ses_desc or ses_tit or act_tit
+                            
+                            if pd_row:
+                                cur.execute("""
+                                    UPDATE programacion_diaria 
+                                    SET descripcion = ?, material = ?, evaluable = ?, sda_id = ?, fecha = ?
+                                    WHERE id = ?
+                                """, (desc_final, material, evaluable, sda_id, db_fecha, pd_row["id"]))
+                            else:
+                                cur.execute("""
+                                    INSERT INTO programacion_diaria (fecha, sda_id, actividad_id, numero_sesion, descripcion, material, evaluable)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                                """, (db_fecha, sda_id, act_id, ses_num, desc_final, material, evaluable))
+                                stats["sesiones"] += 1
 
             except Exception as e:
                 print(f"Error procesando fila {reader.line_num}: {e}")

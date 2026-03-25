@@ -1112,7 +1112,7 @@
         function loadCurriculo() {
             const list = document.getElementById('curriculoList');
             list.innerHTML = '<p style="text-align:center; color:#999;">Cargando currículo...</p>';
-            fetch('/api/curricular/full')
+            fetch('/api/curricular/full?_t=' + Date.now())
                 .then(r => r.json())
                 .then(areas => {
                     fullCurriculo = areas;
@@ -1347,43 +1347,51 @@
             });
         }
         // --- SA CRUD LOGIC ---
-        function openSaModal(sdaObj = null) {
+        async function openSaModal(sdaObj = null) {
             const modal = document.getElementById('saModal');
             const saAreaSelect = document.getElementById('saArea');
             const btnDelete = document.getElementById('btnDeleteSa');
             const title = document.getElementById('saModalTitle');
-            // Populate areas dropdown if empty
-            if (saAreaSelect.options.length <= 1) {
-                fetch('/api/curricular/areas')
-                    .then(r => r.json())
-                    .then(areas => {
-                        saAreaSelect.innerHTML = '<option value="">-- Selecciona --</option>';
-                        areas.forEach(a => {
-                            saAreaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
-                        });
-                        // Set area if editing after loading
-                        if (sdaObj && sdaObj.area_id) saAreaSelect.value = sdaObj.area_id;
-                    });
+
+            // Siempre recargamos áreas para asegurar que coincidan con la etapa del grupo actual
+            try {
+                const r = await fetch('/api/curricular/areas?_t=' + Date.now());
+                const areas = await r.json();
+                saAreaSelect.innerHTML = '<option value="">-- Selecciona --</option>';
+                areas.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = a.nombre;
+                    saAreaSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error cargando áreas:", e);
+                showToast("Error al cargar áreas", "error");
             }
+
             document.getElementById('saCriteriosContainer').innerHTML = '';
             document.getElementById('saCompetenciasContainer').innerHTML = '';
             document.getElementById('saActividadesContainer').innerHTML = '';
+
             if (sdaObj) {
                 title.innerText = 'Editar Situación de Aprendizaje';
                 btnDelete.style.display = 'block';
                 document.getElementById('saId').value = sdaObj.id;
                 document.getElementById('saNombre').value = sdaObj.nombre;
-                // Tratar de encontrar y setear el area a partir del fullCurriculo si no viene en sdaObj
-                if (!sdaObj.area_id) {
+                
+                // Set area value after fetch
+                if (sdaObj.area_id) {
+                    saAreaSelect.value = sdaObj.area_id;
+                } else {
+                    // Tratar de encontrar y setear el area a partir del fullCurriculo
                     for (let area of fullCurriculo) {
                         if (area.sdas.some(s => s.id === sdaObj.id)) {
                             saAreaSelect.value = area.id;
                             break;
                         }
                     }
-                } else {
-                    saAreaSelect.value = sdaObj.area_id;
                 }
+                
                 document.getElementById('saTrimestre').value = sdaObj.trimestre || 1;
                 if (sdaObj.competencias && sdaObj.competencias.length > 0) {
                     sdaObj.competencias.forEach(c => addCompetenciaRow(c.codigo, c.descripcion));
@@ -1509,7 +1517,7 @@
                         closeSaModal();
                         loadCurriculo();
                         // Update selects just in case
-                        fetch('/api/curricular/full')
+                        fetch('/api/curricular/full?_t=' + Date.now())
                             .then(r => r.json())
                             .then(areas => {
                                 fullCurriculo = areas;
@@ -1705,7 +1713,7 @@
                 });
         }
         function loadSdaOptions() {
-            fetch('/api/curricular/full')
+            fetch('/api/curricular/full?_t=' + Date.now())
                 .then(r => r.json())
                 .then(areas => {
                     const select = document.getElementById('eventSda');

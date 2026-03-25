@@ -125,6 +125,9 @@ def crear_sa():
             cur.execute("INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion) VALUES (?, ?, ?, ?)", (sda_id, a_nom, a_ses, a_desc))
         conn.commit()
         return jsonify({"ok": True, "sda_id": sda_id})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 @curricular_bp.route("/sa/<int:sda_id>", methods=["PUT"])
 def actualizar_sa(sda_id):

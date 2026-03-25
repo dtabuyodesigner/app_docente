@@ -186,15 +186,16 @@ def resumen_areas_alumno():
     except (ValueError, TypeError):
         return jsonify([])
     
+    periodo = f"T{trimestre}"
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
         SELECT a.nombre as area_nombre, a.tipo_escala, val.codigo, val.nota
         FROM (
-            SELECT area_id, CriterionTable.codigo, nota 
+            SELECT evaluaciones.area_id, CriterionTable.codigo, nota 
             FROM evaluaciones 
             JOIN criterios as CriterionTable ON evaluaciones.criterio_id = CriterionTable.id
-            WHERE alumno_id = ? AND trimestre = ?
+            WHERE evaluaciones.alumno_id = ? AND evaluaciones.trimestre = ?
             
             UNION ALL
             

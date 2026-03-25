@@ -480,6 +480,19 @@
             }
         }
 
+        async function loadAppVersion() {
+            try {
+                const res = await fetch('/api/admin/version');
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('currentAppVersion').innerText = 
+                        `${data.version} (${data.sha})`;
+                }
+            } catch (e) {
+                console.error("Error cargando versión:", e);
+            }
+        }
+
         async function applyUpdate(btn) {
             if (!confirm('¿Confirmas la actualización? Se descargará el código nuevo y la página se recargará.')) return;
             btn.innerHTML = '⏳ Descargando actualización...';
@@ -765,6 +778,7 @@
         window.onload = () => {
             loadConfig();
             loadGruposAjustes();
+            loadAppVersion();
         };
         function mostrarSeccion(seccionId) {
             document.querySelectorAll('.config-section').forEach(el => el.style.display = 'none');

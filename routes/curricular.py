@@ -125,9 +125,6 @@ def crear_sa():
             cur.execute("INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion) VALUES (?, ?, ?, ?)", (sda_id, a_nom, a_ses, a_desc))
         conn.commit()
         return jsonify({"ok": True, "sda_id": sda_id})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
 
 @curricular_bp.route("/sa/<int:sda_id>", methods=["PUT"])
 def actualizar_sa(sda_id):
@@ -315,15 +312,19 @@ def importar_sda_csv():
             clean_row = { (k.strip() if k else ""): (v.strip() if v else "") for k, v in r.items() }
             rows.append(clean_row)
 
-        act_counts = {} # (sda_tit, act_ref) -> count
+        act_counts = {} # (sda_ref, act_ref) -> count
         for row in rows:
+            sda_id_csv = row.get("SDA_ID", "")
             sda_tit = row.get("SDA_Titulo", "")
             act_tit = row.get("Actividad_Titulo", "")
             act_id_csv = row.get("Actividad_ID", "")
-            if sda_tit and (act_tit or act_id_csv):
+            
+            if (sda_id_csv or sda_tit) and (act_tit or act_id_csv):
+                # Usar ID de SDA si existe, sino el título
+                sda_ref = sda_id_csv if sda_id_csv else sda_tit.lower()
                 # Usar ID de actividad si existe, sino el título
-                act_ref = act_id_csv if act_id_csv else act_tit
-                key = (sda_tit.lower(), act_ref.lower())
+                act_ref = act_id_csv if act_id_csv else act_tit.lower()
+                key = (sda_ref, act_ref)
                 act_counts[key] = act_counts.get(key, 0) + 1
 
         conn = get_db()
@@ -429,13 +430,16 @@ def importar_sda_csv():
                 act_desc = row.get("Actividad_Descripcion", "").strip()
                 act_sesiones_csv = row.get("Actividad_Sesiones")
                 
+                sda_id_csv = row.get("SDA_ID", "")
+                
                 if act_tit:
                     # Determinar número total de sesiones para esta actividad
                     if act_sesiones_csv and act_sesiones_csv.isdigit():
                         total_sesiones = int(act_sesiones_csv)
                     else:
-                        act_ref = act_cod if act_cod else act_tit
-                        total_sesiones = act_counts.get((sda_tit.lower(), act_ref.lower()), 1)
+                        sda_ref = sda_id_csv if sda_id_csv else sda_tit.lower()
+                        act_ref = act_cod if act_cod else act_tit.lower()
+                        total_sesiones = act_counts.get((sda_ref, act_ref), 1)
 
                     if act_cod:
                         cur.execute("SELECT id FROM actividades_sda WHERE codigo_actividad = ? AND sda_id = ?", (act_cod, sda_id))
@@ -445,7 +449,11 @@ def importar_sda_csv():
                     act_row = cur.fetchone()
                     if act_row:
                         act_id = act_row["id"]
-                        cur.execute("UPDATE actividades_sda SET sesiones = ?, descripcion = ? WHERE id = ?", (total_sesiones, act_desc, act_id))
+                        # Solo actualizar descripción si NO está vacía en el CSV
+                        if act_desc:
+                            cur.execute("UPDATE actividades_sda SET sesiones = ?, descripcion = ? WHERE id = ?", (total_sesiones, act_desc, act_id))
+                        else:
+                            cur.execute("UPDATE actividades_sda SET sesiones = ? WHERE id = ?", (total_sesiones, act_id))
                     else:
                         cur.execute("INSERT INTO actividades_sda (sda_id, nombre, codigo_actividad, sesiones, descripcion) VALUES (?, ?, ?, ?, ?)",
                                    (sda_id, act_tit, act_cod, total_sesiones, act_desc))

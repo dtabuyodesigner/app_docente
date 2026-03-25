@@ -118,6 +118,24 @@ def get_integrity():
     is_ok = check_integrity()
     return jsonify({"ok": is_ok, "status": "ok" if is_ok else "error"})
 
+@admin_bp.route('/api/admin/version', methods=['GET'])
+def get_version():
+    from version import APP_VERSION
+    import subprocess
+    try:
+        local_sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+    except Exception:
+        local_sha = ""
+    return jsonify({
+        "ok": True,
+        "version": APP_VERSION,
+        "sha": local_sha[:7] if local_sha else "desconocido"
+    })
+
 @admin_bp.route('/api/admin/check_updates', methods=['GET'])
 def check_updates():
     import requests

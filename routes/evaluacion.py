@@ -444,14 +444,18 @@ def clase_hoy():
     db = get_db()
     cur = db.cursor()
     
-    # 1. Obtener la primera sesión del día para el grupo
+    # 1. Obtener la primera sesión del día para el grupo activo
     cur.execute("""
-        SELECT pd.id, pd.descripcion as actividad, pd.criterio_id, pd.sda_id, c.codigo as criterio_codigo, c.descripcion as criterio_desc
+        SELECT pd.id, pd.descripcion as actividad, pd.criterio_id, pd.sda_id, 
+               c.codigo as criterio_codigo, c.descripcion as criterio_desc,
+               c.area_id
         FROM programacion_diaria pd
         LEFT JOIN criterios c ON pd.criterio_id = c.id
-        WHERE pd.fecha = ?
+        LEFT JOIN sda s ON pd.sda_id = s.id
+        WHERE pd.fecha = ? AND (s.grupo_id = ? OR s.grupo_id IS NULL)
+        ORDER BY (CASE WHEN s.grupo_id = ? THEN 0 ELSE 1 END) ASC, pd.id ASC
         LIMIT 1
-    """, (fecha_hoy,))
+    """, (fecha_hoy, grupo_id, grupo_id))
     
     sesion = cur.fetchone()
     
@@ -489,7 +493,7 @@ def clase_hoy():
             a["nivel"] = evals.get(a["id"])
             
     etapa_id = None
-    if sesion:
+    if sesion and sesion["area_id"]:
         cur.execute("SELECT etapa_id FROM areas WHERE id = ?", (sesion["area_id"],))
         area_row = cur.fetchone()
         if area_row: etapa_id = area_row["etapa_id"]

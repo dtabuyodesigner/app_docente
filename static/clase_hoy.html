@@ -111,8 +111,35 @@
             </div>
         </div>
 
-        <!-- Bug 16: Guía de evaluación -->
-        <div id="eval-guide" style="margin-bottom: 25px; background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <!-- Mensaje de ayuda cuando no hay sesión -->
+        <div id="no-session-help" style="display:none; margin-bottom: 30px; padding: 40px; background: white; border-radius: 25px; text-align: center; border: 2px dashed #cbd5e1; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
+            <div style="font-size: 3rem; margin-bottom: 20px;">📅</div>
+            <h2 style="color: #475569; margin-top: 0;">No hay sesión programada para hoy</h2>
+            <p style="color: #64748b; max-width: 500px; margin: 0 auto 20px;">
+                Esta pantalla te permite evaluar rápidamente el criterio asignado a la clase de hoy. Para que aparezca información, sigue estos pasos:
+            </p>
+            <div style="text-align: left; max-width: 450px; margin: 0 auto 30px; background: #f8fafc; padding: 25px; border-radius: 15px; border: 1px solid #e2e8f0;">
+                <ol style="margin: 0; padding-left: 20px; color: #475569; line-height: 2;">
+                    <li>Clica en la pestaña superior <strong>Programación</strong>.</li>
+                    <li>Entra en <strong>Actividades de la SDA</strong>.</li>
+                    <li>Crea o edita una sesión con la fecha de <strong>HOY</strong>.</li>
+                    <li>Asigna un <strong>Criterio</strong> de evaluación a esa sesión.</li>
+                </ol>
+            </div>
+            <a href="/programacion" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                <span>📅</span> Ir a Programación
+            </a>
+        </div>
+
+        <div class="list-card">
+            <h2 style="margin-top:0; font-size: 1.2rem; color: #1e293b;">Alumnos de la clase</h2>
+            <div id="student-list">
+                <!-- Students injected here -->
+            </div>
+        </div>
+    </div>
+        <!-- Guía de evaluación (solo se muestra si hay sesión) -->
+        <div id="eval-guide" style="display:none; margin-bottom: 25px; background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <div style="font-size: 1.5rem;">💡</div>
             <div style="font-size: 0.9rem; color: #92400e;">
                 <strong>Guía rápida:</strong> Haz clic en los círculos para evaluar. 
@@ -121,7 +148,7 @@
             </div>
         </div>
 
-        <div class="list-card">
+        <div class="list-card" id="list-card">
             <h2 style="margin-top:0; font-size: 1.2rem; color: #1e293b;">Alumnos de la clase</h2>
             <div id="student-list">
                 <!-- Students injected here -->
@@ -135,10 +162,17 @@
                 const res = await fetch('/api/evaluacion/clase_hoy');
                 const data = await res.json();
                 currentData = data;
+                
+                const sessionInfo = document.getElementById('session-info');
+                const noSessionHelp = document.getElementById('no-session-help');
+                const evalGuide = document.getElementById('eval-guide');
+                const listCard = document.getElementById('list-card');
+
                 if (data.fecha) {
                     const [y, m, d] = data.fecha.split('-');
                     document.getElementById('clase-fecha').innerText = `${d}/${m}/${y}`;
                 }
+
                 if (data.sesion) {
                     document.getElementById('actividad-nombre').innerText = data.sesion.actividad;
                     let critText = `<strong>${data.sesion.criterio_codigo || 'N/A'}</strong>`;
@@ -146,11 +180,17 @@
                         critText += `: ${data.sesion.criterio_desc}`;
                     }
                     document.getElementById('criterio-tag').innerHTML = `Criterio: ${critText}`;
-                    document.getElementById('session-info').classList.remove('no-session');
+                    sessionInfo.classList.remove('no-session');
+                    sessionInfo.style.display = 'block';
+                    noSessionHelp.style.display = 'none';
+                    evalGuide.style.display = 'flex';
                 } else {
                     document.getElementById('actividad-nombre').innerText = 'Sin actividad evaluable hoy';
                     document.getElementById('criterio-tag').innerText = 'Criterio: ---';
-                    document.getElementById('session-info').classList.add('no-session');
+                    sessionInfo.classList.add('no-session');
+                    sessionInfo.style.display = 'none'; // Ocultamos la card principal para mostrar la de ayuda
+                    noSessionHelp.style.display = 'block';
+                    evalGuide.style.display = 'none';
                 }
                 
                 // Actualizar labels de la guía según etapa

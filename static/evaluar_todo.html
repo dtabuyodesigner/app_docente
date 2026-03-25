@@ -304,6 +304,7 @@
                     opt.textContent = a.nombre;
                     areaSelect.appendChild(opt);
                 });
+                renderStudents(); // Actualiza etiquetas de aplicar a todo aunque no haya alumnos cargados
             } catch (e) { console.error(e); }
         }
         async function onAreaOrTrimChange() {
@@ -428,13 +429,21 @@
         }
         function setNivel(alumnoId, nivel) {
             const student = studentsData.find(s => s.id === alumnoId);
+            if (!student) return;
             if (student.nivel === nivel) student.nivel = null;
             else student.nivel = nivel;
             renderStudents();
         }
         function applyToAll(nivel) {
             if (studentsData.length === 0) return;
-            if (confirm(`¿Aplicar nivel ${nivel} a todos los alumnos?`)) {
+            const etapaId = document.getElementById('etapa-select').value;
+            let label = nivel;
+            if (etapaId == "1") {
+                if (nivel === 1) label = "NI/PA (Poco adecuado)";
+                else if (nivel === 2) label = "EP/A (Adecuado)";
+                else if (nivel === 3) label = "CO/MA (Muy adecuado)";
+            }
+            if (confirm(`¿Aplicar nivel "${label}" a todos los alumnos?`)) {
                 studentsData.forEach(s => s.nivel = nivel);
                 renderStudents();
             }

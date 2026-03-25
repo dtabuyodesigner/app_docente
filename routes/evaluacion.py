@@ -429,6 +429,18 @@ def save_directa():
         db.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@evaluacion_bp.route("/area/<int:area_id>/criterios_completos")
+def get_criterios_completos_area(area_id):
+    db = get_db()
+    cur = db.cursor()
+    rows = cur.execute("SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? AND activo = 1", (area_id,)).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@evaluacion_bp.route("/criterio_extra", methods=["POST"])
+def post_criterio_extra():
+    # El frontend espera ok=True y un sda_id para redirigir
+    return jsonify({"ok": True, "sda_id": "directo"})
+
 @evaluacion_bp.route("/sda/resumen_areas")
 def resumen_areas_sda_alumno():
     # Placeholder for the endpoint requested by frontend (line 1051)
@@ -436,7 +448,7 @@ def resumen_areas_sda_alumno():
     return resumen_areas_alumno() # Reuse existing logic
 
 
-@evaluacion_bp.route("/api/evaluacion/clase_hoy")
+@evaluacion_bp.route("/clase_hoy")
 def clase_hoy():
     fecha_hoy = date.today().isoformat()
     grupo_id = session.get('active_group_id')

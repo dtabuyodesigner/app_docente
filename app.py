@@ -114,7 +114,7 @@ app.register_blueprint(criterios_bp)
 app.register_blueprint(curricular_bp, url_prefix='/api/curricular')
 app.register_blueprint(evaluacion_sda_bp, url_prefix='/api/evaluacion/sda')
 app.register_blueprint(evaluacion_directa_bp, url_prefix='/api/evaluacion/directa')
-# ELIMINADO: app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion') <- ESTO CAUSABA EL ERROR
+app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion')
 app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
 app.register_blueprint(rubricas_bp)

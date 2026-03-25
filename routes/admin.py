@@ -197,8 +197,7 @@ def check_updates():
             "current_version": APP_VERSION,
             "local_sha": local_sha[:7] if local_sha else "desconocido",
             "latest_sha": latest_sha[:7] if latest_sha else "desconocido",
-            "cambios": cambios if update_available else [],
-            "archivos": archivos_cambiados
+            "cambios": cambios if update_available else []
         })
 
     except Exception as e:
@@ -213,7 +212,6 @@ def apply_update():
     import sys
 
     data = request.json or {}
-    skip_cats = data.get('skip', []) # Ej: ['ui', 'docs']
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     try:
@@ -247,18 +245,7 @@ def apply_update():
 
         output = result.stdout.strip()
 
-        # 4. Revertir selectivamente si se solicitó skip
-        reversions = []
-        if sha_before:
-            if 'ui' in skip_cats:
-                subprocess.run(["git", "checkout", sha_before, "--", "static/"], cwd=root_dir)
-                reversions.append("Interfaz")
-            if 'docs' in skip_cats:
-                # Revertir archivos markdown y manuales
-                subprocess.run(["git", "checkout", sha_before, "--", "*.md"], cwd=root_dir)
-                reversions.append("Documentación")
-
-        # Reiniciar en un hilo separado
+        # 4. Reiniciar en un hilo separado para aplicar cambios
         def restart():
             import time
             time.sleep(1.5)
@@ -271,13 +258,9 @@ def apply_update():
 
         threading.Thread(target=restart, daemon=True).start()
 
-        msg = "Actualización aplicada correctamente."
-        if reversions:
-            msg += f" (Se han mantenido versiones anteriores de: {', '.join(reversions)})"
-
         return jsonify({
             "ok": True,
-            "mensaje": msg,
+            "mensaje": "Actualización aplicada correctamente.",
             "detalle": output
         })
 

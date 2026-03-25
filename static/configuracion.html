@@ -428,7 +428,7 @@
         async function checkUpdates() {
             const btn = event.target;
             const originalText = btn.innerHTML;
-            btn.innerHTML = '⏳ Buscando en GitHub...';
+            btn.innerHTML = '⏳ Buscando mejoras...';
             btn.disabled = true;
 
             const statusDiv = document.getElementById('updateStatus');
@@ -437,45 +437,28 @@
             try {
                 const res = await fetch('/api/admin/check_updates');
                 const data = await res.json();
-
-                document.getElementById('currentAppVersion').innerText = data.current_version || "Desconocida";
-
+                document.getElementById('currentAppVersion').innerText = data.current_version || "v1.1.1";
                 statusDiv.style.display = 'block';
 
                 if (!data.ok) {
                     statusDiv.style.background = '#f8d7da'; statusDiv.style.color = '#721c24';
-                    statusDiv.innerHTML = `❌ ${data.error}`;
+                    statusDiv.innerHTML = `❌ Error: ${data.error}`;
                 } else if (data.update_available) {
-                    // Categorizar archivos
-                    const cats = { 
-                        logica: data.archivos.some(f => f.endsWith('.py') || f.includes('routes/')),
-                        ui: data.archivos.some(f => f.includes('static/') || f.endsWith('.html')),
-                        docs: data.archivos.some(f => f.endsWith('.md'))
-                    };
-                    
-                    let catsHtml = '<div style="background:#fff; padding:12px; border-radius:8px; margin:10px 0; border:1px solid #c3e6cb; text-align:left;">';
-                    catsHtml += '<p style="margin:0 0 8px; font-weight:700; font-size:0.85rem; color:#155724;">Selecciona qué deseas actualizar:</p>';
-                    if (cats.logica) catsHtml += `<label style="display:flex; align-items:center; gap:8px; margin-bottom:5px; cursor:pointer;"><input type="checkbox" checked value="logica"> 🧠 Lógica del Sistema (Recomendado)</label>`;
-                    if (cats.ui)     catsHtml += `<label style="display:flex; align-items:center; gap:8px; margin-bottom:5px; cursor:pointer;"><input type="checkbox" checked value="ui"> 🎨 Interfaz y Diseño</label>`;
-                    if (cats.docs)   catsHtml += `<label style="display:flex; align-items:center; gap:8px; margin-bottom:5px; cursor:pointer;"><input type="checkbox" checked value="docs"> 📖 Documentación y Manuales</label>`;
-                    catsHtml += '</div>';
-
                     statusDiv.style.background = '#d4edda'; statusDiv.style.color = '#155724'; statusDiv.style.border = '1px solid #c3e6cb';
                     statusDiv.innerHTML = `
-                        <div style="font-size:1.1rem; margin-bottom:10px;">🚀 <b>¡Hay mejoras disponibles!</b></div>
-                        <p style="font-size:0.9rem; margin-bottom:10px;">Se han detectado cambios que mejorarán el rendimiento y la estabilidad.</p>
-                        ${catsHtml}
+                        <div style="font-size:1.1rem; margin-bottom:12px;">🚀 <b>¡Nuevas mejoras disponibles!</b></div>
+                        <p style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">Se han encontrado optimizaciones para tu cuaderno.</p>
                         <button onclick="applyUpdate(this)" style="padding:12px; background:#28a745; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:1rem; box-shadow:0 4px 6px rgba(40,167,69,0.2);">
-                            ⬇️ Actualizar Ahora
+                            ⬇️ Instalar Ahora en Silencio
                         </button>
                     `;
                 } else {
                     statusDiv.style.background = '#f8f9fa'; statusDiv.style.color = '#666'; statusDiv.style.border = '1px solid #ddd';
-                    statusDiv.innerHTML = `✅ El sistema está al día.`;
+                    statusDiv.innerHTML = `✅ Tu sistema está actualizado.`;
                 }
             } catch(e) {
                 statusDiv.style.display = 'block'; statusDiv.style.background = '#f8d7da';
-                statusDiv.innerHTML = '❌ Error de conexión al buscar actualizaciones.';
+                statusDiv.innerHTML = '❌ Sin conexión para buscar actualizaciones.';
             } finally {
                 btn.innerHTML = originalText; btn.disabled = false;
             }
@@ -495,69 +478,40 @@
         }
 
         async function applyUpdate(btn) {
-            // Recolectar skips
-            const skip_cats = [];
-            document.querySelectorAll('#updateStatus input[type="checkbox"]').forEach(cb => {
-                if (!cb.checked) skip_cats.push(cb.value);
-            });
-
-            if (!confirm('¿Confirmas la descarga e instalación de las mejoras seleccionadas?')) return;
-            
+            if (!confirm('¿Instalar las mejoras ahora? El proceso es automático.')) return;
             const container = btn.parentElement;
             container.innerHTML = `
                 <div style="text-align:center; padding:20px;">
-                    <div style="font-size:2rem; margin-bottom:15px;">⏳</div>
-                    <div id="updateStep" style="font-weight:700; color:var(--primary); margin-bottom:8px;">Descargando actualizaciones...</div>
-                    <div style="width:100%; background:#eee; height:8px; border-radius:4px; overflow:hidden;">
-                        <div id="updateProgress" style="width:30%; background:var(--success); height:100%; transition:width 0.5s;"></div>
-                    </div>
+                    <div class="loader-eval" style="margin:0 auto 15px;"></div>
+                    <div id="updateStep" style="font-weight:700; color:var(--primary); margin-bottom:8px;">Aplicando cambios en silencio...</div>
+                    <p style="font-size:0.8rem; opacity:0.6;">No cierres la aplicación</p>
                 </div>
             `;
-            const steps = ["Descargando archivos nuevos...", "Optimizando base de datos...", "Actualizando interfaz visual...", "Limpiando archivos temporales..."];
-            let stepIdx = 0;
-            const stepInterval = setInterval(() => {
-                if (stepIdx < steps.length) {
-                    document.getElementById('updateStep').innerText = steps[stepIdx];
-                    document.getElementById('updateProgress').style.width = (25 + (stepIdx * 20)) + '%';
-                    stepIdx++;
-                }
-            }, 800);
-
             try {
                 const csrf = await getCsrfTokenManual();
                 const res = await fetch('/api/admin/apply_update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
-                    body: JSON.stringify({ skip: skip_cats })
+                    body: JSON.stringify({ skip: [] })
                 });
                 const data = await res.json();
-                clearInterval(stepInterval);
-
                 if (data.ok) {
-                    document.getElementById('updateProgress').style.width = '100%';
-                    document.getElementById('updateStep').innerHTML = '✅ ¡Actualización completada!';
-                    
-                    let secs = 5;
+                    document.getElementById('updateStep').innerHTML = '✅ ¡Sistema actualizado con éxito!';
                     setTimeout(() => {
                         container.innerHTML = `
-                            <div style="background:#d4edda; color:#155724; padding:20px; border-radius:12px; border:1px solid #c3e6cb;">
-                                <div style="font-size:1.2rem; margin-bottom:10px;"><b>✨ ¡Sistema Actualizado!</b></div>
+                            <div style="background:#d4edda; color:#155724; padding:20px; border-radius:12px; border:1px solid #c3e6cb; animation: fadeIn 0.5s;">
+                                <div style="font-size:1.2rem; margin-bottom:10px;"><b>✨ ¡Todo listo!</b></div>
                                 <p style="font-size:0.9rem;">Las mejoras se han aplicado correctamente.</p>
-                                <div style="margin:15px 0; font-weight:bold; color:var(--danger);">⚠️ Reinicia la aplicación para finalizar.</div>
-                                <p style="font-size:0.8rem; opacity:0.8;">Recargando página principal en <span id="cdSecs">${secs}</span>s...</p>
+                                <div style="margin:15px 0; font-weight:bold; color:var(--danger);">La aplicación se reiniciará en unos segundos...</div>
                             </div>
                         `;
-                        const interval = setInterval(() => {
-                            secs--;
-                            if (document.getElementById('cdSecs')) document.getElementById('cdSecs').textContent = secs;
-                            if (secs <= 0) { clearInterval(interval); location.reload(); }
-                        }, 1000);
+                        setTimeout(() => location.reload(), 3000);
                     }, 1000);
                 } else {
-                    container.innerHTML = `<div style="color:var(--danger); padding:10px;">❌ Error: ${data.error}</div>`;
+                    container.innerHTML = `<div style="color:var(--danger); padding:10px;">❌ Fallo al aplicar: ${data.error}</div>`;
                 }
             } catch(e) {
-                container.innerHTML = `<div style="color:var(--danger); padding:10px;">❌ Error de conexión</div>`;
+                container.innerHTML = `<div style="color:var(--danger); padding:10px;">❌ Error de red</div>`;
             }
         }
 

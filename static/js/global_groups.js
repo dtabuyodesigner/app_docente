@@ -58,7 +58,11 @@ async function loadGroupSelectorData() {
             return;
         }
 
-        select.innerHTML = '<option value="">🌐 Todos los grupos</option>' + groups.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+        if (groups.length === 1) {
+            select.innerHTML = groups.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+        } else {
+            select.innerHTML = '<option value="">🌐 Todos los grupos</option>' + groups.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+        }
         
         if (activeData && activeData.id) {
             select.value = activeData.id;

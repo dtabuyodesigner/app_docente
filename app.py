@@ -95,7 +95,6 @@ from routes.rubricas import rubricas_bp
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
 app.register_blueprint(asistencia_bp)
-app.register_blueprint(evaluacion_bp)  # Solo una vez, sin prefijo
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(horario_bp)
 app.register_blueprint(comedor_bp)

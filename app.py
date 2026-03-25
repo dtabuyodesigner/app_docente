@@ -1,4 +1,7 @@
-from flask import Flask, request, redirect, url_for, session, send_file
+# ==============================================================================
+# IMPORTACIONES
+# ==============================================================================
+from flask import Flask, request, redirect, url_for, session, send_file, send_from_directory, jsonify
 try:
     from flasgger import Swagger
     HAS_SWAGGER = True
@@ -9,6 +12,12 @@ import os
 import shutil
 from datetime import datetime
 from dotenv import load_dotenv
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+import click
+
+# ==============================================================================
+# CONFIGURACIÓN INICIAL
+# ==============================================================================
 
 # Load environment variables
 load_dotenv()
@@ -41,6 +50,9 @@ if HAS_SWAGGER:
         }
     })
 
+# ==============================================================================
+# INICIALIZACIÓN DE BASE DE DATOS Y TAREAS DE STARTUP
+# ==============================================================================
 from utils.db import init_db_if_not_exists, get_db_path
 init_db_if_not_exists()
 
@@ -51,11 +63,13 @@ run_migrations()
 from utils.backup import run_startup_tasks
 run_startup_tasks()
 
-# Register Blueprints
+# ==============================================================================
+# REGISTRO DE BLUEPRINTS
+# ==============================================================================
 from routes.main import main_bp
 from routes.alumnos import alumnos_bp
 from routes.asistencia import asistencia_bp
-# from routes.evaluacion import evaluacion_bp (Moved to sda/directa)
+from routes.evaluacion import evaluacion_bp
 from routes.dashboard import dashboard_bp
 from routes.horario import horario_bp
 from routes.comedor import comedor_bp
@@ -76,14 +90,12 @@ from routes.evaluacion_sda import evaluacion_sda_bp
 from routes.evaluacion_directa import evaluacion_directa_bp
 from routes.eventos import eventos_bp
 from routes.observaciones import observaciones_bp
-from routes.evaluacion import evaluacion_bp
 from routes.rubricas import rubricas_bp
-from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
 app.register_blueprint(asistencia_bp)
-# app.register_blueprint(evaluacion_bp)
+app.register_blueprint(evaluacion_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(horario_bp)
 app.register_blueprint(comedor_bp)
@@ -107,9 +119,10 @@ app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
 app.register_blueprint(rubricas_bp)
 
-# Database Initialization and CLI commands
+# ==============================================================================
+# CONFIGURACIÓN DE SEGURIDAD Y CONTEXTO
+# ==============================================================================
 from utils.db import close_db, get_db
-import click
 
 app.teardown_appcontext(close_db)
 
@@ -117,6 +130,10 @@ csrf = CSRFProtect()
 csrf.init_app(app)
 csrf.exempt(curricular_bp)
 csrf.exempt(alumnos_bp)
+
+# ==============================================================================
+# RUTAS Y ENDPOINTS
+# ==============================================================================
 
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
@@ -143,27 +160,61 @@ def serve_manifest():
         mimetype='application/manifest+json'
     )
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'),
+        'icon-192.png',
+        mimetype='image/vnd.microsoft.icon'
+    )
+
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    from utils.db import get_app_data_dir
+    # 1. Try persistent AppData uploads folder first
+    app_data_uploads = os.path.join(get_app_data_dir(), 'uploads')
+    if os.path.exists(os.path.join(app_data_uploads, filename)):
+        return send_from_directory(app_data_uploads, filename)
+    # 2. Fallback to legacy static uploads folder
+    static_uploads = os.path.join(app.root_path, 'static', 'uploads')
+    return send_from_directory(static_uploads, filename)
 
 @app.before_request
 def require_auth():
-    # Allow static files and the login/logout routes
-    if (request.path.startswith('/static/') or 
+    # Allow static files and certain routes without authentication
+    if (request.path.startswith('/static/') or
+        request.path.startswith('/uploads/') or
+        request.path == '/favicon.ico' or
         (HAS_SWAGGER and (
             request.path.startswith('/apidocs/') or
             request.path.startswith('/flasgger_static/') or
             request.path == '/apispec_1.json'
         )) or
-        request.path in ['/login', '/logout', '/api/csrf-token', '/api/recover_password', '/api/setup', '/service-worker.js', '/manifest.json', '/static/plantilla_sda.csv'] or 
-        request.path.endswith('.js') or 
-        request.path.endswith('.css') or 
+        request.path in ['/login', '/logout', '/api/csrf-token', '/api/recover_password', '/api/setup', '/service-worker.js', '/manifest.json', '/static/plantilla_sda.csv'] or
+        request.path.endswith('.js') or
+        request.path.endswith('.css') or
         request.path.endswith('.csv') or
         request.endpoint == 'static'):
         return
-        
+    
     if not session.get('logged_in') or 'username' not in session:
         if request.path.startswith('/api/'):
-            return {"ok": False, "error": "No autorizado"}, 401
+            return jsonify({"ok": False, "error": "No autorizado"}), 401
         return redirect(url_for('main.login_page'))
+
+@app.errorhandler(404)
+def page_not_found(e):
+    if request.path.startswith('/api/'):
+        return jsonify({"ok": False, "error": "Endpoint no encontrado"}), 404
+    return redirect(url_for('main.login_page'))
+
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({"ok": False, "error": "Error interno del servidor"}), 500
+
+# ==============================================================================
+# COMANDOS CLI
+# ==============================================================================
 
 @app.cli.command('init-db')
 def init_db_command():
@@ -171,7 +222,8 @@ def init_db_command():
     if not os.path.exists(path):
         print("Initializing database...")
         conn = get_db()
-        with open("schema.sql") as f:
+        # Corrección crítica para Windows: especificar encoding utf-8
+        with open("schema.sql", "r", encoding="utf-8") as f:
             conn.executescript(f.read())
         print("Database initialized.")
     else:
@@ -185,30 +237,19 @@ def create_user_command(username, password, role):
     from werkzeug.security import generate_password_hash
     conn = get_db()
     cur = conn.cursor()
-    
     cur.execute("SELECT id FROM usuarios WHERE username = ?", (username,))
     if cur.fetchone():
         print(f"Error: El usuario '{username}' ya existe.")
         return
-        
+    
     pwd_hash = generate_password_hash(password)
     cur.execute("INSERT INTO usuarios (username, password_hash, role) VALUES (?, ?, ?)", (username, pwd_hash, role))
     conn.commit()
     print(f"Usuario '{username}' creado exitosamente con rol '{role}'.")
 
+# ==============================================================================
+# PUNTO DE ENTRADA PRINCIPAL
+# ==============================================================================
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
-from flask import send_from_directory
-
-@app.route('/uploads/<path:filename>')
-def serve_upload(filename):
-    from utils.db import get_app_data_dir
-    # 1. Try persistent AppData uploads folder first
-    app_data_uploads = os.path.join(get_app_data_dir(), 'uploads')
-    if os.path.exists(os.path.join(app_data_uploads, filename)):
-        return send_from_directory(app_data_uploads, filename)
-    
-    # 2. Fallback to legacy static uploads folder
-    static_uploads = os.path.join(app.root_path, 'static', 'uploads')
-    return send_from_directory(static_uploads, filename)

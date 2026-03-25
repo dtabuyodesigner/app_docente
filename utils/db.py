@@ -179,10 +179,10 @@ def run_migrations():
             areas_infantil = [
                 ("Conocimiento de sí mismo y autonomía personal", 1, "INFANTIL_NI_EP_C"),
                 ("Conocimiento del entorno", 1, "INFANTIL_NI_EP_C"),
+                ("Educación emocional", 1, "INFANTIL_NI_EP_C"),
                 ("Lenguajes: Comunicación y representación", 1, "INFANTIL_NI_EP_C"),
-                ("Segunda Lengua Extranjera", 1, "INFANTIL_NI_EP_C"),
                 ("Música", 1, "INFANTIL_NI_EP_C"),
-                ("Educación Emocional", 1, "INFANTIL_NI_EP_C"),
+                ("Segunda Lengua Extranjera", 1, "INFANTIL_NI_EP_C"),
             ]
             areas_primaria = [
                 # --- ÁREAS COMUNES LOMLOE (todas las CCAA) ---

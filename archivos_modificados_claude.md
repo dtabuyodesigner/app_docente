@@ -20,4 +20,4 @@ Se han realizado los siguientes ajustes para mejorar la experiencia de usuario y
 *   `static/informes.html` y `static/diario.html`: Eliminados estilos inline de inputs de fecha y otros elementos para delegar en `theme.css`.
 *   `static/css/theme.css`: Estandarizada la altura mínima (`min-height: 42px`) para todos los inputs y selects del sistema, asegurando una estética premium y consistente.
 *   `routes/curricular.py`: Mejorada la robustez en la importación de SDAs (conteo de sesiones y gestión de descripciones).
-*   `app.py`: Correcciones en el enrutamiento y registro de blueprints.
+*   `app.py`: Correcciones en el enrutamiento y registro de blueprints (eliminado registro duplicado que causaba ValueError en Windows).

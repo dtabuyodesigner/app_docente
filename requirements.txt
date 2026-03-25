@@ -67,3 +67,4 @@ WTForms==3.2.1
 marshmallow
 flasgger
 sentry-sdk[flask]
+python-dotenv

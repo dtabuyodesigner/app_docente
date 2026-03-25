@@ -1703,17 +1703,17 @@
                 const type = event.extendedProps.tipo || 'clase';
                 if (type === 'sesion_actividad') {
                     document.getElementById('modalTitle').innerText = 'Sesión de Actividad';
-                    document.getElementById('eventActivity').value = `[Solo lectura] ${event.title}`;
+                    document.getElementById('eventActivity').value = `${event.title}`;
                     document.getElementById('eventActivity').disabled = true;
-                    document.getElementById('eventObs').disabled = true;
+                    document.getElementById('eventObs').disabled = false;
                     document.getElementById('eventSda').disabled = true;
-                    document.getElementById('eventDate').disabled = true;
-                    document.getElementById('eventTime').disabled = true;
-                    const btn = document.querySelector(`.btn-type[data-type="clase"]`);
+                    document.getElementById('eventDate').disabled = false;
+                    document.getElementById('eventTime').disabled = false;
+                    const btn = document.querySelector(`.btn-type[data-type="${type}"]`);
                     if (btn) selectType(btn);
-                    document.querySelectorAll('.btn-type').forEach(b => b.classList.add('disabled-btn'));
-                    btnDelete.style.display = 'none';
-                    document.getElementById('btnSaveEvent').style.display = 'none';
+                    document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
+                    btnDelete.style.display = 'inline-block';
+                    document.getElementById('btnSaveEvent').style.display = 'inline-block';
                 } else {
                     document.getElementById('eventActivity').disabled = false;
                     document.getElementById('eventObs').disabled = false;
@@ -1885,8 +1885,9 @@
         function deleteEvent() {
             if (!confirm("¿Borrar evento?")) return;
             const id = document.getElementById('eventId').value;
+            const cleanId = id ? id.replace('ses_', '') : null;
             toggleLoading(true, 'Eliminando evento...');
-            fetch(`/api/programacion/${id}`, { method: 'DELETE' })
+            fetch(`/api/programacion/${cleanId}`, { method: 'DELETE' })
                 .then(r => r.json())
                 .then(res => {
                     toggleLoading(false);

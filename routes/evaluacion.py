@@ -329,7 +329,12 @@ def obtener_cuaderno():
         SELECT alumno_id, criterio_id, nivel
         FROM evaluaciones
         WHERE area_id = ? AND trimestre = ? AND sda_id IS NULL
-    """, (area_id, trimestre)).fetchall()
+        UNION ALL
+        SELECT ec.alumno_id, ec.criterio_id, ec.nivel
+        FROM evaluacion_criterios ec
+        JOIN criterios c ON ec.criterio_id = c.id
+        WHERE c.area_id = ? AND ec.periodo = ?
+    """, (area_id, trimestre, area_id, periodo)).fetchall()
 
     eval_map = {}
     for ev in evaluaciones:

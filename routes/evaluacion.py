@@ -325,15 +325,22 @@ def obtener_cuaderno():
             ORDER BY c.codigo
         """, (periodo, area_id, grupo_id)).fetchall()
 
+    # Fetch evaluation data from all sources (SDA, Direct)
+    # Use MAX(nivel) or AVG(nivel)? User says "it has to go hand in hand".
+    # We will fetch all and group by student/criterion.
     evaluaciones = cur.execute("""
-        SELECT alumno_id, criterio_id, nivel
-        FROM evaluaciones
-        WHERE area_id = ? AND trimestre = ? AND sda_id IS NULL
-        UNION ALL
-        SELECT ec.alumno_id, ec.criterio_id, ec.nivel
-        FROM evaluacion_criterios ec
-        JOIN criterios c ON ec.criterio_id = c.id
-        WHERE c.area_id = ? AND ec.periodo = ?
+        SELECT alumno_id, criterio_id, MAX(nivel) as nivel
+        FROM (
+            SELECT alumno_id, criterio_id, nivel 
+            FROM evaluaciones 
+            WHERE area_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT ec.alumno_id, ec.criterio_id, ec.nivel
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            WHERE c.area_id = ? AND ec.periodo = ?
+        )
+        GROUP BY alumno_id, criterio_id
     """, (area_id, trimestre, area_id, periodo)).fetchall()
 
     eval_map = {}
@@ -633,9 +640,17 @@ def get_cuaderno_data(cur, area_id, periodo):
     
     trimestre = periodo.replace('T', '')
     cur.execute("""
-        SELECT alumno_id, criterio_id, nivel FROM evaluaciones WHERE area_id = ? AND trimestre = ? AND sda_id IS NULL
-        UNION ALL
-        SELECT alumno_id, criterio_id, nivel FROM evaluacion_criterios WHERE periodo = ?
+        SELECT alumno_id, criterio_id, MAX(nivel) as nivel
+        FROM (
+            SELECT alumno_id, criterio_id, nivel 
+            FROM evaluaciones 
+            WHERE area_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT alumno_id, criterio_id, nivel 
+            FROM evaluacion_criterios 
+            WHERE periodo = ?
+        )
+        GROUP BY alumno_id, criterio_id
     """, (area_id, trimestre, periodo))
     rows = cur.fetchall()
     evaluaciones = {f"{r['alumno_id']}_{r['criterio_id']}": r['nivel'] for r in rows}

@@ -251,12 +251,11 @@ def apply_update():
             time.sleep(1.5)
             desktop_py = os.path.join(root_dir, "desktop.py")
             if os.name == 'nt':
-                # Windows: lanzar nuevo proceso y esperar a que arranque antes de matar el actual
-                # Usamos getattr por si se ejecuta en entornos donde la constante no existe
-                creationflags = getattr(subprocess, 'CREATE_NEW_CONSOLE', 0x00000010)
+                # Windows: lanzar nuevo proceso de forma independiente
+                # Usamos 0 para heredar el entorno sin forzar una nueva consola CMD
                 subprocess.Popen(
                     [sys.executable, desktop_py],
-                    creationflags=creationflags
+                    creationflags=0
                 )
                 time.sleep(3)  # Dar tiempo al nuevo proceso para arrancar Flask
             else:

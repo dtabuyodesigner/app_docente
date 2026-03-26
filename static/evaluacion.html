@@ -1352,10 +1352,7 @@
                 try {
                     const res = await fetch("/api/evaluacion/guardar_masivo", {
                         method: "POST",
-                        headers: { 
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content 
-                        },
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             periodo: periodo,
                             evaluaciones: evaluaciones
@@ -1387,10 +1384,7 @@
                 const url = sdaId ? `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=${sdaId}&trimestre=${trimestre}` 
                                  : `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=null&area_id=${areaId}&trimestre=${trimestre}`;
 
-                fetch(url, { 
-                    method: 'DELETE',
-                    headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }
-                }).then(r => r.json()).then(d => {
+                fetch(url, { method: 'DELETE' }).then(r => r.json()).then(d => {
                         if (d.ok) {
                             cargarNotasExistentes();
                             cargarMedia();
@@ -1425,10 +1419,7 @@
                 if (!alumnoSelect.value) { alert("Selecciona un alumno primero."); return; }
                 fetch('/api/evaluacion/criterio_extra', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ area_id: areaSelect.value, trimestre: trimestreSelect.value, criterio_id })
                 }).then(r => r.json()).then(data => {
                     if (data.ok) {
@@ -1510,10 +1501,7 @@
                 const periodo = 'T' + trimestreSelect.value;
                 const r = await fetch('/api/criterios/periodo', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         grupo_id: grupo_id,
                         area_id: parseInt(area_id),

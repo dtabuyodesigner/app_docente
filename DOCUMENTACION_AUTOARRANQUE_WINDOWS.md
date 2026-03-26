@@ -13,6 +13,12 @@ I have implemented a self-registering autostart feature for Windows in the `desk
     - **Self-Healing:** It updates the registry value for `CuadernoDelTutor` with the current `sys.executable` path every time the application starts.
 - Modified `main()` to call this new function during the application startup sequence.
 
+#### [routes/admin.py](file:///home/danito73/Documentos/APP_EVALUAR/routes/admin.py)
+- Improved the `restart()` logic in the `apply_update` route (used for automatic updates):
+    - **Windows Fix:** Added `creationflags=subprocess.CREATE_NEW_CONSOLE` to `subprocess.Popen` to ensure the new process survives when the parent process exits.
+    - **Timing:** Increased `time.sleep` to 3 seconds on Windows to give the new Flask instance enough time to initialize before the old process terminates.
+    - **Cross-Platform Safety:** Used `getattr(subprocess, 'CREATE_NEW_CONSOLE', ...)` to prevent `AttributeError` on Linux/macOS.
+
 ## Verification Results
 
 ### Automated Tests

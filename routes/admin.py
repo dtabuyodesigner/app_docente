@@ -5,6 +5,8 @@ import datetime
 import shutil
 from utils.backup import create_backup, BACKUP_DIR, check_integrity
 from utils.db import get_db_path
+import subprocess
+import requests
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -121,7 +123,6 @@ def get_integrity():
 @admin_bp.route('/api/admin/version', methods=['GET'])
 def get_version():
     from version import APP_VERSION
-    import subprocess
     try:
         local_sha = subprocess.check_output(
             ["git", "rev-parse", "HEAD"],
@@ -138,7 +139,6 @@ def get_version():
 
 @admin_bp.route('/api/admin/check_updates', methods=['GET'])
 def check_updates():
-    import requests
     from version import APP_VERSION
 
     github_repo = "dtabuyodesigner/app_docente"

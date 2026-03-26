@@ -161,15 +161,31 @@ def check_updates():
         # Intentar obtener el hash local de forma robusta
         local_sha = ""
         try:
-            # En Windows a veces git no está en el PATH de la app pero sí en el sistema
-            local_sha = subprocess.check_output(
-                ["git", "rev-parse", "HEAD"],
-                cwd=root_dir,
-                stderr=subprocess.PIPE,
-                shell=True if os.name == 'nt' else False
-            ).decode().strip()
+            # Comandos de git a intentar
+            git_cmds = ["git"]
+            if os.name == 'nt':
+                # Rutas comunes en Windows por si no está en el PATH
+                git_cmds.extend([
+                    r"C:\Program Files\Git\bin\git.exe",
+                    r"C:\Program Files\Git\cmd\git.exe",
+                    os.path.expandvars(r"%LOCALAPPDATA%\Programs\Git\cmd\git.exe")
+                ])
+
+            for cmd in git_cmds:
+                try:
+                    local_sha = subprocess.check_output(
+                        [cmd, "rev-parse", "HEAD"],
+                        cwd=root_dir,
+                        stderr=subprocess.PIPE,
+                        shell=True if os.name == 'nt' else False
+                    ).decode().strip()
+                    if local_sha: 
+                        print(f"✅ Git detectado usando: {cmd}")
+                        break
+                except Exception:
+                    continue
         except Exception as e:
-            print(f"Error detectando Git local: {e}")
+            print(f"❌ Error crítico detectando Git local: {e}")
             local_sha = ""
 
         # Obtener los últimos commits de la rama
@@ -257,20 +273,38 @@ def apply_update():
         create_backup(label="pre_update")
 
         # 3. Ejecutar git pull
-        result = subprocess.run(
-            ["git", "pull"],
-            cwd=root_dir,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            shell=True if os.name == 'nt' else False
-        )
+        # Intentar git pull de forma robusta
+        try:
+            git_cmds = ["git"]
+            if os.name == 'nt':
+                git_cmds.extend([
+                    r"C:\Program Files\Git\bin\git.exe",
+                    r"C:\Program Files\Git\cmd\git.exe",
+                    os.path.expandvars(r"%LOCALAPPDATA%\Programs\Git\cmd\git.exe")
+                ])
 
-        if result.returncode != 0:
-            return jsonify({
-                "ok": False,
-                "error": f"Error en git pull: {result.stderr}"
-            }), 500
+            result = None
+            for cmd in git_cmds:
+                try:
+                    result = subprocess.run(
+                        [cmd, "pull"],
+                        cwd=root_dir,
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
+                        shell=True if os.name == 'nt' else False
+                    )
+                    if result.returncode == 0: break
+                    print(f"Sub-intento git pull falló con {cmd}: {result.stderr}")
+                except Exception:
+                    continue
+
+            if not result or result.returncode != 0:
+                error_msg = result.stderr if result else "No se pudo encontrar el ejecutable de Git"
+                return jsonify({"ok": False, "error": f"Error al descargar (git pull): {error_msg}"}), 500
+                
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"Error crítico al intentar git pull: {str(e)}"}), 500
 
         output = result.stdout.strip()
 

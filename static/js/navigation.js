@@ -109,19 +109,21 @@ function initNavigation() {
     }
 
     // Comprobar actualizaciones en segundo plano
-    checkUpdates();
+    setTimeout(checkAppUpdates, 3000); // Esperar 3s a que cargue la página
+    setInterval(checkAppUpdates, 15 * 60 * 1000); // Recheck cada 15 minutos
 }
 
-async function checkUpdates() {
+async function checkAppUpdates() {
     try {
         const res = await fetch('/api/admin/check_updates');
+        if (!res.ok) return; // No es admin o sin conexión — ignorar silenciosamente
         const data = await res.json();
         if (data.ok && data.update_available) {
             showUpdateBanner(data.current_version);
             addUpdateBadgeToConfig();
         }
     } catch (e) {
-        console.error("Error al comprobar actualizaciones:", e);
+        // Sin conexión o error — no mostrar nada
     }
 }
 
@@ -142,9 +144,9 @@ function showUpdateBanner(version) {
         align-items: center;
         gap: 15px;
         box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-        z-index: 10000;
+        z-index: 9999;
         position: fixed;
-        top: 0;
+        top: 60px;
         left: 0;
         right: 0;
         animation: slideDown 0.5s ease-out;

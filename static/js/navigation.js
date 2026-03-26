@@ -116,42 +116,80 @@ async function checkUpdates() {
     try {
         const res = await fetch('/api/check_updates');
         const data = await res.json();
-        if (data.ok && data.updates_available) {
-            showUpdateBanner(data.branch);
+        if (data.ok && data.update_available) {
+            showUpdateBanner(data.current_version);
+            addUpdateBadgeToConfig();
         }
     } catch (e) {
         console.error("Error al comprobar actualizaciones:", e);
     }
 }
 
-function showUpdateBanner(branch) {
+function showUpdateBanner(version) {
     if (document.getElementById('update-banner')) return;
     
     const banner = document.createElement('div');
     banner.id = 'update-banner';
     banner.style.cssText = `
-        background: linear-gradient(90deg, #4f46e5, #4338ca);
+        background: linear-gradient(90deg, #ef4444, #dc2626);
         color: white;
-        padding: 8px 20px;
+        padding: 10px 20px;
         text-align: center;
-        font-size: 0.85rem;
-        font-weight: 600;
+        font-size: 0.9rem;
+        font-weight: 700;
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        z-index: 1000;
-        position: sticky;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        z-index: 10000;
+        position: fixed;
         top: 0;
+        left: 0;
+        right: 0;
+        animation: slideDown 0.5s ease-out;
     `;
     
     banner.innerHTML = `
-        <span>🚀 ¡Hay una nueva versión disponible en la rama <strong>${branch}</strong>!</span>
-        <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem;">Cerrar</button>
+        <span style="display:flex; align-items:center; gap:8px;">🚀 ¡Nueva versión disponible! <span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-size:0.8rem;">${version}</span></span>
+        <div style="display:flex; gap:10px;">
+            <a href="/configuracion" style="background:white; color:#dc2626; text-decoration:none; padding:5px 12px; border-radius:6px; font-size:0.8rem; font-weight:800;">Actualizar ahora</a>
+            <button onclick="this.parentElement.parentElement.remove()" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem;">Omitir</button>
+        </div>
+        <style>
+            @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+        </style>
     `;
     
     document.body.prepend(banner);
+}
+
+function addUpdateBadgeToConfig() {
+    const configLink = document.querySelector('a[href="/configuracion"]');
+    if (configLink && !configLink.querySelector('.update-badge')) {
+        configLink.style.position = 'relative';
+        const badge = document.createElement('span');
+        badge.className = 'update-badge';
+        badge.style.cssText = `
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        `;
+        badge.textContent = '1';
+        configLink.appendChild(badge);
+    }
 }
 
 // Initialize on load

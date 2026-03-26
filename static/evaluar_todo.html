@@ -262,7 +262,9 @@
                 const groupRes = await fetch('/api/grupo_activo');
                 const groupData = await groupRes.json();
                 if (groupData.etapa_id) {
-                    etapaSelect.value = String(groupData.etapa_id); // cast: int vs string
+                    etapaSelect.value = String(groupData.etapa_id);
+                    // Ocultar el selector si la etapa viene del grupo activo (como evaluacion.html)
+                    etapaSelect.closest('.info-item').style.display = 'none';
                     await loadAreasByEtapa();
                 }
                 // Auto-seleccionar trimestre según el mes actual si no viene en URL

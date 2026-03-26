@@ -5,6 +5,26 @@ import webbrowser
 from app import app
 from utils.db import init_db_if_not_exists
 
+def configurar_autoarranque_windows():
+    """Registra la aplicación en el arranque de Windows (solo cuando es el .exe compilado)."""
+    if sys.platform != 'win32':
+        return
+    if not getattr(sys, 'frozen', False):
+        return
+        
+    import winreg
+    try:
+        # HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
+        key = winreg.HKEY_CURRENT_USER
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        exe_path = sys.executable
+        
+        with winreg.OpenKey(key, key_path, 0, winreg.KEY_SET_VALUE) as reg_key:
+            winreg.SetValueEx(reg_key, "CuadernoDelTutor", 0, winreg.REG_SZ, exe_path)
+    except Exception as e:
+        # Fallo silencioso en producción para no molestar al usuario
+        print(f"Error al configurar autoarranque: {e}")
+
 def find_free_port():
     import socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -17,6 +37,9 @@ def main():
         os.chdir(bundle_dir)
 
     init_db_if_not_exists()
+    
+    # Configurar autoarranque (solo Windows EXE)
+    configurar_autoarranque_windows()
 
     port = find_free_port()
     url = f"http://127.0.0.1:{port}"

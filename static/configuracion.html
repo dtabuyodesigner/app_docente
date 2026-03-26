@@ -435,7 +435,7 @@
             statusDiv.style.display = 'none';
 
             try {
-                const res = await fetch('/api/admin/check_updates');
+                const res = await fetch('/api/admin/check_updates?t=' + Date.now());
                 const data = await res.json();
                 document.getElementById('currentAppVersion').innerText = data.current_version || "v1.1.1";
                 statusDiv.style.display = 'block';

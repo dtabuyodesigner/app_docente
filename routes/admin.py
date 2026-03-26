@@ -251,7 +251,8 @@ def apply_update():
             cwd=root_dir,
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
+            shell=True if os.name == 'nt' else False
         )
 
         if result.returncode != 0:

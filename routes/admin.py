@@ -144,22 +144,25 @@ def check_updates():
     github_repo = "dtabuyodesigner/app_docente"
     branch = "feature/refactor-evaluacion-curricular"
 
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
     try:
         # Obtener los últimos commits de la rama
         commits_url = f"https://api.github.com/repos/{github_repo}/commits?sha={branch}&per_page=5"
-        r = requests.get(commits_url, timeout=5, headers={"Accept": "application/vnd.github.v3+json"})
+        r = requests.get(commits_url, timeout=5, headers={
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "AppEvaluar-TeacherNotebook"
+        })
 
         if r.status_code != 200:
             return jsonify({"ok": False, "error": f"Error GitHub: HTTP {r.status_code}"}), 500
 
         commits = r.json()
 
-        # Obtener el SHA local actual via git
-        import subprocess
         try:
             local_sha = subprocess.check_output(
                 ["git", "rev-parse", "HEAD"],
-                cwd=os.path.dirname(os.path.abspath(__file__)),
+                cwd=root_dir,
                 stderr=subprocess.DEVNULL
             ).decode().strip()
         except Exception:

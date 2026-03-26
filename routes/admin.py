@@ -147,6 +147,20 @@ def check_updates():
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     try:
+        # Intentar obtener el hash local de forma robusta
+        local_sha = ""
+        try:
+            # En Windows a veces git no está en el PATH de la app pero sí en el sistema
+            local_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root_dir,
+                stderr=subprocess.PIPE,
+                shell=True if os.name == 'nt' else False
+            ).decode().strip()
+        except Exception as e:
+            print(f"Error detectando Git local: {e}")
+            local_sha = ""
+
         # Obtener los últimos commits de la rama
         commits_url = f"https://api.github.com/repos/{github_repo}/commits?sha={branch}&per_page=5"
         r = requests.get(commits_url, timeout=5, headers={
@@ -158,18 +172,18 @@ def check_updates():
             return jsonify({"ok": False, "error": f"Error GitHub: HTTP {r.status_code}"}), 500
 
         commits = r.json()
-
-        try:
-            local_sha = subprocess.check_output(
-                ["git", "rev-parse", "HEAD"],
-                cwd=root_dir,
-                stderr=subprocess.DEVNULL
-            ).decode().strip()
-        except Exception:
-            local_sha = ""
-
         latest_sha = commits[0]["sha"] if commits else ""
-        update_available = bool(latest_sha and local_sha and latest_sha != local_sha)
+        
+        # SI no tenemos local_sha (ej: no es un repo git pero hay archivos), no podemos comparar
+        if not local_sha:
+            return jsonify({
+                "ok": True, 
+                "update_available": False, 
+                "reason": "git_local_not_found",
+                "current_version": APP_VERSION
+            })
+
+        update_available = bool(latest_sha and latest_sha != local_sha)
 
         # Obtener archivos cambiados para categorización
         archivos_cambiados = []

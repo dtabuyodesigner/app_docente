@@ -115,7 +115,7 @@ function initNavigation() {
 
 async function checkAppUpdates() {
     try {
-        const res = await fetch('/api/admin/check_updates');
+        const res = await fetch('/api/admin/check_updates?t=' + Date.now());
         if (!res.ok) return; // No es admin o sin conexión — ignorar silenciosamente
         const data = await res.json();
         if (data.ok && data.update_available) {

@@ -11,6 +11,8 @@ Bienvenido a la versión actualizada del **Cuaderno del Tutor**. Este manual te 
 6. [Gestión de Reuniones](#6-gestión-de-reuniones)
 7. [Horario Dual](#7-horario-dual)
 8. [Informes y Exportación](#8-informes-y-exportación)
+9. [Notificaciones y Actualizaciones](#9-notificaciones-y-actualizaciones)
+10. [Créditos y Autoría](#10-créditos-y-autoría)
 
 ---
 
@@ -107,3 +109,12 @@ Si encuentras algún problema con la conexión a Google, recuerda que puedes vol
 - **Navegación profunda**: La aplicación ahora gestiona el hash `#actualizaciones` en `configuracion.html`, mostrando automáticamente la pestaña de Actualizaciones al cargar la página.
 - **Desactivación**: El usuario puede omitir el banner con el botón “Omitir”, que lo elimina de la vista.
 
+## 10. Créditos y Autoría
+
+Este proyecto ha sido desarrollado con el objetivo de facilitar la labor docente diaria.
+
+- **Autor**: Daniel Tabuyo de las Peñas
+- **Contacto**: [dtabuyodesigner@gmail.com](mailto:dtabuyodesigner@gmail.com)
+- **Propósito**: Herramienta gratuita para la comunidad docente.
+
+Para cualquier sugerencia de mejora, reporte de errores o colaboración, no dudes en contactar a través del correo electrónico mencionado.

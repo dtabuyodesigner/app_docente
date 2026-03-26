@@ -1,6 +1,7 @@
 # ==============================================================================
 # IMPORTACIONES
 # ==============================================================================
+# Cuaderno del Tutor - Versión Final Sincronizada
 from flask import Flask, request, redirect, url_for, session, send_file, send_from_directory, jsonify
 try:
     from flasgger import Swagger

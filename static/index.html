@@ -394,8 +394,17 @@
             </div>
             <span style="font-size: 2rem;">🎉</span>
         </div>
-        <!-- Navigation Menu (Moved Up) -->
-        <div class="menu-grid" style="margin-bottom: 30px;">
+        <!-- Navigation Menu (Tabbed 9+9) -->
+        <div class="section-tabs" style="margin-top: 10px;">
+            <a href="javascript:void(0)" class="section-tab-btn active" onclick="switchDashboardTab('gestion', this)">
+                <span>📂</span> Gestión y Docencia
+            </a>
+            <a href="javascript:void(0)" class="section-tab-btn" onclick="switchDashboardTab('evaluacion', this)">
+                <span>📊</span> Evaluación y Recursos
+            </a>
+        </div>
+
+        <div id="tab-gestion" class="menu-grid" style="margin-bottom: 30px;">
             <a href="/alumnos" class="nav-btn" style="border-color: #4f46e5; background: #eef2ff;">
                 <span class="nav-icon">👦</span>
                 <span class="nav-text">Alumnos</span>
@@ -432,8 +441,11 @@
                 <span class="nav-icon">✅</span>
                 <span class="nav-text">Tareas</span>
             </a>
+        </div>
+
+        <div id="tab-evaluacion" class="menu-grid" style="margin-bottom: 30px; display: none;">
             <a href="/evaluacion" class="nav-btn" style="border-color: #3b82f6; background: #eff6ff;">
-                <span class="nav-icon">📊</span>
+                <span class="nav-icon">📋</span>
                 <span class="nav-text">Evaluación</span>
             </a>
             <a href="/static/evaluar_todo.html" class="nav-btn" style="border-color: #28a745; background: #f0fff4;">
@@ -462,13 +474,28 @@
             </a>
             <a href="/configuracion" class="nav-btn" style="border-color: #ffd700; background: #fffdf0;">
                 <span class="nav-icon">🔧</span>
-                <span class="nav-text">Configuración Avanzada</span>
+                <span class="nav-text">Ajustes</span>
             </a>
             <a href="/ayuda" class="nav-btn" style="border-color: #17a2b8; background: #f0fbfc;">
                 <span class="nav-icon">💡</span>
-                <span class="nav-text">Ayuda y Guía</span>
+                <span class="nav-text">Ayuda</span>
             </a>
         </div>
+
+        <script>
+            function switchDashboardTab(tabId, btn) {
+                // Hide all tabs
+                document.getElementById('tab-gestion').style.display = 'none';
+                document.getElementById('tab-evaluacion').style.display = 'none';
+                
+                // Show selected tab
+                document.getElementById('tab-' + tabId).style.display = 'grid';
+                
+                // Update button styles
+                document.querySelectorAll('.section-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+        </script>
         <div class="dashboard-grid">
             <!-- Stats Row -->
             <div class="stat-card" style="border-top: 4px solid #10b981; background: #ecfdf5; position: relative;">

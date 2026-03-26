@@ -114,7 +114,7 @@ function initNavigation() {
 
 async function checkUpdates() {
     try {
-        const res = await fetch('/api/check_updates');
+        const res = await fetch('/api/admin/check_updates');
         const data = await res.json();
         if (data.ok && data.update_available) {
             showUpdateBanner(data.current_version);
@@ -189,6 +189,18 @@ function addUpdateBadgeToConfig() {
         `;
         badge.textContent = '1';
         configLink.appendChild(badge);
+
+        // Añadir animación de pulso
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes badgePulse {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+                70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            }
+            .update-badge { animation: badgePulse 2s infinite; }
+        `;
+        document.head.appendChild(style);
     }
 }
 

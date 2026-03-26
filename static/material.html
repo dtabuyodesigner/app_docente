@@ -216,33 +216,11 @@
             padding: 10px;
             border-bottom: 1px solid #eee;
         }
-        .checklist-item:last-child {
-            border-bottom: none;
-        }
-        .checklist-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
         .student-item:hover {
             background-color: #f0f4f8 !important;
         }
-        .checklist-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            background: #fff;
-        }
         .checklist-item:hover {
             background: #f9f9f9;
-        }
-        .checklist-item input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            accent-color: var(--primary);
         }
     </style>
 
@@ -685,8 +663,7 @@
                 listCont.innerHTML = filtered.map(a => `
                     <div style="padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; background: white; transition: background 0.2s;">
                         <input type="checkbox" id="aid-gestion-check-${a.id}" ${a.tiene_ayuda_material ? 'checked' : ''} 
-                               onchange="toggleAidStatusInView(${a.id}, this.checked)"
-                               style="width: 20px; height: 20px; cursor: pointer;">
+                               onchange="toggleAidStatusInView(${a.id}, this.checked)">
                         <label for="aid-gestion-check-${a.id}" style="flex:1; cursor: pointer; font-weight: 500; font-size: 1rem; color: #333;">${a.nombre}</label>
                         <span style="font-size: 1.4rem;">${a.tiene_ayuda_material ? '🎁' : '🎒'}</span>
                     </div>

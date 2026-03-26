@@ -130,6 +130,7 @@ csrf = CSRFProtect()
 csrf.init_app(app)
 csrf.exempt(curricular_bp)
 csrf.exempt(alumnos_bp)
+csrf.exempt("routes.main.exit_app")
 
 # ==============================================================================
 # RUTAS Y ENDPOINTS

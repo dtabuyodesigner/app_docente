@@ -15,8 +15,9 @@ Bienvenido a la versión actualizada del **Cuaderno del Tutor**. Este manual te 
 ---
 
 ## 1. Inicio y Dashboard
-El panel principal ofrece una visión rápida de las tareas del día y estadísticas de la clase. La barra de navegación superior es ahora más legible y uniforme en todas las secciones.
+El panel principal ahora está organizado en **5 pestañas**: *Frecuentes*, *Gestión*, *Docencia*, *Evaluación* y *Recursos*. Cada pestaña agrupa tarjetas de acceso rápido a los módulos más usados. Además, se ha añadido una **sección de Acceso Rápido** con las 5 tarjetas más utilizadas, visible siempre en la parte superior. La barra de navegación superior es más legible y uniforme en todas las secciones.
 
+---
 ---
 
 ## 2. Gestión de Estudiantes
@@ -98,3 +99,11 @@ Genera la documentación necesaria al final del trimestre.
 
 ### Soporte Técnico
 Si encuentras algún problema con la conexión a Google, recuerda que puedes volver a conectar desde la pestaña de Programación para renovar los permisos.
+
+## 9. Notificaciones y Actualizaciones
+
+- **Banner de Actualización**: Aparece en la parte superior de la página de Configuración cuando hay una nueva versión disponible. Al pulsar “Actualizar ahora” el usuario es llevado directamente a la sección **Actualizaciones** mediante un enlace con hash `#actualizaciones`.
+- **Globo rojo (badge)**: En la barra de navegación y en la tarjeta “Ajustes” del dashboard se muestra un globo rojo pulsante que indica la disponibilidad de una actualización.
+- **Navegación profunda**: La aplicación ahora gestiona el hash `#actualizaciones` en `configuracion.html`, mostrando automáticamente la pestaña de Actualizaciones al cargar la página.
+- **Desactivación**: El usuario puede omitir el banner con el botón “Omitir”, que lo elimina de la vista.
+

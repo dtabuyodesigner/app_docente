@@ -153,7 +153,7 @@ function showUpdateBanner(version) {
     banner.innerHTML = `
         <span style="display:flex; align-items:center; gap:8px;">🚀 ¡Nueva versión disponible! <span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-size:0.8rem;">${version}</span></span>
         <div style="display:flex; gap:10px;">
-            <a href="/configuracion" style="background:white; color:#dc2626; text-decoration:none; padding:5px 12px; border-radius:6px; font-size:0.8rem; font-weight:800;">Actualizar ahora</a>
+            <a href="/configuracion#actualizaciones" style="background:white; color:#dc2626; text-decoration:none; padding:5px 12px; border-radius:6px; font-size:0.8rem; font-weight:800;">Actualizar ahora</a>
             <button onclick="this.parentElement.parentElement.remove()" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem;">Omitir</button>
         </div>
         <style>
@@ -165,11 +165,14 @@ function showUpdateBanner(version) {
 }
 
 function addUpdateBadgeToConfig() {
-    const configLinks = document.querySelectorAll('a[href="/configuracion"]');
+    const configLinks = document.querySelectorAll('a[href*="configuracion"]');
     
     configLinks.forEach(configLink => {
         if (!configLink.querySelector('.update-badge')) {
             configLink.style.position = 'relative';
+            // Update link to go directly to updates section
+            configLink.href = "/configuracion#actualizaciones";
+            
             const badge = document.createElement('span');
             badge.className = 'update-badge';
             

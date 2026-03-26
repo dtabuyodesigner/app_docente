@@ -766,7 +766,21 @@
             loadConfig();
             loadGruposAjustes();
             loadAppVersion();
+            
+            // Manage deep linking via hash
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                mostrarSeccion(hash);
+            }
         };
+
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                mostrarSeccion(hash);
+            }
+        });
+
         function mostrarSeccion(seccionId) {
             document.querySelectorAll('.config-section').forEach(el => el.style.display = 'none');
             const target = document.getElementById(seccionId + 'ConfigSection');

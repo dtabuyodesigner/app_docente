@@ -248,18 +248,33 @@ def apply_update():
         # 4. Reiniciar en un hilo separado para aplicar cambios
         def restart():
             import time
+            import sys
+            import subprocess
             time.sleep(1.5)
-            desktop_py = os.path.join(root_dir, "desktop.py")
+            
+            # Detectar si estamos en un .exe de PyInstaller
+            is_frozen = getattr(sys, 'frozen', False)
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            
             if os.name == 'nt':
-                # Windows: lanzar nuevo proceso de forma independiente
-                # Usamos 0 para heredar el entorno sin forzar una nueva consola CMD
-                subprocess.Popen(
-                    [sys.executable, desktop_py],
-                    creationflags=0
-                )
-                time.sleep(3)  # Dar tiempo al nuevo proceso para arrancar Flask
+                # DETACHED_PROCESS (0x00000008) para independencia total del proceso padre
+                # Esto suele evitar que herede la consola o que se abra una innecesaria.
+                creationflags = 0x00000008 
+                
+                if is_frozen:
+                    # En el .exe, sys.executable ya es el programa completo
+                    cmd = [sys.executable]
+                else:
+                    # Desde código fuente
+                    desktop_py = os.path.join(root_dir, "desktop.py")
+                    cmd = [sys.executable, desktop_py]
+                
+                subprocess.Popen(cmd, creationflags=creationflags, close_fds=True)
             else:
+                # Linux / Mac
+                desktop_py = os.path.join(root_dir, "desktop.py")
                 os.execl(sys.executable, sys.executable, desktop_py)
+            
             os._exit(0)
 
         threading.Thread(target=restart, daemon=True).start()

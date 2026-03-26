@@ -114,6 +114,8 @@ function initNavigation() {
 }
 
 async function checkAppUpdates() {
+    if (sessionStorage.getItem('update-omitted')) return;
+    
     try {
         const res = await fetch('/api/admin/check_updates?t=' + Date.now());
         if (!res.ok) return; // No es admin o sin conexión — ignorar silenciosamente
@@ -156,7 +158,7 @@ function showUpdateBanner(version) {
         <span id="banner-text" style="display:flex; align-items:center; gap:8px;">🚀 ¡Nueva versión disponible! <span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-size:0.8rem;">${version}</span></span>
         <div id="banner-actions" style="display:flex; gap:10px;">
             <button onclick="startDirectUpdate(this)" style="background:white; color:#dc2626; border:none; text-decoration:none; padding:5px 12px; border-radius:6px; font-size:0.8rem; font-weight:800; cursor:pointer;">Actualizar ahora</button>
-            <button onclick="this.parentElement.parentElement.remove()" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem;">Omitir</button>
+            <button onclick="omitUpdate()" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem;">Omitir</button>
         </div>
         <style>
             @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
@@ -213,8 +215,15 @@ async function startDirectUpdate(btn) {
     }
 }
 
+function omitUpdate() {
+    sessionStorage.setItem('update-omitted', 'true');
+    const banner = document.getElementById('update-banner');
+    if (banner) banner.remove();
+}
+
 function addUpdateBadgeToConfig() {
-    const configLinks = document.querySelectorAll('a[href*="configuracion"]');
+    // Buscar enlaces a configuración en el navbar y botones de la página de configuración
+    const configLinks = document.querySelectorAll('a[href*="configuracion"], .nav-link[title="Configuración"], div[onclick*="actualizaciones"]');
     
     configLinks.forEach(configLink => {
         if (!configLink.querySelector('.update-badge')) {

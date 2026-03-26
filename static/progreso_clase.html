@@ -156,10 +156,8 @@
         let chart = null;
         async function init() {
             try {
-                // Cargar nombre del grupo activo para detectar etapa
                 const groupRes = await fetch('/api/grupo_activo');
                 const groupData = await groupRes.json();
-                // Cargar etapas
                 const etapaRes = await fetch('/api/etapas');
                 const etapas = await etapaRes.json();
                 const etapaSelect = document.getElementById('etapa-select');
@@ -170,10 +168,16 @@
                     etapaSelect.appendChild(opt);
                 });
                 if (groupData.etapa_id) {
-                    etapaSelect.value = groupData.etapa_id;
+                    etapaSelect.value = String(groupData.etapa_id); // cast int→string
+                    etapaSelect.style.display = 'none'; // ocultar si viene del grupo
                     await loadAreasByEtapa();
                 }
-                if (document.getElementById('area-select').options.length > 0) loadStats();
+                // Auto-seleccionar trimestre por mes
+                const mes = new Date().getMonth() + 1;
+                const periodoSelect = document.getElementById('periodo-select');
+                if (mes >= 9) periodoSelect.value = 'T1';
+                else if (mes <= 3) periodoSelect.value = 'T2';
+                else periodoSelect.value = 'T3';
             } catch (e) {
                 console.error("Error en init:", e);
             }
@@ -192,8 +196,11 @@
                     opt.textContent = a.nombre;
                     areaSelect.appendChild(opt);
                 });
-                // Si hay áreas, cargar estadísticas para la primera
-                if (areas.length > 0) loadStats();
+                // Auto-seleccionar la primera área y cargar datos
+                if (areas.length > 0) {
+                    areaSelect.selectedIndex = 1;
+                    loadStats();
+                }
             } catch (e) {
                 console.error("Error cargando áreas:", e);
             }

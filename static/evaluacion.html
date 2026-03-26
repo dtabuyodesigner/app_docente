@@ -1062,6 +1062,7 @@
                 tbody.innerHTML = "";
                 criterios.forEach(c => {
                     const tr = document.createElement("tr");
+                    tr.id = 'row-' + c.id; // necesario para rellenarTodos()
                     if (esInfantil) {
                         // Spec definitiva combinada: NI / Poco adecuado, EP / Adecuado, CO / Muy adecuado
                         const mappingInfantil = [

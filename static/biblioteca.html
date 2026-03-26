@@ -2277,6 +2277,19 @@
                 initPrestamos();
             });
         }
+        async function verificarPrestamoPrevio(alumnoId, libroId) {
+            if (!alumnoId || !libroId) return false;
+            try {
+                const r = await fetch(`/api/alumnos/${alumnoId}/prestamos`);
+                const prestamos = await r.json();
+                // Buscamos si el libro_id coincide en algún préstamo previo (independientemente del estado)
+                return prestamos.some(p => String(p.libro_id) === String(libroId));
+            } catch (e) {
+                console.error("Error verificando préstamo previo:", e);
+                return false;
+            }
+        }
+
         async function registrarPrestamo() {
             const alumno_id = document.getElementById('p-alumno').value;
             const libro_id = document.getElementById('p-libro').value;
@@ -2288,13 +2301,20 @@
                 alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Selecciona un alumno y un libro</div>';
                 return;
             }
+
+            // Verificar si el alumno ya leyó este libro antes
+            const yaLeido = await verificarPrestamoPrevio(alumno_id, libro_id);
+            if (yaLeido) {
+                const proceed = confirm("⚠️ Este alumno ya ha cogido este libro anteriormente. ¿Quieres prestarlo de nuevo?");
+                if (!proceed) return;
+            }
             const d = await (await fetch('/api/prestamos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
             })).json();
             if (d.ok) {
-                showToast(`✅ ${d.mensaje}`);
+                showToast(`${d.mensaje}`);
                 
                 // Partial refresh logic
                 if (!keepStudent) {
@@ -2427,6 +2447,13 @@
                 alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Por favor, selecciona un alumno.</div>';
                 return;
             }
+
+            // Verificar si el alumno ya leyó este libro antes
+            const yaLeido = await verificarPrestamoPrevio(alumno_id, libro_id);
+            if (yaLeido) {
+                const proceed = confirm("⚠️ Este alumno ya ha cogido este libro anteriormente. ¿Quieres prestarlo de nuevo?");
+                if (!proceed) return;
+            }
             try {
                 const d = await (await fetch('/api/prestamos', {
                     method: 'POST',
@@ -2434,7 +2461,7 @@
                     body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
                 })).json();
                 if (d.ok) {
-                    showToast(`✅ ${d.mensaje}`);
+                    showToast(`${d.mensaje}`);
                     
                     // Refresh main data in background
                     loadBooks();

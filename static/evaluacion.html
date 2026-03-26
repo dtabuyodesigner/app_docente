@@ -983,9 +983,11 @@
                 }
             });
             alumnoSelect.addEventListener("change", () => {
-                areaSelect.value = ""; // Reset de área al cambiar alumno
-                areaSelect.dispatchEvent(new Event('change'));
-                cargarNotasExistentes();
+                // Mantener el área seleccionada al cambiar de alumno
+                // Solo recargamos las notas y el resumen del nuevo alumno
+                if (areaSelect.value) {
+                    cargarNotasExistentes();
+                }
                 cargarResumenAlumno();
             });
             async function cargarSDA() {
@@ -1305,10 +1307,7 @@
                 try {
                     const res = await fetch(url, {
                         method: "POST",
-                        headers: { 
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content 
-                        },
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload)
                     });
                     const data = await res.json();

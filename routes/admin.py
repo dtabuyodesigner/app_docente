@@ -147,6 +147,17 @@ def check_updates():
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     try:
+        # Detectar rama actual
+        branch_auto = None
+        try:
+            branch_auto = subprocess.check_output(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=root_dir, shell=True if os.name == 'nt' else False
+            ).decode().strip()
+        except: pass
+        
+        branch = branch_auto if branch_auto else "feature/refactor-evaluacion-curricular"
+        
         # Intentar obtener el hash local de forma robusta
         local_sha = ""
         try:

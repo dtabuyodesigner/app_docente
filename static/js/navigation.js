@@ -153,17 +153,64 @@ function showUpdateBanner(version) {
     `;
     
     banner.innerHTML = `
-        <span style="display:flex; align-items:center; gap:8px;">🚀 ¡Nueva versión disponible! <span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-size:0.8rem;">${version}</span></span>
-        <div style="display:flex; gap:10px;">
-            <a href="/configuracion#actualizaciones" style="background:white; color:#dc2626; text-decoration:none; padding:5px 12px; border-radius:6px; font-size:0.8rem; font-weight:800;">Actualizar ahora</a>
+        <span id="banner-text" style="display:flex; align-items:center; gap:8px;">🚀 ¡Nueva versión disponible! <span style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-size:0.8rem;">${version}</span></span>
+        <div id="banner-actions" style="display:flex; gap:10px;">
+            <button onclick="startDirectUpdate(this)" style="background:white; color:#dc2626; border:none; text-decoration:none; padding:5px 12px; border-radius:6px; font-size:0.8rem; font-weight:800; cursor:pointer;">Actualizar ahora</button>
             <button onclick="this.parentElement.parentElement.remove()" style="background:transparent; border:1px solid rgba(255,255,255,0.5); color:white; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem;">Omitir</button>
         </div>
         <style>
             @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+            @keyframes spin { 100% { transform: rotate(360deg); } }
         </style>
     `;
     
     document.body.prepend(banner);
+}
+
+async function startDirectUpdate(btn) {
+    if (!confirm('¿Deseas instalar las mejoras ahora? Se reiniciará la aplicación al terminar.')) return;
+    
+    const banner = document.getElementById('update-banner');
+    const actions = document.getElementById('banner-actions');
+    const text = document.getElementById('banner-text');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Instalando...';
+    
+    try {
+        // Obtener token CSRF
+        const csrfRes = await fetch('/api/csrf-token');
+        const csrfData = await csrfRes.json();
+        const csrfToken = csrfData.csrf_token;
+        
+        const res = await fetch('/api/admin/apply_update', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ skip: [] })
+        });
+        
+        const data = await res.json();
+        if (data.ok) {
+            text.innerHTML = '✅ ¡Actualización completada! Reiniciando...';
+            actions.innerHTML = '';
+            banner.style.background = 'linear-gradient(90deg, #22c55e, #16a34a)';
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } else {
+            alert('Error al actualizar: ' + (data.error || 'Error desconocido'));
+            btn.disabled = false;
+            btn.innerHTML = 'Actualizar ahora';
+        }
+    } catch (e) {
+        console.error("Error en actualización directa:", e);
+        alert('Error de conexión al intentar actualizar.');
+        btn.disabled = false;
+        btn.innerHTML = 'Actualizar ahora';
+    }
 }
 
 function addUpdateBadgeToConfig() {

@@ -165,33 +165,45 @@ function showUpdateBanner(version) {
 }
 
 function addUpdateBadgeToConfig() {
-    const configLink = document.querySelector('a[href="/configuracion"]');
-    if (configLink && !configLink.querySelector('.update-badge')) {
-        configLink.style.position = 'relative';
-        const badge = document.createElement('span');
-        badge.className = 'update-badge';
-        badge.style.cssText = `
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ef4444;
-            color: white;
-            font-size: 0.65rem;
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        `;
-        badge.textContent = '1';
-        configLink.appendChild(badge);
+    const configLinks = document.querySelectorAll('a[href="/configuracion"]');
+    
+    configLinks.forEach(configLink => {
+        if (!configLink.querySelector('.update-badge')) {
+            configLink.style.position = 'relative';
+            const badge = document.createElement('span');
+            badge.className = 'update-badge';
+            
+            // Adjust position if it's a dashboard card
+            const isDashboardCard = configLink.classList.contains('nav-btn');
+            const offset = isDashboardCard ? '5px' : '-5px';
+            
+            badge.style.cssText = `
+                position: absolute;
+                top: ${offset};
+                right: ${offset};
+                background: #ef4444;
+                color: white;
+                font-size: 0.7rem;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                border: 2px solid white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                z-index: 10;
+            `;
+            badge.textContent = '1';
+            configLink.appendChild(badge);
+        }
+    });
 
-        // Añadir animación de pulso
+    // Añadir animación de pulso (solo una vez si no existe)
+    if (!document.getElementById('badge-pulse-style')) {
         const style = document.createElement('style');
+        style.id = 'badge-pulse-style';
         style.textContent = `
             @keyframes badgePulse {
                 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }

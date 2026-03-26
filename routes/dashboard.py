@@ -93,9 +93,17 @@ def dashboard_resumen():
                     })
 
         # 4. Media Clase
+        # Buscar el último trimestre en evaluaciones estándar
         cur.execute("SELECT MAX(e.trimestre) FROM evaluaciones e JOIN alumnos a ON a.id=e.alumno_id WHERE a.grupo_id=?", (grupo_id,))
-        row_tri = cur.fetchone()
-        ultimo_tri = row_tri[0] if row_tri and row_tri[0] else 1
+        row_eval = cur.fetchone()
+        tri_eval = row_eval[0] if row_eval and row_eval[0] else 1
+        
+        # Buscar el último periodo en evaluación por criterios (formato T1, T2, T3)
+        cur.execute("SELECT MAX(CAST(SUBSTR(ec.periodo, 2) AS INTEGER)) FROM evaluacion_criterios ec JOIN alumnos a ON a.id=ec.alumno_id WHERE a.grupo_id=?", (grupo_id,))
+        row_crit = cur.fetchone()
+        tri_crit = row_crit[0] if row_crit and row_crit[0] else 1
+        
+        ultimo_tri = max(tri_eval, tri_crit)
         res["trimestre_actual"] = ultimo_tri
         
         cur.execute("SELECT AVG(e.nota) FROM evaluaciones e JOIN alumnos a ON a.id=e.alumno_id WHERE e.trimestre = ? AND a.grupo_id=?", (ultimo_tri, grupo_id))
@@ -121,12 +129,24 @@ def dashboard_resumen():
             })
 
         # 6. Distribución de notas
+        # Mostrar todas las áreas activas que tengan datos (ya sea por criterios o estándar)
         cur.execute("""
             SELECT DISTINCT a.id, a.nombre, a.tipo_escala, a.modo_evaluacion 
-            FROM areas a JOIN criterios c ON c.area_id = a.id
-            JOIN alumnos al ON al.grupo_id = ?
-            WHERE al.deleted_at IS NULL
-        """, (grupo_id,))
+            FROM areas a
+            WHERE a.activa = 1 AND (
+                EXISTS (
+                    SELECT 1 FROM evaluaciones ev 
+                    JOIN alumnos al ON al.id = ev.alumno_id 
+                    WHERE ev.area_id = a.id AND al.grupo_id = ? AND al.deleted_at IS NULL
+                )
+                OR EXISTS (
+                    SELECT 1 FROM evaluacion_criterios ec
+                    JOIN criterios c ON c.id = ec.criterio_id
+                    JOIN alumnos al ON al.id = ec.alumno_id
+                    WHERE c.area_id = a.id AND al.grupo_id = ? AND al.deleted_at IS NULL
+                )
+            )
+        """, (grupo_id, grupo_id))
         for area in cur.fetchall():
             area_nombre = area['nombre']
             dist = {}

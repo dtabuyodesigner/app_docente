@@ -262,13 +262,18 @@
                 const groupRes = await fetch('/api/grupo_activo');
                 const groupData = await groupRes.json();
                 if (groupData.etapa_id) {
-                    etapaSelect.value = groupData.etapa_id;
+                    etapaSelect.value = String(groupData.etapa_id); // cast: int vs string
                     await loadAreasByEtapa();
                 }
-                // If period is in URL, set it
+                // Auto-seleccionar trimestre según el mes actual si no viene en URL
                 const urlPeriodo = params.get('periodo'); // T1, T2, T3
                 if (urlPeriodo) {
                     periodoSelect.value = urlPeriodo.replace('T', '');
+                } else {
+                    const mes = new Date().getMonth() + 1; // 1-12
+                    if (mes >= 9) periodoSelect.value = '1';
+                    else if (mes <= 3) periodoSelect.value = '2';
+                    else periodoSelect.value = '3';
                 }
                 // If area_id is in URL, try to pre-select
                 const urlAreaId = params.get('area_id');

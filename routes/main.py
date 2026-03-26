@@ -601,50 +601,6 @@ def emergency_reset():
     except Exception as e:
         security_logger.error(f"Error during emergency reset: {e}")
         return jsonify({"ok": False, "error": "Error interno del servidor"}), 500
-@main_bp.route("/api/check_updates", methods=["GET"])
-def check_updates():
-    """Comprueba si hay actualizaciones disponibles en el repositorio remoto."""
-    import subprocess
-    try:
-        # Hash local actual
-        local = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=5,
-            cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        # Rama actual
-        branch = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, timeout=5,
-            cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        # Hash remoto (sin hacer fetch, solo consulta)
-        remote = subprocess.run(
-            ["git", "ls-remote", "origin", branch.stdout.strip()],
-            capture_output=True, text=True, timeout=8,
-            cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-
-        local_hash = local.stdout.strip()
-        remote_line = remote.stdout.strip()
-        remote_hash = remote_line.split()[0] if remote_line else None
-
-        if not local_hash or not remote_hash:
-            return jsonify({"ok": True, "updates_available": False, "reason": "no_info"})
-
-        updates_available = local_hash != remote_hash
-        return jsonify({
-            "ok": True,
-            "updates_available": updates_available,
-            "local_hash": local_hash[:7],
-            "remote_hash": remote_hash[:7],
-            "branch": branch.stdout.strip()
-        })
-    except FileNotFoundError:
-        # git no está instalado / no accesible
-        return jsonify({"ok": True, "updates_available": False, "reason": "git_not_found"})
-    except Exception as e:
-        return jsonify({"ok": True, "updates_available": False, "reason": str(e)})
 
 @main_bp.route("/api/exit", methods=["POST"])
 

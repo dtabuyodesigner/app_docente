@@ -237,17 +237,30 @@ async function confirmExitApp() {
             
             // Mostrar mensaje de despedida
             document.body.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#003366; color:white; font-family:sans-serif;">
-                    <h1 style="font-size:3rem;">👋 ¡Hasta luego!</h1>
-                    <p>La aplicación se está cerrando y el servidor se ha detenido.</p>
-                    <p style="color:rgba(255,255,255,0.6); font-size:0.8rem;">Ya puedes cerrar esta pestaña/ventana.</p>
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:linear-gradient(135deg, #001f3f, #003366); color:white; font-family:'Inter', sans-serif; text-align:center; padding: 20px;">
+                    <div style="font-size:5rem; margin-bottom: 20px; animation: wave 2s infinite;">👋</div>
+                    <h1 style="font-size:2.5rem; margin-bottom: 10px;">¡Hasta pronto!</h1>
+                    <p style="font-size:1.1rem; max-width: 500px; line-height: 1.5; color: rgba(255,255,255,0.8);">
+                        La aplicación se está cerrando y el servidor se ha detenido de forma segura.
+                    </p>
+                    <div style="margin-top: 30px; background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                        <p style="margin:0; font-weight: 600;">Ya puedes cerrar esta pestaña manualmente.</p>
+                        <p style="margin:5px 0 0 0; font-size: 0.85rem; opacity: 0.7;">(Por seguridad, algunos navegadores no permiten el cierre automático)</p>
+                    </div>
                 </div>
+                <style>
+                    @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-20deg); } 75% { transform: rotate(20deg); } }
+                    body { margin: 0; overflow: hidden; }
+                </style>
             `;
             
-            // Intentar cerrar la ventana (solo funcionará si fue abierta por script o PWA)
+            // Intentos de cierre automático (varios métodos por compatibilidad)
             setTimeout(() => {
+                window.close(); // Método estándar
+                if (window.opener) window.opener = null;
+                window.open('', '_self', ''); 
                 window.close();
-            }, 1500);
+            }, 2000);
         } catch (e) {
             console.error("Error al cerrar la aplicación:", e);
             alert("No se pudo cerrar el servidor de forma remota.");

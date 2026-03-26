@@ -201,13 +201,27 @@ def check_updates():
         commits = r.json()
         latest_sha = commits[0]["sha"] if commits else ""
         
+        # Obtener el número de versión remoto para mostrarlo en el banner
+        latest_version = "v1.x.x"
+        try:
+            version_url = f"https://raw.githubusercontent.com/{github_repo}/{branch}/version.py"
+            rv = requests.get(version_url, timeout=3)
+            if rv.status_code == 200:
+                # Extraer APP_VERSION = "..."
+                import re
+                match = re.search(r'APP_VERSION\s*=\s*["\']([^"\']+)["\']', rv.text)
+                if match:
+                    latest_version = match.group(1)
+        except: pass
+
         # SI no tenemos local_sha (ej: no es un repo git pero hay archivos), no podemos comparar
         if not local_sha:
             return jsonify({
                 "ok": True, 
                 "update_available": False, 
                 "reason": "git_local_not_found",
-                "current_version": APP_VERSION
+                "current_version": APP_VERSION,
+                "latest_version": latest_version
             })
 
         update_available = bool(latest_sha and latest_sha != local_sha)

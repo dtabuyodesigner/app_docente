@@ -119,7 +119,7 @@ async function checkAppUpdates() {
         if (!res.ok) return; // No es admin o sin conexión — ignorar silenciosamente
         const data = await res.json();
         if (data.ok && data.update_available) {
-            showUpdateBanner(data.current_version);
+            showUpdateBanner(data.latest_version || "Nueva");
             addUpdateBadgeToConfig();
         }
     } catch (e) {

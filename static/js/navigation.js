@@ -107,6 +107,51 @@ function initNavigation() {
     if (typeof loadGroupSelectorData === 'function') {
         loadGroupSelectorData();
     }
+
+    // Comprobar actualizaciones en segundo plano
+    checkUpdates();
+}
+
+async function checkUpdates() {
+    try {
+        const res = await fetch('/api/check_updates');
+        const data = await res.json();
+        if (data.ok && data.updates_available) {
+            showUpdateBanner(data.branch);
+        }
+    } catch (e) {
+        console.error("Error al comprobar actualizaciones:", e);
+    }
+}
+
+function showUpdateBanner(branch) {
+    if (document.getElementById('update-banner')) return;
+    
+    const banner = document.createElement('div');
+    banner.id = 'update-banner';
+    banner.style.cssText = `
+        background: linear-gradient(90deg, #4f46e5, #4338ca);
+        color: white;
+        padding: 8px 20px;
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        position: sticky;
+        top: 0;
+    `;
+    
+    banner.innerHTML = `
+        <span>🚀 ¡Hay una nueva versión disponible en la rama <strong>${branch}</strong>!</span>
+        <button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:0.75rem;">Cerrar</button>
+    `;
+    
+    document.body.prepend(banner);
 }
 
 // Initialize on load

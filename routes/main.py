@@ -617,7 +617,7 @@ def exit_app():
         import os
         import signal
         time.sleep(1)  # Dar tiempo a que la respuesta llegue al cliente
-        os.kill(os.getpid(), signal.SIGINT)
+        os._exit(0)
         
     import threading
     threading.Thread(target=shutdown).start()

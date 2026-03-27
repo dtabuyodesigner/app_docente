@@ -146,6 +146,39 @@
             border-color: var(--danger);
             background: #fff5f5;
         }
+        /* ⭐ Encargado del día: estrella encendida */
+        .card.encargado-hoy {
+            border-color: #f6c000 !important;
+            background: linear-gradient(135deg, #fffde7 0%, #fff8c0 100%) !important;
+            box-shadow: 0 0 0 3px rgba(246,192,0,0.25), 0 6px 20px rgba(246,192,0,0.2);
+        }
+        .card.encargado-hoy .card-name {
+            color: #7a5800;
+        }
+        .encargado-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: #f6c000;
+            color: #3d2c00;
+            animation: pulseGold 2s ease-in-out infinite;
+        }
+        @keyframes pulseGold {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(246,192,0,0.6); }
+            50% { box-shadow: 0 0 0 6px rgba(246,192,0,0); }
+        }
+        /* Vista compacta: fila del encargado */
+        .card-compact.encargado-hoy {
+            border-left-color: #f6c000 !important;
+            background: linear-gradient(90deg, #fffde7 0%, #ffffff 100%) !important;
+        }
+        .card-compact.encargado-hoy .compact-name::after {
+            content: ' ⭐';
+        }
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -611,7 +644,7 @@
                     style="font-size: 1.1rem; color: #6f42c1; min-height: 1.5em; display: flex; align-items: center; justify-content: center;">
                     -</p>
                 <div style="display: flex; gap: 5px; justify-content: center; margin-top: 5px;">
-                    <button onclick="seleccionarEncargado()"
+                    <button id="btnElegirEncargado" onclick="seleccionarEncargado()"
                         style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #6f42c1; background: white; color: #6f42c1; cursor: pointer;">
                         🎲 Elegir
                     </button>
@@ -632,6 +665,8 @@
                             style="font-size: 0.7rem; padding: 2px 8px; border-radius: 15px; border: none; cursor: pointer; background: #6f42c1; color: white;">🎲 Aleatorio</button>
                         <button id="btnModoLista" onclick="setEncargadoModo('lista')" 
                             style="font-size: 0.7rem; padding: 2px 8px; border-radius: 15px; border: none; cursor: pointer; background: transparent; color: #666;">📋 Lista</button>
+                        <button id="btnModoManual" onclick="setEncargadoModo('manual')" 
+                            style="font-size: 0.7rem; padding: 2px 8px; border-radius: 15px; border: none; cursor: pointer; background: transparent; color: #666;">⭐️ Manual</button>
                     </div>
                 </div>
             </div>
@@ -694,14 +729,16 @@
                     ? `/static/uploads/${student.foto}`
                     : `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/></svg>`;
 
+                const esEncargado = (encargadoActualId !== null && student.id === encargadoActualId);
                 const row = document.createElement('div');
-                row.className = `card-compact ${sc}`;
+                row.className = `card-compact ${sc}${esEncargado ? ' encargado-hoy' : ''}`;
                 row.id = `compact-row-${student.id}`;
                 row.innerHTML = `
                     <img src="${fotoSrc}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;"
                          onerror="this.style.display='none'">
                     <span class="compact-name">${student.nombre}</span>
                     <div class="compact-btns">
+                        <button class="btn-compact" onclick="assignEncargado(${student.id})" title="Asignar como Encargado">⭐️</button>
                         <button class="btn-compact ${student.estado==='presente'?'active-p':''}" 
                             onclick="markStatus(${student.id},'presente')" title="Presente">🟢</button>
                         <button class="btn-compact ${student.estado==='retraso'?'active-r':''}" 
@@ -765,7 +802,10 @@
                     statusClass = "nojustificada";
                     statusLabel = student.tipo_ausencia === 'horas' ? "Falta Parcial (NJ)" : "No Justif.";
                 }
-                card.className = `card ${statusClass}`;
+                // ⭐ Si es el encargado del día, añadir clase especial
+                const esEncargado = (encargadoActualId !== null && student.id === encargadoActualId);
+                card.className = `card ${statusClass}${esEncargado ? ' encargado-hoy' : ''}`;
+                card.id = `card-alumno-${student.id}`;
                 const fotoSrc = student.foto
                     ? `/uploads/${student.foto}`
                     : `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23ccc'><circle cx='50' cy='50' r='50'/><text x='50' y='67' font-size='48' text-anchor='middle' fill='white'>👤</text></svg>`;
@@ -773,7 +813,7 @@
                     <div class="card-header" style="display:flex; align-items:center; gap:10px;">
                         <img src="${fotoSrc}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.6);flex-shrink:0;" onerror="this.src='data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27 fill=%27%23ccc%27><circle cx=%2750%27 cy=%2750%27 r=%2750%27/></svg>'">
                         <div class="card-name">${student.nombre}</div>
-                        <span class="status-badge">${statusLabel}</span>
+                        ${esEncargado ? '<span class="encargado-badge">⭐ Encargado</span>' : `<span class="status-badge">${statusLabel}</span>`}
                     </div>
                 `;
                 if ((student.estado.startsWith("falta") || student.estado === "retraso") && student.tipo_ausencia === "horas" && student.horas_ausencia) {
@@ -817,6 +857,9 @@
                         🍽️ Comedor
                     </label>
                     <div class="card-actions">
+                        <button class="btn-icon" onclick="assignEncargado(${student.id})" title="Asignar como Encargado">
+                            ⭐️ Encargado
+                        </button>
                         <button class="btn-icon" onclick="addObservation(${student.id}, '${student.nombre}')">
                             📝 Nota
                         </button>
@@ -961,6 +1004,9 @@
             const c = await resComedor.json();
             document.getElementById("totalComedor").innerText = c.total;
         }
+        // ID del encargado activo para resaltar su tarjeta
+        let encargadoActualId = null;
+
         async function loadEncargado() {
             const res = await fetch(`/api/asistencia/encargado?fecha=${selectedDate}`);
             const data = await res.json();
@@ -968,11 +1014,73 @@
             if (data) {
                 p.innerText = data.nombre;
                 p.style.fontWeight = "bold";
+                encargadoActualId = data.id;
             } else {
                 p.innerText = "-";
                 p.style.fontWeight = "normal";
+                encargadoActualId = null;
             }
+            // Aplicar clase visual a la tarjeta del encargado
+            _aplicarBadgeEncargado(encargadoActualId);
         }
+
+        /**
+         * Aplica (o quita) la clase CSS 'encargado-hoy' a la tarjeta del alumno encargado.
+         * Se llama después de renderizar las tarjetas y tras cada selección.
+         * @param {number|null} id - ID del alumno encargado
+         */
+        function _aplicarBadgeEncargado(id) {
+            // Quitar badge anterior en ambas vistas
+            document.querySelectorAll('.card.encargado-hoy, .card-compact.encargado-hoy').forEach(el => {
+                el.classList.remove('encargado-hoy');
+                const badge = el.querySelector('.encargado-badge');
+                if (badge) badge.remove();
+            });
+            if (!id) return;
+
+            // Vista normal: buscar por data-alumno-id
+            const card = document.getElementById(`card-alumno-${id}`);
+            if (card) {
+                card.classList.add('encargado-hoy');
+                // Insertar badge ⭐ junto al nombre si no existe
+                const nombre = card.querySelector('.card-name');
+                if (nombre && !nombre.parentElement.querySelector('.encargado-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'encargado-badge';
+                    badge.textContent = '⭐ Encargado';
+                    nombre.parentElement.insertBefore(badge, nombre.nextSibling);
+                }
+            }
+
+            // Vista compacta
+            const row = document.getElementById(`compact-row-${id}`);
+            if (row) row.classList.add('encargado-hoy');
+        }
+        /**
+         * ══════════════════════════════════════════════
+         *  MODOS DE SELECCIÓN DE ENCARGADO
+         * ══════════════════════════════════════════════
+         *
+         *  ▶ ALEATORIO  (modo: 'aleatorio')
+         *      El sistema busca al alumno/a que ha sido encargado/a MENOS veces
+         *      en el ciclo actual. Si hay varios con el mismo mínimo, se elige
+         *      uno AL AZAR entre ellos. Si todos los candidatos del ciclo están
+         *      ausentes ese día, se sube al siguiente nivel de conteo.
+         *      Botón: 🎲 Elegir
+         *
+         *  ▶ ORDEN DE LISTA  (modo: 'lista')
+         *      Igual que aleatorio en cuanto al criterio de mínimos, pero en vez
+         *      de elegir al azar, selecciona al primero EN ORDEN ALFABÉTICO de
+         *      entre los candidatos presentes con menor participación.
+         *      Botón: 📋 Siguiente
+         *
+         *  ▶ MANUAL  (modo: 'manual')
+         *      El botón principal queda DESHABILITADO. El docente elige
+         *      directamente tocando el botón ⭐️ de la tarjeta del alumno.
+         *      No se aplica el criterio de ciclo: siempre se asigna al elegido.
+         *      Botón: ⭐️ Toca Estrella (deshabilitado — usar tarjetas)
+         * ══════════════════════════════════════════════
+         */
         let encargadoModo = localStorage.getItem('encargado_modo') || 'aleatorio';
 
         function setEncargadoModo(modo) {
@@ -984,14 +1092,28 @@
         function updateEncargadoModoUI() {
             const btnA = document.getElementById('btnModoAleatorio');
             const btnL = document.getElementById('btnModoLista');
-            if (!btnA || !btnL) return;
+            const btnM = document.getElementById('btnModoManual');
+            const btnE = document.getElementById('btnElegirEncargado');
+            if (!btnA || !btnL || !btnM) return;
             
+            // Reset estilos
+            [btnA, btnL, btnM].forEach(b => {
+                b.style.background = 'transparent';
+                b.style.color = '#666';
+            });
+
             if (encargadoModo === 'aleatorio') {
+                // Elige al azar entre alumnos con menor participación en el ciclo
                 btnA.style.background = '#6f42c1'; btnA.style.color = 'white';
-                btnL.style.background = 'transparent'; btnL.style.color = '#666';
-            } else {
+                if (btnE) { btnE.innerHTML = '🎲 Elegir'; btnE.disabled = false; btnE.style.opacity = '1'; }
+            } else if (encargadoModo === 'lista') {
+                // Elige al primero alfabéticamente entre alumnos con menor participación
                 btnL.style.background = '#6f42c1'; btnL.style.color = 'white';
-                btnA.style.background = 'transparent'; btnA.style.color = '#666';
+                if (btnE) { btnE.innerHTML = '📋 Siguiente'; btnE.disabled = false; btnE.style.opacity = '1'; }
+            } else {
+                // Modo manual: se elige tocando la estrella ⭐ de cada tarjeta
+                btnM.style.background = '#6f42c1'; btnM.style.color = 'white';
+                if (btnE) { btnE.innerHTML = '⭐️ Toca Estrella'; btnE.disabled = true; btnE.style.opacity = '0.6'; }
             }
         }
         document.addEventListener('DOMContentLoaded', updateEncargadoModoUI);
@@ -1002,14 +1124,31 @@
                 headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
                 body: JSON.stringify({ fecha: selectedDate, modo: encargadoModo })
             });
+            handleSeleccionarEncargadoResponse(res);
+        }
+
+        async function assignEncargado(alumnoId) {
+            const res = await fetch("/api/asistencia/encargado/seleccionar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": await getCsrf() },
+                body: JSON.stringify({ fecha: selectedDate, alumno_id: alumnoId })
+            });
+            handleSeleccionarEncargadoResponse(res);
+        }
+
+        async function handleSeleccionarEncargadoResponse(res) {
             const data = await res.json();
             if (data.error) {
                 alert(data.error);
             } else {
                 document.getElementById("nombreEncargado").innerText = data.nombre;
                 document.getElementById("nombreEncargado").style.fontWeight = "bold";
+
+                // Actualizar ID local y encender la estrella en la tarjeta
+                encargadoActualId = data.id;
+                _aplicarBadgeEncargado(encargadoActualId);
                 
-                // Notificaciones de ciclo
+                // Notificaciones de ciclo (solo si no fue manual)
                 if (data.ausentes_en_turno && data.ausentes_en_turno.length > 0) {
                     const nombres = data.ausentes_en_turno.map(a => a.nombre).join(", ");
                     setTimeout(() => {

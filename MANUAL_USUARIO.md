@@ -33,6 +33,12 @@ En la pestaña **Alumnos**, puedes gestionar las fichas individuales.
 Registra las faltas y retrasos diariamente.
 - **Comedor**: Marca quién se queda al comedor con un solo clic.
 - **Histórico**: Consulta el resumen mensual para ver patrones de asistencia.
+- **Gestión de Encargados ⭐**:
+  - **Resaltado Visual**: El alumno encargado del día ahora aparece con la "Estrella Encendida" (borde dorado, fondo especial y badge de estrella) para identificarlo rápidamente en la cuadrícula.
+  - **Modo Aleatorio 🎲**: El sistema elige automáticamente entre los alumnos que han sido encargados menos veces, rotando de forma justa.
+  - **Modo Orden de Lista 📋**: Sigue el orden alfabético de la clase, pero respetando siempre que todos participen antes de repetir ciclo.
+  - **Modo Manual ⭐️**: Permite al docente asignar el encargado directamente pulsando el botón "⭐️ Encargado" en la tarjeta de cualquier alumno.
+  - **Gestión de Ciclos**: El sistema detecta cuando todos han participado y reinicia el ciclo automáticamente, informando si algún alumno faltó en su turno para reasignarlo cuando asista.
 
 ---
 

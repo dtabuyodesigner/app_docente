@@ -287,75 +287,85 @@ def seleccionar_encargado():
     data = request.json
     fecha = data.get("fecha", date.today().isoformat())
     modo = data.get("modo", "aleatorio") # aleatorio | lista
+    alumno_id = data.get("alumno_id") # Nuevo: Selección manual
     
     conn = get_db()
     cur = conn.cursor()
     
     grupo_id = session.get('active_group_id')
-    # 1. Get present students for this day
-    cur.execute("""
-        SELECT a.id, a.nombre
-        FROM alumnos a
-        LEFT JOIN asistencia asist ON asist.alumno_id = a.id AND asist.fecha = ?
-        WHERE COALESCE(asist.estado, 'presente') IN ('presente', 'retraso')
-          AND a.grupo_id = ?
-    """, (fecha, grupo_id))
-    presentes = cur.fetchall()
     
-    if not presentes:
-        return jsonify({"error": "No hay alumnos presentes hoy"}), 400
-    
-    # 2. Count how many times each student has been encargado
-    # We only count those that were 'realizado'
-    cur.execute("""
-        SELECT e.alumno_id, COUNT(*) as veces
-        FROM encargados e
-        JOIN alumnos a ON e.alumno_id = a.id
-        WHERE a.grupo_id = ? AND e.estado = 'realizado'
-        GROUP BY e.alumno_id
-    """, (grupo_id,))
-    conteos = {row["alumno_id"]: row["veces"] for row in cur.fetchall()}
-    
-    # 3. Find the minimum count among ALL students in the group
-    cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ?", (grupo_id,))
-    todos = cur.fetchall()
-    if not todos:
-        return jsonify({"error": "No hay alumnos en el grupo"}), 400
-    
-    all_counts = {a["id"]: conteos.get(a["id"], 0) for a in todos}
-    min_veces_global = min(all_counts.values())
-    
-    # 4. Candidates are those who have the min_veces_global
-    candidatos_ids = [aid for aid, v in all_counts.items() if v == min_veces_global]
-    
-    # 5. Check which candidates are present today
-    presentes_ids = [p["id"] for p in presentes]
-    candidatos_presentes = [p for p in presentes if p["id"] in candidatos_ids]
-    
-    # Si no hay ningún candidato presente, significa que todos los que faltan por ser encargado hoy no han venido.
-    # En este caso, buscamos a los que tengan min_veces_global + 1 y estén presentes?
-    # O simplemente notificamos? El usuario quiere que si faltó, lo pongamos el último día.
-    
-    if not candidatos_presentes:
-        # Buscamos al siguiente nivel si no hay candidatos de nivel mínimo presentes
-        min_veces_sig = min_veces_global + 1
-        candidatos_presentes = [p for p in presentes if all_counts.get(p["id"], 0) == min_veces_sig]
-        if not candidatos_presentes:
-             # Fallback: pick any present
-             candidatos_presentes = presentes
-
-    # 6. Pick one based on mode
-    if modo == "lista":
-        # Sort candidates by name
-        candidatos_presentes.sort(key=lambda x: x["nombre"])
-        elegido = candidatos_presentes[0]
-    else:
-        elegido = random.choice(candidatos_presentes)
+    if alumno_id:
+        # 1. Selección MANUAL
+        cur.execute("SELECT id, nombre FROM alumnos WHERE id = ? AND grupo_id = ?", (alumno_id, grupo_id))
+        elegido = cur.fetchone()
+        if not elegido:
+            return jsonify({"error": "Alumno no encontrado"}), 404
         
-    alumno_id, nombre = elegido["id"], elegido["nombre"]
-    
-    # 7. Check for skip: students who have min_veces_global but are ABSENT today
-    ausentes_candidatos = [a for a in todos if a["id"] in candidatos_ids and a["id"] not in presentes_ids]
+        nombre = elegido["nombre"]
+        ausentes_candidatos = []
+        final_ciclo = False
+    else:
+        # 2. Selección AUTOMÁTICA (Aleatorio o Lista)
+        # 1. Get present students for this day
+        cur.execute("""
+            SELECT a.id, a.nombre
+            FROM alumnos a
+            LEFT JOIN asistencia asist ON asist.alumno_id = a.id AND asist.fecha = ?
+            WHERE COALESCE(asist.estado, 'presente') IN ('presente', 'retraso')
+              AND a.grupo_id = ?
+        """, (fecha, grupo_id))
+        presentes = cur.fetchall()
+        
+        if not presentes:
+            return jsonify({"error": "No hay alumnos presentes hoy"}), 400
+        
+        # 2. Count how many times each student has been encargado
+        cur.execute("""
+            SELECT e.alumno_id, COUNT(*) as veces
+            FROM encargados e
+            JOIN alumnos a ON e.alumno_id = a.id
+            WHERE a.grupo_id = ? AND e.estado = 'realizado'
+            GROUP BY e.alumno_id
+        """, (grupo_id,))
+        conteos = {row["alumno_id"]: row["veces"] for row in cur.fetchall()}
+        
+        # 3. Find the minimum count among ALL students in the group
+        cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ?", (grupo_id,))
+        todos = cur.fetchall()
+        if not todos:
+            return jsonify({"error": "No hay alumnos en el grupo"}), 400
+        
+        all_counts = {a["id"]: conteos.get(a["id"], 0) for a in todos}
+        min_veces_global = min(all_counts.values())
+        
+        # 4. Candidates are those who have the min_veces_global
+        candidatos_ids = [aid for aid, v in all_counts.items() if v == min_veces_global]
+        
+        # 5. Check which candidates are present today
+        presentes_ids = [p["id"] for p in presentes]
+        candidatos_presentes = [p for p in presentes if p["id"] in candidatos_ids]
+        
+        if not candidatos_presentes:
+            # Buscamos al siguiente nivel si no hay candidatos de nivel mínimo presentes
+            min_veces_sig = min_veces_global + 1
+            candidatos_presentes = [p for p in presentes if all_counts.get(p["id"], 0) == min_veces_sig]
+            if not candidatos_presentes:
+                 # Fallback: pick any present
+                 candidatos_presentes = presentes
+
+        # 6. Pick one based on mode
+        if modo == "lista":
+            # Sort candidates by name
+            candidatos_presentes.sort(key=lambda x: x["nombre"])
+            elegido = candidatos_presentes[0]
+        else:
+            elegido = random.choice(candidatos_presentes)
+            
+        alumno_id, nombre = elegido["id"], elegido["nombre"]
+        
+        # 7. Check for skip: students who have min_veces_global but are ABSENT today
+        ausentes_candidatos = [a for a in todos if a["id"] in candidatos_ids and a["id"] not in presentes_ids]
+        final_ciclo = (len(candidatos_ids) <= 1) # If only this one was left
     
     # 8. Save
     cur.execute("""
@@ -364,17 +374,15 @@ def seleccionar_encargado():
         ON CONFLICT(fecha) DO UPDATE SET alumno_id = excluded.alumno_id, estado = 'realizado'
     """, (fecha, alumno_id))
     
-    # Record absentees for this cycle if needed? 
-    # Actually, just knowing they have min_veces_global and are absent is enough to notify.
-    
     conn.commit()
     
     return jsonify({
         "id": alumno_id, 
         "nombre": nombre,
         "ausentes_en_turno": [{"id": a["id"], "nombre": a["nombre"]} for a in ausentes_candidatos],
-        "final_ciclo": len(candidatos_ids) <= 1 # If only this one was left
+        "final_ciclo": final_ciclo
     })
+
 
 @asistencia_bp.route("/api/asistencia/encargado/reiniciar", methods=["POST"])
 def reiniciar_encargados():

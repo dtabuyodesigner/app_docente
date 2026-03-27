@@ -142,53 +142,59 @@ def check_updates():
     from version import APP_VERSION
 
     github_repo = "dtabuyodesigner/app_docente"
-    branch = "feature/refactor-evaluacion-curricular"
-
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
+    # Si es un .exe compilado sin git, devolver sin actualizaciones silenciosamente
+    is_frozen = getattr(__import__('sys'), 'frozen', False)
+
     try:
-        # Detectar rama actual
-        branch_auto = None
-        try:
-            branch_auto = subprocess.check_output(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                cwd=root_dir, shell=True if os.name == 'nt' else False
-            ).decode().strip()
-        except: pass
-        
-        branch = branch_auto if branch_auto else "feature/refactor-evaluacion-curricular"
-        
-        # Intentar obtener el hash local de forma robusta
+        # Obtener SHA local
         local_sha = ""
         try:
-            # Comandos de git a intentar
             git_cmds = ["git"]
             if os.name == 'nt':
-                # Rutas comunes en Windows por si no está en el PATH
                 git_cmds.extend([
                     r"C:\Program Files\Git\bin\git.exe",
                     r"C:\Program Files\Git\cmd\git.exe",
                     os.path.expandvars(r"%LOCALAPPDATA%\Programs\Git\cmd\git.exe")
                 ])
-
             for cmd in git_cmds:
                 try:
                     local_sha = subprocess.check_output(
                         [cmd, "rev-parse", "HEAD"],
                         cwd=root_dir,
                         stderr=subprocess.PIPE,
-                        shell=True if os.name == 'nt' else False
+                        timeout=3
                     ).decode().strip()
-                    if local_sha: 
-                        print(f"✅ Git detectado usando: {cmd}")
+                    if local_sha:
                         break
                 except Exception:
                     continue
-        except Exception as e:
-            print(f"❌ Error crítico detectando Git local: {e}")
+        except Exception:
             local_sha = ""
 
-        # Obtener los últimos commits de la rama
+        # Sin git local — no podemos comparar, devolver sin error
+        if not local_sha:
+            return jsonify({
+                "ok": True,
+                "update_available": False,
+                "current_version": APP_VERSION,
+                "reason": "git_not_available"
+            })
+
+        # Detectar rama actual
+        branch = "feature/refactor-evaluacion-curricular"
+        try:
+            branch_auto = subprocess.check_output(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=root_dir, stderr=subprocess.PIPE, timeout=3
+            ).decode().strip()
+            if branch_auto:
+                branch = branch_auto
+        except Exception:
+            pass
+
+        # Consultar GitHub
         commits_url = f"https://api.github.com/repos/{github_repo}/commits?sha={branch}&per_page=5"
         r = requests.get(commits_url, timeout=5, headers={
             "Accept": "application/vnd.github.v3+json",
@@ -196,54 +202,29 @@ def check_updates():
         })
 
         if r.status_code != 200:
-            return jsonify({"ok": False, "error": f"Error GitHub: HTTP {r.status_code}"}), 500
+            return jsonify({"ok": True, "update_available": False, "current_version": APP_VERSION})
 
         commits = r.json()
         latest_sha = commits[0]["sha"] if commits else ""
-        
-        # Obtener el número de versión remoto para mostrarlo en el banner
-        latest_version = "v1.x.x"
+        update_available = bool(latest_sha and latest_sha != local_sha)
+
+        # Versión remota
+        latest_version = APP_VERSION
         try:
             version_url = f"https://raw.githubusercontent.com/{github_repo}/{branch}/version.py"
             rv = requests.get(version_url, timeout=3)
             if rv.status_code == 200:
-                # Extraer APP_VERSION = "..."
                 import re
                 match = re.search(r'APP_VERSION\s*=\s*["\']([^"\']+)["\']', rv.text)
                 if match:
                     latest_version = match.group(1)
-        except: pass
+        except Exception:
+            pass
 
-        # SI no tenemos local_sha (ej: no es un repo git pero hay archivos), no podemos comparar
-        if not local_sha:
-            return jsonify({
-                "ok": True, 
-                "update_available": False, 
-                "reason": "git_local_not_found",
-                "current_version": APP_VERSION,
-                "latest_version": latest_version
-            })
-
-        update_available = bool(latest_sha and latest_sha != local_sha)
-
-        # Obtener archivos cambiados para categorización
-        archivos_cambiados = []
-        if update_available:
-            try:
-                diff_output = subprocess.check_output(
-                    ["git", "diff", "--name-only", local_sha, latest_sha],
-                    cwd=root_dir,
-                    stderr=subprocess.DEVNULL
-                ).decode().strip().split("\n")
-                archivos_cambiados = [f for f in diff_output if f]
-            except Exception:
-                pass
-
-        # Construir lista de cambios pendientes
         cambios = []
         for c in commits:
             sha = c["sha"]
-            msg = c["commit"]["message"].split("\n")[0]  # Solo primera línea
+            msg = c["commit"]["message"].split("\n")[0]
             fecha = c["commit"]["committer"]["date"][:10]
             cambios.append({"sha": sha[:7], "mensaje": msg, "fecha": fecha})
             if sha == local_sha:
@@ -253,13 +234,15 @@ def check_updates():
             "ok": True,
             "update_available": update_available,
             "current_version": APP_VERSION,
+            "latest_version": latest_version,
             "local_sha": local_sha[:7] if local_sha else "desconocido",
             "latest_sha": latest_sha[:7] if latest_sha else "desconocido",
             "cambios": cambios if update_available else []
         })
 
-    except Exception as e:
-        return jsonify({"ok": False, "error": f"Error de conexión: {str(e)}"}), 500
+    except Exception:
+        # Cualquier error (sin internet, timeout, etc.) — devolver sin error silenciosamente
+        return jsonify({"ok": True, "update_available": False, "current_version": APP_VERSION})
 
 
 @admin_bp.route('/api/admin/apply_update', methods=['POST'])

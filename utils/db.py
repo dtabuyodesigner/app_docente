@@ -109,6 +109,8 @@ def run_migrations():
         # --- usuarios ---
         ("ALTER TABLE usuarios ADD COLUMN pregunta_seguridad TEXT", "usuarios.pregunta_seguridad"),
         ("ALTER TABLE usuarios ADD COLUMN respuesta_seguridad_hash TEXT", "usuarios.respuesta_seguridad_hash"),
+        # --- encargados ---
+        ("ALTER TABLE encargados ADD COLUMN estado TEXT DEFAULT 'realizado'", "encargados.estado"),
         # --- Tablas nuevas ---
         ("""CREATE TABLE IF NOT EXISTS diplomas_entregados (
             alumno_id INTEGER PRIMARY KEY,

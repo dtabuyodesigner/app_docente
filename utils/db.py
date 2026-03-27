@@ -151,6 +151,90 @@ def run_migrations():
             padre_email TEXT,
             FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
         )""", "tabla ficha_alumno"),
+        ("""CREATE TABLE IF NOT EXISTS encargados (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha DATE NOT NULL UNIQUE,
+            alumno_id INTEGER NOT NULL,
+            estado TEXT DEFAULT 'realizado',
+            FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )""", "tabla encargados"),
+        ("""CREATE TABLE IF NOT EXISTS libros (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            titulo TEXT NOT NULL,
+            autor TEXT NOT NULL,
+            isbn TEXT,
+            editorial TEXT,
+            año_publicacion INTEGER,
+            nivel_lectura TEXT,
+            genero TEXT,
+            cantidad_disponible INTEGER DEFAULT 1,
+            cantidad_total INTEGER DEFAULT 1,
+            descripcion TEXT,
+            portada TEXT,
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            activo INTEGER DEFAULT 1
+        )""", "tabla libros"),
+        ("""CREATE TABLE IF NOT EXISTS prestamos_libros (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alumno_id INTEGER NOT NULL,
+            libro_id INTEGER NOT NULL,
+            fecha_prestamo DATE NOT NULL,
+            fecha_devolucion DATE,
+            estado TEXT DEFAULT 'activo',
+            observaciones TEXT,
+            dias_retraso INTEGER DEFAULT 0,
+            FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+            FOREIGN KEY (libro_id) REFERENCES libros(id) ON DELETE CASCADE
+        )""", "tabla prestamos_libros"),
+        ("""CREATE TABLE IF NOT EXISTS generos_lectura (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL UNIQUE
+        )""", "tabla generos_lectura"),
+        ("""CREATE TABLE IF NOT EXISTS niveles_lectura (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL UNIQUE,
+            descripcion TEXT
+        )""", "tabla niveles_lectura"),
+        ("""CREATE TABLE IF NOT EXISTS material_alumnado (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            grupo_id INTEGER NOT NULL,
+            categoria TEXT NOT NULL,
+            unidades INTEGER DEFAULT 1,
+            material TEXT NOT NULL,
+            FOREIGN KEY(grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
+        )""", "tabla material_alumnado"),
+        ("""CREATE TABLE IF NOT EXISTS material_info (
+            grupo_id INTEGER PRIMARY KEY,
+            centro TEXT,
+            curso_escolar TEXT,
+            nivel_curso TEXT,
+            observaciones TEXT,
+            FOREIGN KEY(grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
+        )""", "tabla material_info"),
+        ("""CREATE TABLE IF NOT EXISTS material_entregado (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alumno_id INTEGER NOT NULL,
+            material_id INTEGER NOT NULL,
+            entregado INTEGER DEFAULT 0,
+            fecha_entrega DATETIME,
+            FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+            FOREIGN KEY(material_id) REFERENCES material_alumnado(id) ON DELETE CASCADE,
+            UNIQUE(alumno_id, material_id)
+        )""", "tabla material_entregado"),
+        ("""CREATE TABLE IF NOT EXISTS competencias_especificas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL,
+            descripcion TEXT NOT NULL,
+            area_id INTEGER NOT NULL,
+            FOREIGN KEY (area_id) REFERENCES areas(id)
+        )""", "tabla competencias_especificas"),
+        ("""CREATE TABLE IF NOT EXISTS sda_competencias (
+            sda_id INTEGER NOT NULL,
+            competencia_id INTEGER NOT NULL,
+            PRIMARY KEY (sda_id, competencia_id),
+            FOREIGN KEY (sda_id) REFERENCES sda(id) ON DELETE CASCADE,
+            FOREIGN KEY (competencia_id) REFERENCES competencias_especificas(id) ON DELETE CASCADE
+        )""", "tabla sda_competencias"),
     ]
 
     for sql, name in migrations:

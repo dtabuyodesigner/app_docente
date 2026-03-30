@@ -574,3 +574,22 @@ def importar_alumnos_csv():
 
     except Exception as e:
         return jsonify({"ok": False, "error": f"Error procesando el archivo: {str(e)}"}), 500
+@alumnos_bp.route("/api/alumnos/cumpleanos")
+def obtener_cumpleanos():
+    conn = get_db()
+    cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
+    
+    if not grupo_id:
+        return jsonify([])
+
+    cur.execute("""
+        SELECT a.id, a.nombre, f.fecha_nacimiento
+        FROM alumnos a
+        JOIN ficha_alumno f ON a.id = f.alumno_id
+        WHERE a.grupo_id = ? AND a.deleted_at IS NULL AND f.fecha_nacimiento IS NOT NULL AND f.fecha_nacimiento != ''
+        ORDER BY strftime('%m', f.fecha_nacimiento), strftime('%d', f.fecha_nacimiento)
+    """, (grupo_id,))
+    
+    rows = cur.fetchall()
+    return jsonify([dict(r) for r in rows])

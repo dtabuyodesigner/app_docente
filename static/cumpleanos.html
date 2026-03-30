@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cumpleaños - Cuaderno del Tutor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --bg: #f0f2f5;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+        .months-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .month-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #eef2f7;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+        }
+        .month-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+        .month-header {
+            padding: 15px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        .month-content {
+            padding: 15px;
+            flex-grow: 1;
+            min-height: 100px;
+        }
+        .birthday-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .birthday-item:last-child {
+            border-bottom: none;
+        }
+        .day-badge {
+            background: #eef2ff;
+            color: var(--secondary);
+            font-weight: 800;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .student-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .student-date {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 2px;
+        }
+        .empty-month {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #aaa;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+        /* Month Colors */
+        .month-01 .month-header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
+        .month-02 .month-header { background: linear-gradient(135deg, #1e40af, #60a5fa); }
+        .month-03 .month-header { background: linear-gradient(135deg, #065f46, #10b981); }
+        .month-04 .month-header { background: linear-gradient(135deg, #166534, #22c55e); }
+        .month-05 .month-header { background: linear-gradient(135deg, #854d0e, #eab308); }
+        .month-06 .month-header { background: linear-gradient(135deg, #9a3412, #f97316); }
+        .month-07 .month-header { background: linear-gradient(135deg, #991b1b, #ef4444); }
+        .month-08 .month-header { background: linear-gradient(135deg, #9d174d, #ec4899); }
+        .month-09 .month-header { background: linear-gradient(135deg, #6b21a8, #a855f7); }
+        .month-10 .month-header { background: linear-gradient(135deg, #5b21b6, #8b5cf6); }
+        .month-11 .month-header { background: linear-gradient(135deg, #374151, #6b7280); }
+        .month-12 .month-header { background: linear-gradient(135deg, #111827, #4b5563); }
+
+        @media print {
+            .nav-wrapper, .page-header button { display: none !important; }
+            body { background: white; padding: 0; }
+            .months-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .month-card { break-inside: avoid; shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+    <script src="/static/js/api.js?v=1.0"></script>
+    <script src="/static/js/navigation.js?v=1.0"></script>
+    <script src="/static/js/global_groups.js?v=1.0"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>🎂 Cumpleaños por Meses</h1>
+            <button onclick="window.print()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                <span>🖨️</span> Imprimir Lista
+            </button>
+        </div>
+
+        <div id="monthsGrid" class="months-grid">
+            <!-- JavaScript will populate this -->
+        </div>
+    </div>
+
+    <script>
+        const monthNames = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
+
+        async function loadBirthdays() {
+            const grid = document.getElementById('monthsGrid');
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px;">Cargando cumpleaños...</div>';
+
+            try {
+                const response = await fetch('/api/alumnos/cumpleanos');
+                const students = await response.json();
+
+                // Group students by month
+                const grouped = {};
+                for (let i = 1; i <= 12; i++) {
+                    grouped[i] = [];
+                }
+
+                students.forEach(s => {
+                    const date = new Date(s.fecha_nacimiento);
+                    const month = date.getMonth() + 1; // 1-12
+                    grouped[month].push(s);
+                });
+
+                grid.innerHTML = '';
+                for (let i = 1; i <= 12; i++) {
+                    const monthStudents = grouped[i];
+                    const monthIdx = i - 1;
+                    const monthNum = i.toString().padStart(2, '0');
+
+                    const card = document.createElement('div');
+                    card.className = `month-card month-${monthNum}`;
+                    
+                    let contentHtml = '';
+                    if (monthStudents.length > 0) {
+                        contentHtml = monthStudents.map(s => {
+                            const dateObj = new Date(s.fecha_nacimiento);
+                            const day = dateObj.getDate();
+                            const year = dateObj.getFullYear();
+                            return `
+                                <div class="birthday-item">
+                                    <div class="day-badge">${day}</div>
+                                    <div>
+                                        <div class="student-name">${s.nombre}</div>
+                                        <div class="student-date">${day} / ${monthNum} / ${year}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        contentHtml = '<div class="empty-month">Sin cumpleaños</div>';
+                    }
+
+                    card.innerHTML = `
+                        <div class="month-header">${i}. ${monthNames[monthIdx]}</div>
+                        <div class="month-content">
+                            ${contentHtml}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                }
+            } catch (error) {
+                console.error("Error loading birthdays:", error);
+                grid.innerHTML = '<div style="grid-column: 1/-1; color: var(--danger); text-align: center; padding: 50px;">Error al cargar los datos. Asegúrate de estar conectado.</div>';
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBirthdays();
+            
+            // Re-load when group changes (global_groups.js event)
+            window.addEventListener('groupChanged', () => {
+                loadBirthdays();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1168,6 +1168,25 @@ def grupo_obs_delete():
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@informes_bp.route("/api/informe/historial_status")
+def historial_status():
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify([])
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT trimestre FROM informe_grupo WHERE grupo_id = ?", (grupo_id,))
+    rows = cur.fetchall()
+    exists = [r["trimestre"] for r in rows]
+    
+    res = []
+    for t in [1, 2, 3]:
+        res.append({
+            "trimestre": t,
+            "exists": t in exists
+        })
+    return jsonify(res)
+
 @informes_bp.route("/api/informe/grupo_data")
 def grupo_data():
     trimestre = request.args.get("trimestre", "1")
@@ -1258,7 +1277,7 @@ def grupo_data():
             WHERE a.grupo_id = ?
             GROUP BY alumno_id
         """, (trimestre, grupo_id))
-        suspensos_map = dict(cur.fetchall())
+        suspensos_map = {row['alumno_id']: row['num_suspensos'] for row in cur.fetchall()}
     
     year = date.today().year
     if trimestre == "1":
@@ -1704,6 +1723,13 @@ def acta_oficial():
     pos_izda = logo_config.get("logo_izda_posicion", "left")
     pos_dcha = logo_config.get("logo_dcha_posicion", "right")
 
+    firma_fn = logo_config.get("tutor_firma_filename")
+    firma_path = None
+    if firma_fn:
+        p = os.path.join(uploads_dir, firma_fn)
+        if os.path.exists(p):
+            firma_path = p
+
     cur.execute("SELECT valor FROM config WHERE clave = 'nombre_centro'")
     r = cur.fetchone()
     nombre_centro = r["valor"] if r and r["valor"] else "CEIP"
@@ -1860,7 +1886,17 @@ def acta_oficial():
     if firmantes:
         sig_data = [["Docente", "Firma"]]
         for f in firmantes:
-            sig_data.append([Paragraph(f, styles['Normal']), ""])
+            row = [Paragraph(f, styles['Normal']), ""]
+            # Si el firmante es el tutor, intentamos poner la firma
+            if firma_path and (tutor_nombre.lower() in f.lower() or "tutor" in f.lower()):
+                try:
+                    img_f = RLImage(firma_path, width=4*cm, height=1.2*cm)
+                    img_f.hAlign = 'CENTER'
+                    row[1] = img_f
+                except:
+                    pass
+            sig_data.append(row)
+        
         t_sig = RLTable(sig_data, colWidths=[9*cm, 8*cm],
                         rowHeights=[0.8*cm] + [1.5*cm]*len(firmantes))
         t_sig.setStyle(RLTableStyle([
@@ -1868,6 +1904,7 @@ def acta_oficial():
             ('BACKGROUND', (0,0), (-1,0), rl_colors.lightgrey),
             ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('ALIGN', (1, 1), (1, -1), 'CENTER'),
         ]))
         elements.append(t_sig)
 
@@ -2325,6 +2362,7 @@ def pdf_grupo():
                 WHERE trimestre = ?
                 GROUP BY alumno_id, area_id
                 HAVING media_area < 5
+            ) sub ON a.id = sub.alumno_id
             JOIN areas ar ON sub.area_id = ar.id
             WHERE a.grupo_id = ? AND a.deleted_at IS NULL
             GROUP BY a.id, a.nombre

@@ -140,6 +140,10 @@ def material_page():
 def configuracion_page():
     return send_from_directory("static", "configuracion.html")
 
+@main_bp.route("/cumpleanos")
+def cumpleanos_page():
+    return send_from_directory("static", "cumpleanos.html")
+
 @main_bp.route("/prestamos")
 def prestamos_page():
     return redirect("/biblioteca#prestamos")

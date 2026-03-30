@@ -44,6 +44,40 @@ def upload_logo():
     return jsonify({"ok": True, "filename": f"logos/{filename}"})
 
 
+@configuracion_bp.route("/api/configuracion/firma", methods=["POST"])
+def upload_firma():
+    """Sube la firma del tutor a AppData/uploads/logos/"""
+    from utils.db import get_app_data_dir
+    
+    if 'firma' not in request.files:
+        return jsonify({"ok": False, "error": "No se recibió archivo"}), 400
+    
+    file = request.files['firma']
+    if not file.filename:
+        return jsonify({"ok": False, "error": "Archivo vacío"}), 400
+
+    ext = file.filename.rsplit('.', 1)[-1].lower()
+    if ext not in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
+        return jsonify({"ok": False, "error": "Formato no permitido"}), 400
+
+    logos_dir = os.path.join(get_app_data_dir(), "uploads", "logos")
+    os.makedirs(logos_dir, exist_ok=True)
+
+    filename = f"tutor_firma.{ext}"
+    filepath = os.path.join(logos_dir, filename)
+    file.save(filepath)
+
+    # Guardar en config
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO config (clave, valor) VALUES (?, ?)
+        ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor
+    """, ("tutor_firma_filename", f"logos/{filename}"))
+    conn.commit()
+
+    return jsonify({"ok": True, "filename": f"logos/{filename}"})
+
+
 @configuracion_bp.route("/api/configuracion/logos", methods=["GET"])
 def get_logos():
     """Devuelve los filenames de los logos guardados."""
@@ -54,6 +88,7 @@ def get_logos():
     return jsonify({
         "izda": rows.get("logo_izda_filename"),
         "dcha": rows.get("logo_dcha_filename"),
+        "firma": rows.get("tutor_firma_filename"),
         "izda_posicion": rows.get("logo_izda_posicion", "left"),
         "dcha_posicion": rows.get("logo_dcha_posicion", "right"),
     })

@@ -302,6 +302,21 @@
             </div>
             <button onclick="subirLogos()" style="margin-top:14px; padding:10px 20px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">📤 Guardar Logos</button>
             <span id="logos-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardado</span>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">🖋️ Firma Escaneada del Tutor/a</h3>
+                <p style="color:#666; font-size:0.85rem; margin-bottom:15px;">Sube tu firma escaneada (fondo blanco o transparente) para que aparezca automáticamente en las actas e informes.</p>
+                <div style="display: flex; gap: 20px; align-items: flex-start;">
+                    <div id="firma-preview" style="width: 200px; height: 80px; display: flex; align-items: center; justify-content: center; border: 2px dashed #cbd5e1; border-radius: 6px; background: white; overflow: hidden;">
+                        <span style="color:#aaa; font-size:0.8rem;">Sin firma</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="file" id="firma-file" accept="image/*" onchange="previewFirma()" style="width:100%; font-size:0.85rem; margin-bottom: 10px;">
+                        <button onclick="subirFirma()" style="padding:8px 16px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600; font-size: 0.9rem;">💾 Guardar Firma</button>
+                        <span id="firma-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardada</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -791,6 +806,105 @@
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             if (seccionId === 'logos') cargarLogosPreviews();
+        }
+
+        async function subirLogos() {
+            const izda = document.getElementById('logo-izda-file').files[0];
+            const dcha = document.getElementById('logo-dcha-file').files[0];
+            const posIzda = document.getElementById('logo-izda-pos').value;
+            const posDcha = document.getElementById('logo-dcha-pos').value;
+
+            const upload = async (lado, file, pos) => {
+                if (!file && !pos) return;
+                const fd = new FormData();
+                if (file) fd.append('logo', file);
+                fd.append('lado', lado);
+                fd.append('posicion', pos);
+                const csrf = await getCsrfTokenManual();
+                await fetch('/api/configuracion/logo', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf },
+                    body: fd
+                });
+            };
+
+            await upload('izda', izda, posIzda);
+            await upload('dcha', dcha, posDcha);
+            
+            const btn = event.target;
+            const status = document.getElementById('logos-status');
+            status.style.display = 'inline';
+            setTimeout(() => status.style.display = 'none', 3000);
+        }
+
+        function previewLogo(lado) {
+            const file = document.getElementById(`logo-${lado}-file`).files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById(`logo-${lado}-preview`).innerHTML = `<img src="${e.target.result}" style="max-height:100%; max-width:100%;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewFirma() {
+            const file = document.getElementById('firma-file').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('firma-preview').innerHTML = `<img src="${e.target.result}" style="max-height:100%; max-width:100%;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function subirFirma() {
+            const file = document.getElementById('firma-file').files[0];
+            if (!file) {
+                alert("Selecciona un archivo de firma primero.");
+                return;
+            }
+            const fd = new FormData();
+            fd.append('firma', file);
+            const csrf = await getCsrfTokenManual();
+            try {
+                const res = await fetch('/api/configuracion/firma', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf },
+                    body: fd
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    const status = document.getElementById('firma-status');
+                    status.style.display = 'inline';
+                    setTimeout(() => status.style.display = 'none', 3000);
+                } else {
+                    alert("Error subiendo firma: " + data.error);
+                }
+            } catch (e) {
+                alert("Error de conexión");
+            }
+        }
+
+        async function cargarLogosPreviews() {
+            try {
+                const res = await fetch('/api/configuracion/logos');
+                const data = await res.json();
+                if (data.izda) {
+                    document.getElementById('logo-izda-preview').innerHTML = `<img src="/api/admin/uploads/${data.izda}" style="max-height:100%; max-width:100%;">`;
+                }
+                if (data.dcha) {
+                    document.getElementById('logo-dcha-preview').innerHTML = `<img src="/api/admin/uploads/${data.dcha}" style="max-height:100%; max-width:100%;">`;
+                }
+                if (data.firma) {
+                    document.getElementById('firma-preview').innerHTML = `<img src="/api/admin/uploads/${data.firma}" style="max-height:100%; max-width:100%;">`;
+                }
+                document.getElementById('logo-izda-pos').value = data.izda_posicion;
+                document.getElementById('logo-dcha-pos').value = data.dcha_posicion;
+            } catch (e) {
+                console.error("Error cargando logos:", e);
+            }
         }
     </script>
 

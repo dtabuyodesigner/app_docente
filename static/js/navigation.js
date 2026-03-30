@@ -285,44 +285,49 @@ if (document.readyState === 'loading') {
 }
 
 async function confirmExitApp() {
-    if (confirm("¿Estás seguro de que deseas cerrar la aplicación por completo? El servidor se detendrá.")) {
-        try {
-            // Intento de cerrar el servidor
-            await fetch('/api/exit', { 
-                method: 'POST',
-                headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
-            });
-            
-            // Mostrar mensaje de despedida
-            document.body.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:linear-gradient(135deg, #001f3f, #003366); color:white; font-family:'Inter', sans-serif; text-align:center; padding: 20px;">
-                    <div style="font-size:5rem; margin-bottom: 20px; animation: wave 2s infinite;">👋</div>
-                    <h1 style="font-size:2.5rem; margin-bottom: 10px;">¡Hasta pronto!</h1>
-                    <p style="font-size:1.1rem; max-width: 500px; line-height: 1.5; color: rgba(255,255,255,0.8);">
-                        La aplicación se está cerrando y el servidor se ha detenido de forma segura.
-                    </p>
-                    <div style="margin-top: 30px; background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
-                        <p style="margin:0; font-weight: 600;">Ya puedes cerrar esta pestaña manualmente.</p>
-                        <p style="margin:5px 0 0 0; font-size: 0.85rem; opacity: 0.7;">(Por seguridad, algunos navegadores no permiten el cierre automático)</p>
-                    </div>
+    // Eliminada la confirmación para que sea automático según petición del usuario
+    try {
+        // Intento de cerrar el servidor
+        await fetch('/api/exit', { 
+            method: 'POST',
+            headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '' }
+        });
+        
+        // Mostrar mensaje de despedida
+        document.body.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:linear-gradient(135deg, #001f3f, #003366); color:white; font-family:'Inter', sans-serif; text-align:center; padding: 20px;">
+                <div style="font-size:5rem; margin-bottom: 20px; animation: wave 2s infinite;">👋</div>
+                <h1 style="font-size:2.5rem; margin-bottom: 10px;">¡Hasta pronto!</h1>
+                <p style="font-size:1.1rem; max-width: 500px; line-height: 1.5; color: rgba(255,255,255,0.8);">
+                    La aplicación se está cerrando y el servidor se ha detenido de forma segura.
+                </p>
+                <div style="margin-top: 30px; background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                    <p style="margin:0; font-weight: 600;">La ventana se cerrará automáticamente.</p>
+                    <p style="margin:5px 0 0 0; font-size: 0.85rem; opacity: 0.7;">Si la ventana no desaparece, ya puedes cerrarla manualmente.</p>
                 </div>
-                <style>
-                    @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-20deg); } 75% { transform: rotate(20deg); } }
-                    body { margin: 0; overflow: hidden; }
-                </style>
-            `;
+            </div>
+            <style>
+                @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-20deg); } 75% { transform: rotate(20deg); } }
+                body { margin: 0; overflow: hidden; }
+            </style>
+        `;
+        
+        // Intentos de cierre automático (varios métodos por compatibilidad)
+        setTimeout(() => {
+            window.opener = self;
+            window.close();
             
-            // Intentos de cierre automático (varios métodos por compatibilidad)
+            // Intento adicional si sigue abierta
             setTimeout(() => {
-                window.close(); // Método estándar
-                if (window.opener) window.opener = null;
-                window.open('', '_self', ''); 
-                window.close();
-            }, 2000);
-        } catch (e) {
-            console.error("Error al cerrar la aplicación:", e);
-            alert("No se pudo cerrar el servidor de forma remota.");
-        }
+                if (!window.closed) {
+                    window.open('', '_self', ''); 
+                    window.close();
+                }
+            }, 500);
+        }, 1500);
+    } catch (e) {
+        console.error("Error al cerrar la aplicación:", e);
+        // Fallar silenciosamente o mostrar error si es crítico
     }
 }
 // Global Keyboard Shortcuts (Enter to confirm, Esc to close)

@@ -624,7 +624,7 @@
                 return "CO/MA";
             }
             function getColorNota(nota, tipoEscala) {
-                if (tipoEscala === 'INFANTIL_NI_EP_C') {
+                if (tipoEscala && tipoEscala.startsWith('INFANTIL_')) {
                     const lab = notaToNivel(nota);
                     if (lab === "NI/PA") return "#dc3545";
                     if (lab === "EP/A") return "#e0a800";
@@ -637,7 +637,7 @@
             }
             function formatNota(nota, tipoEscala) {
                 if (nota === null || nota === undefined || nota === "" || nota === "—") return "—";
-                if (tipoEscala === 'INFANTIL_NI_EP_C') return notaToNivel(nota);
+                if (tipoEscala && tipoEscala.startsWith('INFANTIL_')) return notaToNivel(nota);
                 let n = parseFloat(nota);
                 if (isNaN(n) || n === 0) return "—";
                 return n.toFixed(2);
@@ -943,7 +943,7 @@
                 }
                 // Adjust UI based on area config
                 modoBadge.style.display = 'inline-flex';
-                if (conf.tipo_escala === 'INFANTIL_NI_EP_C') {
+                if (conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_')) {
                     modoBadge.innerHTML = '🧸 ' + conf.modo_evaluacion.replace(/_/g, ' ');
                     modoBadge.style.background = '#fff3cd';
                     modoBadge.style.borderColor = '#ffc107';
@@ -1057,7 +1057,7 @@
             }
             function renderTabla(criterios) {
                 const conf = getAreaConfig();
-                const esInfantil = conf.tipo_escala === 'INFANTIL_NI_EP_C';
+                const esInfantil = conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_');
                 thead.innerHTML = `<tr><th style="width:150px;">Código</th><th>Descripción</th><th style="width:${esInfantil ? 220 : 280}px;">Nivel</th></tr>`;
                 tbody.innerHTML = "";
                 criterios.forEach(c => {
@@ -1225,7 +1225,7 @@
                 const theadT = document.getElementById('theadTabla');
                 const tbodyT = document.getElementById('tbodyTabla');
                 const conf = getAreaConfig();
-                const esInfantil = conf.tipo_escala === 'INFANTIL_NI_EP_C';
+                const esInfantil = conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_');
                 // Header
                 let htmlHead = `<tr><th class="alumno-name">Alumno</th>`;
                 data.criterios.forEach(c => {

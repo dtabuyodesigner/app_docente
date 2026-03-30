@@ -465,30 +465,36 @@
                 return "#28a745";
             }
             function formatNotaText(nota, escala) {
-                if (escala === 'INFANTIL_NI_EP_C') {
+                if (escala && escala.startsWith('INFANTIL_')) {
                     let n = nota;
                     if (n > 3) { // Old scale logic
-                        if (n <= 3.5) return 'NI';
-                        if (n <= 6.5) return 'EP';
+                        if (n <= 3.5) n = 1;
+                        else if (n <= 6.5) n = 2;
+                        else n = 3;
+                    }
+                    if (escala === 'INFANTIL_PA_A_MA') {
+                        if (n < 1.5) return 'PA';
+                        if (n < 2.5) return 'AD';
+                        return 'MA';
+                    } else {
+                        if (n < 1.5) return 'NI';
+                        if (n < 2.5) return 'EP';
                         return 'C';
                     }
-                    if (n < 1.5) return 'NI';
-                    if (n < 2.5) return 'EP';
-                    return 'C';
                 }
                 return nota.toFixed(2);
             }
             function getColorNotaEscala(nota, escala) {
-                if (escala === 'INFANTIL_NI_EP_C') {
+                if (escala && escala.startsWith('INFANTIL_')) {
                     let n = nota;
                     if (n > 3) {
                         if (n <= 3.5) n = 1;
                         else if (n <= 6.5) n = 2;
                         else n = 3;
                     }
-                    if (n < 1.5) return "#dc3545"; // NI
-                    if (n < 2.5) return "#ffc107"; // EP
-                    return "#28a745"; // C
+                    if (n < 1.5) return "#dc3545"; // NI/PA
+                    if (n < 2.5) return "#ffc107"; // EP/A
+                    return "#28a745"; // C/MA
                 }
                 if (nota < 5) return "#dc3545";
                 if (nota < 7) return "#ffc107";

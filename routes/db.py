@@ -275,7 +275,7 @@ def nivel_a_nota(nivel, escala=None):
     Escala NUMERICA_1_4: 1→2.5, 2→5.0, 3→7.5, 4→10.0
     Escala INFANTIL_NI_EP_C: 1(NI)→1, 2(EP)→2, 3(C)→3
     """
-    if escala == "INFANTIL_NI_EP_C":
+    if (escala and escala.startswith("INFANTIL_")):
         # Nivel 1=NI, 2=EP, 3=C — se guarda internamente como 1,2,3
         mapping = {1: 1, 2: 2, 3: 3}
     else:

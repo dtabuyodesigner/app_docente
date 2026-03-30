@@ -155,7 +155,7 @@ def dashboard_resumen():
             dist = {}
             
             # Mapeo según escala
-            if tipo_escala == 'INFANTIL_NI_EP_C':
+            if (tipo_escala and tipo_escala.startswith("INFANTIL_")):
                 mapping_sql = "CASE WHEN ec.nivel = 1 THEN 'NI' WHEN ec.nivel = 2 THEN 'EP' WHEN ec.nivel = 3 THEN 'C' ELSE '?' END"
             else:
                 mapping_sql = "CASE WHEN ec.nivel = 1 THEN 'Insuficiente' WHEN ec.nivel = 2 THEN 'Suficiente/Bien' WHEN ec.nivel = 3 THEN 'Notable' WHEN ec.nivel = 4 THEN 'Sobresaliente' ELSE '?' END"

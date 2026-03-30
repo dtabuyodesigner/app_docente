@@ -155,6 +155,8 @@ def crear_area():
     """
     if not session.get('logged_in'):
         return jsonify({"ok": False, "error": "No autorizado"}), 401
+    if session.get('role') != 'admin':
+        return jsonify({"ok": False, "error": "Solo administradores"}), 403
         
     try:
         req_data = request.get_json(silent=True) or {}
@@ -183,6 +185,8 @@ def crear_area():
 def actualizar_area(area_id):
     if not session.get('logged_in'):
         return jsonify({"ok": False, "error": "No autorizado"}), 401
+    if session.get('role') != 'admin':
+        return jsonify({"ok": False, "error": "Solo administradores"}), 403
         
     try:
         # Partial validation for PUT, or maybe full depending on app rules. 
@@ -201,12 +205,11 @@ def actualizar_area(area_id):
     
     try:
         if has_evals:
-            # Restricted update
+            # Si tiene evals, permitimos nombre, modo_evaluacion y activa, pero quizá restringimos cosas como etapa.
             cur.execute("""
-                UPDATE areas SET activa = ?, modo_evaluacion = ? WHERE id = ?
-            """, (d.get("activa", 1), d.get("modo_evaluacion", "POR_SA"), area_id))
+                UPDATE areas SET nombre = ?, activa = ?, modo_evaluacion = ? WHERE id = ?
+            """, (d.get("nombre"), d.get("activa", 1), d.get("modo_evaluacion", "POR_SA"), area_id))
         else:
-            # We need full validation here generally, but we just re-verify basics mapping
             if "nombre" not in d or "etapa_id" not in d:
                  return jsonify({"ok": False, "error": "Nombre y etapa obligatorios"}), 400
             cur.execute("""
@@ -224,12 +227,14 @@ def actualizar_area(area_id):
 
 @criterios_bp.route("/api/areas/<int:area_id>", methods=["DELETE"])
 def eliminar_area(area_id):
-    if not session.get('logged_in'): return jsonify({"ok": False}), 401
+    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
     conn = get_db(); cur = conn.cursor()
-    # Check criteria
-    cur.execute("SELECT COUNT(*) as count FROM criterios WHERE area_id = ?", (area_id,))
+    cur.execute("SELECT COUNT(*) as count FROM evaluacion_criterios ec JOIN criterios c ON ec.criterio_id = c.id WHERE c.area_id = ?", (area_id,))
     if cur.fetchone()["count"] > 0:
-        return jsonify({"ok": False, "error": "No se puede eliminar: tiene criterios asociados. Desactívela en su lugar."}), 400
+        return jsonify({"ok": False, "error": "No se puede eliminar: tiene evaluaciones de alumnos asociadas. Desactívela en su lugar."}), 400
+    
+    # Si no tiene evaluaciones, borramos en cascada los criterios y luego el área
+    cur.execute("DELETE FROM criterios WHERE area_id = ?", (area_id,))
     cur.execute("DELETE FROM areas WHERE id = ?", (area_id,))
     conn.commit()
     return jsonify({"ok": True})
@@ -257,7 +262,7 @@ def listar_criterios():
 
 @criterios_bp.route("/api/criterios", methods=["POST"])
 def crear_criterio():
-    if not session.get('logged_in'): return jsonify({"ok": False}), 401
+    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
     try:
         req_data = request.get_json(silent=True) or {}
         d = CriterioSchema().load(req_data)
@@ -278,7 +283,7 @@ def crear_criterio():
 
 @criterios_bp.route("/api/criterios/<int:criterio_id>", methods=["PUT"])
 def actualizar_criterio(criterio_id):
-    if not session.get('logged_in'): return jsonify({"ok": False}), 401
+    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
     try:
         req_data = request.get_json(silent=True) or {}
         d = CriterioSchema(partial=True).load(req_data)
@@ -306,7 +311,7 @@ def actualizar_criterio(criterio_id):
 
 @criterios_bp.route("/api/criterios/<int:criterio_id>", methods=["DELETE"])
 def eliminar_criterio(criterio_id):
-    if not session.get('logged_in'): return jsonify({"ok": False}), 401
+    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT COUNT(*) as count FROM evaluacion_criterios WHERE criterio_id = ?", (criterio_id,))
     if cur.fetchone()["count"] > 0:

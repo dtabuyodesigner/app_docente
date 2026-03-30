@@ -348,22 +348,29 @@ def close_db(e=None):
 def nivel_a_nota(nivel, escala=None):
     """Convierte un nivel en una nota numérica.
     
+    Escala INFANTIL_...: 1→1, 2→2, 3→3
     Escala NUMERICA_1_4: 1→2.5, 2→5.0, 3→7.5, 4→10.0
-    Escala INFANTIL_NI_EP_C: 1(NI)→1, 2(EP)→2, 3(C)→3
     """
-    if escala == "INFANTIL_NI_EP_C":
-        # Nivel 1=NI, 2=EP, 3=C — se guarda internamente como 1,2,3
+    if escala and escala.startswith("INFANTIL_"):
+        # Nivel 1=NI/PA, 2=EP/A, 3=C/MA
         mapping = {1: 1, 2: 2, 3: 3}
     else:
         # Escala numérica 1-4 estándar
         mapping = {1: 2.5, 2: 5.0, 3: 7.5, 4: 10.0}
     return mapping.get(nivel, 0.0)
 
-def infantil_nivel_a_texto(nivel):
-    """Devuelve el texto legible para una evaluación Infantil (Combinado)."""
-    mapping = {
-        1: "NI - Poco adecuado", 
-        2: "EP - Adecuado", 
-        3: "CO - Muy adecuado"
-    }
+def infantil_nivel_a_texto(nivel, escala="INFANTIL_NI_EP_C"):
+    """Devuelve el texto legible para una evaluación Infantil."""
+    if escala == "INFANTIL_PA_A_MA":
+        mapping = {
+            1: "PA - Poco adecuado",
+            2: "AD - Adecuado",
+            3: "MA - Muy adecuado"
+        }
+    else:
+        mapping = {
+            1: "NI - No iniciado", 
+            2: "EP - En proceso", 
+            3: "CO - Conseguido"
+        }
     return mapping.get(nivel, "—")

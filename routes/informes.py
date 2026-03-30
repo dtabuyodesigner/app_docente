@@ -67,7 +67,7 @@ def generar_grafica_rendimiento(notas_area, alumno_nombre, es_infantil):
 
     colors_bars = []
     for n, es in zip(notas, escalas):
-        if es == "INFANTIL_NI_EP_C":
+        if (es and es.startswith("INFANTIL_")):
             if n < 1.5:
                 colors_bars.append('#dc3545')
             elif n < 2.5:
@@ -80,7 +80,7 @@ def generar_grafica_rendimiento(notas_area, alumno_nombre, es_infantil):
     bars = ax.barh(areas, notas, color=colors_bars)
     ax.set_xlabel('Nota Media')
     ax.set_title(f'Rendimiento por Área - {alumno_nombre}')
-    has_num = any(es != "INFANTIL_NI_EP_C" for es in escalas)
+    has_num = any((not es or not es.startswith("INFANTIL_")) for es in escalas)
     ax.set_xlim(0, 10 if has_num else 3.5)
     ax.grid(axis='x', alpha=0.3)
 
@@ -88,8 +88,10 @@ def generar_grafica_rendimiento(notas_area, alumno_nombre, es_infantil):
         def local_format_nota(n, e):
             if n is None:
                 return "—"
-            if e == "INFANTIL_NI_EP_C":
+            if (e and e.startswith("INFANTIL_")):
                 rnd = round(n)
+                if e == "INFANTIL_PA_A_MA":
+                    return {1: "PA", 2: "AD", 3: "MA"}.get(rnd, "—")
                 return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(rnd, "—")
             return f"{n:.2f}"
         ax.text(nota + 0.2, i, local_format_nota(nota, es), va='center', fontweight='bold')
@@ -120,7 +122,7 @@ def format_nota(nota, tipo_escala):
     """Convierte nota numérica a texto legible según escala."""
     if nota is None:
         return "—"
-    if tipo_escala == "INFANTIL_NI_EP_C":
+    if (tipo_escala and tipo_escala.startswith("INFANTIL_")):
         n = round(nota) if nota <= 3 else 0
         if n == 0:
             if nota <= 3.5:
@@ -129,6 +131,8 @@ def format_nota(nota, tipo_escala):
                 n = 2
             else:
                 n = 3
+        if tipo_escala == "INFANTIL_PA_A_MA":
+            return {1: "PA", 2: "AD", 3: "MA"}.get(n, "—")
         return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(n, "—")
     return f"{nota:.2f}"
 
@@ -455,7 +459,7 @@ def informe_pdf_todos():
         SELECT a.tipo_escala 
         FROM grupos g
         JOIN areas a ON g.etapa_id = a.etapa_id
-        WHERE g.id = ? AND a.tipo_escala = 'INFANTIL_NI_EP_C'
+        WHERE g.id = ? AND a.tipo_escala LIKE 'INFANTIL_%'
         LIMIT 1
     """, (grupo_id,))
     es_infantil = cur.fetchone() is not None
@@ -1143,7 +1147,7 @@ def grupo_data():
         SELECT a.tipo_escala 
         FROM grupos g
         JOIN areas a ON g.etapa_id = a.etapa_id
-        WHERE g.id = ? AND a.tipo_escala = 'INFANTIL_NI_EP_C'
+        WHERE g.id = ? AND a.tipo_escala LIKE 'INFANTIL_%'
         LIMIT 1
     """, (grupo_id,))
     es_infantil = cur.fetchone() is not None
@@ -1496,7 +1500,7 @@ def excel_individual():
         nota = r["nota"]
         escala = r["tipo_escala"]
 
-        if escala == "INFANTIL_NI_EP_C":
+        if (escala and escala.startswith("INFANTIL_")):
             n = round(nota) if nota <= 3 else (1 if nota <= 3.5 else (2 if nota <= 6.5 else 3))
             nota_display = {1: 1, 2: 5, 3: 10}.get(n, nota)
             escala_txt = {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
@@ -1512,7 +1516,7 @@ def excel_individual():
         nota_cell.border = border
         nota_cell.alignment = center
         if nota_display is not None:
-            if escala == "INFANTIL_NI_EP_C":
+            if (escala and escala.startswith("INFANTIL_")):
                 nota_cell.fill = PatternFill("solid", fgColor=("FADADD" if n == 1 else "FFF3CD" if n == 2 else "D5F5E3"))
             else:
                 nota_cell.fill = PatternFill("solid", fgColor=("FADADD" if nota < 5 else "FFF3CD" if nota < 7 else "D5F5E3"))
@@ -1831,7 +1835,7 @@ def excel_grupo():
         SELECT a.tipo_escala 
         FROM grupos g
         JOIN areas a ON g.etapa_id = a.etapa_id
-        WHERE g.id = ? AND a.tipo_escala = 'INFANTIL_NI_EP_C'
+        WHERE g.id = ? AND a.tipo_escala LIKE 'INFANTIL_%'
         LIMIT 1
     """, (grupo_id,))
     es_infantil = cur.fetchone() is not None
@@ -1894,18 +1898,13 @@ def excel_grupo():
     if not df_notas.empty:
         def excel_format_nota(n, e):
             if pd.isna(n):
-                return "—"
-            if e == "INFANTIL_NI_EP_C":
-                val = round(n) if n <= 3 else 0
-                if val == 0: 
-                    if n <= 3.5:
-                        val = 1
-                    elif n <= 6.5:
-                        val = 2
-                    else:
-                        val = 3
-                return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(val, "—")
-            return round(n, 2)
+                return ""
+            if (e and e.startswith("INFANTIL_")):
+                rnd = round(n)
+                if e == "INFANTIL_PA_A_MA":
+                    return {1: "Poco adecuado", 2: "Adecuado", 3: "Muy adecuado"}.get(rnd, "")
+                return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(rnd, "")
+            return n
         
         df_notas['Nota_Display'] = df_notas.apply(lambda r: excel_format_nota(r['Nota'], r['tipo_escala']), axis=1)
 
@@ -1952,19 +1951,17 @@ def excel_grupo():
     def detail_format_nota(row):
         n = row['Nota']
         e = row['tipo_escala']
-        if n is None or (isinstance(n, float) and pd.isna(n)):
+        if pd.isna(n):
             return "—"
-        if e == "INFANTIL_NI_EP_C":
-            val = round(n) if n <= 3 else 0
-            if val == 0:
-                if n <= 3.5:
-                    val = 1
-                elif n <= 6.5:
-                    val = 2
-                else:
-                    val = 3
-            return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(val, "—")
-        return round(n, 2)
+        if (e and e.startswith("INFANTIL_")):
+            # Puede que n ya sea texto si viene de INFANTIL_PA_A_MA o INFANTIL_NI_EP_C original
+            if isinstance(n, str):
+                return n
+            rnd = round(float(n))
+            if e == "INFANTIL_PA_A_MA":
+                return {1: "Poco adecuado", 2: "Adecuado", 3: "Muy adecuado"}.get(rnd, "—")
+            return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(rnd, "—")
+        return f"{float(n):.2f}"
 
     if es_infantil:
         query_detalle = f"""
@@ -2200,7 +2197,7 @@ def pdf_grupo():
         SELECT a.tipo_escala 
         FROM grupos g
         JOIN areas a ON g.etapa_id = a.etapa_id
-        WHERE g.id = ? AND a.tipo_escala = 'INFANTIL_NI_EP_C'
+        WHERE g.id = ? AND a.tipo_escala LIKE 'INFANTIL_%'
         LIMIT 1
     """, (grupo_id,))
     es_infantil = cur.fetchone() is not None

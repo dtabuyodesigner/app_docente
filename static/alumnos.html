@@ -343,7 +343,10 @@
                             style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box;">
                     </div>
                     <div>
-                        <label style="font-weight:bold; display:block; margin-bottom:5px;">Foto (Opcional)</label>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <label style="font-weight:bold; display:block;">Foto (Opcional)</label>
+                            <button type="button" id="btnBorrarFoto" onclick="borrarFotoActual()" style="display:none; color:#dc2626; border:none; background:transparent; font-size:0.8rem; font-weight:bold; cursor:pointer;">🗑️ Borrar Foto</button>
+                        </div>
                         <input type="file" id="modalFotoFile" accept="image/*"
                             style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box; font-size: 0.8rem;">
                     </div>
@@ -796,6 +799,7 @@
                 document.getElementById("modalPadreEmail").value = "";
                 document.getElementById("modalAutorizados").value = "";
                 document.getElementById("modalFotoFile").value = "";
+                document.getElementById("btnBorrarFoto").style.display = "none";
                 toggleDias(true);
                 modal.style.display = "flex";
                 document.body.style.overflow = "hidden";
@@ -806,6 +810,7 @@
                 modalId.value = alumno.id;
                 modalNombre.value = alumno.nombre;
                 document.getElementById("modalFotoFile").value = "";
+                document.getElementById("btnBorrarFoto").style.display = alumno.foto ? "inline-block" : "none";
                 // Cargar datos adicionales de la ficha
                 try {
                     const r = await fetch(`/api/alumnos/ficha/${alumno.id}`);
@@ -834,6 +839,38 @@
                 modal.style.display = "flex";
                 document.body.style.overflow = "hidden";
                 modalNombre.focus();
+            }
+            function ocultarModal() {
+                document.getElementById("modalAlumno").style.display = "none";
+            }
+
+            async function borrarFotoActual() {
+                if(!modalId.value) return;
+                if(!confirm('¿Seguro que quieres borrar la foto de este alumno? Se aplicará inmediatamente.')) return;
+                
+                const btn = document.getElementById("btnBorrarFoto");
+                const oldText = btn.innerHTML;
+                btn.innerHTML = '⏳...';
+                
+                try {
+                    const csrfToken = await getCsrfTokenManual();
+                    const res = await fetch(`/api/alumnos/${modalId.value}/foto`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRFToken': csrfToken }
+                    });
+                    const data = await res.json();
+                    if(data.ok) {
+                        btn.style.display = "none";
+                        // Refrescar lista de fondo para que desaparezca visualmente
+                        cargarAlumnos();
+                    } else {
+                        alert("Error al borrar la foto: " + (data.error || 'Error desconocido'));
+                        btn.innerHTML = oldText;
+                    }
+                } catch(e) {
+                    alert("Error de red al borrar foto");
+                    btn.innerHTML = oldText;
+                }
             }
             function cerrarModal() {
                 modal.style.display = "none";

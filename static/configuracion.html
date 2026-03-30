@@ -892,13 +892,13 @@
                 const res = await fetch('/api/configuracion/logos');
                 const data = await res.json();
                 if (data.izda) {
-                    document.getElementById('logo-izda-preview').innerHTML = `<img src="/api/admin/uploads/${data.izda}" style="max-height:100%; max-width:100%;">`;
+                    document.getElementById('logo-izda-preview').innerHTML = `<img src="/uploads/${data.izda}" style="max-height:100%; max-width:100%;">`;
                 }
                 if (data.dcha) {
-                    document.getElementById('logo-dcha-preview').innerHTML = `<img src="/api/admin/uploads/${data.dcha}" style="max-height:100%; max-width:100%;">`;
+                    document.getElementById('logo-dcha-preview').innerHTML = `<img src="/uploads/${data.dcha}" style="max-height:100%; max-width:100%;">`;
                 }
                 if (data.firma) {
-                    document.getElementById('firma-preview').innerHTML = `<img src="/api/admin/uploads/${data.firma}" style="max-height:100%; max-width:100%;">`;
+                    document.getElementById('firma-preview').innerHTML = `<img src="/uploads/${data.firma}" style="max-height:100%; max-width:100%;">`;
                 }
                 document.getElementById('logo-izda-pos').value = data.izda_posicion;
                 document.getElementById('logo-dcha-pos').value = data.dcha_posicion;

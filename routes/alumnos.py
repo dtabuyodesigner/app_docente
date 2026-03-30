@@ -233,8 +233,15 @@ def borrar_alumno(alumno_id):
 
     return jsonify({"ok": True, "mensaje": "Alumno archivado correctamente."})
 
-@alumnos_bp.route("/api/alumnos/<int:alumno_id>/foto", methods=["POST"])
-def subir_foto_alumno(alumno_id):
+@alumnos_bp.route("/api/alumnos/<int:alumno_id>/foto", methods=["POST", "DELETE"])
+def gestionar_foto_alumno(alumno_id):
+    if request.method == "DELETE":
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("UPDATE alumnos SET foto = NULL WHERE id = ?", (alumno_id,))
+        conn.commit()
+        return jsonify({"ok": True})
+
     if 'foto' not in request.files:
         return jsonify({"ok": False, "error": "No file part"}), 400
     

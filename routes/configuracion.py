@@ -83,7 +83,7 @@ def get_logos():
     """Devuelve los filenames de los logos guardados."""
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%'")
+    cur.execute("SELECT clave, valor FROM config WHERE clave IN ('logo_izda_filename', 'logo_dcha_filename', 'tutor_firma_filename', 'logo_izda_posicion', 'logo_dcha_posicion')")
     rows = {r["clave"]: r["valor"] for r in cur.fetchall()}
     return jsonify({
         "izda": rows.get("logo_izda_filename"),

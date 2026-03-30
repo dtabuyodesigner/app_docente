@@ -206,7 +206,20 @@ def check_updates():
 
         commits = r.json()
         latest_sha = commits[0]["sha"] if commits else ""
-        update_available = bool(latest_sha and latest_sha != local_sha)
+        
+        update_available = False
+        if latest_sha and local_sha and latest_sha != local_sha:
+            try:
+                # Si latest_sha es ancestro de local_sha, local está actualizado o por delante (commits sin empujar)
+                subprocess.check_call(
+                    ["git", "merge-base", "--is-ancestor", latest_sha, local_sha],
+                    cwd=root_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+            except Exception:
+                # Si falla, latest_sha no es ancestro (o no existe localmente), por tanto hay actualización
+                update_available = True
+        elif latest_sha and not local_sha:
+            update_available = True
 
         # Versión remota
         latest_version = APP_VERSION

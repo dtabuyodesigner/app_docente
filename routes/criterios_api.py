@@ -155,8 +155,6 @@ def crear_area():
     """
     if not session.get('logged_in'):
         return jsonify({"ok": False, "error": "No autorizado"}), 401
-    if session.get('role') != 'admin':
-        return jsonify({"ok": False, "error": "Solo administradores"}), 403
         
     try:
         req_data = request.get_json(silent=True) or {}
@@ -185,8 +183,6 @@ def crear_area():
 def actualizar_area(area_id):
     if not session.get('logged_in'):
         return jsonify({"ok": False, "error": "No autorizado"}), 401
-    if session.get('role') != 'admin':
-        return jsonify({"ok": False, "error": "Solo administradores"}), 403
         
     try:
         # Partial validation for PUT, or maybe full depending on app rules. 
@@ -228,7 +224,7 @@ def actualizar_area(area_id):
 
 @criterios_bp.route("/api/areas/<int:area_id>", methods=["DELETE"])
 def eliminar_area(area_id):
-    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
+    if not session.get('logged_in'): return jsonify({"ok": False}), 401
     conn = get_db(); cur = conn.cursor()
     # Check criteria
     cur.execute("SELECT COUNT(*) as count FROM criterios WHERE area_id = ?", (area_id,))
@@ -261,7 +257,7 @@ def listar_criterios():
 
 @criterios_bp.route("/api/criterios", methods=["POST"])
 def crear_criterio():
-    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
+    if not session.get('logged_in'): return jsonify({"ok": False}), 401
     try:
         req_data = request.get_json(silent=True) or {}
         d = CriterioSchema().load(req_data)
@@ -282,7 +278,7 @@ def crear_criterio():
 
 @criterios_bp.route("/api/criterios/<int:criterio_id>", methods=["PUT"])
 def actualizar_criterio(criterio_id):
-    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
+    if not session.get('logged_in'): return jsonify({"ok": False}), 401
     try:
         req_data = request.get_json(silent=True) or {}
         d = CriterioSchema(partial=True).load(req_data)
@@ -310,7 +306,7 @@ def actualizar_criterio(criterio_id):
 
 @criterios_bp.route("/api/criterios/<int:criterio_id>", methods=["DELETE"])
 def eliminar_criterio(criterio_id):
-    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
+    if not session.get('logged_in'): return jsonify({"ok": False}), 401
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT COUNT(*) as count FROM evaluacion_criterios WHERE criterio_id = ?", (criterio_id,))
     if cur.fetchone()["count"] > 0:

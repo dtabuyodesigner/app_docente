@@ -379,10 +379,10 @@
                 <div id="quickActions" style="display:flex; gap:8px; align-items:center;">
                     <button id="btnRellenar3" onclick="rellenarTodos(3)"
                         style="background:#3b82f6; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar con 3</button>
-                    <button class="btnRellenarNI" onclick="rellenarTodos(1)"
-                        style="background:#f59e0b; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar E.Proceso / Adecuado</button>
-                    <button class="btnRellenarC" onclick="rellenarTodos(3)"
-                        style="background:#10b981; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar Conseguido / M.Adecuado</button>
+                    <button id="btnRellenarL2" onclick="rellenarTodos(2)"
+                        style="background:#f59e0b; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar Nivel 2</button>
+                    <button id="btnRellenarL3" onclick="rellenarTodos(3)"
+                        style="background:#10b981; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar Nivel 3</button>
                     
                     <button id="btnCriterioExtra" onclick="abrirModalExtra()"
                         style="background:#8b5cf6; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; display:none;">➕ Criterio Extra</button>
@@ -609,25 +609,28 @@
                 return "C";
             }
             // Convierte nota interna (1,2,3) o antigua (2.5, 5, 7.5, 10) a texto Infantil
-            function notaToNivel(nota) {
+            // Convierte nota interna (1,2,3) o antigua a texto Infantil dinámico
+            function notaToNivel(nota, escala) {
                 if (nota === null || nota === undefined || nota === "" || nota === "—") return "—";
                 let n = parseFloat(nota);
                 if (isNaN(n) || n === 0) return "—";
-                // Manejo de datos antiguos (escala 1-10 para Infantil)
                 if (n > 3.5) {
                     if (n <= 5.5) n = 1;
                     else if (n <= 8.5) n = 2;
                     else n = 3;
+                } else {
+                    n = Math.round(n);
                 }
-                if (n <= 1.5) return "NI/PA";
-                if (n <= 2.5) return "EP/A";
-                return "CO/MA";
+                const isPama = (escala === "INFANTIL_PA_A_MA");
+                if (n <= 1) return isPama ? "PA" : "NI";
+                if (n <= 2) return isPama ? "AD" : "EP";
+                return isPama ? "MA" : "CO";
             }
             function getColorNota(nota, tipoEscala) {
                 if (tipoEscala && tipoEscala.startsWith('INFANTIL_')) {
-                    const lab = notaToNivel(nota);
-                    if (lab === "NI/PA") return "#dc3545";
-                    if (lab === "EP/A") return "#e0a800";
+                    const lab = notaToNivel(nota, tipoEscala);
+                    if (lab === "NI" || lab === "PA") return "#dc3545";
+                    if (lab === "EP" || lab === "AD") return "#e0a800";
                     return "#28a745"; // CO/MA
                 }
                 if (nota < 5) return "#dc3545";
@@ -637,7 +640,7 @@
             }
             function formatNota(nota, tipoEscala) {
                 if (nota === null || nota === undefined || nota === "" || nota === "—") return "—";
-                if (tipoEscala && tipoEscala.startsWith('INFANTIL_')) return notaToNivel(nota);
+                if (tipoEscala && tipoEscala.startsWith('INFANTIL_')) return notaToNivel(nota, tipoEscala);
                 let n = parseFloat(nota);
                 if (isNaN(n) || n === 0) return "—";
                 return n.toFixed(2);
@@ -944,21 +947,26 @@
                 // Adjust UI based on area config
                 modoBadge.style.display = 'inline-flex';
                 if (conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_')) {
+                    const isPama = (conf.tipo_escala === "INFANTIL_PA_A_MA");
                     modoBadge.innerHTML = '🧸 ' + conf.modo_evaluacion.replace(/_/g, ' ');
                     modoBadge.style.background = '#fff3cd';
                     modoBadge.style.borderColor = '#ffc107';
                     modoBadge.style.color = '#856404';
                     btnRellenar3.style.display = 'none';
-                    btnRellenarNI.style.display = 'inline-block';
-                    document.querySelector(".btnRellenarC").style.display = 'inline-block';
+                    const btnL2 = document.getElementById("btnRellenarL2");
+                    const btnL3 = document.getElementById("btnRellenarL3");
+                    btnL2.style.display = 'inline-block';
+                    btnL2.innerText = isPama ? "⚡ Rellenar AD" : "⚡ Rellenar EP";
+                    btnL3.style.display = 'inline-block';
+                    btnL3.innerText = isPama ? "⚡ Rellenar MA" : "⚡ Rellenar CO";
                 } else {
                     modoBadge.innerHTML = '🎓 ' + conf.modo_evaluacion.replace(/_/g, ' ');
                     modoBadge.style.background = '#e8f4fd';
                     modoBadge.style.borderColor = '#b8d9f5';
                     modoBadge.style.color = '#0056a0';
                     btnRellenar3.style.display = 'inline-block';
-                    btnRellenarNI.style.display = 'none';
-                    document.querySelector(".btnRellenarC").style.display = 'none';
+                    document.getElementById("btnRellenarL2").style.display = 'none';
+                    document.getElementById("btnRellenarL3").style.display = 'none';
                 }
                 if (conf.modo_evaluacion === 'POR_SA') {
                     lblSDA.style.display = 'flex';
@@ -1064,11 +1072,15 @@
                     const tr = document.createElement("tr");
                     tr.id = 'row-' + c.id; // necesario para rellenarTodos()
                     if (esInfantil) {
-                        // Spec definitiva combinada: NI / Poco adecuado, EP / Adecuado, CO / Muy adecuado
-                        const mappingInfantil = [
-                            { n: 1, label: "NI: Poco adecuado", db: "NI/PA" },
-                            { n: 2, label: "EP: Adecuado", db: "EP/A" },
-                            { n: 3, label: "CO: Muy adecuado", db: "CO/MA" }
+                        const isPama = (conf.tipo_escala === "INFANTIL_PA_A_MA");
+                        const mappingInfantil = isPama ? [
+                            { n: 1, label: "PA: Parcial", db: "PA" },
+                            { n: 2, label: "AD: Adquirido", db: "AD" },
+                            { n: 3, label: "MA: Muy Adq.", db: "MA" }
+                        ] : [
+                            { n: 1, label: "NI: No Iniciado", db: "NI" },
+                            { n: 2, label: "EP: En Proceso", db: "EP" },
+                            { n: 3, label: "CO: Conseguido", db: "CO" }
                         ];
                         tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
                         <td><div style="display:flex; gap:6px; justify-content:center;">${mappingInfantil.map(m => {
@@ -1242,10 +1254,11 @@
                         const val = data.evaluaciones[`${alum.id}_${crit.id}`] || 0;
                         let cellContent = `<div class="pill-group">`;
                         if (esInfantil) {
+                            const isPama = (conf.tipo_escala === "INFANTIL_PA_A_MA");
                             cellContent += `
-                                <div class="eval-pill p-1 ${val==1?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 1, this)">NI</div>
-                                <div class="eval-pill p-2 ${val==2?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 2, this)">EP</div>
-                                <div class="eval-pill p-3 ${val==3?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 3, this)">CO</div>
+                                <div class="eval-pill p-1 ${val==1?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 1, this)">${isPama ? 'PA' : 'NI'}</div>
+                                <div class="eval-pill p-2 ${val==2?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 2, this)">${isPama ? 'AD' : 'EP'}</div>
+                                <div class="eval-pill p-3 ${val==3?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 3, this)">${isPama ? 'MA' : 'CO'}</div>
                             `;
                         } else {
                             for (let n=1; n<=4; n++) {

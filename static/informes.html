@@ -467,18 +467,20 @@
             function formatNotaText(nota, escala) {
                 if (escala && escala.startsWith('INFANTIL_')) {
                     let n = nota;
-                    if (n > 3) { // Old scale logic
+                    if (n > 3) { // Regla de compatibilidad para medias antiguas
                         if (n <= 3.5) n = 1;
                         else if (n <= 6.5) n = 2;
                         else n = 3;
+                    } else {
+                        n = Math.round(n);
                     }
                     if (escala === 'INFANTIL_PA_A_MA') {
-                        if (n < 1.5) return 'PA';
-                        if (n < 2.5) return 'AD';
+                        if (n <= 1) return 'PA';
+                        if (n <= 2) return 'AD';
                         return 'MA';
                     } else {
-                        if (n < 1.5) return 'NI';
-                        if (n < 2.5) return 'EP';
+                        if (n <= 1) return 'NI';
+                        if (n <= 2) return 'EP';
                         return 'C';
                     }
                 }
@@ -491,10 +493,12 @@
                         if (n <= 3.5) n = 1;
                         else if (n <= 6.5) n = 2;
                         else n = 3;
+                    } else {
+                        n = Math.round(n);
                     }
-                    if (n < 1.5) return "#dc3545"; // NI/PA
-                    if (n < 2.5) return "#ffc107"; // EP/A
-                    return "#28a745"; // C/MA
+                    if (n <= 1) return "#dc3545"; // NI / PA
+                    if (n <= 2) return "#ffc107"; // EP / AD
+                    return "#28a745"; // C / MA
                 }
                 if (nota < 5) return "#dc3545";
                 if (nota < 7) return "#ffc107";
@@ -638,11 +642,13 @@
                         // Punto 4: Análisis de resultados
                         const resContainer = document.getElementById("grupoResultadosAuto");
                         if (resContainer) {
+                            const tasaExito = p.todo ? p.todo.pct : (p.L3 ? p.L3.pct : 0);
+                            const numExito = p.todo ? p.todo.num : (p.L3 ? p.L3.num : 0);
                             resContainer.innerHTML = `
                                 <ul style="margin:0; padding-left:20px;">
                                     <li><b>Alumnado total:</b> ${d.generales.total_alumnos}</li>
-                                    <li><b>Alumnado con todo aprobado:</b> ${p.todo ? p.todo.num : (p.C ? p.C.num : 0)}</li>
-                                    <li><b>Tasa de éxito / promoción:</b> ${p.todo ? p.todo.pct : (p.C ? p.C.pct : 0)}%</li>
+                                    <li><b>Alumnado con todo aprobado / nivel superior:</b> ${numExito}</li>
+                                    <li><b>Tasa de éxito / promoción:</b> ${tasaExito}%</li>
                                 </ul>
                             `;
                         }
@@ -670,9 +676,9 @@
                             const valColor = getColorNotaEscala(g.media_general, 'INFANTIL_NI_EP_C');
                             mediaHtml = `<b style="color:${valColor}">${valText}</b>`;
                             promocionHtml = `
-                                <tr><td>✅ Conseguido (C):</td><td><b>${p.C.num}</b> (${p.C.pct}%)</td></tr>
-                                <tr><td>⚠️ En Proceso (EP):</td><td><b>${p.EP.num}</b> (${p.EP.pct}%)</td></tr>
-                                <tr><td>❌ No Iniciado (NI):</td><td><b>${p.NI.num}</b> (${p.NI.pct}%)</td></tr>
+                                <tr><td>✅ ${p.labels.L3}:</td><td><b>${p.L3.num}</b> (${p.L3.pct}%)</td></tr>
+                                <tr><td>⚠️ ${p.labels.L2}:</td><td><b>${p.L2.num}</b> (${p.L2.pct}%)</td></tr>
+                                <tr><td>❌ ${p.labels.L1}:</td><td><b>${p.L1.num}</b> (${p.L1.pct}%)</td></tr>
                                 <tr style="color: #666;"><td>⚪ No Evaluados (NE):</td><td><b>${p.NE.num}</b></td></tr>
                             `;
                         } else {
@@ -684,26 +690,29 @@
                                 <tr><td>🚫 +2 Suspensos:</td><td><b>${p.mas_de_dos.num}</b> (${p.mas_de_dos.pct}%)</td></tr>
                             `;
                         }
-                        document.getElementById("resumenGrupoStats").innerHTML = `
-                        <div style="padding: 10px;">
-                            <strong>Dashboard T${trimestre}:</strong> 
-                            <div class="stat-card">👥 Alumnos: <b>${g.total_alumnos}</b></div>
-                            <div class="stat-card">📊 Media: ${mediaHtml}</div>
-                            <div class="stat-card">📅 Faltas: <b>${a.total_faltas}</b> (
-                                <span class="stat-clickable" style="color:green; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_justificada')">J: ${a.f_justificada}</span> / 
-                                <span class="stat-clickable" style="color:red; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_no_justificada')">I: ${a.f_no_justificada}</span>
-                            )</div>
-                            <div class="stat-card stat-clickable" onclick="mostrarDetalleAsistencia('retraso')">🕒 Retrasos: <b>${a.total_retrasos}</b></div>
-                        </div>
-                        <div style="padding: 10px; border-top: 1px solid #ddd; display: flex; gap: 20px;">
-                            <div style="flex: 1;">
-                                <strong>Análisis de Promoción:</strong>
-                                <table style="margin-top: 5px; font-size: 13px;">
-                                    ${promocionHtml}
-                                </table>
+                        const resumenContainer = document.getElementById("resumenGrupoStats");
+                        if (resumenContainer) {
+                            resumenContainer.innerHTML = `
+                            <div style="padding: 10px;">
+                                <strong>Dashboard T${trimestre}:</strong> 
+                                <div class="stat-card">👥 Alumnos: <b>${g.total_alumnos}</b></div>
+                                <div class="stat-card">📊 Media: ${mediaHtml}</div>
+                                <div class="stat-card">📅 Faltas: <b>${a.total_faltas}</b> (
+                                    <span class="stat-clickable" style="color:green; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_justificada')">J: ${a.f_justificada}</span> / 
+                                    <span class="stat-clickable" style="color:red; font-weight:bold;" onclick="mostrarDetalleAsistencia('falta_no_justificada')">I: ${a.f_no_justificada}</span>
+                                )</div>
+                                <div class="stat-card stat-clickable" onclick="mostrarDetalleAsistencia('retraso')">🕒 Retrasos: <b>${a.total_retrasos}</b></div>
                             </div>
-                        </div>
-                    `;
+                            <div style="padding: 10px; border-top: 1px solid #ddd; display: flex; gap: 20px;">
+                                <div style="flex: 1;">
+                                    <strong>Análisis de Promoción:</strong>
+                                    <table style="margin-top: 5px; font-size: 13px;">
+                                        ${promocionHtml}
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                        }
                     });
             }
             function toggleAllDocentes(check) {

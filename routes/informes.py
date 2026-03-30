@@ -133,7 +133,7 @@ def format_nota(nota, tipo_escala):
                 n = 3
         if tipo_escala == "INFANTIL_PA_A_MA":
             return {1: "PA", 2: "AD", 3: "MA"}.get(n, "—")
-        return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(n, "—")
+        return {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
     return f"{nota:.2f}"
 
 # ==============================================================================
@@ -369,14 +369,25 @@ def informe_pdf_individual():
     for area, area_id_r, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
         if nivel:
             comment = ""
-            if nivel == 1:
-                comment = f"• <b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
-            elif nivel == 2:
-                comment = f"• <b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
-            elif nivel == 3:
-                comment = f"• <b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
-            elif nivel == 4:
-                comment = f"• <b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
+            if (escala and escala.startswith("INFANTIL_")):
+                # Lógica para 3 niveles en Infantil
+                is_pama = (escala == "INFANTIL_PA_A_MA")
+                if nivel == 1:
+                    comment = f"• <b>{crit_cod}</b>: En proceso inicial de adquirir {crit_desc}." if is_pama else f"• <b>{crit_cod}</b>: No ha iniciado {crit_desc}."
+                elif nivel == 2:
+                    comment = f"• <b>{crit_cod}</b>: Ha progresado adecuadamente en {crit_desc}." if is_pama else f"• <b>{crit_cod}</b>: Está en proceso de adquirir {crit_desc}."
+                elif nivel >= 3:
+                    comment = f"• <b>{crit_cod}</b>: Ha adquirido plenamente {crit_desc}." if is_pama else f"• <b>{crit_cod}</b>: Ha conseguido {crit_desc}."
+            else:
+                # Primaria / 4 niveles
+                if nivel == 1:
+                    comment = f"• <b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
+                elif nivel == 2:
+                    comment = f"• <b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
+                elif nivel == 3:
+                    comment = f"• <b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
+                elif nivel >= 4:
+                    comment = f"• <b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
             
             if base:
                 comment += f" {base}"
@@ -596,6 +607,21 @@ def informe_pdf_todos():
 
     if es_infantil:
         periodo = f"T{trimestre}"
+        # Obtener escala predominante para etiquetas
+        cur.execute("""
+            SELECT a.tipo_escala 
+            FROM grupos g
+            JOIN areas a ON g.etapa_id = a.etapa_id
+            WHERE g.id = ? AND a.tipo_escala LIKE 'INFANTIL_%'
+            LIMIT 1
+        """, (grupo_id,))
+        esc_row = cur.fetchone()
+        scale_label = esc_row["tipo_escala"] if esc_row else "INFANTIL_NI_EP_C"
+        
+        is_pa_ma = scale_label == "INFANTIL_PA_A_MA"
+        l1, l2, l3 = ("PA", "AD", "MA") if is_pa_ma else ("NI", "EP", "C")
+        t1, t2, t3 = ("Parcialmente Adquirido", "Adquirido", "Muy Adquirido") if is_pa_ma else ("No Iniciado", "En proceso", "Conseguido")
+
         # CORRECCIÓN CRÍTICA: Query con parámetros correctos
         if area_id:
             # Con filtro de área: 6 marcadores, 6 parámetros
@@ -636,7 +662,7 @@ def informe_pdf_todos():
         notas_inf = cur.fetchall()
         
         evaluados_infantil = 0
-        infantil_map = {'C': 0, 'EP': 0, 'NI': 0}
+        infantil_map = {l3: 0, l2: 0, l1: 0}
         alumnos_medias = {}
         
         for row in notas_inf:
@@ -650,16 +676,16 @@ def informe_pdf_todos():
             media_alumno = sum(notas_validas) / len(notas_validas) if notas_validas else 0
             evaluados_infantil += 1
             if media_alumno >= 2.5:
-                infantil_map['C'] += 1
+                infantil_map[l3] += 1
             elif media_alumno >= 1.5:
-                infantil_map['EP'] += 1
+                infantil_map[l2] += 1
             else:
-                infantil_map['NI'] += 1
+                infantil_map[l1] += 1
 
         data_prom = [
-            ["Conseguido (C)", f"{infantil_map['C']} ({calc_pct_inf(infantil_map['C'], evaluados_infantil)})"],
-            ["En Proceso (EP)", f"{infantil_map['EP']} ({calc_pct_inf(infantil_map['EP'], evaluados_infantil)})"],
-            ["No Iniciado (NI)", f"{infantil_map['NI']} ({calc_pct_inf(infantil_map['NI'], evaluados_infantil)})"],
+            [f"{t3} ({l3})", f"{infantil_map[l3]} ({calc_pct_inf(infantil_map[l3], evaluados_infantil)})"],
+            [f"{t2} ({l2})", f"{infantil_map[l2]} ({calc_pct_inf(infantil_map[l2], evaluados_infantil)})"],
+            [f"{t1} ({l1})", f"{infantil_map[l1]} ({calc_pct_inf(infantil_map[l1], evaluados_infantil)})"],
             ["No Evaluados", f"{total_alumnos - evaluados_infantil}"]
         ]
     else:
@@ -875,14 +901,23 @@ def informe_pdf_todos():
         for area, sda, crit_cod, crit_desc, nota, escala, nivel, base in notas_criterios:
             if nivel:
                 comment = ""
-                if nivel == 1:
-                    comment = f"• <b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
-                elif nivel == 2:
-                    comment = f"• <b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
-                elif nivel == 3:
-                    comment = f"• <b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
-                elif nivel == 4:
-                    comment = f"• <b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
+                if (escala and escala.startswith("INFANTIL_")):
+                    is_pama = (escala == "INFANTIL_PA_A_MA")
+                    if nivel == 1:
+                        comment = f"• <b>{crit_cod}</b>: En proceso inicial de adquirir {crit_desc}." if is_pama else f"• <b>{crit_cod}</b>: No ha iniciado {crit_desc}."
+                    elif nivel == 2:
+                        comment = f"• <b>{crit_cod}</b>: Ha progresado adecuadamente en {crit_desc}." if is_pama else f"• <b>{crit_cod}</b>: Está en proceso de adquirir {crit_desc}."
+                    elif nivel >= 3:
+                        comment = f"• <b>{crit_cod}</b>: Ha adquirido plenamente {crit_desc}." if is_pama else f"• <b>{crit_cod}</b>: Ha conseguido {crit_desc}."
+                else:
+                    if nivel == 1:
+                        comment = f"• <b>{crit_cod}</b>: Necesita apoyo en {crit_desc}."
+                    elif nivel == 2:
+                        comment = f"• <b>{crit_cod}</b>: Está en proceso de mejorar en {crit_desc}."
+                    elif nivel == 3:
+                        comment = f"• <b>{crit_cod}</b>: Comprende y aplica adecuadamente {crit_desc}."
+                    elif nivel >= 4:
+                        comment = f"• <b>{crit_cod}</b>: Destaca especialmente en {crit_desc}."
                 
                 if base:
                     comment += f" {base}"
@@ -1181,12 +1216,24 @@ def grupo_data():
             for aid, notas in alumnos_medias.items():
                 notas_validas = [n for n in notas if n is not None]
                 media_alumno = sum(notas_validas) / len(notas_validas) if notas_validas else 0
+                
+                # Obtener escala de este alumno (simplificado a la del grupo)
+                cur.execute("""
+                    SELECT a.tipo_escala FROM alumnos al 
+                    JOIN grupos g ON al.grupo_id = g.id
+                    JOIN areas a ON g.etapa_id = a.etapa_id
+                    WHERE al.id = ? AND a.tipo_escala LIKE 'INFANTIL_%' LIMIT 1
+                """, (aid,))
+                row_esc = cur.fetchone()
+                esc = row_esc["tipo_escala"] if row_esc else "INFANTIL_NI_EP_C"
+                l1, l2, l3 = ("PA", "AD", "MA") if esc == "INFANTIL_PA_A_MA" else ("NI", "EP", "C")
+
                 if media_alumno >= 2.5:
-                    suspensos_map[aid] = 'C'
+                    suspensos_map[aid] = l3
                 elif media_alumno >= 1.5:
-                    suspensos_map[aid] = 'EP'
+                    suspensos_map[aid] = l2
                 else:
-                    suspensos_map[aid] = 'NI'
+                    suspensos_map[aid] = l1
     else:
         cur.execute("""
             SELECT COUNT(*), AVG(e.nota) 
@@ -1260,11 +1307,22 @@ def grupo_data():
 
     promocion_data = {}
     if es_infantil:
+        # Etiquetas dinámicas para el JSON de respuesta
+        cur.execute("""
+            SELECT a.tipo_escala FROM grupos g
+            JOIN areas a ON g.etapa_id = a.etapa_id
+            WHERE g.id = ? AND a.tipo_escala LIKE 'INFANTIL_%' LIMIT 1
+        """, (grupo_id,))
+        esc_row = cur.fetchone()
+        esc = esc_row["tipo_escala"] if esc_row else "INFANTIL_NI_EP_C"
+        l1, l2, l3 = ("PA", "AD", "MA") if esc == "INFANTIL_PA_A_MA" else ("NI", "EP", "C")
+
         promocion_data = {
             "is_infantil": True,
-            "C": {"num": infantil_dist['C'], "pct": pct_inf(infantil_dist['C'])},
-            "EP": {"num": infantil_dist['EP'], "pct": pct_inf(infantil_dist['EP'])},
-            "NI": {"num": infantil_dist['NI'], "pct": pct_inf(infantil_dist['NI'])},
+            "labels": {"L1": l1, "L2": l2, "L3": l3},
+            "L3": {"num": infantil_dist.get(l3, 0), "pct": pct_inf(infantil_dist.get(l3, 0))},
+            "L2": {"num": infantil_dist.get(l2, 0), "pct": pct_inf(infantil_dist.get(l2, 0))},
+            "L1": {"num": infantil_dist.get(l1, 0), "pct": pct_inf(infantil_dist.get(l1, 0))},
             "NE": {"num": total_alumnos - evaluados_count, "pct": 0}
         }
     else:
@@ -1503,7 +1561,10 @@ def excel_individual():
         if (escala and escala.startswith("INFANTIL_")):
             n = round(nota) if nota <= 3 else (1 if nota <= 3.5 else (2 if nota <= 6.5 else 3))
             nota_display = {1: 1, 2: 5, 3: 10}.get(n, nota)
-            escala_txt = {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
+            if escala == "INFANTIL_PA_A_MA":
+                escala_txt = {1: "PA", 2: "AD", 3: "MA"}.get(n, "—")
+            else:
+                escala_txt = {1: "NI", 2: "EP", 3: "C"}.get(n, "—")
         else:
             nota_display = round(nota, 2) if nota is not None else None
             escala_txt = "1-10"
@@ -1902,8 +1963,8 @@ def excel_grupo():
             if (e and e.startswith("INFANTIL_")):
                 rnd = round(n)
                 if e == "INFANTIL_PA_A_MA":
-                    return {1: "Poco adecuado", 2: "Adecuado", 3: "Muy adecuado"}.get(rnd, "")
-                return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(rnd, "")
+                    return {1: "PA", 2: "AD", 3: "MA"}.get(rnd, "")
+                return {1: "NI", 2: "EP", 3: "C"}.get(rnd, "")
             return n
         
         df_notas['Nota_Display'] = df_notas.apply(lambda r: excel_format_nota(r['Nota'], r['tipo_escala']), axis=1)
@@ -1959,8 +2020,8 @@ def excel_grupo():
                 return n
             rnd = round(float(n))
             if e == "INFANTIL_PA_A_MA":
-                return {1: "Poco adecuado", 2: "Adecuado", 3: "Muy adecuado"}.get(rnd, "—")
-            return {1: "No Iniciado", 2: "En proceso", 3: "Conseguido"}.get(rnd, "—")
+                return {1: "PA", 2: "AD", 3: "MA"}.get(rnd, "—")
+            return {1: "NI", 2: "EP", 3: "C"}.get(rnd, "—")
         return f"{float(n):.2f}"
 
     if es_infantil:
@@ -2236,12 +2297,24 @@ def pdf_grupo():
                 evaluados_infantil += 1
                 notas_validas = [n for n in alumnos_medias[aid] if n is not None]
                 media = sum(notas_validas) / len(notas_validas) if notas_validas else 0
+                
+                # Escala dinámica
+                cur.execute("""
+                    SELECT a.tipo_escala FROM alumnos al 
+                    JOIN grupos g ON al.grupo_id = g.id
+                    JOIN areas a ON g.etapa_id = a.etapa_id
+                    WHERE al.id = ? AND a.tipo_escala LIKE 'INFANTIL_%' LIMIT 1
+                """, (aid,))
+                row_esc = cur.fetchone()
+                esc = row_esc["tipo_escala"] if row_esc else "INFANTIL_NI_EP_C"
+                l1, l2, l3 = ("PA", "AD", "MA") if esc == "INFANTIL_PA_A_MA" else ("NI", "EP", "C")
+                
                 if media >= 2.5:
-                    infantil_map['C'] += 1
+                    infantil_map[l3] = infantil_map.get(l3, 0) + 1
                 elif media >= 1.5:
-                    infantil_map['EP'] += 1
+                    infantil_map[l2] = infantil_map.get(l2, 0) + 1
                 else:
-                    infantil_map['NI'] += 1
+                    infantil_map[l1] = infantil_map.get(l1, 0) + 1
     else:
         cur.execute("""
             SELECT a.nombre, GROUP_CONCAT(ar.nombre || ' (' || ROUND(sub.media_area,1) || ')', ', ') as areas, COUNT(sub.area_id) as num_suspensos
@@ -2344,9 +2417,19 @@ def pdf_grupo():
     fig1, ax1 = plt.subplots(figsize=(6, 4))
     ax1.set_title('Análisis de Promoción', pad=20)
     if es_infantil:
+        cur.execute("""
+            SELECT a.tipo_escala FROM grupos g
+            JOIN areas a ON g.etapa_id = a.etapa_id
+            WHERE g.id = ? AND a.tipo_escala LIKE 'INFANTIL_%' LIMIT 1
+        """, (grupo_id,))
+        esc_row = cur.fetchone()
+        esc = esc_row["tipo_escala"] if esc_row else "INFANTIL_NI_EP_C"
+        l1, l2, l3 = ("PA", "AD", "MA") if esc == "INFANTIL_PA_A_MA" else ("NI", "EP", "C")
+        t1, t2, t3 = ("Parcialmente Adquirido", "Adquirido", "Muy Adquirido") if esc == "INFANTIL_PA_A_MA" else ("No Iniciado", "En proceso", "Conseguido")
+
         colors_promo = ['#28a745', '#ffc107', '#dc3545']
-        labels_raw = ["Conseguido", "En proceso", "No Iniciado"]
-        data_raw = [infantil_map['C'], infantil_map['EP'], infantil_map['NI']]
+        labels_raw = [t3, t2, t1]
+        data_raw = [infantil_map.get(l3, 0), infantil_map.get(l2, 0), infantil_map.get(l1, 0)]
         
         data, labels, colors_filtered = [], [], []
         for d, l, c in zip(data_raw, labels_raw, colors_promo):

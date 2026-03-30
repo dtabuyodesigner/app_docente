@@ -227,17 +227,47 @@ def actualizar_area(area_id):
 
 @criterios_bp.route("/api/areas/<int:area_id>", methods=["DELETE"])
 def eliminar_area(area_id):
-    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
+    if session.get('role') != 'admin':
+        return jsonify({"ok": False, "error": "Acceso denegado"}), 403
+        
     conn = get_db(); cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) as count FROM evaluacion_criterios ec JOIN criterios c ON ec.criterio_id = c.id WHERE c.area_id = ?", (area_id,))
-    if cur.fetchone()["count"] > 0:
-        return jsonify({"ok": False, "error": "No se puede eliminar: tiene evaluaciones de alumnos asociadas. Desactívela en su lugar."}), 400
     
-    # Si no tiene evaluaciones, borramos en cascada los criterios y luego el área
-    cur.execute("DELETE FROM criterios WHERE area_id = ?", (area_id,))
-    cur.execute("DELETE FROM areas WHERE id = ?", (area_id,))
-    conn.commit()
-    return jsonify({"ok": True})
+    # 1. Comprobación exhaustiva de evaluaciones (SDA + Directas + Log)
+    eval_queries = [
+        ("SELECT COUNT(*) as count FROM evaluaciones WHERE area_id = ?", (area_id,)),
+        ("SELECT COUNT(*) as count FROM evaluaciones_log WHERE area_id = ?", (area_id,)),
+        ("SELECT COUNT(*) as count FROM evaluacion_criterios ec JOIN criterios c ON ec.criterio_id = c.id WHERE c.area_id = ?", (area_id,))
+    ]
+    
+    for sql, params in eval_queries:
+        cur.execute(sql, params)
+        if cur.fetchone()["count"] > 0:
+            return jsonify({"ok": False, "error": "No se puede eliminar: el área tiene evaluaciones registradas. Desactívela en su lugar."}), 400
+
+    try:
+        cur.execute("BEGIN")
+        # 2. Borrar dependencias que no tienen ON DELETE CASCADE en el esquema
+        # Criterios keywords (asociados a criterios de esta área)
+        cur.execute("DELETE FROM criterios_keywords WHERE criterio_id IN (SELECT id FROM criterios WHERE area_id = ?)", (area_id,))
+        
+        # 3. Borrar SDAs (y por CASCADE: sda_criterios, sda_competencias, actividades_sda, programacion_diaria asoc)
+        cur.execute("DELETE FROM sda WHERE area_id = ?", (area_id,))
+        
+        # 4. Borrar Competencias Específicas
+        cur.execute("DELETE FROM competencias_especificas WHERE area_id = ?", (area_id,))
+        
+        # 5. Borrar Criterios (y por CASCADE: rubricas, criterios_periodo, evaluacion_criterios - aunque ya sabemos que no hay)
+        cur.execute("DELETE FROM criterios WHERE area_id = ?", (area_id,))
+        
+        # 6. Borrar el área finalmente
+        cur.execute("DELETE FROM areas WHERE id = ?", (area_id,))
+        
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": f"Error al eliminar área: {str(e)}"}), 500
+
 
 # --- CRITERIOS ---
 
@@ -311,15 +341,34 @@ def actualizar_criterio(criterio_id):
 
 @criterios_bp.route("/api/criterios/<int:criterio_id>", methods=["DELETE"])
 def eliminar_criterio(criterio_id):
-    if session.get('role') != 'admin': return jsonify({"ok": False}), 403
+    if session.get('role') != 'admin':
+        return jsonify({"ok": False, "error": "Acceso denegado"}), 403
+        
     conn = get_db(); cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) as count FROM evaluacion_criterios WHERE criterio_id = ?", (criterio_id,))
-    if cur.fetchone()["count"] > 0:
-        return jsonify({"ok": False, "error": "Este criterio ya tiene evaluaciones. Solo puede desactivarse."}), 400
-    cur.execute("DELETE FROM criterios WHERE id = ?", (criterio_id,))
-    audit_log(session.get('username'), "DELETE", "criterio", f"ID: {criterio_id}")
-    conn.commit()
-    return jsonify({"ok": True})
+    
+    # Comprobar evaluaciones en todas las tablas
+    queries = [
+        ("SELECT COUNT(*) as count FROM evaluaciones WHERE criterio_id = ?", (criterio_id,)),
+        ("SELECT COUNT(*) as count FROM evaluaciones_log WHERE criterio_id = ?", (criterio_id,)),
+        ("SELECT COUNT(*) as count FROM evaluacion_criterios WHERE criterio_id = ?", (criterio_id,))
+    ]
+    
+    for sql, params in queries:
+        cur.execute(sql, params)
+        if cur.fetchone()["count"] > 0:
+            return jsonify({"ok": False, "error": "Este criterio ya tiene evaluaciones registradas. Solo puede desactivarse."}), 400
+            
+    try:
+        cur.execute("BEGIN")
+        # Limpiar keywords (sin CASCADE en esquema)
+        cur.execute("DELETE FROM criterios_keywords WHERE criterio_id = ?", (criterio_id,))
+        # Borrar criterio (dispara CASCADE en rubricas, sda_criterios, criterios_periodo)
+        cur.execute("DELETE FROM criterios WHERE id = ?", (criterio_id,))
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": f"Error al eliminar criterio: {str(e)}"}), 500
 
 # --- CSV & TEMPLATE ---
 

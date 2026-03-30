@@ -323,17 +323,15 @@ def apply_update():
                 
                 if is_frozen:
                     # En el .exe, sys.executable ya es el programa completo
-                    cmd = [sys.executable]
+                    cmd = [sys.executable] + sys.argv[1:]
                 else:
                     # Desde código fuente
-                    desktop_py = os.path.join(root_dir, "desktop.py")
-                    cmd = [sys.executable, desktop_py]
+                    cmd = [sys.executable] + sys.argv
                 
                 subprocess.Popen(cmd, creationflags=creationflags, close_fds=True)
             else:
                 # Linux / Mac
-                desktop_py = os.path.join(root_dir, "desktop.py")
-                os.execl(sys.executable, sys.executable, desktop_py)
+                os.execl(sys.executable, sys.executable, *sys.argv)
             
             os._exit(0)
 

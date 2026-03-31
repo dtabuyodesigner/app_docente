@@ -87,6 +87,7 @@ Actividades → Criterios → Nota del Área
 |-----|-------------|-----------|
 | **Gestión de Criterios** | No borra criterios en Evaluación → Gestión de Criterios | Alta |
 | **Cuaderno de Evaluación** | Evaluación → Cuaderno → Cuaderno de evaluación no muestra nada | Alta |
+| **Informe de Acta - Firmas** | Cuadro de firmas no muestra automáticamente la firma del tutor desde Logos | Media |
 
 #### Detalle: Bug en Borrar Criterios
 
@@ -148,6 +149,40 @@ DELETE /api/criterios/{id}
 ```bash
 # Probar endpoint directamente (con sesión activa)
 curl "http://localhost:5000/api/evaluacion/cuaderno?area_id=1&trimestre=1"
+```
+
+#### Detalle: Bug en Informe de Acta - Firmas
+
+**Ubicación:** Evaluación → Gestión de Informes → Informe de Acta → Cuadro de firmas
+
+**Síntoma:**
+- El cuadro de firmas del acta no muestra automáticamente la firma del tutor
+- La firma del tutor ya está cargada en Configuración → Logos/Firmas
+- Se espera que el sistema la inserte automáticamente en el acta
+
+**Comportamiento esperado:**
+- Al generar el acta, el sistema debe buscar la firma del tutor en la configuración
+- Insertar la firma automáticamente en el cuadro de firmas del acta
+- Mostrar la firma sin necesidad de subirla manualmente cada vez
+
+**Archivos a revisar:**
+- `routes/informes.py` (generación del PDF del acta)
+- `static/informes.html` (vista previa del acta)
+- Configuración de logos/firmas del tutor
+
+**Posibles causas:**
+1. La función de generación del PDF no busca la firma del tutor
+2. La ruta de la firma no se está pasando correctamente al PDF
+3. Falta código para cargar la firma desde la configuración
+
+**A comprobar:**
+```python
+# En routes/informes.py o donde se genera el acta
+# ¿Se carga la firma del tutor?
+firma_tutor = config.get('firma_tutor')  # ¿Existe esto?
+
+# ¿Se inserta en el PDF?
+doc.build(...)  # ¿Incluye la imagen de la firma?
 ```
 
 ### Features Pendientes

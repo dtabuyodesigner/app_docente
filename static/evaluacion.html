@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Cuaderno de Evaluación</title>
@@ -21,6 +22,7 @@
             --text: #333;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -28,16 +30,19 @@
             padding: 20px;
             color: var(--dark);
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
         select {
             padding: 8px;
             margin: 5px;
             border-radius: 4px;
             border: 1px solid #ccc;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -45,16 +50,19 @@
             margin-top: 20px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
+
         th,
         td {
             border: 1px solid #ddd;
             padding: 10px;
             text-align: center;
         }
+
         th {
             background: #f8f9fa;
             font-weight: bold;
         }
+
         button {
             padding: 6px 12px;
             margin: 2px;
@@ -64,29 +72,78 @@
             border-radius: 4px;
             transition: all 0.2s;
         }
+
         button:hover {
             background: #e2e6ea;
         }
+
         button.selected {
             background-color: #007bff;
             color: white;
             border-color: #007bff;
         }
+
         /* Botones modo Infantil NI/EP/C */
-        .btn-nivel[data-label="NI"].selected { background: #ef4444; border-color: #ef4444; color: white; }
-        .btn-nivel[data-label="EP"].selected { background: #f59e0b; border-color: #f59e0b; color: white; }
-        .btn-nivel[data-label="C"].selected { background: #10b981; border-color: #10b981; color: white; }
-        .btn-nivel[data-label="NI-PA"].selected { background: #ef4444; border-color: #ef4444; color: white; }
-        .btn-nivel[data-label="EP-A"].selected { background: #f59e0b; border-color: #f59e0b; color: white; }
-        .btn-nivel[data-label="CO-MA"].selected { background: #10b981; border-color: #10b981; color: white; }
-        .btn-nivel[data-label="NI/PA"].selected { background: #ef4444; border-color: #ef4444; color: white; }
-        .btn-nivel[data-label="EP/A"].selected { background: #f59e0b; border-color: #f59e0b; color: white; }
-        .btn-nivel[data-label="CO/MA"].selected { background: #10b981; border-color: #10b981; color: white; }
+        .btn-nivel[data-label="NI"].selected {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .btn-nivel[data-label="EP"].selected {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
+        }
+
+        .btn-nivel[data-label="C"].selected {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .btn-nivel[data-label="NI-PA"].selected {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .btn-nivel[data-label="EP-A"].selected {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
+        }
+
+        .btn-nivel[data-label="CO-MA"].selected {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .btn-nivel[data-label="NI/PA"].selected {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .btn-nivel[data-label="EP/A"].selected {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
+        }
+
+        .btn-nivel[data-label="CO/MA"].selected {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
         /* Rubric Tooltip */
         .rubric-tooltip {
             position: relative;
             display: inline-block;
         }
+
         .rubric-tooltip .tooltiptext {
             visibility: hidden;
             width: 250px;
@@ -108,6 +165,7 @@
             pointer-events: none;
             font-weight: normal;
         }
+
         .btn-back {
             display: inline-flex;
             align-items: center;
@@ -123,10 +181,12 @@
             transition: all 0.2s;
             margin-bottom: 20px;
         }
+
         .btn-back:hover {
             background: var(--primary);
             color: white;
         }
+
         .rubric-tooltip .tooltiptext::after {
             content: "";
             position: absolute;
@@ -137,10 +197,12 @@
             border-style: solid;
             border-color: #333 transparent transparent transparent;
         }
+
         .rubric-tooltip:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
         }
+
         .modo-badge {
             display: inline-flex;
             align-items: center;
@@ -153,6 +215,7 @@
             font-weight: 600;
             color: #0056a0;
         }
+
         /* Tabs */
         .tab-btn-eval {
             background: #f8f9fa;
@@ -165,9 +228,11 @@
             transition: all 0.2s;
             margin: 0;
         }
+
         .tab-btn-eval:hover {
             background: #e9ecef;
         }
+
         .tab-btn-eval.active {
             background: white;
             border-bottom: 2px solid white;
@@ -176,17 +241,21 @@
             z-index: 2;
             margin-bottom: -1px;
         }
+
         .tab-pane-eval {
             display: none;
         }
+
         .tab-pane-eval.active {
             display: block;
         }
+
         /* Criteria Table Specific Styles */
         .table-crit th,
         .table-crit td {
             text-align: left;
         }
+
         .badge {
             display: inline-block;
             padding: 4px 8px;
@@ -194,17 +263,21 @@
             font-size: 0.8rem;
             font-weight: 600;
         }
+
         .badge-active {
             background: #d4edda;
             color: #155724;
         }
+
         .badge-inactive {
             background: #f8d7da;
             color: #721c24;
         }
+
         .inactive {
             opacity: 0.5;
         }
+
         /* Table View Styles */
         .eval-table-container {
             overflow-x: auto;
@@ -212,11 +285,13 @@
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+
         .eval-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
         }
+
         .eval-table th {
             padding: 12px 8px;
             background: #f1f3f5;
@@ -226,12 +301,14 @@
             top: 0;
             z-index: 10;
         }
+
         .eval-table td {
             padding: 0;
             border: 1px solid #dee2e6;
             min-width: 60px;
             height: 45px;
         }
+
         .eval-table .alumno-name {
             padding: 8px 15px;
             text-align: left;
@@ -242,6 +319,7 @@
             z-index: 5;
             min-width: 200px;
         }
+
         .eval-cell {
             width: 100%;
             height: 100%;
@@ -253,17 +331,20 @@
             font-weight: 800;
             font-size: 1.1rem;
         }
+
         /* --- Nueva Interfaz de Globos (Rejilla) --- */
         .eval-grid-cell {
             padding: 4px !important;
             vertical-align: middle;
         }
+
         .pill-group {
             display: flex;
             gap: 4px;
             justify-content: center;
             align-items: center;
         }
+
         .eval-pill {
             width: 26px;
             height: 26px;
@@ -280,31 +361,47 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
         }
+
         .eval-pill:hover {
             transform: scale(1.15);
             z-index: 10;
             border-color: #999;
         }
+
         .eval-pill.active {
             color: #fff;
             transform: scale(1.1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
         }
-        .eval-pill.p-1.active { background-color: #ff4d4d !important; }
-        .eval-pill.p-2.active { background-color: #ffcc00 !important; color: #333 !important; }
-        .eval-pill.p-3.active { background-color: #2ecc71 !important; }
-        .eval-pill.p-4.active { background-color: #3498db !important; }
+
+        .eval-pill.p-1.active {
+            background-color: #ff4d4d !important;
+        }
+
+        .eval-pill.p-2.active {
+            background-color: #ffcc00 !important;
+            color: #333 !important;
+        }
+
+        .eval-pill.p-3.active {
+            background-color: #2ecc71 !important;
+        }
+
+        .eval-pill.p-4.active {
+            background-color: #3498db !important;
+        }
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
     <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
+
 <body>
     <div class="container">
         <!-- Navigation injected by navigation.js -->
-        
+
         <!-- Tabs de Sección Evaluación -->
         <div class="section-tabs">
             <a href="/static/evaluacion.html" class="section-tab-btn active">📊 Evaluación</a>
@@ -313,7 +410,7 @@
             <a href="/static/progreso_clase.html" class="section-tab-btn">📈 Progreso</a>
             <a href="/informes" class="section-tab-btn">📑 Informes</a>
         </div>
-        
+
         <div class="tabs-eval"
             style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px;">
             <button class="tab-btn-eval active" onclick="showEvalTab('eval-pane', this)">📊 Evaluación</button>
@@ -328,12 +425,14 @@
                     </div>
                     <div id="modoBadge" class="modo-badge" style="display:none;"></div>
                     <button id="btnCambiarModo" onclick="abrirModalModo()" title="Cambiar modo de evaluación del área"
-                        style="display:none; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:0.8rem; color:#475569;">⚙️ Modo</button>
+                        style="display:none; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:0.8rem; color:#475569;">⚙️
+                        Modo</button>
                 </div>
             </div>
             <div id="filtrosGlobales"
                 style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:15px; align-items:center; background:#fff; padding:15px; border-radius:8px; border:1px solid #ddd; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                <label id="labelAlumno" style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
+                <label id="labelAlumno"
+                    style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
                     <select id="alumno"
                         style="margin:0;max-width:250px;text-overflow:ellipsis;white-space:nowrap;"></select>
                 </label>
@@ -360,19 +459,26 @@
                 </div>
                 <label id="lblSDA"
                     style="display:flex;align-items:center;gap:5px;margin:0; flex:1; min-width:300px;">SDA:
-                    <select id="sda"
-                        style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;"></select>
+                    <select id="sda" style="margin:0;width:100%;text-overflow:ellipsis;white-space:nowrap;"></select>
                 </label>
             </div>
-            <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap; align-items:center; background:#fff; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+            <div
+                style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap; align-items:center; background:#fff; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
                 <!-- Vistas y Navegación principal -->
                 <div style="display:flex; gap:8px;">
                     <button id="btnModoTablaToggle" onclick="toggleModoTabla()"
-                        style="background:var(--primary); color:white; font-weight:600; padding:10px 18px; border-radius:8px; border:none; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📋 Ver en Rejilla</button>
-                    
-                    <a href="/static/cuaderno_evaluacion.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#6366f1; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📔 Cuaderno Completo</a>
-                    <a href="/static/progreso_clase.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#14b8a6; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📈 Progreso</a>
-                    <a href="/static/evaluar_todo.html" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#475569; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">🚀 Masivo</a>
+                        style="background:var(--primary); color:white; font-weight:600; padding:10px 18px; border-radius:8px; border:none; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📋
+                        Ver en Rejilla</button>
+
+                    <a href="/static/cuaderno_evaluacion.html"
+                        style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#6366f1; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📔
+                        Cuaderno Completo</a>
+                    <a href="/static/progreso_clase.html"
+                        style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#14b8a6; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">📈
+                        Progreso</a>
+                    <a href="/static/evaluar_todo.html"
+                        style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; background:#475569; color:white; padding:10px 18px; border-radius:8px; border:none; font-weight:600; box-shadow:0 2px 4px rgba(0,0,0,0.1);">🚀
+                        Masivo</a>
                 </div>
 
                 <div style="height:24px; width:1px; background:#e2e8f0; margin:0 10px;"></div>
@@ -380,25 +486,36 @@
                 <!-- Acciones rápidas (Rellenar/Limpiar) -->
                 <div id="quickActions" style="display:flex; gap:8px; align-items:center;">
                     <button id="btnRellenar3" onclick="rellenarTodos(3)"
-                        style="background:#3b82f6; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar con 3</button>
+                        style="background:#3b82f6; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡
+                        Rellenar con 3</button>
                     <button id="btnRellenarL2" onclick="rellenarTodos(2)"
-                        style="background:#f59e0b; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar Nivel 2</button>
+                        style="background:#f59e0b; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡
+                        Rellenar Nivel 2</button>
                     <button id="btnRellenarL3" onclick="rellenarTodos(3)"
-                        style="background:#10b981; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡ Rellenar Nivel 3</button>
-                    
+                        style="background:#10b981; color:white; display:none; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem;">⚡
+                        Rellenar Nivel 3</button>
+
                     <button id="btnCriterioExtra" onclick="abrirModalExtra()"
-                        style="background:#8b5cf6; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; display:none;">➕ Criterio Extra</button>
-                    
-                    <button onclick="limpiarTodos()" style="background:#fff; color:#ef4444; border:1px solid #fee2e2; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;">🗑️ Limpiar Visibles</button>
+                        style="background:#8b5cf6; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; display:none;">➕
+                        Criterio Extra</button>
+
+                    <button id="btnResumenActividades" onclick="mostrarResumenActividades()"
+                        style="background:#059669; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; display:none;">📊
+                        Ver Resumen Actividades</button>
+
+                    <button onclick="limpiarTodos()"
+                        style="background:#fff; color:#ef4444; border:1px solid #fee2e2; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;">🗑️
+                        Limpiar Visibles</button>
                 </div>
                 <div style="flex:1;"></div>
 
                 <!-- Botón de selección de criterios (reubicado) -->
                 <div id="directControlsAction" style="display:none;">
-                    <button onclick="abrirModalPeriodo()"
-                        title="Seleccionar Criterios del Periodo"
+                    <button onclick="abrirModalPeriodo()" title="Seleccionar Criterios del Periodo"
                         style="background:var(--primary); color:white; font-size:1.2rem; padding:8px 12px; border-radius:12px; border:none; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; min-width:50px; height:50px;">🎯</button>
-                    <div style="font-size:0.65rem; color:var(--primary); font-weight:700; text-align:center; margin-top:4px;">CRITERIOS</div>
+                    <div
+                        style="font-size:0.65rem; color:var(--primary); font-weight:700; text-align:center; margin-top:4px;">
+                        CRITERIOS</div>
                 </div>
             </div>
             <div id="vistaIndividual">
@@ -573,34 +690,51 @@
             <div class="modal-content"
                 style="background:white; padding:30px; border-radius:12px; width:90%; max-width:480px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                 <h3 style="margin:0 0 10px 0;">⚙️ Modo de Evaluación del Área</h3>
-                <p style="font-size:0.9rem; color:#666; margin-bottom:20px;">Elige cómo se registran las notas en esta área. El cambio afecta solo a esta área.</p>
+                <p style="font-size:0.9rem; color:#666; margin-bottom:20px;">Elige cómo se registran las notas en esta
+                    área. El cambio afecta solo a esta área.</p>
                 <div style="display:flex; flex-direction:column; gap:12px;">
-                    <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;" id="labelModoPorSA">
-                        <input type="radio" name="modoEval" value="POR_SA" style="margin-top:3px; width:18px; height:18px;">
+                    <label
+                        style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;"
+                        id="labelModoPorSA">
+                        <input type="radio" name="modoEval" value="POR_SA"
+                            style="margin-top:3px; width:18px; height:18px;">
                         <div>
                             <div style="font-weight:700; color:#003366;">📚 Por Situación de Aprendizaje (SDA)</div>
-                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas criterios dentro de cada SDA. El resultado de cada criterio es la media de todas sus evaluaciones en el trimestre.</div>
+                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas criterios dentro de cada
+                                SDA. El resultado de cada criterio es la media de todas sus evaluaciones en el
+                                trimestre.</div>
                         </div>
                     </label>
-                    <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;" id="labelModoCriterios">
-                        <input type="radio" name="modoEval" value="POR_CRITERIOS_DIRECTOS" style="margin-top:3px; width:18px; height:18px;">
+                    <label
+                        style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;"
+                        id="labelModoCriterios">
+                        <input type="radio" name="modoEval" value="POR_CRITERIOS_DIRECTOS"
+                            style="margin-top:3px; width:18px; height:18px;">
                         <div>
                             <div style="font-weight:700; color:#003366;">🎯 Por Criterios Directos</div>
-                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas cada criterio del periodo directamente, sin asociarlos a una SDA concreta.</div>
+                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas cada criterio del
+                                periodo directamente, sin asociarlos a una SDA concreta.</div>
                         </div>
                     </label>
-                    <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;" id="labelModoActividades">
-                        <input type="radio" name="modoEval" value="POR_ACTIVIDADES" style="margin-top:3px; width:18px; height:18px;">
+                    <label
+                        style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;"
+                        id="labelModoActividades">
+                        <input type="radio" name="modoEval" value="POR_ACTIVIDADES"
+                            style="margin-top:3px; width:18px; height:18px;">
                         <div>
                             <div style="font-weight:700; color:#003366;">🏃 Por Actividades</div>
-                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas cada actividad de las SDAs. La nota de cada criterio se calcula automáticamente como la media de las actividades que lo trabajan.</div>
+                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas cada actividad de las
+                                SDAs. La nota de cada criterio se calcula automáticamente como la media de las
+                                actividades que lo trabajan.</div>
                         </div>
                     </label>
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
-                    <button type="button" onclick="document.getElementById('modalModo').style.display='none'">Cancelar</button>
+                    <button type="button"
+                        onclick="document.getElementById('modalModo').style.display='none'">Cancelar</button>
                     <button type="button" class="btn-primary" onclick="guardarModoArea()"
-                        style="background:var(--primary); color:white; font-weight:bold; padding:8px 25px;">Guardar Modo</button>
+                        style="background:var(--primary); color:white; font-weight:bold; padding:8px 25px;">Guardar
+                        Modo</button>
                 </div>
             </div>
         </div>
@@ -761,14 +895,14 @@
                     const btnBack = document.getElementById('btnBackConfig');
                     if (btnBack) {
                         if (window.location.hash !== '#crit-pane') {
-                           btnBack.innerText = '⬅️ Evaluación';
-                           btnBack.onclick = (e) => {
-                               e.preventDefault();
-                               showEvalTab('eval-pane', document.querySelector('button[onclick*="eval-pane"]'));
-                           };
+                            btnBack.innerText = '⬅️ Evaluación';
+                            btnBack.onclick = (e) => {
+                                e.preventDefault();
+                                showEvalTab('eval-pane', document.querySelector('button[onclick*="eval-pane"]'));
+                            };
                         } else {
-                           btnBack.innerText = '⬅️ Configuración';
-                           btnBack.onclick = null;
+                            btnBack.innerText = '⬅️ Configuración';
+                            btnBack.onclick = null;
                         }
                     }
                     cargarListaCriterios();
@@ -1012,16 +1146,20 @@
                     lblSDA.style.display = 'flex';
                     btnCriterioExtra.style.display = 'none';
                     document.getElementById("directControlsAction").style.display = 'none';
-                    cargarSDA().then(() => cargarActividadesMode());
+                    document.getElementById("btnResumenActividades").style.display = 'inline-block';
+                    // Usar la nueva vista unificada de actividades
+                    cargarCuadernoUnificado();
                 } else if (conf.modo_evaluacion === 'POR_SA') {
                     lblSDA.style.display = 'flex';
                     btnCriterioExtra.style.display = 'inline-block';
                     document.getElementById("directControlsAction").style.display = 'none';
+                    document.getElementById("btnResumenActividades").style.display = 'none';
                     cargarSDA();
                 } else {
                     lblSDA.style.display = 'none';
                     btnCriterioExtra.style.display = 'none';
                     document.getElementById("directControlsAction").style.display = 'block';
+                    document.getElementById("btnResumenActividades").style.display = 'none';
                     cargarCriteriosDirectos();
                 }
                 cargarNotasExistentes();
@@ -1029,14 +1167,18 @@
             sdaSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
                 if (conf && conf.modo_evaluacion === 'POR_ACTIVIDADES') {
-                    cargarActividadesMode();
-                } else {
+                    cargarCuadernoUnificado();
+                } else if (conf && conf.modo_evaluacion === 'POR_SA') {
                     cargarCriteriosSA();
                 }
             });
             trimestreSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
-                if (conf && conf.modo_evaluacion === 'POR_SA') cargarSDA();
+                if (conf && conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                    cargarCuadernoUnificado();
+                } else if (conf && conf.modo_evaluacion === 'POR_SA') {
+                    cargarSDA();
+                }
                 if (alumnoSelect.value) {
                     cargarNotasExistentes();
                     cargarResumenAlumno();
@@ -1055,7 +1197,7 @@
                 if (!areaId) return;
                 const r = await fetch(`/api/evaluacion/sda/lista?area_id=${areaId}&trimestre=${trimestreSelect.value}`);
                 const datos = await r.json();
-                
+
                 let options = "";
                 if (datos.length === 0) {
                     options = '<option value="" disabled selected>No hay SDAs</option>';
@@ -1266,14 +1408,14 @@
                         document.getElementById("resumenAlumno").innerHTML = html;
                     });
             }
-            window.toggleModoTabla = function() {
+            window.toggleModoTabla = function () {
                 modoTabla = !modoTabla;
                 const btn = document.getElementById('btnModoTablaToggle');
                 const vInd = document.getElementById('vistaIndividual');
                 const vTable = document.getElementById('vistaTabla');
                 const lblAlumno = document.getElementById('labelAlumno');
                 const alumnoSelect = document.getElementById('alumno');
-                
+
                 if (modoTabla) {
                     btn.innerText = "👤 Vista Individual";
                     btn.style.background = "#64748b";
@@ -1297,7 +1439,7 @@
                     document.getElementById('mediaSDA').style.display = 'block';
                     document.getElementById('mediaArea').style.display = 'block';
                     document.querySelector('h3 + #resumenAlumno').parentElement.style.display = 'block';
-                    
+
                     // Asegurar que Individual use el mismo alumno/área/trimestre que teníamos en rejilla
                     // Individual depende de los selectores globales que ya están sincronizados.
                     // Solo forzamos recarga.
@@ -1343,13 +1485,13 @@
                         if (esInfantil) {
                             const isPama = (conf.tipo_escala === "INFANTIL_PA_A_MA");
                             cellContent += `
-                                <div class="eval-pill p-1 ${val==1?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 1, this)">${isPama ? 'PA' : 'NI'}</div>
-                                <div class="eval-pill p-2 ${val==2?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 2, this)">${isPama ? 'AD' : 'EP'}</div>
-                                <div class="eval-pill p-3 ${val==3?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 3, this)">${isPama ? 'MA' : 'CO'}</div>
+                                <div class="eval-pill p-1 ${val == 1 ? 'active' : ''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 1, this)">${isPama ? 'PA' : 'NI'}</div>
+                                <div class="eval-pill p-2 ${val == 2 ? 'active' : ''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 2, this)">${isPama ? 'AD' : 'EP'}</div>
+                                <div class="eval-pill p-3 ${val == 3 ? 'active' : ''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, 3, this)">${isPama ? 'MA' : 'CO'}</div>
                             `;
                         } else {
-                            for (let n=1; n<=4; n++) {
-                                cellContent += `<div class="eval-pill p-${n} ${val==n?'active':''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, ${n}, this)">${n}</div>`;
+                            for (let n = 1; n <= 4; n++) {
+                                cellContent += `<div class="eval-pill p-${n} ${val == n ? 'active' : ''}" onclick="setNivelDirecto(${alum.id}, ${crit.id}, ${n}, this)">${n}</div>`;
                             }
                         }
                         cellContent += `</div>`;
@@ -1364,10 +1506,10 @@
                 const conf = getAreaConfig();
                 const sda_id = sdaSelect.value === 'directo' ? null : (sdaSelect.value || null);
                 const trimestre = trimestreSelect.value;
-                
-                if (!alumId) { 
-                    if (!isFromGrid) alert("Selecciona un alumno."); 
-                    return; 
+
+                if (!alumId) {
+                    if (!isFromGrid) alert("Selecciona un alumno.");
+                    return;
                 }
 
                 let targetNivel = nivel;
@@ -1442,7 +1584,7 @@
                 const trs = document.getElementById("tbody").querySelectorAll("tr");
                 const sdaId = sdaSelect.value || null;
                 const periodo = 'T' + trimestreSelect.value;
-                
+
                 const evaluaciones = Array.from(trs).map(tr => ({
                     alumno_id: alumId,
                     criterio_id: tr.id.replace("row-", ""),
@@ -1480,18 +1622,18 @@
                 const sdaId = sdaSelect.value === 'directo' ? null : sdaSelect.value;
                 const areaId = conf.id;
                 const trimestre = trimestreSelect.value;
-                
+
                 // Usamos el endpoint de borrado de evaluacion
-                const url = sdaId ? `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=${sdaId}&trimestre=${trimestre}` 
-                                 : `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=null&area_id=${areaId}&trimestre=${trimestre}`;
+                const url = sdaId ? `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=${sdaId}&trimestre=${trimestre}`
+                    : `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=null&area_id=${areaId}&trimestre=${trimestre}`;
 
                 fetch(url, { method: 'DELETE' }).then(r => r.json()).then(d => {
-                        if (d.ok) {
-                            cargarNotasExistentes();
-                            cargarMedia();
-                            cargarResumenAlumno();
-                        } else alert("Error: " + d.error);
-                    });
+                    if (d.ok) {
+                        cargarNotasExistentes();
+                        cargarMedia();
+                        cargarResumenAlumno();
+                    } else alert("Error: " + d.error);
+                });
             };
             window.abrirModalExtra = function () {
                 if (!areaSelect.value) { alert("Selecciona un Área primero."); return; }
@@ -1601,7 +1743,7 @@
                     const gr = await fetch('/api/grupo_activo');
                     const gdata = await gr.json();
                     grupo_id = gdata.id;
-                } catch (e) {}
+                } catch (e) { }
                 let url = `/api/evaluacion/actividades/cuaderno?area_id=${area_id}&trimestre=${trimestre}&grupo_id=${grupo_id}`;
                 if (sda_id && sda_id !== 'null') url += `&sda_id=${sda_id}`;
                 const r = await fetch(url);
@@ -1641,17 +1783,16 @@
                         <td style="text-align:left;">${act.nombre}${act.descripcion ? `<br><small style="color:#888;">${act.descripcion}</small>` : ''}</td>`;
                     if (esInfantil) {
                         const mapping = isPama ? [
-                            {n:1,label:"PA: Parcial",db:"PA"},{n:2,label:"AD: Adquirido",db:"AD"},{n:3,label:"MA: Muy Adq.",db:"MA"}
+                            { n: 1, label: "PA: Parcial", db: "PA" }, { n: 2, label: "AD: Adquirido", db: "AD" }, { n: 3, label: "MA: Muy Adq.", db: "MA" }
                         ] : [
-                            {n:1,label:"NI: No Iniciado",db:"NI"},{n:2,label:"EP: En Proceso",db:"EP"},{n:3,label:"CO: Conseguido",db:"CO"}
+                            { n: 1, label: "NI: No Iniciado", db: "NI" }, { n: 2, label: "EP: En Proceso", db: "EP" }, { n: 3, label: "CO: Conseguido", db: "CO" }
                         ];
-                        tr.innerHTML = nombreCell + `<td><div style="display:flex;gap:6px;justify-content:center;">${
-                            mapping.map(m => `<button class="btn-nivel" data-label="${m.db}" data-actividad="${act.id}" data-nivel="${m.n}"
+                        tr.innerHTML = nombreCell + `<td><div style="display:flex;gap:6px;justify-content:center;">${mapping.map(m => `<button class="btn-nivel" data-label="${m.db}" data-actividad="${act.id}" data-nivel="${m.n}"
                                 onclick="guardarActividad(${act.id},${m.n})" id="btn-act-${act.id}-${m.n}"
                                 style="font-weight:700;min-width:105px;padding:6px 4px;font-size:0.7rem;">${m.label}</button>`).join('')
-                        }</div></td>`;
+                            }</div></td>`;
                     } else {
-                        tr.innerHTML = nombreCell + `<td>${[1,2,3,4].map(n =>
+                        tr.innerHTML = nombreCell + `<td>${[1, 2, 3, 4].map(n =>
                             `<button onclick="guardarActividad(${act.id},${n})" id="btn-act-${act.id}-${n}">${n}</button>`
                         ).join('')}</td>`;
                     }
@@ -1659,43 +1800,10 @@
                 });
             }
 
-            window.guardarActividad = async function(actividad_id, nivel) {
-                const alumId = alumnoSelect.value;
-                if (!alumId) { alert("Selecciona un alumno."); return; }
-                const conf = getAreaConfig();
-                const esInfantil = conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_');
-                const maxNivel = esInfantil ? 3 : 4;
-                // Toggle si ya estaba seleccionado
-                const activeBtn = document.getElementById(`btn-act-${actividad_id}-${nivel}`);
-                let targetNivel = (activeBtn && activeBtn.classList.contains('selected')) ? null : nivel;
-                // Feedback visual
-                for (let i = 1; i <= maxNivel; i++) {
-                    const b = document.getElementById(`btn-act-${actividad_id}-${i}`);
-                    if (b) b.classList.remove('selected');
-                }
-                if (targetNivel && activeBtn) activeBtn.classList.add('selected');
-                try {
-                    const res = await fetch('/api/evaluacion/actividades/guardar', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({alumno_id: alumId, actividad_id, nivel: targetNivel, trimestre: trimestreSelect.value})
-                    });
-                    const data = await res.json();
-                    if (!data.ok) {
-                        alert("Error al guardar: " + (data.error || ''));
-                    } else {
-                        cargarMedia();
-                        cargarResumenAlumno();
-                    }
-                } catch (e) {
-                    alert("Error de conexión al guardar.");
-                }
-            };
-
             // ============================================================
             // MODAL CAMBIO DE MODO DE EVALUACIÓN
             // ============================================================
-            window.abrirModalModo = function() {
+            window.abrirModalModo = function () {
                 const conf = getAreaConfig();
                 if (!conf) return;
                 const radios = document.querySelectorAll('input[name="modoEval"]');
@@ -1703,7 +1811,7 @@
                 document.getElementById('modalModo').style.display = 'flex';
             };
 
-            window.guardarModoArea = async function() {
+            window.guardarModoArea = async function () {
                 const conf = getAreaConfig();
                 if (!conf) return;
                 const selected = document.querySelector('input[name="modoEval"]:checked');
@@ -1712,8 +1820,8 @@
                 try {
                     const r = await fetch(`/api/curricular/area/${conf.id}/modo`, {
                         method: 'PUT',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({modo_evaluacion: nuevoModo})
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ modo_evaluacion: nuevoModo })
                     });
                     const data = await r.json();
                     if (data.ok) {
@@ -1757,13 +1865,356 @@
                     cerrarModalPeriodo();
                     // BUG 17: Recargar la página o los criterios visibles
                     if (areaSelect.value) {
-                         areaSelect.dispatchEvent(new Event('change'));
+                        areaSelect.dispatchEvent(new Event('change'));
                     }
                 } else {
                     alert("Error: " + res.error);
                 }
             };
+
+            // ================================================================
+            // FUNCIONES HÍBRIDAS UNIFICADAS (Opción C)
+            // Usan el nuevo endpoint /api/evaluacion/cuaderno
+            // ================================================================
+
+            window.cargarCuadernoUnificado = async function () {
+                const areaId = areaSelect.value;
+                const trimestre = trimestreSelect.value;
+                const sdaId = sdaSelect.value;
+                const alumnoId = alumnoSelect.value;
+
+                if (!areaId || !trimestre) return;
+
+                const conf = getAreaConfig();
+                if (!conf) return;
+
+                let url = `/api/evaluacion/cuaderno?area_id=${areaId}&trimestre=${trimestre}`;
+                if (sdaId && sdaId !== 'null' && sdaId !== '') url += `&sda_id=${sdaId}`;
+                if (alumnoId) url += `&alumno_id=${alumnoId}`;
+
+                try {
+                    const r = await fetch(url);
+                    const data = await r.json();
+
+                    if (data.error) {
+                        console.error("Error cargando cuaderno:", data.error);
+                        return;
+                    }
+
+                    // Actualizar UI según el modo
+                    if (data.modo === 'POR_ACTIVIDADES') {
+                        renderVistaActividades(data);
+                    } else if (data.modo === 'POR_SA') {
+                        renderVistaSDA(data);
+                    } else {
+                        renderVistaCriteriosDirectos(data);
+                    }
+
+                    // Actualizar medias
+                    if (alumnoId && data.medias && data.medias[alumnoId]) {
+                        actualizarMediasUI(data.medias[alumnoId], conf);
+                    }
+
+                } catch (e) {
+                    console.error("Error cargando cuaderno unificado:", e);
+                }
+            };
+
+            function renderVistaActividades(data) {
+                const { actividades, criterios, evaluaciones, modo, escala_evaluacion } = data;
+
+                // Determinar si es Infantil según la escala
+                const esInfantil = escala_evaluacion && escala_evaluacion.tipo.startsWith('INFANTIL_');
+                const esPama = escala_evaluacion && escala_evaluacion.tipo === 'INFANTIL_PA_A_MA';
+
+                // Configurar labels y niveles según etapa
+                let labels, niveles;
+                if (esInfantil) {
+                    labels = esPama ? ['PA', 'AD', 'MA'] : ['NI', 'EP', 'CO'];
+                    niveles = [1, 2, 3];
+                } else {
+                    labels = ['1', '2', '3', '4'];
+                    niveles = [1, 2, 3, 4];
+                }
+
+                if (!actividades || actividades.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="padding:20px; color:#666; text-align:center;">
+                        No hay actividades registradas para esta área/trimestre.
+                        <br>Crea actividades en la sección de Programación.
+                    </td></tr>`;
+                    thead.innerHTML = `<tr><th>Estado</th><th>Descripción</th><th>Evaluación</th></tr>`;
+                    return;
+                }
+
+                thead.innerHTML = `<tr>
+                    <th style="width:80px;">Actividad</th>
+                    <th style="text-align:left;">Descripción / Criterios</th>
+                    <th style="width:${esInfantil ? '220px' : '280px'};">Nivel</th>
+                </tr>`;
+
+                tbody.innerHTML = "";
+
+                // Crear mapa de criterios para mostrar en la descripción
+                const critMap = {};
+                criterios.forEach(c => { critMap[c.id] = c; });
+
+                // Colores para Infantil vs Primaria
+                const colors = esInfantil
+                    ? ['#ef4444', '#f59e0b', '#10b981']  // NI/EP/CO o PA/AD/MA
+                    : ['#ff4d4d', '#ffcc00', '#2ecc71', '#3498db'];  // 1-4
+
+                actividades.forEach(act => {
+                    const tr = document.createElement("tr");
+                    tr.id = `act-row-${act.id}`;
+
+                    // Obtener criterios vinculados
+                    const criteriosVinculados = act.criterio_ids || [];
+                    const criteriosHtml = criteriosVinculados.length > 0
+                        ? criteriosVinculados.map(cid => {
+                            const c = critMap[cid];
+                            return c ? `<span style="background:#e7f3fe; color:#1e4265; padding:2px 6px; border-radius:4px; font-size:0.75rem; margin-right:4px;">${c.codigo}</span>` : '';
+                        }).join('')
+                        : '<span style="color:#999; font-size:0.8rem;">Todos los criterios de la SDA</span>';
+
+                    const sdaBadge = act.sda_nombre
+                        ? `<span style="background:#fff3cd; color:#856404; padding:2px 8px; border-radius:4px; font-size:0.75rem; margin-left:8px;">📌 ${act.sda_nombre}</span>`
+                        : '';
+
+                    const nivelActual = evaluaciones[`${data.alumnos[0]?.id}_${act.id}`] || 0;
+
+                    // Generar botones según la etapa
+                    const botonesHtml = niveles.map((n, idx) => {
+                        const isSelected = nivelActual === n;
+                        const style = isSelected
+                            ? `background:${colors[idx]}; color:white; border-color:${colors[idx]};`
+                            : '';
+                        return `<button class="btn-nivel-act" 
+                                    data-act="${act.id}" 
+                                    data-nivel="${n}"
+                                    onclick="guardarActividad(${act.id}, ${n}, this)"
+                                    id="btn-act-${act.id}-${n}"
+                                    style="font-weight:700; min-width:${esInfantil ? '60px' : '50px'}; padding:6px 8px; margin:2px; border:2px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.2s; ${style}"
+                                    onmouseover="this.style.transform='scale(1.1)'"
+                                    onmouseout="this.style.transform='scale(1)'">
+                                    ${labels[idx]}
+                                </button>`;
+                    }).join('');
+
+                    tr.innerHTML = `
+                        <td><strong>#${act.id}</strong></td>
+                        <td style="text-align:left;">
+                            <div style="font-weight:600; margin-bottom:4px;">${act.nombre}</div>
+                            <div style="font-size:0.85rem; color:#666; margin-bottom:4px;">${act.descripcion || ''}</div>
+                            <div style="margin-top:6px;">${criteriosHtml} ${sdaBadge}</div>
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
+                                ${botonesHtml}
+                            </div>
+                        </td>
+                    `;
+
+                    tbody.appendChild(tr);
+                });
+            }
+
+            window.guardarActividad = async function (actividad_id, nivel, element) {
+                const alumId = alumnoSelect.value;
+                const trimestre = trimestreSelect.value;
+
+                if (!alumId) {
+                    alert("Selecciona un alumno primero.");
+                    return;
+                }
+
+                // Recargar vista completa para mostrar estado actualizado
+                // El backend maneja el toggle automáticamente
+                try {
+                    const res = await fetch('/api/evaluacion/actividades/guardar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            alumno_id: alumId,
+                            actividad_id: actividad_id,
+                            nivel: nivel,
+                            trimestre: trimestre
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.ok) {
+                        alert("Error: " + (data.error || "No se pudo guardar"));
+                        return;
+                    }
+
+                    // Recargar vista completa para mostrar estado actualizado
+                    cargarCuadernoUnificado();
+
+                    // Recargar medias
+                    cargarMedia();
+                    cargarResumenAlumno();
+
+                } catch (e) {
+                    console.error("Error guardando actividad:", e);
+                    alert("Error de conexión.");
+                }
+            };
+
+            function renderVistaSDA(data) {
+                // Mantener comportamiento existente para POR_SA
+                // Esta función puede llamarse desde el endpoint unificado
+                cargarCriteriosSA();
+            }
+
+            function renderVistaCriteriosDirectos(data) {
+                // Mantener comportamiento existente para POR_CRITERIOS_DIRECTOS
+                cargarCriteriosDirectos();
+            }
+
+            function actualizarMediasUI(medias, conf) {
+                const elMediaSDA = document.getElementById("mediaSDA");
+                const elMediaArea = document.getElementById("mediaArea");
+
+                if (elMediaSDA && medias.criterios) {
+                    // Mostrar media de criterios individuales si hay
+                    const criteriosCount = Object.keys(medias.criterios).length;
+                    if (criteriosCount > 0) {
+                        const suma = Object.values(medias.criterios).reduce((a, b) => a + b, 0);
+                        const mediaCrit = suma / criteriosCount;
+                        elMediaSDA.innerText = `📊 Media criterios: ${mediaCrit.toFixed(2)}`;
+                        elMediaSDA.style.color = getColorNota(mediaCrit, conf.tipo_escala);
+                    }
+                }
+
+                if (elMediaArea && medias.area !== null) {
+                    elMediaArea.innerText = `📈 Resultado del Área: ${medias.area.toFixed(2)}`;
+                    elMediaArea.style.color = getColorNota(medias.area, conf.tipo_escala);
+                }
+            }
+
+            // Función para mostrar árbol de actividades → criterios (resumen visual)
+            window.mostrarResumenActividades = async function () {
+                const areaId = areaSelect.value;
+                const trimestre = trimestreSelect.value;
+                const alumnoId = alumnoSelect.value;
+
+                if (!areaId || !alumnoId) {
+                    alert("Selecciona área y alumno");
+                    return;
+                }
+
+                const url = `/api/evaluacion/cuaderno?area_id=${areaId}&trimestre=${trimestre}&alumno_id=${alumnoId}`;
+                const r = await fetch(url);
+                const data = await r.json();
+
+                if (data.modo !== 'POR_ACTIVIDADES') {
+                    alert("Esta área no usa evaluación por actividades");
+                    return;
+                }
+
+                // Construir HTML del árbol
+                const critMap = {};
+                data.criterios.forEach(c => { critMap[c.id] = c; });
+
+                let html = '<div style="font-size:0.9rem; line-height:1.8;">';
+                html += '<h4 style="margin-top:0; color:var(--primary);">📊 Resumen de Evaluación por Actividades</h4>';
+                html += `<p><strong>Alumno:</strong> ${data.alumnos[0]?.nombre || 'N/A'}</p>`;
+                html += `<p><strong>Área:</strong> ${data.area.nombre} | <strong>Trimestre:</strong> T${trimestre}</p>`;
+                html += '<hr style="border:1px solid #eee; margin:15px 0;">';
+
+                // Agrupar actividades por SDA
+                const sdaMap = {};
+                data.actividades.forEach(act => {
+                    const sdaId = act.sda_id || 'sin_sda';
+                    if (!sdaMap[sdaId]) {
+                        sdaMap[sdaId] = { nombre: act.sda_nombre || 'Sin SDA', actividades: [] };
+                    }
+                    sdaMap[sdaId].actividades.push(act);
+                });
+
+                for (const [sdaId, sdaData] of Object.entries(sdaMap)) {
+                    html += `<div style="background:#f8f9fa; padding:12px; border-radius:8px; margin-bottom:15px; border-left:4px solid var(--secondary);">`;
+                    html += `<strong style="color:var(--primary);">📁 ${sdaData.nombre}</strong>`;
+
+                    sdaData.actividades.forEach((act, idx) => {
+                        const nivel = data.evaluaciones[`${alumnoId}_${act.id}`] || '-';
+                        const nota = nivel !== '-' ? nivel_a_nota(nivel, data.area.tipo_escala) : '-';
+                        const notaStr = nota !== '-' ? nota.toFixed(2) : '-';
+
+                        html += `<div style="margin:10px 0 10px 20px; padding:8px; background:white; border-radius:6px;">`;
+                        html += `<div style="display:flex; justify-content:space-between; align-items:center;">`;
+                        html += `<span><strong>⚡ ${idx + 1}. ${act.nombre}</strong></span>`;
+                        html += `<span style="background:${nivel !== '-' ? '#dcfce7' : '#f3f4f6'}; padding:4px 10px; border-radius:4px; font-weight:bold;">
+                                    Nivel: ${nivel} → Nota: ${notaStr}
+                                 </span>`;
+                        html += `</div>`;
+
+                        // Criterios vinculados
+                        if (act.criterio_ids && act.criterio_ids.length > 0) {
+                            html += `<div style="font-size:0.8rem; color:#666; margin-top:6px; padding-left:10px; border-left:2px solid #e5e7eb;">`;
+                            html += `<strong>Criterios:</strong> `;
+                            act.criterio_ids.forEach(cid => {
+                                const c = critMap[cid];
+                                if (c) {
+                                    const mediaCrit = data.medias?.[alumnoId]?.criterios?.[String(cid)];
+                                    const mediaStr = mediaCrit ? mediaCrit.toFixed(2) : 'N/A';
+                                    html += `<span style="background:#e7f3fe; color:#1e4265; padding:2px 6px; border-radius:4px; margin-right:4px;">
+                                                ${c.codigo} (media: ${mediaStr})
+                                             </span>`;
+                                }
+                            });
+                            html += `</div>`;
+                        }
+
+                        html += `</div>`;
+                    });
+
+                    html += `</div>`;
+                }
+
+                // Media final del área
+                const mediaArea = data.medias?.[alumnoId]?.area;
+                if (mediaArea !== null && mediaArea !== undefined) {
+                    html += `<div style="background:var(--primary); color:white; padding:15px; border-radius:8px; text-align:center; margin-top:20px;">`;
+                    html += `<h3 style="margin:0; font-size:1.2rem;">📈 NOTA FINAL DEL ÁREA: ${mediaArea.toFixed(2)}</h3>`;
+                    html += `</div>`;
+                }
+
+                html += '</div>';
+
+                // Mostrar en modal
+                const modal = document.createElement('div');
+                modal.id = 'modalResumenActividades';
+                modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;';
+                modal.innerHTML = `
+                    <div style="background:white; padding:30px; border-radius:15px; width:90%; max-width:800px; max-height:90vh; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                            <h3 style="margin:0; color:var(--primary);">📊 Resumen de Actividades</h3>
+                            <button onclick="document.getElementById('modalResumenActividades').remove()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                        </div>
+                        ${html}
+                        <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+                            <button onclick="document.getElementById('modalResumenActividades').remove()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;">Cerrar</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+            };
+
+            // Función auxiliar para convertir nivel a nota (usada en el resumen)
+            function nivel_a_nota(nivel, escala) {
+                if (!nivel) return 0;
+                if (escala && escala.startsWith('INFANTIL_')) {
+                    return nivel; // 1, 2, 3
+                }
+                // Escala numérica 1-4 → 2.5, 5.0, 7.5, 10.0
+                const mapping = { 1: 2.5, 2: 5.0, 3: 7.5, 4: 10.0 };
+                return mapping[nivel] || 0;
+            }
         </script>
     </div>
 </body>
+
 </html>

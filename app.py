@@ -90,6 +90,7 @@ from routes.curricular import curricular_bp
 from routes.evaluacion_sda import evaluacion_sda_bp
 from routes.evaluacion_directa import evaluacion_directa_bp
 from routes.evaluacion_actividades import evaluacion_actividades_bp
+from routes.evaluacion_cuaderno import evaluacion_cuaderno_bp
 from routes.eventos import eventos_bp
 from routes.observaciones import observaciones_bp
 from routes.rubricas import rubricas_bp
@@ -116,6 +117,7 @@ app.register_blueprint(curricular_bp, url_prefix='/api/curricular')
 app.register_blueprint(evaluacion_sda_bp, url_prefix='/api/evaluacion/sda')
 app.register_blueprint(evaluacion_directa_bp, url_prefix='/api/evaluacion/directa')
 app.register_blueprint(evaluacion_actividades_bp, url_prefix='/api/evaluacion/actividades')
+app.register_blueprint(evaluacion_cuaderno_bp, url_prefix='/api/evaluacion')
 app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion', name='evaluacion_curricular_final')
 app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
@@ -133,6 +135,7 @@ csrf.init_app(app)
 csrf.exempt(curricular_bp)
 csrf.exempt(alumnos_bp)
 csrf.exempt(evaluacion_actividades_bp)
+csrf.exempt(evaluacion_cuaderno_bp)
 csrf.exempt("routes.main.exit_app")
 
 # ==============================================================================

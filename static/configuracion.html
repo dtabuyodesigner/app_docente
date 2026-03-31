@@ -273,7 +273,7 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                 <div>
                     <label style="font-weight:600; display:block; margin-bottom:6px;">Logo izquierda:</label>
-                    <div id="logo-izda-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
+                    <div id="logo-izda-preview" style="height:80px; position:relative; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white; overflow:hidden;">
                         <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
                     </div>
                     <input type="file" id="logo-izda-file" accept="image/*" onchange="previewLogo('izda')" style="width:100%; font-size:0.85rem;">
@@ -287,7 +287,7 @@
                 </div>
                 <div>
                     <label style="font-weight:600; display:block; margin-bottom:6px;">Logo derecha:</label>
-                    <div id="logo-dcha-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
+                    <div id="logo-dcha-preview" style="height:80px; position:relative; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white; overflow:hidden;">
                         <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
                     </div>
                     <input type="file" id="logo-dcha-file" accept="image/*" onchange="previewLogo('dcha')" style="width:100%; font-size:0.85rem;">
@@ -307,7 +307,7 @@
                 <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">🖋️ Firma Escaneada del Tutor/a</h3>
                 <p style="color:#666; font-size:0.85rem; margin-bottom:15px;">Sube tu firma escaneada (fondo blanco o transparente) para que aparezca automáticamente en las actas e informes.</p>
                 <div style="display: flex; gap: 20px; align-items: flex-start;">
-                    <div id="firma-preview" style="width: 200px; height: 80px; display: flex; align-items: center; justify-content: center; border: 2px dashed #cbd5e1; border-radius: 6px; background: white; overflow: hidden;">
+                    <div id="firma-preview" style="width: 200px; height: 100px; position:relative; display: flex; align-items: center; justify-content: center; border: 2px dashed #cbd5e1; border-radius: 6px; background: white; overflow: hidden;">
                         <span style="color:#aaa; font-size:0.8rem;">Sin firma</span>
                     </div>
                     <div style="flex: 1;">
@@ -828,21 +828,25 @@
                 });
             };
 
-            await upload('izda', izda, posIzda);
-            await upload('dcha', dcha, posDcha);
+            if (izda || posIzda) await upload('izda', izda, posIzda);
+            if (dcha || posDcha) await upload('dcha', dcha, posDcha);
             
-            const btn = event.target;
             const status = document.getElementById('logos-status');
             status.style.display = 'inline';
             setTimeout(() => status.style.display = 'none', 3000);
+            cargarLogosPreviews();
         }
 
         function previewLogo(lado) {
             const file = document.getElementById(`logo-${lado}-file`).files[0];
+            const preview = document.getElementById(`logo-${lado}-preview`);
             if (file) {
                 const reader = new FileReader();
                 reader.onload = e => {
-                    document.getElementById(`logo-${lado}-preview`).innerHTML = `<img src="${e.target.result}" style="max-height:100%; max-width:100%;">`;
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" style="max-height:100%; max-width:100%; object-fit:contain;">
+                        <button onclick="borrarLogo('${lado}')" style="position:absolute; top:4px; right:4px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:4px; width:24px; height:24px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; z-index:5;">🗑️</button>
+                    `;
                 };
                 reader.readAsDataURL(file);
             }
@@ -850,10 +854,14 @@
 
         function previewFirma() {
             const file = document.getElementById('firma-file').files[0];
+            const preview = document.getElementById('firma-preview');
             if (file) {
                 const reader = new FileReader();
                 reader.onload = e => {
-                    document.getElementById('firma-preview').innerHTML = `<img src="${e.target.result}" style="max-height:100%; max-width:100%;">`;
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" style="max-height:100%; max-width:100%; object-fit:contain;">
+                        <button onclick="borrarFirma()" style="position:absolute; top:4px; right:4px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:4px; width:24px; height:24px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; z-index:5;">🗑️</button>
+                    `;
                 };
                 reader.readAsDataURL(file);
             }
@@ -879,6 +887,7 @@
                     const status = document.getElementById('firma-status');
                     status.style.display = 'inline';
                     setTimeout(() => status.style.display = 'none', 3000);
+                    cargarLogosPreviews();
                 } else {
                     alert("Error subiendo firma: " + data.error);
                 }
@@ -891,20 +900,60 @@
             try {
                 const res = await fetch('/api/configuracion/logos');
                 const data = await res.json();
-                if (data.izda) {
-                    document.getElementById('logo-izda-preview').innerHTML = `<img src="/uploads/${data.izda}" style="max-height:100%; max-width:100%;">`;
-                }
-                if (data.dcha) {
-                    document.getElementById('logo-dcha-preview').innerHTML = `<img src="/uploads/${data.dcha}" style="max-height:100%; max-width:100%;">`;
-                }
-                if (data.firma) {
-                    document.getElementById('firma-preview').innerHTML = `<img src="/uploads/${data.firma}" style="max-height:100%; max-width:100%;">`;
-                }
-                document.getElementById('logo-izda-pos').value = data.izda_posicion;
-                document.getElementById('logo-dcha-pos').value = data.dcha_posicion;
+                
+                const renderPreview = (id, filename, side) => {
+                    const el = document.getElementById(id);
+                    if (filename) {
+                        el.innerHTML = `
+                            <img src="/uploads/${filename}?t=${Date.now()}" style="max-height:100%; max-width:100%; object-fit:contain;">
+                            <button onclick="${side ? `borrarLogo('${side}')` : 'borrarFirma()'}" style="position:absolute; top:4px; right:4px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:4px; width:24px; height:24px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; z-index:5;">🗑️</button>
+                        `;
+                    } else {
+                        el.innerHTML = `<span style="color:#aaa; font-size:0.8rem;">Sin ${side ? 'logo' : 'firma'}</span>`;
+                    }
+                };
+
+                renderPreview('logo-izda-preview', data.izda, 'izda');
+                renderPreview('logo-dcha-preview', data.dcha, 'dcha');
+                renderPreview('firma-preview', data.firma, null);
+                
+                if (data.izda_posicion) document.getElementById('logo-izda-pos').value = data.izda_posicion;
+                if (data.dcha_posicion) document.getElementById('logo-dcha-pos').value = data.dcha_posicion;
             } catch (e) {
                 console.error("Error cargando logos:", e);
             }
+        }
+
+        async function borrarLogo(lado) {
+            if (!confirm(`¿Borrar el logo de la ${lado === 'izda' ? 'izquierda' : 'derecha'}?`)) return;
+            const csrf = await getCsrfTokenManual();
+            try {
+                const res = await fetch(`/api/configuracion/logo/${lado}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrf }
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    cargarLogosPreviews();
+                    document.getElementById(`logo-${lado}-file`).value = '';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function borrarFirma() {
+            if (!confirm("¿Borrar la firma guardada?")) return;
+            const csrf = await getCsrfTokenManual();
+            try {
+                const res = await fetch('/api/configuracion/firma', {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrf }
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    cargarLogosPreviews();
+                    document.getElementById('firma-file').value = '';
+                }
+            } catch (e) { console.error(e); }
         }
     </script>
 
@@ -977,65 +1026,9 @@
     </div>
 
     <script>
-        // ── Logos ─────────────────────────────────────────────────────────
-        function previewLogo(lado) {
-            const file = document.getElementById(`logo-${lado}-file`).files[0];
-            const preview = document.getElementById(`logo-${lado}-preview`);
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.innerHTML = `<img src="${e.target.result}" style="max-height:56px; max-width:100%; object-fit:contain;">`;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        async function subirLogos() {
-            const csrf = await getCsrfTokenManual();
-            const status = document.getElementById('logos-status');
-            const slots = ['izda', 'dcha'];
-            let subidos = 0;
-
-            for (const lado of slots) {
-                const file = document.getElementById(`logo-${lado}-file`).files[0];
-                const pos = document.getElementById(`logo-${lado}-pos`).value;
-                if (!file) continue;
-
-                const fd = new FormData();
-                fd.append('logo', file);
-                fd.append('lado', lado);
-                fd.append('posicion', pos);
-
-                const r = await fetch('/api/configuracion/logo', {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': csrf },
-                    body: fd
-                });
-                const d = await r.json();
-                if (d.ok) subidos++;
-            }
-
-            if (subidos > 0) {
-                status.style.display = 'inline';
-                setTimeout(() => status.style.display = 'none', 2500);
-                cargarLogosPreviews();
-            }
-        }
-
-        async function cargarLogosPreviews() {
-            try {
-                const r = await fetch('/api/configuracion/logos');
-                const d = await r.json();
-                ['izda', 'dcha'].forEach(lado => {
-                    if (d[lado]) {
-                        document.getElementById(`logo-${lado}-preview`).innerHTML =
-                            `<img src="/uploads/${d[lado]}" style="max-height:56px; max-width:100%; object-fit:contain;">`;
-                    }
-                });
-            } catch(e) {}
-        }
-        // Cargar previews al iniciar
+        // ── Cargar previews al iniciar ───────────────────────────
         window.addEventListener('DOMContentLoaded', () => { cargarLogosPreviews(); });
-        // ──────────────────────────────────────────────────────────────────
+        // ───────────────────────────────────────────────────────────
 
         async function getCsrfTokenManual() {
             const r = await fetch('/api/csrf-token');

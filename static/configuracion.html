@@ -311,8 +311,7 @@
                         <span style="color:#aaa; font-size:0.8rem;">Sin firma</span>
                     </div>
                     <div style="flex: 1;">
-                        <input type="file" id="firma-file" accept="image/*" onchange="previewFirma()" style="width:100%; font-size:0.85rem; margin-bottom: 10px;">
-                        <button onclick="subirFirma()" style="padding:8px 16px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600; font-size: 0.9rem;">💾 Guardar Firma</button>
+                        <input type="file" id="firma-file" accept="image/*" onchange="subirFirmaAutomativa()" style="width:100%; font-size:0.85rem; margin-bottom: 10px;">
                         <span id="firma-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardada</span>
                     </div>
                 </div>
@@ -867,12 +866,14 @@
             }
         }
 
-        async function subirFirma() {
+        async function subirFirmaAutomativa() {
             const file = document.getElementById('firma-file').files[0];
-            if (!file) {
-                alert("Selecciona un archivo de firma primero.");
-                return;
-            }
+            if (!file) return;
+
+            // Primero mostramos la previsualización local
+            previewFirma();
+
+            // Luego subimos automáticamente
             const fd = new FormData();
             fd.append('firma', file);
             const csrf = await getCsrfTokenManual();
@@ -887,7 +888,7 @@
                     const status = document.getElementById('firma-status');
                     status.style.display = 'inline';
                     setTimeout(() => status.style.display = 'none', 3000);
-                    cargarLogosPreviews();
+                    cargarLogosPreviews(); // Refresca con el botón de borrar real
                 } else {
                     alert("Error subiendo firma: " + data.error);
                 }

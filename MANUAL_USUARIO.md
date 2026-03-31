@@ -47,6 +47,14 @@ Basado en Situciones de Aprendizaje (SDA) y criterios oficiales.
 - **Notas**: Introduce calificaciones del 1 al 10 o usa niveles de logro.
 - **Rúbricas**: Consulta las definiciones de niveles para una evaluación más objetiva.
 
+### 4.1 Sistema Dual y Mapeo de Actividades ⭐
+Esta nueva funcionalidad permite una precisión total en la evaluación:
+- **Modos de Evaluación**: Desde el botón "⚙️ Modo" en el cuaderno, puedes elegir evaluar por **SDA**, por **Criterios Directos** (del periodo) o por **Actividades**.
+- **Vínculos Específicos**: En el modal de Programación, ahora puedes marcar exactamente qué criterios evalúa cada actividad. 
+- **Propagación Automática**: Al calificar una actividad, el sistema calcula automáticamente la media de los criterios vinculados. Si el modo "Por Actividades" está activo, estas medias se convierten en la nota final del criterio para el trimestre.
+- **Flexibilidad**: Si no vinculas criterios específicos, el sistema usará todas las actividades de la SDA como base para todos sus criterios (comportamiento estándar).
+
+
 ---
 
 ## 5. Programación y Agenda

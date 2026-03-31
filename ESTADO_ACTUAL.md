@@ -81,6 +81,74 @@ Actividades → Criterios → Nota del Área
 
 ## 📋 PENDIENTE
 
+### Bugs Reportados
+
+| Bug | Descripción | Prioridad |
+|-----|-------------|-----------|
+| **Gestión de Criterios** | No borra criterios en Evaluación → Gestión de Criterios | Alta |
+
+#### Detalle: Bug en Borrar Criterios
+
+**Ubicación:** Evaluación → Pestaña "Gestión de Criterios"
+
+**Síntoma:**
+- El botón de borrar criterios no funciona correctamente
+- Los criterios no se eliminan de la base de datos
+
+**Archivos a revisar:**
+- `static/evaluacion.html` (función de borrar)
+- `routes/criterios_api.py` (endpoint DELETE)
+
+**Posibles causas:**
+1. Error en la función JS de borrar
+2. Endpoint DELETE no está correctamente implementado
+3. Problema de permisos o CSRF
+4. Error en la consulta SQL DELETE
+
+**A comprobar:**
+```javascript
+// Verificar que existe la función
+function borrarCriterio(id) {
+    // ¿Está implementada?
+}
+
+// Verificar endpoint
+DELETE /api/criterios/{id}
+```
+
+### Features Pendientes
+
+| Feature | Descripción | Prioridad |
+|---------|-------------|-----------|
+| **Rellenador Masivo Infantil** | Botones para rellenar todos los criterios con EP/CO (o AD/MA) en Clase de Hoy | Media |
+
+#### Detalle: Rellenador Masivo para Infantil
+
+**Ubicación:** Sección "Clase de Hoy" → Evaluación de criterios
+
+**Funcionalidad:**
+- Botón "⚡ Rellenar con EP" → Asigna nivel 2 (EP/AD) a todos los criterios visibles
+- Botón "⚡ Rellenar con CO" → Asigna nivel 3 (CO/MA) a todos los criterios visibles
+
+**Código a modificar:** `static/clase_hoy.html`
+
+**Implementación sugerida:**
+```javascript
+// Botones nuevos en la UI
+<button onclick="rellenarMasivoInfantil(2)">⚡ Rellenar EP/AD</button>
+<button onclick="rellenarMasivoInfantil(3)">⚡ Rellenar CO/MA</button>
+
+// Función
+async function rellenarMasivoInfantil(nivel) {
+    const criterios = document.querySelectorAll('.criterio-row');
+    for (const criterio of criterios) {
+        await guardarEvaluacion(criterio.id, nivel);
+    }
+}
+```
+
+**Nota:** Ya existe `rellenarTodos()` en `evaluacion.html`, adaptar para `clase_hoy.html`
+
 ### Pruebas por Realizar
 
 - [ ] **Test 1:** Grupo de Infantil → 3 botones (NI/EP/CO)

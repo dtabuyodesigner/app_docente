@@ -367,32 +367,67 @@
                 <!-- SECCIÓN EVALUACIÓN -->
                 <section id="evaluacion" class="help-section">
                     <h1>📊 Cómo Evaluar</h1>
-                    <p>El módulo de evaluación es muy potente y te permite evaluar directamente los criterios oficiales
-                        que impone el gobierno (LOMLOE).</p>
-                    <h2>1. Conceptos Básicos</h2>
+                    <p>El módulo de evaluación te permite calificar a los alumnos según los criterios oficiales de la LOMLOE. Hay <strong>tres modos de evaluación</strong> que puedes configurar por área según cómo trabajes.</p>
+
+                    <h2>1. Los Tres Modos de Evaluación</h2>
+                    <p>Cada área puede funcionar en un modo distinto. Cámbialo con el botón <strong>⚙️ Modo</strong> que aparece al seleccionar un área en el cuaderno.</p>
+
+                    <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+                        <thead>
+                            <tr style="background:#f1f5f9;">
+                                <th style="padding:10px; text-align:left; border:1px solid #e2e8f0;">Modo</th>
+                                <th style="padding:10px; text-align:left; border:1px solid #e2e8f0;">Qué evalúas</th>
+                                <th style="padding:10px; text-align:left; border:1px solid #e2e8f0;">Cómo se calcula la nota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding:10px; border:1px solid #e2e8f0;"><strong>📚 Por SDA</strong></td>
+                                <td style="padding:10px; border:1px solid #e2e8f0;">Criterios dentro de cada Situación de Aprendizaje</td>
+                                <td style="padding:10px; border:1px solid #e2e8f0;">Media de todas las evaluaciones de ese criterio en el trimestre</td>
+                            </tr>
+                            <tr style="background:#fafafa;">
+                                <td style="padding:10px; border:1px solid #e2e8f0;"><strong>🎯 Directo</strong></td>
+                                <td style="padding:10px; border:1px solid #e2e8f0;">Cada criterio directamente, sin SDA</td>
+                                <td style="padding:10px; border:1px solid #e2e8f0;">El nivel asignado directamente</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:10px; border:1px solid #e2e8f0;"><strong>🏃 Por Actividades</strong></td>
+                                <td style="padding:10px; border:1px solid #e2e8f0;">Cada actividad de las SDAs</td>
+                                <td style="padding:10px; border:1px solid #e2e8f0;">La nota de cada criterio = media de las actividades que lo trabajan</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h2>2. Modo por Actividades (nuevo)</h2>
+                    <p>Este modo es especialmente útil si organizas tu clase en proyectos o unidades didácticas con actividades definidas. En lugar de poner nota a cada criterio, <strong>evalúas las actividades</strong> y el sistema calcula automáticamente la nota de cada criterio.</p>
+
+                    <div class="highlight-box">
+                        <strong>¿Cómo funciona?</strong><br>
+                        1. Crea tus SDAs con sus criterios y actividades en <em>Programación Curricular</em>.<br>
+                        2. Cambia el modo del área a <strong>🏃 Por Actividades</strong> (botón ⚙️ Modo en el cuaderno).<br>
+                        3. En el cuaderno verás las actividades agrupadas por SDA en lugar de los criterios.<br>
+                        4. Asigna un nivel a cada actividad. La nota del área se actualiza automáticamente.<br>
+                        5. La nota de cada criterio = media de las actividades que pertenecen a SDAs que incluyen ese criterio.
+                    </div>
+
+                    <h2>3. Escalas por etapa</h2>
                     <ul>
-                        <li><strong>Escalas:</strong> Infantil se evalúa con la escala Ni/EP/C (No Iniciado, En Proceso,
-                            Conseguido). Primaria y Secundaria del 1 al 10 o rúbricas numéricas 1-4. La aplicación
-                            adapta los botones y colores dependiendo de qué selecciones como Etapa para el área en
-                            Configuración.</li>
-                        <li><strong>Criterios vs Situaciones de Aprendizaje (SA):</strong> Puedes evaluar criterio por
-                            criterio de forma directa ("Modo Directo"), o puedes evaluar agrupando los saberes dentro de
-                            un proyecto o unidad llamado "SA" ("Modo por SA").</li>
+                        <li><strong>Infantil:</strong> NI (No Iniciado) / EP (En Proceso) / CO (Conseguido) — o PA/AD/MA según el área.</li>
+                        <li><strong>Primaria y Secundaria:</strong> Escala numérica 1-4, que se convierte a nota 1-10 en los informes.</li>
                     </ul>
-                    <h2>2. Evaluando en la Tabla Central</h2>
+
+                    <h2>4. Evaluando en la tabla</h2>
                     <ol>
-                        <li>En Evaluación, primero escoge el <strong>Grupo</strong> (botón superior derecho).</li>
-                        <li>Luego selecciona el <strong>Alumno</strong>, el <strong>Trimestre</strong> y el
-                            <strong>Área/Materia</strong>.
-                        </li>
-                        <li>La tabla te mostrará todos los criterios que hayas "Activo" para ese trimestre.</li>
-                        <li>Si el área es Infantil, los botones para evaluar serán rojos (NI), amarillos (EP) y verdes
-                            (C). Pincha en el nivel de logro para asignarlo al alumno. El sistema lo guardará
-                            instantáneamente y calculará la nota media de ese Área.</li>
+                        <li>Selecciona <strong>Alumno</strong>, <strong>Trimestre</strong> y <strong>Área</strong>.</li>
+                        <li>Según el modo, verás criterios o actividades en la tabla.</li>
+                        <li>Haz clic en el nivel para asignarlo. El sistema lo guarda al instante.</li>
+                        <li>Vuelve a hacer clic en el mismo nivel para borrarlo (toggle).</li>
                     </ol>
+
                     <div class="highlight-box success">
                         <strong>🚀 Panel "Clase de Hoy" (Recomendado)</strong>
-                        Para evaluar con rapidez, usa el botón "Clase de Hoy" en el Dashboard. Te mostrará directamente los alumnos y el criterio de la sesión para que pongas las notas con un solo clic mientras das la clase.
+                        Para evaluar con rapidez durante la clase, usa el botón "Clase de Hoy" en el Dashboard. Te mostrará directamente los alumnos y el criterio de la sesión para que pongas las notas con un solo clic.
                     </div>
                 </section>
                 <!-- SECCIÓN CRITERIOS -->

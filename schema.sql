@@ -440,6 +440,19 @@ CREATE TABLE diplomas_entregados (
     FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
 );
 
+CREATE TABLE evaluaciones_actividad (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    actividad_id INTEGER NOT NULL,
+    nivel INTEGER NOT NULL,
+    nota REAL NOT NULL,
+    trimestre INTEGER NOT NULL,
+    fecha DATE DEFAULT CURRENT_DATE,
+    UNIQUE(alumno_id, actividad_id, trimestre),
+    FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+    FOREIGN KEY(actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE
+);
+
 -- INDEXES
 CREATE INDEX idx_eval_alumno_trim ON evaluaciones (alumno_id, trimestre);
 CREATE INDEX idx_eval_area ON evaluaciones (area_id);

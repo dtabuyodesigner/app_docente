@@ -327,6 +327,8 @@
                     <div class="group-selector-container">
                     </div>
                     <div id="modoBadge" class="modo-badge" style="display:none;"></div>
+                    <button id="btnCambiarModo" onclick="abrirModalModo()" title="Cambiar modo de evaluación del área"
+                        style="display:none; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:0.8rem; color:#475569;">⚙️ Modo</button>
                 </div>
             </div>
             <div id="filtrosGlobales"
@@ -562,6 +564,43 @@
                         <button class="btn-primary" onclick="cerrarModalImportar()"
                             style="background:var(--primary); color:white; padding:8px 25px;">Cerrar</button>
                     </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Cambiar Modo de Evaluación -->
+        <div id="modalModo" class="modal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div class="modal-content"
+                style="background:white; padding:30px; border-radius:12px; width:90%; max-width:480px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                <h3 style="margin:0 0 10px 0;">⚙️ Modo de Evaluación del Área</h3>
+                <p style="font-size:0.9rem; color:#666; margin-bottom:20px;">Elige cómo se registran las notas en esta área. El cambio afecta solo a esta área.</p>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;" id="labelModoPorSA">
+                        <input type="radio" name="modoEval" value="POR_SA" style="margin-top:3px; width:18px; height:18px;">
+                        <div>
+                            <div style="font-weight:700; color:#003366;">📚 Por Situación de Aprendizaje (SDA)</div>
+                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas criterios dentro de cada SDA. El resultado de cada criterio es la media de todas sus evaluaciones en el trimestre.</div>
+                        </div>
+                    </label>
+                    <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;" id="labelModoCriterios">
+                        <input type="radio" name="modoEval" value="POR_CRITERIOS_DIRECTOS" style="margin-top:3px; width:18px; height:18px;">
+                        <div>
+                            <div style="font-weight:700; color:#003366;">🎯 Por Criterios Directos</div>
+                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas cada criterio del periodo directamente, sin asociarlos a una SDA concreta.</div>
+                        </div>
+                    </label>
+                    <label style="display:flex; align-items:flex-start; gap:12px; padding:14px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer;" id="labelModoActividades">
+                        <input type="radio" name="modoEval" value="POR_ACTIVIDADES" style="margin-top:3px; width:18px; height:18px;">
+                        <div>
+                            <div style="font-weight:700; color:#003366;">🏃 Por Actividades</div>
+                            <div style="font-size:0.82rem; color:#666; margin-top:3px;">Evalúas cada actividad de las SDAs. La nota de cada criterio se calcula automáticamente como la media de las actividades que lo trabajan.</div>
+                        </div>
+                    </label>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+                    <button type="button" onclick="document.getElementById('modalModo').style.display='none'">Cancelar</button>
+                    <button type="button" class="btn-primary" onclick="guardarModoArea()"
+                        style="background:var(--primary); color:white; font-weight:bold; padding:8px 25px;">Guardar Modo</button>
                 </div>
             </div>
         </div>
@@ -946,6 +985,7 @@
                 }
                 // Adjust UI based on area config
                 modoBadge.style.display = 'inline-flex';
+                document.getElementById('btnCambiarModo').style.display = 'inline-block';
                 if (conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_')) {
                     const isPama = (conf.tipo_escala === "INFANTIL_PA_A_MA");
                     modoBadge.innerHTML = '🧸 ' + conf.modo_evaluacion.replace(/_/g, ' ');
@@ -968,7 +1008,12 @@
                     document.getElementById("btnRellenarL2").style.display = 'none';
                     document.getElementById("btnRellenarL3").style.display = 'none';
                 }
-                if (conf.modo_evaluacion === 'POR_SA') {
+                if (conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                    lblSDA.style.display = 'flex';
+                    btnCriterioExtra.style.display = 'none';
+                    document.getElementById("directControlsAction").style.display = 'none';
+                    cargarSDA().then(() => cargarActividadesMode());
+                } else if (conf.modo_evaluacion === 'POR_SA') {
                     lblSDA.style.display = 'flex';
                     btnCriterioExtra.style.display = 'inline-block';
                     document.getElementById("directControlsAction").style.display = 'none';
@@ -981,7 +1026,14 @@
                 }
                 cargarNotasExistentes();
             });
-            sdaSelect.addEventListener("change", () => cargarCriteriosSA());
+            sdaSelect.addEventListener("change", () => {
+                const conf = getAreaConfig();
+                if (conf && conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                    cargarActividadesMode();
+                } else {
+                    cargarCriteriosSA();
+                }
+            });
             trimestreSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
                 if (conf && conf.modo_evaluacion === 'POR_SA') cargarSDA();
@@ -1106,6 +1158,22 @@
                 const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
                 if (!alumId || !conf) return;
+
+                if (conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                    const sdaId = sdaSelect.value || '';
+                    let url = `/api/evaluacion/actividades/notas_alumno?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`;
+                    if (sdaId && sdaId !== 'null') url += `&sda_id=${sdaId}`;
+                    document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+                    fetch(url).then(r => r.json()).then(data => {
+                        for (const [actId, nivel] of Object.entries(data)) {
+                            const btn = document.getElementById(`btn-act-${actId}-${nivel}`);
+                            if (btn) btn.classList.add("selected");
+                        }
+                        cargarMedia();
+                    });
+                    return;
+                }
+
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
                 if (conf.modo_evaluacion === 'POR_SA' && !sdaId) return;
                 document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
@@ -1136,6 +1204,25 @@
                 const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
                 if (!alumId || !conf) return;
+
+                if (conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                    const sdaId = sdaSelect.value || '';
+                    let mediaUrl = `/api/evaluacion/actividades/media?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`;
+                    if (sdaId && sdaId !== 'null') mediaUrl += `&sda_id=${sdaId}`;
+                    fetch(mediaUrl).then(r => r.json()).then(d => {
+                        const el = document.getElementById("mediaSDA");
+                        el.innerText = "📊 Media de actividades: " + formatNota(d.media, conf.tipo_escala);
+                        el.style.color = d.media ? getColorNota(d.media, conf.tipo_escala) : "#333";
+                    });
+                    fetch(`/api/evaluacion/sda/media_area?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`)
+                        .then(r => r.json()).then(d => {
+                            const el = document.getElementById("mediaArea");
+                            el.innerText = "📈 Resultado del Área: " + formatNota(d.media, conf.tipo_escala);
+                            el.style.color = d.media ? getColorNota(d.media, conf.tipo_escala) : "#28a745";
+                        });
+                    return;
+                }
+
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
                 const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
                 fetch(`/api/evaluacion/sda/media?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
@@ -1500,6 +1587,148 @@
                     });
                 }
             };
+            // ============================================================
+            // MODO POR ACTIVIDADES
+            // ============================================================
+            async function cargarActividadesMode() {
+                const area_id = areaSelect.value;
+                const sda_id = sdaSelect.value;
+                const trimestre = trimestreSelect.value;
+                const conf = getAreaConfig();
+                if (!area_id) return;
+                let grupo_id = null;
+                try {
+                    const gr = await fetch('/api/grupo_activo');
+                    const gdata = await gr.json();
+                    grupo_id = gdata.id;
+                } catch (e) {}
+                let url = `/api/evaluacion/actividades/cuaderno?area_id=${area_id}&trimestre=${trimestre}&grupo_id=${grupo_id}`;
+                if (sda_id && sda_id !== 'null') url += `&sda_id=${sda_id}`;
+                const r = await fetch(url);
+                const data = await r.json();
+                if (!data.actividades || data.actividades.length === 0) {
+                    thead.innerHTML = '';
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:30px;color:#666;">
+                        No hay actividades en esta selección.<br>
+                        <small>Añade actividades desde la Programación Curricular.</small>
+                    </td></tr>`;
+                    return;
+                }
+                renderTablaActividades(data.actividades, conf);
+                cargarNotasExistentes();
+            }
+
+            function renderTablaActividades(actividades, conf) {
+                const esInfantil = conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_');
+                const isPama = conf.tipo_escala === 'INFANTIL_PA_A_MA';
+                thead.innerHTML = `<tr>
+                    <th style="width:110px;">Código</th>
+                    <th>Actividad</th>
+                    <th style="width:${esInfantil ? 230 : 290}px;">Nivel</th>
+                </tr>`;
+                tbody.innerHTML = '';
+                let currentSda = null;
+                actividades.forEach(act => {
+                    if (act.sda_id !== currentSda) {
+                        currentSda = act.sda_id;
+                        const sep = document.createElement('tr');
+                        sep.innerHTML = `<td colspan="3" style="background:#e8f4fd;color:#0056a0;font-weight:700;padding:8px 15px;font-size:0.85rem;border-left:4px solid #007bff;">📚 ${act.sda_nombre}</td>`;
+                        tbody.appendChild(sep);
+                    }
+                    const tr = document.createElement('tr');
+                    tr.id = `row-act-${act.id}`;
+                    const nombreCell = `<td><strong style="font-size:0.78rem;color:#555;">${act.codigo_actividad || '—'}</strong></td>
+                        <td style="text-align:left;">${act.nombre}${act.descripcion ? `<br><small style="color:#888;">${act.descripcion}</small>` : ''}</td>`;
+                    if (esInfantil) {
+                        const mapping = isPama ? [
+                            {n:1,label:"PA: Parcial",db:"PA"},{n:2,label:"AD: Adquirido",db:"AD"},{n:3,label:"MA: Muy Adq.",db:"MA"}
+                        ] : [
+                            {n:1,label:"NI: No Iniciado",db:"NI"},{n:2,label:"EP: En Proceso",db:"EP"},{n:3,label:"CO: Conseguido",db:"CO"}
+                        ];
+                        tr.innerHTML = nombreCell + `<td><div style="display:flex;gap:6px;justify-content:center;">${
+                            mapping.map(m => `<button class="btn-nivel" data-label="${m.db}" data-actividad="${act.id}" data-nivel="${m.n}"
+                                onclick="guardarActividad(${act.id},${m.n})" id="btn-act-${act.id}-${m.n}"
+                                style="font-weight:700;min-width:105px;padding:6px 4px;font-size:0.7rem;">${m.label}</button>`).join('')
+                        }</div></td>`;
+                    } else {
+                        tr.innerHTML = nombreCell + `<td>${[1,2,3,4].map(n =>
+                            `<button onclick="guardarActividad(${act.id},${n})" id="btn-act-${act.id}-${n}">${n}</button>`
+                        ).join('')}</td>`;
+                    }
+                    tbody.appendChild(tr);
+                });
+            }
+
+            window.guardarActividad = async function(actividad_id, nivel) {
+                const alumId = alumnoSelect.value;
+                if (!alumId) { alert("Selecciona un alumno."); return; }
+                const conf = getAreaConfig();
+                const esInfantil = conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_');
+                const maxNivel = esInfantil ? 3 : 4;
+                // Toggle si ya estaba seleccionado
+                const activeBtn = document.getElementById(`btn-act-${actividad_id}-${nivel}`);
+                let targetNivel = (activeBtn && activeBtn.classList.contains('selected')) ? null : nivel;
+                // Feedback visual
+                for (let i = 1; i <= maxNivel; i++) {
+                    const b = document.getElementById(`btn-act-${actividad_id}-${i}`);
+                    if (b) b.classList.remove('selected');
+                }
+                if (targetNivel && activeBtn) activeBtn.classList.add('selected');
+                try {
+                    const res = await fetch('/api/evaluacion/actividades/guardar', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({alumno_id: alumId, actividad_id, nivel: targetNivel, trimestre: trimestreSelect.value})
+                    });
+                    const data = await res.json();
+                    if (!data.ok) {
+                        alert("Error al guardar: " + (data.error || ''));
+                    } else {
+                        cargarMedia();
+                        cargarResumenAlumno();
+                    }
+                } catch (e) {
+                    alert("Error de conexión al guardar.");
+                }
+            };
+
+            // ============================================================
+            // MODAL CAMBIO DE MODO DE EVALUACIÓN
+            // ============================================================
+            window.abrirModalModo = function() {
+                const conf = getAreaConfig();
+                if (!conf) return;
+                const radios = document.querySelectorAll('input[name="modoEval"]');
+                radios.forEach(r => { r.checked = r.value === conf.modo_evaluacion; });
+                document.getElementById('modalModo').style.display = 'flex';
+            };
+
+            window.guardarModoArea = async function() {
+                const conf = getAreaConfig();
+                if (!conf) return;
+                const selected = document.querySelector('input[name="modoEval"]:checked');
+                if (!selected) return;
+                const nuevoModo = selected.value;
+                try {
+                    const r = await fetch(`/api/curricular/area/${conf.id}/modo`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({modo_evaluacion: nuevoModo})
+                    });
+                    const data = await r.json();
+                    if (data.ok) {
+                        document.getElementById('modalModo').style.display = 'none';
+                        // Actualizar datos locales y refrescar
+                        areasData[conf.id].modo_evaluacion = nuevoModo;
+                        areaSelect.dispatchEvent(new Event('change'));
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                } catch (e) {
+                    alert("Error de conexión.");
+                }
+            };
+
             window.cerrarModalPeriodo = () => document.getElementById('modalPeriodo').style.display = 'none';
             window.guardarPeriodoCrits = async function () {
                 const area_id = areaSelect.value;

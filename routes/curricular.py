@@ -515,3 +515,22 @@ def importar_sda_csv():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 # Removed redundant session routes (moved to eventos.py)
+
+
+@curricular_bp.route("/area/<int:area_id>/modo", methods=["PUT"])
+def actualizar_modo_evaluacion(area_id):
+    """Cambia el modo de evaluación de un área (POR_SA, POR_CRITERIOS_DIRECTOS, POR_ACTIVIDADES)."""
+    d = request.json
+    modo = d.get("modo_evaluacion")
+    modos_validos = ("POR_SA", "POR_CRITERIOS_DIRECTOS", "POR_ACTIVIDADES")
+    if modo not in modos_validos:
+        return jsonify({"ok": False, "error": f"Modo no válido. Usa: {modos_validos}"}), 400
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE areas SET modo_evaluacion = ? WHERE id = ?", (modo, area_id))
+        conn.commit()
+        return jsonify({"ok": True, "modo_evaluacion": modo})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500

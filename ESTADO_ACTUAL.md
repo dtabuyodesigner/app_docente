@@ -86,6 +86,7 @@ Actividades → Criterios → Nota del Área
 | Bug | Descripción | Prioridad |
 |-----|-------------|-----------|
 | **Gestión de Criterios** | No borra criterios en Evaluación → Gestión de Criterios | Alta |
+| **Cuaderno de Evaluación** | Evaluación → Cuaderno → Cuaderno de evaluación no muestra nada | Alta |
 
 #### Detalle: Bug en Borrar Criterios
 
@@ -114,6 +115,39 @@ function borrarCriterio(id) {
 
 // Verificar endpoint
 DELETE /api/criterios/{id}
+```
+
+#### Detalle: Bug en Cuaderno de Evaluación
+
+**Ubicación:** Evaluación → Cuaderno → Cuaderno de evaluación
+
+**Síntoma:**
+- La vista "Cuaderno de evaluación" no muestra nada (vacío)
+- Posiblemente no carga datos o hay error de JavaScript
+
+**Archivos a revisar:**
+- `static/evaluacion.html` (vista del cuaderno)
+- `routes/evaluacion_cuaderno.py` (endpoint `/api/evaluacion/cuaderno`)
+- Consola del navegador (F12) para errores JS
+
+**Posibles causas:**
+1. El endpoint `/api/evaluacion/cuaderno` no devuelve datos
+2. Error en la función `cargarCuadernoUnificado()`
+3. Problema con la detección del modo de evaluación
+4. Error en `renderVistaActividades()` o funciones relacionadas
+
+**A comprobar:**
+```javascript
+// En consola del navegador (F12)
+// 1. Ver si hay errores JS
+// 2. Ver si la llamada al endpoint funciona
+// 3. Verificar que cargarCuadernoUnificado() se llama
+```
+
+**Debug sugerido:**
+```bash
+# Probar endpoint directamente (con sesión activa)
+curl "http://localhost:5000/api/evaluacion/cuaderno?area_id=1&trimestre=1"
 ```
 
 ### Features Pendientes

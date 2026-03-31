@@ -230,11 +230,21 @@
                 if (data.sesion) {
                     document.getElementById('area-tag').innerText = data.sesion.area_nombre || 'General';
                     document.getElementById('actividad-nombre').innerText = data.sesion.actividad;
-                    let critText = `<strong>${data.sesion.criterio_codigo || 'N/A'}</strong>`;
-                    if (data.sesion.criterio_desc) {
-                        critText += `: ${data.sesion.criterio_desc}`;
+                    const esModoActividad = data.sesion.modo_evaluacion === 'POR_ACTIVIDADES' && data.sesion.actividad_id;
+                    const criterioTag = document.getElementById('criterio-tag');
+                    if (esModoActividad) {
+                        const actNombre = data.sesion.act_nombre || data.sesion.actividad;
+                        criterioTag.innerHTML = `🏃 Evaluando actividad: <strong>${actNombre}</strong>`;
+                        criterioTag.style.background = 'rgba(16,185,129,0.25)';
+                    } else if (data.sesion.criterio_codigo) {
+                        let critText = `<strong>${data.sesion.criterio_codigo}</strong>`;
+                        if (data.sesion.criterio_desc) critText += `: ${data.sesion.criterio_desc}`;
+                        criterioTag.innerHTML = `Criterio: ${critText}`;
+                        criterioTag.style.background = 'rgba(255,255,255,0.2)';
+                    } else {
+                        criterioTag.innerHTML = 'Sin criterio asignado';
+                        criterioTag.style.background = 'rgba(255,255,255,0.1)';
                     }
-                    document.getElementById('criterio-tag').innerHTML = `Criterio: ${critText}`;
                     sessionInfo.classList.remove('no-session');
                     sessionInfo.style.display = 'block';
                     noSessionHelp.style.display = 'none';
@@ -266,10 +276,13 @@
                     navBtns.style.display = 'none';
                 }
                 
-                // Actualizar labels de la guía según etapa
+                // Actualizar labels de la guía según etapa y modo
                 const guideLabels = document.getElementById('guide-labels');
-                if (data.etapa_id == 1) { // Infantil
+                const esModoActiv = data.sesion && data.sesion.modo_evaluacion === 'POR_ACTIVIDADES' && data.sesion.actividad_id;
+                if (data.etapa_id == 1) {
                     guideLabels.innerText = "NI/PA: Poco adecuado, EP/A: Adecuado, CO/MA: Muy adecuado.";
+                } else if (esModoActiv) {
+                    guideLabels.innerText = "Evalúas la actividad. La nota del criterio se calculará automáticamente. 1: Insuficiente, 2: Suficiente, 3: Notable, 4: Sobresaliente.";
                 } else {
                     guideLabels.innerText = "1: Insuficiente, 2: Suficiente, 3: Notable, 4: Sobresaliente.";
                 }
@@ -332,30 +345,43 @@
         async function quickEval(alumnoId, nivel) {
             const student = currentData.alumnos.find(a => a.id === alumnoId);
             const finalNivel = student.nivel === nivel ? null : nivel;
+            const esModoActividad = currentData.sesion.modo_evaluacion === 'POR_ACTIVIDADES'
+                                    && currentData.sesion.actividad_id;
             try {
-                console.log("[DEBUG] Enviando evaluación:", { alumnoId, nivel, finalNivel, criterio_id: currentData.sesion.criterio_id });
-                const res = await fetch('/api/evaluacion/guardar_masivo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        periodo: `T${currentData.trimestre}`,
-                        evaluaciones: [{
+                let res;
+                if (esModoActividad) {
+                    res = await fetch('/api/evaluacion/actividades/guardar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
                             alumno_id: alumnoId,
-                            criterio_id: currentData.sesion.criterio_id,
-                            nivel: finalNivel
-                        }]
-                    })
-                });
-                if (res.ok) {
+                            actividad_id: currentData.sesion.actividad_id,
+                            nivel: finalNivel,
+                            trimestre: currentData.trimestre
+                        })
+                    });
+                } else {
+                    res = await fetch('/api/evaluacion/guardar_masivo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            periodo: `T${currentData.trimestre}`,
+                            evaluaciones: [{
+                                alumno_id: alumnoId,
+                                criterio_id: currentData.sesion.criterio_id,
+                                nivel: finalNivel
+                            }]
+                        })
+                    });
+                }
+                const data = await res.json();
+                if (data.ok !== false && res.ok) {
                     student.nivel = finalNivel;
                     renderList();
                 } else {
-                    const errorData = await res.json();
-                    console.error("[ERROR] Fallo al guardar evaluación:", errorData);
-                    alert("Error al guardar: " + (errorData.error || "Desconocido"));
+                    alert("Error al guardar: " + (data.error || "Desconocido"));
                 }
             } catch (e) {
-                console.error("[ERROR] Excepción en quickEval:", e);
                 alert("Error de conexión al guardar evaluación.");
             }
         }

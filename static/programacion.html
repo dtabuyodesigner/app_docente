@@ -736,17 +736,41 @@
                     <label>Detalles / Observaciones:</label>
                     <textarea id="eventObs" style="height:80px;"></textarea>
                 </div>
-                <div style="display:flex; justify-content:space-between; margin-top:20px;">
-                    <button class="btn btn-danger" id="btnDelete" style="display:none;" onclick="deleteEvent()">🗑️
-                        Borrar</button>
-                    <div>
-                        <button class="btn" onclick="closeModal()"
-                            style="background:#ccc; color:#333;">Cancelar</button>
+                <div style="display:flex; justify-content:space-between; margin-top:20px; flex-wrap:wrap; gap:8px;">
+                    <button class="btn btn-danger" id="btnDelete" style="display:none;" onclick="deleteEvent()">🗑️ Borrar</button>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button id="btnEvalActividad" style="display:none; background:#10b981; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="abrirEvalActividad()">🏃 Evaluar alumnos</button>
+                        <button class="btn" onclick="closeModal()" style="background:#ccc; color:#333;">Cancelar</button>
                         <button id="btnSaveEvent" class="btn btn-success" onclick="saveEvent()">💾 Guardar</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Modal Evaluar Actividad desde calendario -->
+        <div id="evalActividadModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1100; align-items:center; justify-content:center;">
+            <div style="background:white; border-radius:15px; width:90%; max-width:520px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 40px rgba(0,0,0,0.3); overflow:hidden;">
+                <div style="padding:20px 25px; border-bottom:1px solid #e2e8f0; background:#f8fafc;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h3 style="margin:0; color:#1e293b;" id="evalActTitle">Evaluar actividad</h3>
+                            <div style="font-size:0.82rem; color:#64748b; margin-top:4px;" id="evalActSubtitle"></div>
+                        </div>
+                        <button onclick="document.getElementById('evalActividadModal').style.display='none'"
+                            style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8;">✕</button>
+                    </div>
+                </div>
+                <div style="padding:15px 25px; border-bottom:1px solid #e2e8f0; background:#fffbeb; font-size:0.82rem; color:#92400e;" id="evalActGuia">
+                    Asigna un nivel a cada alumno. La nota del criterio se calcula automáticamente.
+                </div>
+                <div id="evalActList" style="overflow-y:auto; flex:1; padding:10px 15px;"></div>
+                <div style="padding:15px 25px; border-top:1px solid #e2e8f0; text-align:right;">
+                    <button onclick="document.getElementById('evalActividadModal').style.display='none'"
+                        style="background:#e2e8f0; color:#475569; border:none; padding:8px 20px; border-radius:8px; font-weight:600; cursor:pointer;">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- SA Modal -->
         <div id="saModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px;">
@@ -1414,7 +1438,12 @@
                     addCriterioRow();
                 }
                 if (sdaObj.actividades && sdaObj.actividades.length > 0) {
-                    sdaObj.actividades.forEach(a => addActividadRow(a.nombre, a.sesiones, a.descripcion, a.id || ''));
+                    const critMap = {};
+                    if (sdaObj.criterios) sdaObj.criterios.forEach(c => critMap[c.id] = c.codigo);
+                    sdaObj.actividades.forEach(a => {
+                        const codigosVinculados = (a.criterio_ids || []).map(cid => critMap[cid]).filter(c => !!c);
+                        addActividadRow(a.nombre, a.sesiones, a.descripcion, a.id || '', codigosVinculados);
+                    });
                 } else {
                     addActividadRow();
                 }
@@ -1442,11 +1471,12 @@
             div.style.marginBottom = '10px';
             div.className = 'criterio-row';
             div.innerHTML = `
-                <input type="text" class="crit-codigo" placeholder="Código (Ej: MAT.1.1)" style="flex: 1;" value="${(codigo || '').replace(/"/g, '&quot;')}">
+                <input type="text" class="crit-codigo" placeholder="Código (Ej: MAT.1.1)" style="flex: 1;" value="${(codigo || '').replace(/"/g, '&quot;')}" oninput="refrescarCriteriosEnActividades()">
                 <input type="text" class="crit-desc" placeholder="Descripción del criterio..." style="flex: 3;" value="${(desc || '').replace(/"/g, '&quot;')}">
-                <button class="btn btn-danger" onclick="this.parentElement.remove()" style="padding: 5px 10px;">X</button>
+                <button class="btn btn-danger" onclick="this.parentElement.remove(); refrescarCriteriosEnActividades();" style="padding: 5px 10px;">X</button>
             `;
             container.appendChild(div);
+            if (typeof refrescarCriteriosEnActividades === 'function') refrescarCriteriosEnActividades();
         }
         function addCompetenciaRow(codigo = '', desc = '') {
             const container = document.getElementById('saCompetenciasContainer');
@@ -1462,21 +1492,68 @@
             `;
             container.appendChild(div);
         }
-        function addActividadRow(nombre = '', sesiones = 1, desc = '', id = '') {
+        function addActividadRow(nombre = '', sesiones = 1, desc = '', id = '', seleccionados = []) {
             const container = document.getElementById('saActividadesContainer');
             const div = document.createElement('div');
-            div.style.display = 'flex';
-            div.style.gap = '10px';
-            div.style.marginBottom = '10px';
+            div.style.flexDirection = 'column';
+            div.style.gap = '5px';
+            div.style.marginBottom = '15px';
             div.className = 'actividad-row';
+            div.style.border = '1px solid #eee';
+            div.style.padding = '10px';
+            div.style.borderRadius = '12px';
+            div.style.background = '#fafafa';
             div.innerHTML = `
-                <input type="hidden" class="act-id" value="${id}">
-                <input type="text" class="act-nombre" placeholder="Nombre (Ej: Act 1)" style="flex: 2;" value="${(nombre || '').replace(/"/g, '&quot;')}">
-                <input type="text" class="act-desc" placeholder="Descripción breve..." style="flex: 3;" value="${(desc || '').replace(/"/g, '&quot;')}">
-                <input type="number" class="act-sesiones" placeholder="Sesiones" style="flex: 1; width: 60px;" value="${sesiones}" min="1">
-                <button class="btn btn-danger" onclick="this.parentElement.remove()" style="padding: 5px 10px;">X</button>
+                <div style="display:flex; gap:10px;">
+                    <input type="hidden" class="act-id" value="${id}">
+                    <input type="text" class="act-nombre" placeholder="Nombre (Ej: Act 1)" style="flex: 2;" value="${(nombre || '').replace(/"/g, '&quot;')}">
+                    <input type="text" class="act-desc" placeholder="Descripción breve..." style="flex: 3;" value="${(desc || '').replace(/"/g, '&quot;')}">
+                    <input type="number" class="act-sesiones" placeholder="Ses" style="width: 50px;" value="${sesiones}" min="1">
+                    <button class="btn btn-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 5px 10px;">X</button>
+                </div>
+                <div class="act-criterios-checklist" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:10px; font-size:0.75rem; color:#444;">
+                    <!-- Se rellena con refrescarCriteriosEnActividades -->
+                </div>
             `;
+            div.dataset.seleccionados = JSON.stringify(seleccionados || []);
             container.appendChild(div);
+            if (typeof refrescarCriteriosEnActividades === 'function') refrescarCriteriosEnActividades();
+        }
+
+        function refrescarCriteriosEnActividades() {
+            const codigos = [];
+            document.querySelectorAll('.criterio-row').forEach(row => {
+                const cod = row.querySelector('.crit-codigo').value.trim();
+                if (cod) codigos.push(cod);
+            });
+
+            document.querySelectorAll('.actividad-row').forEach(row => {
+                const checklist = row.querySelector('.act-criterios-checklist');
+                let seleccionadosActuales = [];
+                if (row.dataset.firstLoad !== 'false') {
+                    seleccionadosActuales = JSON.parse(row.dataset.seleccionados || '[]');
+                    row.dataset.firstLoad = 'false';
+                } else {
+                    row.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                        seleccionadosActuales.push(cb.value);
+                    });
+                }
+                checklist.innerHTML = codigos.length ? '<span style="color:#888;font-weight:bold;margin-right:5px;">Vincular:</span>' : '<span style="color:#999;font-style:italic;">Asocia criterios para evaluar esta actividad</span>';
+                codigos.forEach(cod => {
+                    const checked = seleccionadosActuales.includes(cod) ? 'checked' : '';
+                    const label = document.createElement('label');
+                    label.style.display = 'inline-flex';
+                    label.style.alignItems = 'center';
+                    label.style.gap = '3px';
+                    label.style.padding = '2px 6px';
+                    label.style.background = '#fff';
+                    label.style.border = '1px solid #ddd';
+                    label.style.borderRadius = '4px';
+                    label.style.cursor = 'pointer';
+                    label.innerHTML = `<input type="checkbox" value="${cod}" ${checked}> ${cod}`;
+                    checklist.appendChild(label);
+                });
+            });
         }
         function saveSa() {
             const id = document.getElementById('saId').value;
@@ -1508,8 +1585,21 @@
                 const act_nombre = row.querySelector('.act-nombre').value.trim();
                 const desc = row.querySelector('.act-desc').value.trim();
                 const sesiones = parseInt(row.querySelector('.act-sesiones').value) || 1;
-                if (act_nombre) actividades.push({ id: act_id, nombre: act_nombre, descripcion: desc, sesiones });
+                
+                const criterio_codigos = [];
+                row.querySelectorAll('.act-criterios-checklist input:checked').forEach(cb => {
+                    criterio_codigos.push(cb.value);
+                });
+
+                if (act_nombre) actividades.push({ 
+                    id: act_id, 
+                    nombre: act_nombre, 
+                    descripcion: desc, 
+                    sesiones,
+                    criterio_codigos: criterio_codigos
+                });
             });
+
             const payload = { nombre, area_id, trimestre, criterios, competencias, actividades };
             const url = id ? '/api/curricular/sa/' + id : '/api/curricular/sa';
             const method = id ? 'PUT' : 'POST';
@@ -1803,12 +1893,22 @@
                 checkEvaluable.checked = event.extendedProps.evaluable == 1;
                 if (checkEvaluable.checked) critSelect.style.display = 'block';
                 const type = event.extendedProps.tipo || 'clase';
+                // Botón evaluar: solo visible para sesiones de actividad
+                const btnEvalAct = document.getElementById('btnEvalActividad');
+                if (type === 'sesion_actividad' && event.extendedProps.actividad_id) {
+                    btnEvalAct.style.display = 'inline-block';
+                    btnEvalAct._actividadId = event.extendedProps.actividad_id;
+                    btnEvalAct._fecha = event.startStr.split('T')[0];
+                } else {
+                    btnEvalAct.style.display = 'none';
+                    btnEvalAct._actividadId = null;
+                }
                 if (type === 'sesion_actividad') {
                     document.getElementById('modalTitle').innerText = 'Sesión de Actividad';
                     document.getElementById('eventActivity').value = `${event.title}`;
                     document.getElementById('eventActivity').disabled = true;
                     document.getElementById('eventObs').disabled = false;
-                    document.getElementById('eventSda').disabled = false; // Habilitado para ver el área
+                    document.getElementById('eventSda').disabled = false;
                     document.getElementById('eventDate').disabled = false;
                     document.getElementById('eventHour').disabled = false;
                     document.getElementById('eventMinute').disabled = false;
@@ -1851,6 +1951,7 @@
                 document.getElementById('eventEndHour').disabled = false;
                 document.getElementById('eventEndMinute').disabled = false;
                 document.getElementById('btnSaveEvent').style.display = 'inline-block';
+                document.getElementById('btnEvalActividad').style.display = 'none';
                 document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('disabled-btn'));
                 selectType(document.querySelector('.btn-type[data-type="clase"]'));
             }
@@ -1936,6 +2037,123 @@
         }
         function closeModal() {
             document.getElementById('eventModal').style.display = 'none';
+        }
+
+        // =====================================================================
+        // EVALUAR ACTIVIDAD DESDE CALENDARIO
+        // =====================================================================
+        let _evalActData = { actividad_id: null, trimestre: null, escala: null };
+
+        function _fechaATrimestre(fechaStr) {
+            if (!fechaStr) return 2;
+            const m = new Date(fechaStr).getMonth() + 1; // 1-12
+            if (m >= 9 && m <= 12) return 1;
+            if (m >= 1 && m <= 3)  return 2;
+            return 3;
+        }
+
+        async function abrirEvalActividad() {
+            const btn = document.getElementById('btnEvalActividad');
+            const actividadId = btn._actividadId;
+            const fecha = btn._fecha;
+            if (!actividadId) return;
+
+            const trimestre = _fechaATrimestre(fecha);
+            _evalActData = { actividad_id: actividadId, trimestre };
+
+            // Cargar alumnos + evaluaciones desde el endpoint
+            let grupo_id = null;
+            try {
+                const gr = await fetch('/api/grupo_activo');
+                const gd = await gr.json();
+                grupo_id = gd.id;
+            } catch (e) {}
+
+            const r = await fetch(`/api/evaluacion/actividades/por_actividad?actividad_id=${actividadId}&trimestre=${trimestre}&grupo_id=${grupo_id}`);
+            const data = await r.json();
+
+            if (data.error) { alert(data.error); return; }
+
+            _evalActData.escala = data.actividad.tipo_escala;
+            document.getElementById('evalActTitle').innerText = data.actividad.nombre || 'Actividad';
+            document.getElementById('evalActSubtitle').innerText =
+                `${data.actividad.sda_nombre || ''} · T${trimestre} · Área: ${data.actividad.area_nombre || ''}`;
+
+            const esInfantil = (data.actividad.tipo_escala || '').startsWith('INFANTIL_');
+            const isPama = data.actividad.tipo_escala === 'INFANTIL_PA_A_MA';
+            document.getElementById('evalActGuia').innerText = esInfantil
+                ? 'Evalúa la actividad: NI/PA (1), EP/AD (2), CO/MA (3). La nota del criterio se actualiza automáticamente.'
+                : 'Evalúa la actividad del 1 al 4. La nota del criterio se actualiza automáticamente.';
+
+            renderEvalActList(data.alumnos, esInfantil, isPama);
+            document.getElementById('evalActividadModal').style.display = 'flex';
+        }
+
+        function renderEvalActList(alumnos, esInfantil, isPama) {
+            const container = document.getElementById('evalActList');
+            const maxN = esInfantil ? 3 : 4;
+            const labels = esInfantil
+                ? (isPama ? ['PA','AD','MA'] : ['NI','EP','CO'])
+                : ['1','2','3','4'];
+            const colors = ['#fee2e2','#fef3c7','#dcfce7','#e0e7ff'];
+            const borderColors = ['#ef4444','#f59e0b','#10b981','#6366f1'];
+
+            container.innerHTML = alumnos.map(a => {
+                const dots = labels.slice(0, maxN).map((lbl, i) => {
+                    const n = i + 1;
+                    const isActive = a.nivel == n;
+                    return `<div onclick="evalActClick(${a.id}, ${n}, this)"
+                        data-alid="${a.id}" data-n="${n}"
+                        style="width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+                               font-size:0.7rem;font-weight:700;cursor:pointer;border:2px solid ${isActive ? borderColors[i] : '#e2e8f0'};
+                               background:${isActive ? colors[i] : '#fff'};color:${isActive ? borderColors[i] : '#94a3b8'};
+                               transition:all 0.15s;">${lbl}</div>`;
+                }).join('');
+                return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 5px;border-bottom:1px solid #f1f5f9;">
+                    <span style="font-weight:600;font-size:0.9rem;">${a.nombre}</span>
+                    <div style="display:flex;gap:6px;" id="dots-act-${a.id}">${dots}</div>
+                </div>`;
+            }).join('');
+        }
+
+        async function evalActClick(alumnoId, nivel, el) {
+            const { actividad_id, trimestre, escala } = _evalActData;
+            // Toggle
+            const isActive = el.style.borderColor !== 'rgb(226, 232, 240)' && el.style.borderColor !== '';
+            const finalNivel = isActive ? null : nivel;
+
+            try {
+                const res = await fetch('/api/evaluacion/actividades/guardar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ alumno_id: alumnoId, actividad_id, nivel: finalNivel, trimestre })
+                });
+                const data = await res.json();
+                if (!data.ok) { alert(data.error || 'Error'); return; }
+
+                // Actualizar visual del grupo de dots de este alumno
+                const container = document.getElementById(`dots-act-${alumnoId}`);
+                const esInfantil = (escala || '').startsWith('INFANTIL_');
+                const isPama = escala === 'INFANTIL_PA_A_MA';
+                const labels = esInfantil ? (isPama ? ['PA','AD','MA'] : ['NI','EP','CO']) : ['1','2','3','4'];
+                const maxN = esInfantil ? 3 : 4;
+                const colors = ['#fee2e2','#fef3c7','#dcfce7','#e0e7ff'];
+                const borderColors = ['#ef4444','#f59e0b','#10b981','#6366f1'];
+                if (container) {
+                    container.innerHTML = labels.slice(0, maxN).map((lbl, i) => {
+                        const n = i + 1;
+                        const active = finalNivel == n;
+                        return `<div onclick="evalActClick(${alumnoId}, ${n}, this)"
+                            data-alid="${alumnoId}" data-n="${n}"
+                            style="width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+                                   font-size:0.7rem;font-weight:700;cursor:pointer;border:2px solid ${active ? borderColors[i] : '#e2e8f0'};
+                                   background:${active ? colors[i] : '#fff'};color:${active ? borderColors[i] : '#94a3b8'};
+                                   transition:all 0.15s;">${lbl}</div>`;
+                    }).join('');
+                }
+            } catch (e) {
+                alert('Error de conexión.');
+            }
         }
         function selectType(btn) {
             document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('active'));

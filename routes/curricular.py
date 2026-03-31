@@ -99,6 +99,8 @@ def crear_sa():
         cur.execute("BEGIN")
         cur.execute("INSERT INTO sda (nombre, area_id, trimestre, grupo_id) VALUES (?, ?, ?, ?)", (nombre, area_id, trimestre, grupo_id))
         sda_id = cur.lastrowid
+        # Map codes to IDs for this area (needed for activity mapping)
+        code_to_id = {}
         for c in criterios:
             codigo, desc = c.get("codigo", "").strip(), c.get("descripcion", "").strip()
             if not codigo: continue
@@ -108,7 +110,9 @@ def crear_sa():
             if not crit_id:
                 cur.execute("INSERT INTO criterios (codigo, descripcion, area_id) VALUES (?, ?, ?)", (codigo, desc, area_id))
                 crit_id = cur.lastrowid
+            code_to_id[codigo] = crit_id
             cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, crit_id))
+
         for c in competencias:
             codigo, desc = c.get("codigo", "").strip(), c.get("descripcion", "").strip()
             if not codigo: continue
@@ -119,10 +123,18 @@ def crear_sa():
                 cur.execute("INSERT INTO competencias_especificas (codigo, descripcion, area_id) VALUES (?, ?, ?)", (codigo, desc, area_id))
                 comp_id = cur.lastrowid
             cur.execute("INSERT OR IGNORE INTO sda_competencias (sda_id, competencia_id) VALUES (?, ?)", (sda_id, comp_id))
+            
         for a in actividades:
             a_nom, a_desc, a_ses = a.get("nombre", "").strip(), a.get("descripcion", "").strip(), int(a.get("sesiones", 1))
             if not a_nom: continue
             cur.execute("INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion) VALUES (?, ?, ?, ?)", (sda_id, a_nom, a_ses, a_desc))
+            act_id = cur.lastrowid
+            
+            # Guardar criterios vinculados a esta actividad (usando códigos enviados desde el frontal)
+            crit_cods = a.get("criterio_codigos", [])
+            for cod in crit_cods:
+                if cod in code_to_id:
+                    cur.execute("INSERT OR IGNORE INTO actividad_criterio (actividad_id, criterio_id) VALUES (?, ?)", (act_id, code_to_id[cod]))
         conn.commit()
         return jsonify({"ok": True, "sda_id": sda_id})
     except Exception as e:
@@ -140,6 +152,8 @@ def actualizar_sa(sda_id):
         cur.execute("BEGIN")
         cur.execute("UPDATE sda SET nombre = ?, area_id = ?, trimestre = ? WHERE id = ?", (nombre, area_id, trimestre, sda_id))
         cur.execute("DELETE FROM sda_criterios WHERE sda_id = ?", (sda_id,))
+        # Map codes to IDs for this area (needed for activity mapping)
+        code_to_id = {}
         for c in criterios:
             codigo, desc = c.get("codigo", "").strip(), c.get("descripcion", "").strip()
             if not codigo: continue
@@ -149,6 +163,7 @@ def actualizar_sa(sda_id):
             if not crit_id:
                 cur.execute("INSERT INTO criterios (codigo, descripcion, area_id) VALUES (?, ?, ?)", (codigo, desc, area_id))
                 crit_id = cur.lastrowid
+            code_to_id[codigo] = crit_id
             cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, crit_id))
         cur.execute("DELETE FROM sda_competencias WHERE sda_id = ?", (sda_id,))
         for c in competencias:
@@ -170,8 +185,19 @@ def actualizar_sa(sda_id):
         for a in actividades:
             a_id, a_nom, a_desc, a_ses = a.get("id"), a.get("nombre", "").strip(), a.get("descripcion", "").strip(), int(a.get("sesiones", 1))
             if not a_nom: continue
-            if a_id: cur.execute("UPDATE actividades_sda SET nombre = ?, sesiones = ?, descripcion = ? WHERE id = ?", (a_nom, a_ses, a_desc, a_id))
-            else: cur.execute("INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion) VALUES (?, ?, ?, ?)", (sda_id, a_nom, a_ses, a_desc))
+            if a_id: 
+                cur.execute("UPDATE actividades_sda SET nombre = ?, sesiones = ?, descripcion = ? WHERE id = ?", (a_nom, a_ses, a_desc, a_id))
+                act_id = a_id
+            else: 
+                cur.execute("INSERT INTO actividades_sda (sda_id, nombre, sesiones, descripcion) VALUES (?, ?, ?, ?)", (sda_id, a_nom, a_ses, a_desc))
+                act_id = cur.lastrowid
+
+            # Actualizar criterios vinculados: borrar y reinsertar (usando códigos enviados desde el frontal)
+            cur.execute("DELETE FROM actividad_criterio WHERE actividad_id = ?", (act_id,))
+            crit_cods = a.get("criterio_codigos", [])
+            for cod in crit_cods:
+                if cod in code_to_id:
+                    cur.execute("INSERT OR IGNORE INTO actividad_criterio (actividad_id, criterio_id) VALUES (?, ?)", (act_id, code_to_id[cod]))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
@@ -216,6 +242,9 @@ def curricular_full():
         for sda in sdas:
             cur.execute("SELECT id, nombre, sesiones, descripcion FROM actividades_sda WHERE sda_id = ? ORDER BY id", (sda["id"],))
             sda["actividades"] = [dict(act) for act in cur.fetchall()]
+            for act in sda["actividades"]:
+                cur.execute("SELECT criterio_id FROM actividad_criterio WHERE actividad_id = ?", (act["id"],))
+                act["criterio_ids"] = [r["criterio_id"] for r in cur.fetchall()]
             cur.execute("SELECT c.id, c.codigo, c.descripcion FROM criterios c JOIN sda_criterios sc ON sc.criterio_id = c.id WHERE sc.sda_id = ?", (sda["id"],))
             sda["criterios"] = [dict(c) for c in cur.fetchall()]
             cur.execute("SELECT ce.id, ce.codigo, ce.descripcion FROM competencias_especificas ce JOIN sda_competencias sc ON sc.competencia_id = ce.id WHERE sc.sda_id = ?", (sda["id"],))

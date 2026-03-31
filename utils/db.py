@@ -249,6 +249,13 @@ def run_migrations():
             FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
             FOREIGN KEY(actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE
         )""", "tabla evaluaciones_actividad"),
+        ("""CREATE TABLE IF NOT EXISTS actividad_criterio (
+            actividad_id INTEGER NOT NULL,
+            criterio_id INTEGER NOT NULL,
+            PRIMARY KEY (actividad_id, criterio_id),
+            FOREIGN KEY (actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE,
+            FOREIGN KEY (criterio_id) REFERENCES criterios(id) ON DELETE CASCADE
+        )""", "tabla actividad_criterio"),
     ]
 
     for sql, name in migrations:

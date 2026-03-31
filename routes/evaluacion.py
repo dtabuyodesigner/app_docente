@@ -500,20 +500,26 @@ def clase_hoy():
     
     # 1. Obtener todas las sesiones del día para el grupo activo
     cur.execute("""
-        SELECT pd.id, pd.descripcion as actividad, pd.criterio_id, pd.sda_id, 
+        SELECT pd.id, pd.descripcion as actividad, pd.criterio_id, pd.sda_id,
+               pd.actividad_id,
                c.codigo as criterio_codigo, c.descripcion as criterio_desc,
-               c.area_id, a.nombre as area_nombre
+               COALESCE(c.area_id, s.area_id) as area_id,
+               COALESCE(ac.nombre, '') as act_nombre,
+               COALESCE(a_crit.nombre, a_sda.nombre, '') as area_nombre,
+               COALESCE(a_crit.modo_evaluacion, a_sda.modo_evaluacion, 'POR_SA') as modo_evaluacion
         FROM programacion_diaria pd
         LEFT JOIN criterios c ON pd.criterio_id = c.id
         LEFT JOIN sda s ON pd.sda_id = s.id
-        LEFT JOIN areas a ON c.area_id = a.id
+        LEFT JOIN actividades_sda ac ON pd.actividad_id = ac.id
+        LEFT JOIN areas a_crit ON c.area_id = a_crit.id
+        LEFT JOIN areas a_sda ON s.area_id = a_sda.id
         WHERE pd.fecha = ? AND (s.grupo_id = ? OR s.grupo_id IS NULL OR pd.actividad_id IS NULL)
-        ORDER BY 
+        ORDER BY
             (CASE WHEN s.grupo_id = ? THEN 0 ELSE 1 END) ASC,
-            (CASE WHEN pd.criterio_id IS NOT NULL THEN 0 ELSE 1 END) ASC,
+            (CASE WHEN pd.actividad_id IS NOT NULL OR pd.criterio_id IS NOT NULL THEN 0 ELSE 1 END) ASC,
             pd.id ASC
     """, (fecha_hoy, grupo_id, grupo_id))
-    
+
     sesiones = [dict(r) for r in cur.fetchall()]
     
     if session_id:
@@ -544,7 +550,17 @@ def clase_hoy():
     elif 1 <= mes <= 3: trimestre = 2
     else: trimestre = 3
     
-    if sesion and sesion["criterio_id"]:
+    if sesion and sesion.get("actividad_id") and sesion.get("modo_evaluacion") == "POR_ACTIVIDADES":
+        # Modo actividades: cargar evaluaciones desde evaluaciones_actividad
+        cur.execute("""
+            SELECT alumno_id, nivel
+            FROM evaluaciones_actividad
+            WHERE actividad_id = ? AND trimestre = ?
+        """, (sesion["actividad_id"], trimestre))
+        evals = {r["alumno_id"]: r["nivel"] for r in cur.fetchall()}
+        for a in alumnos:
+            a["nivel"] = evals.get(a["id"])
+    elif sesion and sesion["criterio_id"]:
         sda_id = sesion["sda_id"]
         if sda_id:
             cur.execute("""
@@ -558,9 +574,9 @@ def clase_hoy():
                 FROM evaluaciones
                 WHERE criterio_id = ? AND trimestre = ? AND sda_id IS NULL
             """, (sesion["criterio_id"], trimestre))
-        
+
         evals = {r["alumno_id"]: r["nivel"] for r in cur.fetchall()}
-        
+
         for a in alumnos:
             a["nivel"] = evals.get(a["id"])
             

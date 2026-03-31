@@ -193,15 +193,30 @@ def _propagar_actividades_a_criterios(cur, alumno_id, sda_id, area_id, escala, t
     for row in criterios:
         criterio_id = row["criterio_id"]
 
-        # Media de todas las actividades del alumno en SDAs que incluyen este criterio
-        stats = cur.execute("""
-            SELECT AVG(ea.nivel) as media_nivel, AVG(ea.nota) as media_nota
-            FROM evaluaciones_actividad ea
-            JOIN actividades_sda a ON ea.actividad_id = a.id
-            JOIN sda_criterios sc ON sc.sda_id = a.sda_id
-            WHERE ea.alumno_id = ? AND ea.trimestre = ?
-              AND sc.criterio_id = ?
-        """, (alumno_id, trimestre, criterio_id)).fetchone()
+        # Media de todas las actividades del alumno que evalúan este criterio específicamente
+        # Si no hay mapeo en actividad_criterio, usamos el comportamiento por defecto (todas las actividades de la SDA)
+        cur.execute("SELECT COUNT(*) as cuenta FROM actividad_criterio WHERE criterio_id = ?", (criterio_id,))
+        tiene_mapeo = cur.fetchone()["cuenta"] > 0
+
+        if tiene_mapeo:
+            stats = cur.execute("""
+                SELECT AVG(ea.nivel) as media_nivel, AVG(ea.nota) as media_nota
+                FROM evaluaciones_actividad ea
+                JOIN actividades_sda a ON ea.actividad_id = a.id
+                JOIN actividad_criterio ac ON ac.actividad_id = a.id
+                WHERE ea.alumno_id = ? AND ea.trimestre = ?
+                  AND ac.criterio_id = ?
+            """, (alumno_id, trimestre, criterio_id)).fetchone()
+        else:
+            stats = cur.execute("""
+                SELECT AVG(ea.nivel) as media_nivel, AVG(ea.nota) as media_nota
+                FROM evaluaciones_actividad ea
+                JOIN actividades_sda a ON ea.actividad_id = a.id
+                JOIN sda_criterios sc ON sc.sda_id = a.sda_id
+                WHERE ea.alumno_id = ? AND ea.trimestre = ?
+                  AND sc.criterio_id = ?
+            """, (alumno_id, trimestre, criterio_id)).fetchone()
+
 
         if stats["media_nivel"] is None:
             # Sin actividades evaluadas → borrar entrada en evaluaciones (si existe)
@@ -223,6 +238,65 @@ def _propagar_actividades_a_criterios(cur, alumno_id, sda_id, area_id, escala, t
                 INSERT INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
                 VALUES (?, ?, ?, NULL, ?, ?, ?)
             """, (alumno_id, area_id, trimestre, criterio_id, media_nivel, media_nota))
+
+
+@evaluacion_actividades_bp.route("/por_actividad")
+def por_actividad():
+    """
+    Devuelve alumnos del grupo activo + su nivel actual para una actividad concreta.
+    Parámetros: actividad_id, trimestre, grupo_id (opcional, usa sesión si no se pasa).
+    """
+    actividad_id = request.args.get("actividad_id")
+    trimestre = request.args.get("trimestre")
+    grupo_id = request.args.get("grupo_id") or session.get('active_group_id')
+
+    if not actividad_id or not trimestre or not grupo_id:
+        return jsonify({"error": "Faltan parámetros"}), 400
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Info de la actividad y su área/escala
+    act_info = cur.execute("""
+        SELECT a.id, a.nombre, a.sda_id, s.area_id, ar.tipo_escala, ar.modo_evaluacion,
+               s.nombre as sda_nombre, ar.nombre as area_nombre
+        FROM actividades_sda a
+        JOIN sda s ON a.sda_id = s.id
+        JOIN areas ar ON s.area_id = ar.id
+        WHERE a.id = ?
+    """, (actividad_id,)).fetchone()
+
+    if not act_info:
+        return jsonify({"error": "Actividad no encontrada"}), 404
+
+    alumnos = cur.execute("""
+        SELECT al.id, al.nombre,
+               COALESCE(ast.estado, 'presente') as asistencia
+        FROM alumnos al
+        LEFT JOIN asistencia ast ON al.id = ast.alumno_id AND ast.fecha = date('now')
+        WHERE al.grupo_id = ?
+        ORDER BY al.nombre
+    """, (grupo_id,)).fetchall()
+
+    evals = cur.execute("""
+        SELECT alumno_id, nivel
+        FROM evaluaciones_actividad
+        WHERE actividad_id = ? AND trimestre = ?
+    """, (actividad_id, trimestre)).fetchall()
+
+    eval_map = {r["alumno_id"]: r["nivel"] for r in evals}
+
+    result = []
+    for a in alumnos:
+        row = dict(a)
+        row["nivel"] = eval_map.get(a["id"])
+        result.append(row)
+
+    return jsonify({
+        "alumnos": result,
+        "actividad": dict(act_info),
+        "trimestre": trimestre
+    })
 
 
 @evaluacion_actividades_bp.route("/media")

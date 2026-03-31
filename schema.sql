@@ -453,6 +453,15 @@ CREATE TABLE evaluaciones_actividad (
     FOREIGN KEY(actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE
 );
 
+CREATE TABLE actividad_criterio (
+    actividad_id INTEGER NOT NULL,
+    criterio_id INTEGER NOT NULL,
+    PRIMARY KEY (actividad_id, criterio_id),
+    FOREIGN KEY (actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE,
+    FOREIGN KEY (criterio_id) REFERENCES criterios(id) ON DELETE CASCADE
+);
+
+
 -- INDEXES
 CREATE INDEX idx_eval_alumno_trim ON evaluaciones (alumno_id, trimestre);
 CREATE INDEX idx_eval_area ON evaluaciones (area_id);

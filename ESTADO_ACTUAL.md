@@ -1,0 +1,196 @@
+# 📍 ESTADO DEL PROYECTO - APP_EVALUAR
+
+**Fecha:** 31 de Marzo 2026  
+**Último Commit:** `6fe9470`  
+**Rama:** `feature/refactor-evaluacion-curricular`
+
+---
+
+## ✅ LO COMPLETADO
+
+### Sistema Dual de Evaluación (Opción C)
+
+Implementado sistema híbrido automático que detecta:
+- **Modo de evaluación:** POR_ACTIVIDADES | POR_SA | POR_CRITERIOS_DIRECTOS
+- **Etapa educativa:** Infantil | Primaria (desde el grupo seleccionado)
+- **Escala apropiada:** NI/EP/CO (3 niveles) | 1-4 (4 niveles)
+
+### Archivos Creados
+
+| Archivo | Descripción | Líneas |
+|---------|-------------|--------|
+| `routes/evaluacion_cuaderno.py` | Endpoint unificado `/api/evaluacion/cuaderno` | 678 |
+| `SISTEMA_DUAL_EVALUACION.md` | Documentación técnica completa | 304 |
+| `EVALUACION_INFANTIL.md` | Guía específica para Infantil | 249 |
+| `RESUMEN_IMPLEMENTACION.md` | Resumen ejecutivo | 194 |
+| `CHANGELOG_SISTEMA_DUAL.md` | Historial de cambios | 152 |
+
+### Archivos Modificados
+
+| Archivo | Cambios | Propósito |
+|---------|---------|-----------|
+| `app.py` | +3 líneas | Registro del nuevo blueprint |
+| `static/evaluacion.html` | +707 líneas | UI adaptativa según etapa |
+| `static/ayuda.html` | +537 líneas | Documentación integrada |
+
+**Total:** +2600 líneas añadidas, -224 eliminadas
+
+---
+
+## 🎯 CARACTERÍSTICAS IMPLEMENTADAS
+
+### 1. Detección Automática de Etapa
+```python
+# Backend detecta etapa desde el grupo
+grupo = cur.execute("SELECT etapa_id FROM grupos WHERE id = ?", (grupo_id,))
+if etapa_nombre == "Infantil":
+    tipo_escala = "INFANTIL_NI_EP_C"  # 3 niveles: NI, EP, CO
+else:
+    tipo_escala = "NUMERICA_1_4"  # 4 niveles: 1, 2, 3, 4
+```
+
+### 2. Endpoint Unificado
+```
+GET /api/evaluacion/cuaderno?area_id=1&trimestre=1
+
+Respuesta incluye:
+- modo: "POR_ACTIVIDADES"
+- etapa: "Infantil" o "Primaria"
+- escala_evaluacion: { tipo, niveles, labels }
+- actividades, criterios, evaluaciones, medias
+```
+
+### 3. UI Adaptativa
+- **Infantil:** 3 botones (NI/EP/CO o PA/AD/MA)
+- **Primaria:** 4 botones (1/2/3/4)
+- Colores adaptados por nivel
+- Toggle para borrar evaluación
+
+### 4. Propagación Automática
+```
+Actividades → Criterios → Nota del Área
+  (nivel)    → (media)  → (media)
+```
+
+### 5. Resumen Visual
+- Botón "📊 Ver Resumen Actividades"
+- Modal con árbol actividades → criterios → medias
+- Nota final del área calculada automáticamente
+
+---
+
+## 📋 PENDIENTE
+
+### Pruebas por Realizar
+
+- [ ] **Test 1:** Grupo de Infantil → 3 botones (NI/EP/CO)
+- [ ] **Test 2:** Grupo de Primaria → 4 botones (1-4)
+- [ ] **Test 3:** Evaluación de actividad → propaga a criterios
+- [ ] **Test 4:** Resumen de actividades → muestra medias correctas
+- [ ] **Test 5:** Toggle (click 2 veces) → borra evaluación
+- [ ] **Test 6:** Cambio de grupo (Infantil → Primaria) → actualiza UI
+- [ ] **Test 7:** Escala PA/AD/MA funciona correctamente
+
+### Cuando Todo Funcione
+
+```bash
+# 1. Cambiarse a main
+git checkout main
+
+# 2. Hacer merge
+git merge feature/refactor-evaluacion-curricular
+
+# 3. Subir a GitHub
+git push
+```
+
+---
+
+## 🧪 CÓMO PROBAR
+
+### 1. Reiniciar Servidor
+```bash
+cd /home/danito73/Documentos/APP_EVALUAR
+python3 app.py
+```
+
+### 2. Probar Infantil
+```
+1. Abrir http://localhost:5000
+2. Login
+3. Seleccionar grupo: "3 años A" (Infantil)
+4. Ir a Evaluación
+5. Seleccionar área de Infantil
+6. VER: 3 botones (NI, EP, CO)
+```
+
+### 3. Probar Primaria
+```
+1. Cambiar grupo: "1º Primaria"
+2. Ir a Evaluación
+3. Seleccionar área de Primaria
+4. VER: 4 botones (1, 2, 3, 4)
+```
+
+### 4. Probar Evaluación por Actividades
+```
+1. Área con modo POR_ACTIVIDADES
+2. Seleccionar SDA
+3. Evaluar actividad (click en nivel)
+4. Click "📊 Ver Resumen Actividades"
+5. VER: Árbol con medias
+```
+
+---
+
+## 🐛 POSIBLES ERRORES A BUSCAR
+
+| Error | Causa Posible | Solución |
+|-------|---------------|----------|
+| Botones incorrectos | `etapa_id` mal configurada | Revisar tabla `grupos` |
+| No propaga notas | Error en SQL | Revisar logs Flask |
+| Media incorrecta | Cálculo erróneo | Verificar `_calcular_medias_*` |
+| UI no actualiza | Error JS | Consola navegador (F12) |
+
+---
+
+## 📚 DOCUMENTACIÓN DISPONIBLE
+
+1. **Ayuda Integrada:** `/ayuda` → sección "Sistema Dual"
+2. **Técnica:** `SISTEMA_DUAL_EVALUACION.md`
+3. **Infantil:** `EVALUACION_INFANTIL.md`
+4. **Resumen:** `RESUMEN_IMPLEMENTACION.md`
+5. **Changelog:** `CHANGELOG_SISTEMA_DUAL.md`
+
+---
+
+## 🔗 COMANDOS ÚTILES PARA CONTINUAR
+
+```bash
+# Ver estado actual
+git status
+
+# Ver último commit
+git log -n 1
+
+# Ver cambios pendientes de test
+git diff main..feature/refactor-evaluacion-curricular
+
+# Cuando esté listo para merge
+git checkout main
+git merge feature/refactor-evaluacion-curricular
+git push
+```
+
+---
+
+## 📞 CONTACTO / NOTAS
+
+**Implementado por:** Asistente de Código IA  
+**Fecha implementación:** 31 Marzo 2026  
+**Estado:** ✅ Completado, pendiente de pruebas  
+**Siguiente paso:** Probar en navegador y hacer merge si funciona
+
+---
+
+**¡Para continuar otro día, empezar por la sección "🧪 CÓMO PROBAR"!**

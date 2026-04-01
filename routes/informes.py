@@ -1636,6 +1636,13 @@ def acta_oficial():
     conn = get_db()
     cur = conn.cursor()
 
+    # Obtener nombre del tutor desde configuración si no se pasa
+    if not tutor_nombre:
+        cur.execute("SELECT valor FROM config WHERE clave = 'nombre_tutor'")
+        row = cur.fetchone()
+        if row:
+            tutor_nombre = row["valor"]
+
     cur.execute("SELECT g.nombre, g.curso, g.equipo_docente FROM grupos g WHERE g.id = ?", (grupo_id,))
     grupo = cur.fetchone()
     if not grupo:
@@ -1704,7 +1711,7 @@ def acta_oficial():
             alumno_map[r["nombre"]].append(f"{r['area']} ({r['media']:.1f})")
         alumnos_suspensos = [(n, ", ".join(a)) for n, a in alumno_map.items()]
 
-    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%'")
+    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%' OR clave = 'tutor_firma_filename'")
     logo_config = {r["clave"]: r["valor"] for r in cur.fetchall()}
 
     from utils.db import get_app_data_dir
@@ -1888,13 +1895,24 @@ def acta_oficial():
         for f in firmantes:
             row = [Paragraph(f, styles['Normal']), ""]
             # Si el firmante es el tutor, intentamos poner la firma
-            if firma_path and (tutor_nombre.lower() in f.lower() or "tutor" in f.lower()):
+            # Se usa comparación flexible: busca coincidencia por palabras o si es el tutor
+            es_tutor = False
+            if firma_path and tutor_nombre:
+                tutor_palabras = tutor_nombre.lower().split()
+                firmante_lower = f.lower()
+                # Si al menos 2 palabras del tutor están en el firmante, o el nombre completo está contenido
+                if tutor_nombre.lower() in firmante_lower or \
+                   (len(tutor_palabras) >= 2 and sum(1 for p in tutor_palabras if p in firmante_lower) >= 2) or \
+                   ("tutor" in firmante_lower and "tutor" in tutor_nombre.lower()):
+                    es_tutor = True
+            
+            if es_tutor:
                 try:
                     img_f = RLImage(firma_path, width=4*cm, height=1.2*cm)
                     img_f.hAlign = 'CENTER'
                     row[1] = img_f
-                except:
-                    pass
+                except Exception as e:
+                    print(f"Error insertando firma: {e}")
             sig_data.append(row)
         
         t_sig = RLTable(sig_data, colWidths=[9*cm, 8*cm],

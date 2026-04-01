@@ -1,7 +1,7 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 31 de Marzo 2026  
-**Último Commit:** `6fe9470`  
+**Fecha:** 1 de Abril 2026  
+**Último Commit:** ver `git log`  
 **Rama:** `feature/refactor-evaluacion-curricular`
 
 ---
@@ -83,107 +83,25 @@ Actividades → Criterios → Nota del Área
 
 ### Bugs Reportados
 
-| Bug | Descripción | Prioridad |
-|-----|-------------|-----------|
-| **Gestión de Criterios** | No borra criterios en Evaluación → Gestión de Criterios | Alta |
-| **Cuaderno de Evaluación** | Evaluación → Cuaderno → Cuaderno de evaluación no muestra nada | Alta |
-| **Informe de Acta - Firmas** | Cuadro de firmas no muestra automáticamente la firma del tutor desde Logos | Media |
+| Bug | Descripción | Prioridad | Estado |
+|-----|-------------|-----------|--------|
+| **Gestión de Criterios** | No borra criterios en Evaluación → Gestión de Criterios | Alta | ✅ CORREGIDO |
+| **Cuaderno de Evaluación** | Evaluación → Cuaderno → Cuaderno de evaluación no muestra nada | Alta | ✅ CORREGIDO |
+| **Informe de Acta - Firmas** | Cuadro de firmas no muestra automáticamente la firma del tutor desde Logos | Media | ✅ CORREGIDO |
 
-#### Detalle: Bug en Borrar Criterios
+#### Correcciones Aplicadas (1 Abril 2026)
 
-**Ubicación:** Evaluación → Pestaña "Gestión de Criterios"
+**Bug 1 — Borrar criterios (CSRF bloqueaba DELETE)**
+- **Causa:** `criterios_bp` no estaba exento de CSRF. El `DELETE /api/criterios/{id}` era rechazado con 403.
+- **Fix:** `app.py` → añadido `csrf.exempt(criterios_bp)`.
 
-**Síntoma:**
-- El botón de borrar criterios no funciona correctamente
-- Los criterios no se eliminan de la base de datos
+**Bug 2 — Cuaderno vacío (error silencioso en JS)**
+- **Causa:** Si el servidor devolvía `{error: "..."}` (por falta de `grupo_id`), `renderTable` intentaba `.forEach` sobre `data.criterios` que era `undefined` → TypeError capturado silenciosamente → tabla vacía.
+- **Fix:** `static/cuaderno_evaluacion.html` → comprobación de `data.error` antes de llamar a `renderTable`, mostrando el mensaje de error en pantalla.
 
-**Archivos a revisar:**
-- `static/evaluacion.html` (función de borrar)
-- `routes/criterios_api.py` (endpoint DELETE)
-
-**Posibles causas:**
-1. Error en la función JS de borrar
-2. Endpoint DELETE no está correctamente implementado
-3. Problema de permisos o CSRF
-4. Error en la consulta SQL DELETE
-
-**A comprobar:**
-```javascript
-// Verificar que existe la función
-function borrarCriterio(id) {
-    // ¿Está implementada?
-}
-
-// Verificar endpoint
-DELETE /api/criterios/{id}
-```
-
-#### Detalle: Bug en Cuaderno de Evaluación
-
-**Ubicación:** Evaluación → Cuaderno → Cuaderno de evaluación
-
-**Síntoma:**
-- La vista "Cuaderno de evaluación" no muestra nada (vacío)
-- Posiblemente no carga datos o hay error de JavaScript
-
-**Archivos a revisar:**
-- `static/evaluacion.html` (vista del cuaderno)
-- `routes/evaluacion_cuaderno.py` (endpoint `/api/evaluacion/cuaderno`)
-- Consola del navegador (F12) para errores JS
-
-**Posibles causas:**
-1. El endpoint `/api/evaluacion/cuaderno` no devuelve datos
-2. Error en la función `cargarCuadernoUnificado()`
-3. Problema con la detección del modo de evaluación
-4. Error en `renderVistaActividades()` o funciones relacionadas
-
-**A comprobar:**
-```javascript
-// En consola del navegador (F12)
-// 1. Ver si hay errores JS
-// 2. Ver si la llamada al endpoint funciona
-// 3. Verificar que cargarCuadernoUnificado() se llama
-```
-
-**Debug sugerido:**
-```bash
-# Probar endpoint directamente (con sesión activa)
-curl "http://localhost:5000/api/evaluacion/cuaderno?area_id=1&trimestre=1"
-```
-
-#### Detalle: Bug en Informe de Acta - Firmas
-
-**Ubicación:** Evaluación → Gestión de Informes → Informe de Acta → Cuadro de firmas
-
-**Síntoma:**
-- El cuadro de firmas del acta no muestra automáticamente la firma del tutor
-- La firma del tutor ya está cargada en Configuración → Logos/Firmas
-- Se espera que el sistema la inserte automáticamente en el acta
-
-**Comportamiento esperado:**
-- Al generar el acta, el sistema debe buscar la firma del tutor en la configuración
-- Insertar la firma automáticamente en el cuadro de firmas del acta
-- Mostrar la firma sin necesidad de subirla manualmente cada vez
-
-**Archivos a revisar:**
-- `routes/informes.py` (generación del PDF del acta)
-- `static/informes.html` (vista previa del acta)
-- Configuración de logos/firmas del tutor
-
-**Posibles causas:**
-1. La función de generación del PDF no busca la firma del tutor
-2. La ruta de la firma no se está pasando correctamente al PDF
-3. Falta código para cargar la firma desde la configuración
-
-**A comprobar:**
-```python
-# En routes/informes.py o donde se genera el acta
-# ¿Se carga la firma del tutor?
-firma_tutor = config.get('firma_tutor')  # ¿Existe esto?
-
-# ¿Se inserta en el PDF?
-doc.build(...)  # ¿Incluye la imagen de la firma?
-```
+**Bug 3 — Firma del tutor no aparece en Acta**
+- **Causa:** La query SQL en `routes/informes.py` solo buscaba claves `LIKE 'logo_%'`, pero la firma se guarda con clave `tutor_firma_filename` → nunca se cargaba en `logo_config`.
+- **Fix:** `routes/informes.py` → query ampliada: `OR clave = 'tutor_firma_filename'`.
 
 ### Features Pendientes
 

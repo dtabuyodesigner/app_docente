@@ -83,59 +83,29 @@
             border-color: #007bff;
         }
 
-        /* Botones modo Infantil NI/EP/C */
-        .btn-nivel[data-label="NI"].selected {
-            background: #ef4444;
-            border-color: #ef4444;
-            color: white;
-        }
-
-        .btn-nivel[data-label="EP"].selected {
-            background: #f59e0b;
-            border-color: #f59e0b;
-            color: white;
-        }
-
-        .btn-nivel[data-label="C"].selected {
-            background: #10b981;
-            border-color: #10b981;
-            color: white;
-        }
-
+        /* Botones modo Infantil NI/PA, EP/AD, CO/MA */
+        .btn-nivel[data-label="NI"].selected,
+        .btn-nivel[data-label="PA"].selected,
+        .btn-nivel[data-label="NI/PA"].selected,
         .btn-nivel[data-label="NI-PA"].selected {
-            background: #ef4444;
-            border-color: #ef4444;
-            color: white;
+            background: #ef4444; border-color: #ef4444; color: white;
         }
 
-        .btn-nivel[data-label="EP-A"].selected {
-            background: #f59e0b;
-            border-color: #f59e0b;
-            color: white;
-        }
-
-        .btn-nivel[data-label="CO-MA"].selected {
-            background: #10b981;
-            border-color: #10b981;
-            color: white;
-        }
-
-        .btn-nivel[data-label="NI/PA"].selected {
-            background: #ef4444;
-            border-color: #ef4444;
-            color: white;
-        }
-
+        .btn-nivel[data-label="EP"].selected,
+        .btn-nivel[data-label="AD"].selected,
+        .btn-nivel[data-label="EP/AD"].selected,
+        .btn-nivel[data-label="EP-AD"].selected,
+        .btn-nivel[data-label="EP-A"].selected,
         .btn-nivel[data-label="EP/A"].selected {
-            background: #f59e0b;
-            border-color: #f59e0b;
-            color: white;
+            background: #f59e0b; border-color: #f59e0b; color: white;
         }
 
-        .btn-nivel[data-label="CO/MA"].selected {
-            background: #10b981;
-            border-color: #10b981;
-            color: white;
+        .btn-nivel[data-label="C"].selected,
+        .btn-nivel[data-label="CO"].selected,
+        .btn-nivel[data-label="MA"].selected,
+        .btn-nivel[data-label="CO/MA"].selected,
+        .btn-nivel[data-label="CO-MA"].selected {
+            background: #10b981; border-color: #10b981; color: white;
         }
 
         /* Rubric Tooltip */
@@ -776,9 +746,9 @@
             // Helpers Etiqueta/Escala
             // Según spec: NI→nivel 1, EP→nivel 2, C→nivel 3
             function nivelLabel(n) {
-                if (n === 1) return "NI - Poco adecuado";
-                if (n === 2) return "EP - Adecuado";
-                if (n === 3) return "CO - Muy adecuado";
+                if (n === 1) return "NI/PA - No Iniciado / Poco Adecuado";
+                if (n === 2) return "EP/AD - En Proceso / Adecuado";
+                if (n === 3) return "CO/MA - Conseguido / Muy Adecuado";
                 return "C";
             }
             // Convierte nota interna (1,2,3) o antigua (2.5, 5, 7.5, 10) a texto Infantil
@@ -794,10 +764,11 @@
                 } else {
                     n = Math.round(n);
                 }
-                const isPama = (escala === "INFANTIL_PA_A_MA");
-                if (n <= 1) return isPama ? "PA" : "NI";
-                if (n <= 2) return isPama ? "AD" : "EP";
-                return isPama ? "MA" : "CO";
+                const isInfantil = escala && escala.startsWith("INFANTIL_");
+                if (n <= 1) return isInfantil ? "NI/PA" : "1";
+                if (n <= 2) return isInfantil ? "EP/AD" : "2";
+                if (n <= 3) return isInfantil ? "CO/MA" : "3";
+                return "4";
             }
             function getColorNota(nota, tipoEscala) {
                 if (tipoEscala && tipoEscala.startsWith('INFANTIL_')) {
@@ -1024,15 +995,18 @@
                 if (!confirm(`¿Estás seguro de que deseas eliminar el criterio "${codigo}"?\n\nEsta acción NO se puede deshacer y fallará si el criterio tiene evaluaciones o está enlazado a una Situación de Aprendizaje.`)) return;
                 try {
                     const r = await fetch(`/api/criterios/${id}`, { method: 'DELETE' });
+                    console.log('Eliminar criterio - Status:', r.status);
                     const data = await r.json();
+                    console.log('Eliminar criterio - Response:', data);
                     if (data.ok) {
                         cargarListaCriterios();
                         if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
                     } else {
-                        alert("Error: " + data.error);
+                        alert("Error al eliminar: " + data.error);
                     }
                 } catch (err) {
-                    alert("Error de conexión al intentar eliminar.");
+                    console.error('Error en eliminarCriterio:', err);
+                    alert("Error de conexión al intentar eliminar: " + err.message);
                 }
             };
             window.abrirModalImportar = function () {
@@ -1130,9 +1104,9 @@
                     const btnL2 = document.getElementById("btnRellenarL2");
                     const btnL3 = document.getElementById("btnRellenarL3");
                     btnL2.style.display = 'inline-block';
-                    btnL2.innerText = isPama ? "⚡ Rellenar AD" : "⚡ Rellenar EP";
+                    btnL2.innerText = "⚡ Rellenar EP/AD";
                     btnL3.style.display = 'inline-block';
-                    btnL3.innerText = isPama ? "⚡ Rellenar MA" : "⚡ Rellenar CO";
+                    btnL3.innerText = "⚡ Rellenar CO/MA";
                 } else {
                     modoBadge.innerHTML = '🎓 ' + conf.modo_evaluacion.replace(/_/g, ' ');
                     modoBadge.style.background = '#e8f4fd';
@@ -1147,6 +1121,8 @@
                     btnCriterioExtra.style.display = 'none';
                     document.getElementById("directControlsAction").style.display = 'none';
                     document.getElementById("btnResumenActividades").style.display = 'inline-block';
+                    // BUG FIX: Cargar SDAs para poder filtrar actividades
+                    cargarSDA();
                     // Usar la nueva vista unificada de actividades
                     cargarCuadernoUnificado();
                 } else if (conf.modo_evaluacion === 'POR_SA') {
@@ -1266,15 +1242,10 @@
                     const tr = document.createElement("tr");
                     tr.id = 'row-' + c.id; // necesario para rellenarTodos()
                     if (esInfantil) {
-                        const isPama = (conf.tipo_escala === "INFANTIL_PA_A_MA");
-                        const mappingInfantil = isPama ? [
-                            { n: 1, label: "PA: Parcial", db: "PA" },
-                            { n: 2, label: "AD: Adquirido", db: "AD" },
-                            { n: 3, label: "MA: Muy Adq.", db: "MA" }
-                        ] : [
-                            { n: 1, label: "NI: No Iniciado", db: "NI" },
-                            { n: 2, label: "EP: En Proceso", db: "EP" },
-                            { n: 3, label: "CO: Conseguido", db: "CO" }
+                        const mappingInfantil = [
+                            { n: 1, label: "NI/PA: No Inic. / Poco Adeq.", db: "NI/PA" },
+                            { n: 2, label: "EP/AD: En Proc. / Adecuado", db: "EP/AD" },
+                            { n: 3, label: "CO/MA: Cons. / Muy Adeq.", db: "CO/MA" }
                         ];
                         tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
                         <td><div style="display:flex; gap:6px; justify-content:center;">${mappingInfantil.map(m => {
@@ -1579,27 +1550,39 @@
                 const conf = getAreaConfig();
                 if (!conf) return;
 
-                if (!confirm("¿Asignar nota " + nivel + " a todos los criterios visibles?")) return;
-
                 const trs = document.getElementById("tbody").querySelectorAll("tr");
-                const sdaId = sdaSelect.value || null;
-                const periodo = 'T' + trimestreSelect.value;
+                if (trs.length === 0) return;
 
-                const evaluaciones = Array.from(trs).map(tr => ({
-                    alumno_id: alumId,
-                    criterio_id: tr.id.replace("row-", ""),
-                    nivel: nivel,
-                    sda_id: sdaId
-                }));
+                if (!confirm("¿Asignar este nivel a todos los elementos visibles?")) return;
+
+                const periodo = 'T' + trimestreSelect.value;
+                let url = "/api/evaluacion/guardar_masivo";
+                let payload = { periodo: periodo, evaluaciones: [] };
+
+                if (conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                    url = "/api/evaluacion/actividades/guardar_alumno_masivo";
+                    payload = {
+                        alumno_id: parseInt(alumId),
+                        trimestre: trimestreSelect.value,
+                        evaluaciones: Array.from(trs).map(tr => ({
+                            actividad_id: parseInt(tr.id.replace("row-act-", "")),
+                            nivel: nivel
+                        }))
+                    };
+                } else {
+                    payload.evaluaciones = Array.from(trs).map(tr => ({
+                        alumno_id: parseInt(alumId),
+                        criterio_id: parseInt(tr.id.replace("row-", "")),
+                        nivel: nivel,
+                        sda_id: sdaSelect.value || null
+                    }));
+                }
 
                 try {
-                    const res = await fetch("/api/evaluacion/guardar_masivo", {
+                    const res = await fetch(url, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            periodo: periodo,
-                            evaluaciones: evaluaciones
-                        })
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if (data.ok) {
@@ -1610,7 +1593,7 @@
                         alert("Error al rellenar: " + data.error);
                     }
                 } catch (e) {
-                    console.error("Error rellenar massivo:", e);
+                    console.error("Error rellenar masivo:", e);
                     alert("Error de conexión al rellenar masivamente.");
                 }
             };
@@ -1782,14 +1765,14 @@
                     const nombreCell = `<td><strong style="font-size:0.78rem;color:#555;">${act.codigo_actividad || '—'}</strong></td>
                         <td style="text-align:left;">${act.nombre}${act.descripcion ? `<br><small style="color:#888;">${act.descripcion}</small>` : ''}</td>`;
                     if (esInfantil) {
-                        const mapping = isPama ? [
-                            { n: 1, label: "PA: Parcial", db: "PA" }, { n: 2, label: "AD: Adquirido", db: "AD" }, { n: 3, label: "MA: Muy Adq.", db: "MA" }
-                        ] : [
-                            { n: 1, label: "NI: No Iniciado", db: "NI" }, { n: 2, label: "EP: En Proceso", db: "EP" }, { n: 3, label: "CO: Conseguido", db: "CO" }
+                        const mapping = [
+                            { n: 1, label: "NI/PA: No Inic. / Poco Adeq.", db: "NI/PA" },
+                            { n: 2, label: "EP/AD: En Proc. / Adecuado", db: "EP/AD" },
+                            { n: 3, label: "CO/MA: Cons. / Muy Adeq.", db: "CO/MA" }
                         ];
                         tr.innerHTML = nombreCell + `<td><div style="display:flex;gap:6px;justify-content:center;">${mapping.map(m => `<button class="btn-nivel" data-label="${m.db}" data-actividad="${act.id}" data-nivel="${m.n}"
                                 onclick="guardarActividad(${act.id},${m.n})" id="btn-act-${act.id}-${m.n}"
-                                style="font-weight:700;min-width:105px;padding:6px 4px;font-size:0.7rem;">${m.label}</button>`).join('')
+                                style="font-weight:700;min-width:110px;padding:6px 4px;font-size:0.7rem;">${m.label}</button>`).join('')
                             }</div></td>`;
                     } else {
                         tr.innerHTML = nombreCell + `<td>${[1, 2, 3, 4].map(n =>
@@ -1888,7 +1871,16 @@
                 const conf = getAreaConfig();
                 if (!conf) return;
 
+                // Obtener grupo activo
+                let grupo_id = null;
+                try {
+                    const gr = await fetch('/api/grupo_activo');
+                    const gdata = await gr.json();
+                    grupo_id = gdata.id;
+                } catch (e) { console.error('Error obteniendo grupo activo:', e); }
+
                 let url = `/api/evaluacion/cuaderno?area_id=${areaId}&trimestre=${trimestre}`;
+                if (grupo_id) url += `&grupo_id=${grupo_id}`;
                 if (sdaId && sdaId !== 'null' && sdaId !== '') url += `&sda_id=${sdaId}`;
                 if (alumnoId) url += `&alumno_id=${alumnoId}`;
 
@@ -1930,7 +1922,7 @@
                 // Configurar labels y niveles según etapa
                 let labels, niveles;
                 if (esInfantil) {
-                    labels = esPama ? ['PA', 'AD', 'MA'] : ['NI', 'EP', 'CO'];
+                    labels = ['NI/PA', 'EP/AD', 'CO/MA'];
                     niveles = [1, 2, 3];
                 } else {
                     labels = ['1', '2', '3', '4'];

@@ -366,10 +366,9 @@
                     const level = data.evaluaciones[`${a.id}_${c.id}`];
                     let label = level || '-';
                     if (etapaId == "1" && level) {
-                        const usePama = true; // Estandarizado a PA/AD/MA para Infantil
-                        if (level == 1) label = usePama ? "PA" : "NI";
-                        else if (level == 2) label = usePama ? "AD" : "EP";
-                        else if (level == 3) label = usePama ? "MA" : "CO";
+                        if (level == 1) label = "NI/PA";
+                        else if (level == 2) label = "EP/AD";
+                        else if (level == 3) label = "CO/MA";
                     }
                     const classLevel = level ? `l-${level}` : '';
                     row += `<td class="level-cell ${classLevel}" onclick="openEval(${a.id}, ${c.id}, '${a.nombre.replace(/'/g, "\\'")}', '${c.codigo}', '${escapeHtml(c.descripcion || '')}')">${label}</td>`;
@@ -396,10 +395,9 @@
             const etapaId = document.getElementById('etapa-select').value;
             const b4 = document.getElementById('btn-l-4');
             if (etapaId == "1") {
-                const usePama = true;
-                document.getElementById('btn-l-1').innerText = usePama ? "PA - Parcial" : "NI - Poco adecuado";
-                document.getElementById('btn-l-2').innerText = usePama ? "AD - Adquirido" : "EP - Adecuado";
-                document.getElementById('btn-l-3').innerText = usePama ? "MA - Muy Adq." : "CO - Muy adecuado";
+                document.getElementById('btn-l-1').innerText = "NI/PA - No Inic./Poco Adeq.";
+                document.getElementById('btn-l-2').innerText = "EP/AD - En Proc./Adecuado";
+                document.getElementById('btn-l-3').innerText = "CO/MA - Cons./Muy Adeq.";
                 b4.style.display = "none";
                 document.querySelectorAll('.btn-l').forEach(b => b.style.fontSize = "0.75rem");
             } else {

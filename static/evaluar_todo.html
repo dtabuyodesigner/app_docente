@@ -397,9 +397,9 @@
             const usePama = true; // Estandarizado a PA/AD/MA para Infantil
             if (etapaId == "1") {
                 bulkButtons.innerHTML = `
-                    <button class="eval-btn" onclick="applyToAll(1)" data-level="1" style="width:auto; border-radius:8px; padding:0 10px;">${usePama ? 'PA' : 'NI'}</button>
-                    <button class="eval-btn" onclick="applyToAll(2)" data-level="2" style="width:auto; border-radius:8px; padding:0 10px;">${usePama ? 'AD' : 'EP'}</button>
-                    <button class="eval-btn" onclick="applyToAll(3)" data-level="3" style="width:auto; border-radius:8px; padding:0 10px;">${usePama ? 'MA' : 'CO'}</button>
+                    <button class="eval-btn" onclick="applyToAll(1)" data-level="1" style="width:auto; border-radius:8px; padding:0 10px;">NI/PA</button>
+                    <button class="eval-btn" onclick="applyToAll(2)" data-level="2" style="width:auto; border-radius:8px; padding:0 10px;">EP/AD</button>
+                    <button class="eval-btn" onclick="applyToAll(3)" data-level="3" style="width:auto; border-radius:8px; padding:0 10px;">CO/MA</button>
                 `;
             } else {
                 bulkButtons.innerHTML = `
@@ -419,9 +419,9 @@
                 if (etapaId == "1") {
                     const usePama = true;
                     buttons = `
-                        <button class="eval-btn ${s.nivel == 1 ? 'active' : ''}" data-level="1" onclick="setNivel(${s.id}, 1)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">${usePama?'PA':'NI'}</button>
-                        <button class="eval-btn ${s.nivel == 2 ? 'active' : ''}" data-level="2" onclick="setNivel(${s.id}, 2)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">${usePama?'AD':'EP'}</button>
-                        <button class="eval-btn ${s.nivel == 3 ? 'active' : ''}" data-level="3" onclick="setNivel(${s.id}, 3)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">${usePama?'MA':'CO'}</button>
+                        <button class="eval-btn ${s.nivel == 1 ? 'active' : ''}" data-level="1" onclick="setNivel(${s.id}, 1)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">NI/PA</button>
+                        <button class="eval-btn ${s.nivel == 2 ? 'active' : ''}" data-level="2" onclick="setNivel(${s.id}, 2)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">EP/AD</button>
+                        <button class="eval-btn ${s.nivel == 3 ? 'active' : ''}" data-level="3" onclick="setNivel(${s.id}, 3)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">CO/MA</button>
                     `;
                 } else {
                     buttons = [1,2,3,4].map(n => `
@@ -448,10 +448,9 @@
             const etapaId = document.getElementById('etapa-select').value;
             let label = nivel;
             if (etapaId == "1") {
-                const usePama = true;
-                if (nivel === 1) label = usePama ? "PA (Parcialmente Adquirido)" : "NI (No Iniciado)";
-                else if (nivel === 2) label = usePama ? "AD (Adquirido)" : "EP (En Proceso)";
-                else if (nivel === 3) label = usePama ? "MA (Muy Adquirido)" : "CO (Conseguido)";
+                if (nivel === 1) label = "NI/PA (No Inic. / Poco Adeq.)";
+                else if (nivel === 2) label = "EP/AD (En Proc. / Adecuado)";
+                else if (nivel === 3) label = "CO/MA (Cons. / Muy Adeq.)";
             }
             if (confirm(`¿Aplicar nivel "${label}" a todos los alumnos?`)) {
                 studentsData.forEach(s => s.nivel = nivel);

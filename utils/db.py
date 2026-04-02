@@ -382,14 +382,14 @@ def infantil_nivel_a_texto(nivel, escala="INFANTIL_NI_EP_C"):
     """Devuelve el texto legible para una evaluación Infantil."""
     if escala == "INFANTIL_PA_A_MA":
         mapping = {
-            1: "PA - Poco adecuado",
-            2: "AD - Adecuado",
-            3: "MA - Muy adecuado"
+            1: "NI/PA - No Iniciado / Poco Adecuado",
+            2: "EP/AD - En Proceso / Adecuado",
+            3: "CO/MA - Conseguido / Muy Adecuado"
         }
     else:
         mapping = {
-            1: "NI - No iniciado", 
-            2: "EP - En proceso", 
-            3: "CO - Conseguido"
+            1: "NI/PA - No Iniciado / Poco Adecuado", 
+            2: "EP/AD - En Proceso / Adecuado", 
+            3: "CO/MA - Conseguido / Muy Adecuado"
         }
     return mapping.get(nivel, "—")

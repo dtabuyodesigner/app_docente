@@ -30,22 +30,24 @@ def cuaderno_actividades():
     if sda_id and sda_id not in ('', 'null', '0'):
         actividades = cur.execute("""
             SELECT a.id, a.nombre, a.descripcion, a.codigo_actividad,
-                   s.id as sda_id, s.nombre as sda_nombre
+                   s.id as sda_id, s.nombre as sda_nombre,
+                   (SELECT MIN(fecha) FROM sesiones_actividad WHERE actividad_id = a.id) as min_fecha
             FROM actividades_sda a
             JOIN sda s ON a.sda_id = s.id
             WHERE s.area_id = ? AND s.trimestre = ? AND a.sda_id = ?
               AND (s.grupo_id = ? OR s.grupo_id IS NULL)
-            ORDER BY s.id, a.id
+            ORDER BY s.id, min_fecha, a.id
         """, (area_id, trimestre, sda_id, grupo_id)).fetchall()
     else:
         actividades = cur.execute("""
             SELECT a.id, a.nombre, a.descripcion, a.codigo_actividad,
-                   s.id as sda_id, s.nombre as sda_nombre
+                   s.id as sda_id, s.nombre as sda_nombre,
+                   (SELECT MIN(fecha) FROM sesiones_actividad WHERE actividad_id = a.id) as min_fecha
             FROM actividades_sda a
             JOIN sda s ON a.sda_id = s.id
             WHERE s.area_id = ? AND s.trimestre = ?
               AND (s.grupo_id = ? OR s.grupo_id IS NULL)
-            ORDER BY s.id, a.id
+            ORDER BY s.id, min_fecha, a.id
         """, (area_id, trimestre, grupo_id)).fetchall()
 
     if not actividades:
@@ -333,3 +335,145 @@ def media_actividades():
         """, (alumno_id, trimestre, area_id)).fetchone()
 
     return jsonify({"media": row["media"] if row else None})
+
+
+@evaluacion_actividades_bp.route("/guardar_masivo", methods=["POST"])
+def guardar_actividad_masivo():
+    """
+    Guarda la evaluación de una actividad para múltiples alumnos simultáneamente.
+    Útil para rellenado masivo en Infantil.
+    Body: {
+        "actividad_id": int,
+        "trimestre": str,
+        "evaluaciones": [
+            {"alumno_id": int, "nivel": int},
+            ...
+        ]
+    }
+    """
+    d = request.json
+    actividad_id = d.get("actividad_id")
+    trimestre = d.get("trimestre")
+    evaluaciones = d.get("evaluaciones", [])
+
+    if not actividad_id or not trimestre:
+        return jsonify({"ok": False, "error": "Faltan parámetros"}), 400
+
+    if not evaluaciones:
+        return jsonify({"ok": False, "error": "No hay evaluaciones para guardar"}), 400
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Obtener info de la actividad → SDA → área → escala (una sola vez)
+    act_info = cur.execute("""
+        SELECT a.id, a.sda_id, s.area_id, ar.tipo_escala
+        FROM actividades_sda a
+        JOIN sda s ON a.sda_id = s.id
+        JOIN areas ar ON s.area_id = ar.id
+        WHERE a.id = ?
+    """, (actividad_id,)).fetchone()
+
+    if not act_info:
+        return jsonify({"ok": False, "error": "Actividad no encontrada"}), 404
+
+    sda_id = act_info["sda_id"]
+    area_id = act_info["area_id"]
+    escala = act_info["tipo_escala"]
+
+    try:
+        cur.execute("BEGIN")
+
+        for ev in evaluaciones:
+            alumno_id = ev.get("alumno_id")
+            nivel = ev.get("nivel")
+
+            if not alumno_id or nivel is None:
+                continue
+
+            nivel = int(nivel)
+            nota = nivel_a_nota(nivel, escala)
+
+            cur.execute("""
+                INSERT INTO evaluaciones_actividad (alumno_id, actividad_id, nivel, nota, trimestre, fecha)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(alumno_id, actividad_id, trimestre)
+                DO UPDATE SET nivel = excluded.nivel, nota = excluded.nota, fecha = excluded.fecha
+            """, (alumno_id, actividad_id, nivel, nota, trimestre, date.today().isoformat()))
+
+            # Propagar para cada alumno
+            _propagar_actividades_a_criterios(cur, alumno_id, sda_id, area_id, escala, trimestre)
+
+        db.commit()
+        return jsonify({"ok": True, "evaluados": len(evaluaciones)})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@evaluacion_actividades_bp.route("/guardar_alumno_masivo", methods=["POST"])
+def guardar_alumno_masivo():
+    """
+    Guarda múltiples actividades para un único alumno simultáneamente.
+    Especialmente útil para la funcionalidad 'Rellenar' en la vista individual.
+    Body: {
+        "alumno_id": int,
+        "trimestre": str,
+        "evaluaciones": [
+            {"actividad_id": int, "nivel": int},
+            ...
+        ]
+    }
+    """
+    d = request.json
+    alumno_id = d.get("alumno_id")
+    trimestre = d.get("trimestre")
+    evaluaciones = d.get("evaluaciones", [])
+
+    if not alumno_id or not trimestre or not evaluaciones:
+        return jsonify({"ok": False, "error": "Faltan parámetros"}), 400
+
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        cur.execute("BEGIN")
+        # Diccionario para agrupar por área/escala y evitar consultas repetitivas
+        cache_area = {}
+
+        for ev in evaluaciones:
+            act_id = ev.get("actividad_id")
+            nivel = ev.get("nivel")
+            if not act_id or nivel is None: continue
+
+            if act_id not in cache_area:
+                info = cur.execute("""
+                    SELECT s.area_id, ar.tipo_escala, s.id as sda_id
+                    FROM actividades_sda a
+                    JOIN sda s ON a.sda_id = s.id
+                    JOIN areas ar ON s.area_id = ar.id
+                    WHERE a.id = ?
+                """, (act_id,)).fetchone()
+                if info:
+                    cache_area[act_id] = info
+                else:
+                    continue
+
+            info = cache_area[act_id]
+            nota = nivel_a_nota(int(nivel), info["tipo_escala"])
+
+            cur.execute("""
+                INSERT INTO evaluaciones_actividad (alumno_id, actividad_id, nivel, nota, trimestre, fecha)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(alumno_id, actividad_id, trimestre)
+                DO UPDATE SET nivel = excluded.nivel, nota = excluded.nota, fecha = excluded.fecha
+            """, (alumno_id, act_id, int(nivel), nota, trimestre, date.today().isoformat()))
+
+            # Propagar al criterio (SDA_ID=NULL en tabla evaluaciones)
+            _propagar_actividades_a_criterios(cur, alumno_id, info["sda_id"], info["area_id"], info["tipo_escala"], trimestre)
+
+        db.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500

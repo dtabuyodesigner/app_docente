@@ -341,23 +341,24 @@ def actualizar_criterio(criterio_id):
 
 @criterios_bp.route("/api/criterios/<int:criterio_id>", methods=["DELETE"])
 def eliminar_criterio(criterio_id):
+
     if session.get('role') != 'admin':
-        return jsonify({"ok": False, "error": "Acceso denegado"}), 403
-        
+        return jsonify({"ok": False, "error": "Acceso denegado. Se requiere rol de administrador."}), 403
+
     conn = get_db(); cur = conn.cursor()
-    
+
     # Comprobar evaluaciones en todas las tablas
     queries = [
         ("SELECT COUNT(*) as count FROM evaluaciones WHERE criterio_id = ?", (criterio_id,)),
         ("SELECT COUNT(*) as count FROM evaluaciones_log WHERE criterio_id = ?", (criterio_id,)),
         ("SELECT COUNT(*) as count FROM evaluacion_criterios WHERE criterio_id = ?", (criterio_id,))
     ]
-    
+
     for sql, params in queries:
         cur.execute(sql, params)
         if cur.fetchone()["count"] > 0:
             return jsonify({"ok": False, "error": "Este criterio ya tiene evaluaciones registradas. Solo puede desactivarse."}), 400
-            
+
     try:
         cur.execute("BEGIN")
         # Limpiar keywords (sin CASCADE en esquema)
@@ -365,10 +366,12 @@ def eliminar_criterio(criterio_id):
         # Borrar criterio (dispara CASCADE en rubricas, sda_criterios, criterios_periodo)
         cur.execute("DELETE FROM criterios WHERE id = ?", (criterio_id,))
         conn.commit()
+        audit_log(session.get('username'), "DELETE", "criterio", f"ID: {criterio_id}")
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": f"Error al eliminar criterio: {str(e)}"}), 500
+
 
 # --- CSV & TEMPLATE ---
 

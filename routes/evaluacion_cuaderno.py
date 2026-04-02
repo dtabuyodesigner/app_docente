@@ -109,10 +109,10 @@ def cuaderno_unificado():
     
     # Configurar labels según la escala
     if tipo_escala == "INFANTIL_PA_A_MA":
-        escala_labels = ["PA", "AD", "MA"]
+        escala_labels = ["NI/PA", "EP/AD", "CO/MA"]
         escala_niveles = [1, 2, 3]
     elif tipo_escala == "INFANTIL_NI_EP_C":
-        escala_labels = ["NI", "EP", "CO"]
+        escala_labels = ["NI/PA", "EP/AD", "CO/MA"]
         escala_niveles = [1, 2, 3]
     else:
         escala_labels = ["1", "2", "3", "4"]
@@ -140,22 +140,24 @@ def cuaderno_unificado():
         if sda_id and sda_id not in ('', 'null', '0'):
             actividades_rows = cur.execute("""
                 SELECT a.id, a.nombre, a.descripcion, a.codigo_actividad,
-                       s.id as sda_id, s.nombre as sda_nombre
+                       s.id as sda_id, s.nombre as sda_nombre,
+                       (SELECT MIN(fecha) FROM sesiones_actividad WHERE actividad_id = a.id) as min_fecha
                 FROM actividades_sda a
                 JOIN sda s ON a.sda_id = s.id
                 WHERE s.area_id = ? AND s.trimestre = ? AND a.sda_id = ?
                   AND (s.grupo_id = ? OR s.grupo_id IS NULL)
-                ORDER BY s.nombre, a.nombre
+                ORDER BY s.nombre, min_fecha, a.id
             """, (area_id, trimestre, sda_id, grupo_id)).fetchall()
         else:
             actividades_rows = cur.execute("""
                 SELECT a.id, a.nombre, a.descripcion, a.codigo_actividad,
-                       s.id as sda_id, s.nombre as sda_nombre
+                       s.id as sda_id, s.nombre as sda_nombre,
+                       (SELECT MIN(fecha) FROM sesiones_actividad WHERE actividad_id = a.id) as min_fecha
                 FROM actividades_sda a
                 JOIN sda s ON a.sda_id = s.id
                 WHERE s.area_id = ? AND s.trimestre = ?
                   AND (s.grupo_id = ? OR s.grupo_id IS NULL)
-                ORDER BY s.nombre, a.nombre
+                ORDER BY s.nombre, min_fecha, a.id
             """, (area_id, trimestre, grupo_id)).fetchall()
         
         actividades = [dict(a) for a in actividades_rows]
@@ -187,27 +189,17 @@ def cuaderno_unificado():
             for act in actividades:
                 act["criterio_ids"] = []
         
-        # Obtener evaluaciones de actividades
-        if actividad_ids and alumno_ids:
-            alum_placeholders = ",".join("?" * len(alumno_ids))
-            act_placeholders = ",".join("?" * len(actividad_ids))
-            evals = cur.execute(f"""
-                SELECT alumno_id, actividad_id, nivel
-                FROM evaluaciones_actividad
-                WHERE actividad_id IN ({act_placeholders}) 
-                  AND alumno_id IN ({alum_placeholders})
-                  AND trimestre = ?
-            """, actividad_ids + alumno_ids + [trimestre]).fetchall()
-            
-            evaluaciones = {
-                f"{e['alumno_id']}_{e['actividad_id']}": e['nivel']
-                for e in evals
-            }
-        else:
-            evaluaciones = {}
-        
-        # Calcular medias por alumno (de actividades → criterios → área)
+        # Calcular medias (esto puebla medias[alumno_id]["criterios"])
         medias = _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, area["tipo_escala"])
+        
+        # Para que el cuaderno (que muestra criterios) tenga datos, 
+        # aplanamos las medias de los criterios en el objeto evaluaciones.
+        evaluaciones = {}
+        for alum_id_str, m_data in medias.items():
+            if "criterios" in m_data:
+                for crit_id_str, nota_media in m_data["criterios"].items():
+                    # El nivel es la nota redondeada (asumiendo escala 1-4 o similar)
+                    evaluaciones[f"{alum_id_str}_{crit_id_str}"] = int(round(nota_media))
         
     elif modo == "POR_SA":
         # Obtener SDAs del área/trimestre
@@ -352,23 +344,27 @@ def cuaderno_unificado():
         # Calcular medias
         medias = _calcular_medias_directas(cur, alumno_ids, area_id, periodo)
 
-    return jsonify({
-        "modo": modo,
-        "etapa": etapa_nombre,
-        "grupo": grupo["nombre"],
-        "area": dict(area),
-        "escala_evaluacion": {
-            "tipo": tipo_escala,
-            "niveles": escala_niveles,
-            "labels": escala_labels
-        },
-        "alumnos": [dict(a) for a in alumnos],
-        "criterios": [dict(c) for c in criterios],
-        "actividades": actividades,
-        "sdas": sdas,
-        "evaluaciones": evaluaciones,
-        "medias": medias
-    })
+    try:
+        return jsonify({
+            "modo": modo,
+            "etapa": etapa_nombre,
+            "grupo": grupo["nombre"] if grupo else "N/A",
+            "area": dict(area) if area else {},
+            "escala_evaluacion": {
+                "tipo": tipo_escala,
+                "niveles": escala_niveles,
+                "labels": escala_labels
+            },
+            "alumnos": [dict(a) for a in alumnos],
+            "criterios": [dict(c) for c in criterios],
+            "actividades": actividades,
+            "sdas": sdas,
+            "evaluaciones": evaluaciones,
+            "medias": medias
+        })
+    except Exception as e:
+        print(f"[ERROR] Cuaderno Unificado: {str(e)}")
+        return jsonify({"error": str(e), "ok": False}), 500
 
 
 def _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, tipo_escala):
@@ -676,3 +672,31 @@ def _propagar_actividades_a_criterios(cur, alumno_id, sda_id, area_id, escala, t
                 INSERT INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
                 VALUES (?, ?, ?, NULL, ?, ?, ?)
             """, (alumno_id, area_id, trimestre, criterio_id, media_nivel, media_nota))
+
+
+@evaluacion_cuaderno_bp.route("/areas")
+def listar_areas_por_etapa():
+    """
+    Lista todas las áreas de una etapa educativa.
+    Parámetros: etapa_id (opcional)
+    """
+    etapa_id = request.args.get("etapa_id")
+    db = get_db()
+    cur = db.cursor()
+    
+    if etapa_id:
+        areas = cur.execute("""
+            SELECT id, nombre, tipo_escala, modo_evaluacion, activa
+            FROM areas
+            WHERE etapa_id = ? AND activa = 1
+            ORDER BY nombre
+        """, (etapa_id,)).fetchall()
+    else:
+        areas = cur.execute("""
+            SELECT id, nombre, tipo_escala, modo_evaluacion, activa, etapa_id
+            FROM areas
+            WHERE activa = 1
+            ORDER BY nombre
+        """).fetchall()
+    
+    return jsonify([dict(a) for a in areas])

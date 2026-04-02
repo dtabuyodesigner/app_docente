@@ -1,6 +1,6 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 1 de Abril 2026  
+**Fecha:** 2 de Abril 2026  
 **Último Commit:** ver `git log`  
 **Rama:** `feature/refactor-evaluacion-curricular`
 
@@ -105,36 +105,7 @@ Actividades → Criterios → Nota del Área
 
 ### Features Pendientes
 
-| Feature | Descripción | Prioridad |
-|---------|-------------|-----------|
-| **Rellenador Masivo Infantil** | Botones para rellenar todos los criterios con EP/CO (o AD/MA) en Clase de Hoy | Media |
-
-#### Detalle: Rellenador Masivo para Infantil
-
-**Ubicación:** Sección "Clase de Hoy" → Evaluación de criterios
-
-**Funcionalidad:**
-- Botón "⚡ Rellenar con EP" → Asigna nivel 2 (EP/AD) a todos los criterios visibles
-- Botón "⚡ Rellenar con CO" → Asigna nivel 3 (CO/MA) a todos los criterios visibles
-
-**Código a modificar:** `static/clase_hoy.html`
-
-**Implementación sugerida:**
-```javascript
-// Botones nuevos en la UI
-<button onclick="rellenarMasivoInfantil(2)">⚡ Rellenar EP/AD</button>
-<button onclick="rellenarMasivoInfantil(3)">⚡ Rellenar CO/MA</button>
-
-// Función
-async function rellenarMasivoInfantil(nivel) {
-    const criterios = document.querySelectorAll('.criterio-row');
-    for (const criterio of criterios) {
-        await guardarEvaluacion(criterio.id, nivel);
-    }
-}
-```
-
-**Nota:** Ya existe `rellenarTodos()` en `evaluacion.html`, adaptar para `clase_hoy.html`
+*(Ninguna pendiente en este momento)*
 
 ### Pruebas por Realizar
 

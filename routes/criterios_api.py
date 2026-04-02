@@ -4,7 +4,7 @@ import datetime
 from flask import Blueprint, request, jsonify, session, Response
 from utils.db import get_db
 from utils.security import get_security_logger, audit_log
-from utils.cache import simple_cache
+from utils.cache import simple_cache, invalidate_cache_prefix
 from schemas.criterios import AreaSchema, CriterioSchema
 from marshmallow import ValidationError
 
@@ -177,6 +177,7 @@ def crear_area():
             d.get("activa", 1)
         ))
         conn.commit()
+        invalidate_cache_prefix("/api/areas")
         return jsonify({"ok": True, "id": cur.lastrowid})
     except Exception as e:
         return jsonify({"ok": False, "error": "Ya existe un área con ese nombre en esta etapa" if "UNIQUE" in str(e) else str(e)}), 400
@@ -221,6 +222,7 @@ def actualizar_area(area_id):
                 d.get("tipo_escala", "NUMERICA_1_4"), d.get("activa", 1), area_id
             ))
         conn.commit()
+        invalidate_cache_prefix("/api/areas")
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400
@@ -263,6 +265,8 @@ def eliminar_area(area_id):
         cur.execute("DELETE FROM areas WHERE id = ?", (area_id,))
         
         conn.commit()
+        invalidate_cache_prefix("/api/areas")
+        invalidate_cache_prefix("/api/criterios")
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
@@ -307,6 +311,7 @@ def crear_criterio():
         new_id = cur.lastrowid
         audit_log(session.get('username'), "CREATE", "criterio", f"ID: {new_id}, Código: {d['codigo']}")
         conn.commit()
+        invalidate_cache_prefix("/api/criterios")
         return jsonify({"ok": True, "id": new_id})
     except Exception as e:
         return jsonify({"ok": False, "error": "Código duplicado en esta área" if "UNIQUE" in str(e) else str(e)}), 400
@@ -335,6 +340,7 @@ def actualizar_criterio(criterio_id):
                        (d["codigo"].strip(), d["descripcion"].strip(), d["area_id"], d.get("activo", 1), criterio_id))
         audit_log(session.get('username'), "UPDATE", "criterio", f"ID: {criterio_id}, Código: {d.get('codigo')}")
         conn.commit()
+        invalidate_cache_prefix("/api/criterios")
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400
@@ -366,6 +372,7 @@ def eliminar_criterio(criterio_id):
         # Borrar criterio (dispara CASCADE en rubricas, sda_criterios, criterios_periodo)
         cur.execute("DELETE FROM criterios WHERE id = ?", (criterio_id,))
         conn.commit()
+        invalidate_cache_prefix("/api/criterios")
         audit_log(session.get('username'), "DELETE", "criterio", f"ID: {criterio_id}")
         return jsonify({"ok": True})
     except Exception as e:

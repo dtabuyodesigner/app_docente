@@ -46,3 +46,9 @@ def simple_cache(timeout=300):
 def clear_cache():
     """Limpia todo el caché almacenado en memoria. Útil para invalidarlo desde test o tras updates masivos."""
     _CACHE.clear()
+
+def invalidate_cache_prefix(prefix):
+    """Elimina todas las entradas de caché cuya clave empiece por el prefijo dado."""
+    keys_to_delete = [k for k in _CACHE if k.startswith(prefix)]
+    for k in keys_to_delete:
+        del _CACHE[k]

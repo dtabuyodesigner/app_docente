@@ -963,6 +963,8 @@
                         style="padding: 6px 10px; font-size: 0.75rem;">📤 Importar Unificado (Legacy)</button>
                     <button class="btn btn-success" onclick="openSaModal()"
                         style="padding: 6px 10px; font-size: 0.75rem;">➕ Nueva SA (Manual)</button>
+                    <button onclick="openGenerarSdaModal()"
+                        style="padding: 6px 10px; font-size: 0.75rem; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🤖 Generar SDA con IA</button>
                 </div>
             </div>
             <div id="curriculoList">
@@ -2761,5 +2763,217 @@
             <div id="loadingText">Cargando...</div>
         </div>
     </div>
+
+    <!-- Modal: Generar SDA con IA -->
+    <div id="generarSdaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:white; border-radius:16px; width:90%; max-width:680px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <!-- Cabecera -->
+            <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding:20px 24px; border-radius:16px 16px 0 0; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="margin:0; color:white; font-size:1.1rem;">🤖 Generar SDA con Inteligencia Artificial</h3>
+                    <p style="margin:4px 0 0; color:rgba(255,255,255,0.8); font-size:0.8rem;">Rellena los datos y abre el prompt en tu IA favorita</p>
+                </div>
+                <button onclick="closeGenerarSdaModal()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:32px; height:32px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
+            </div>
+
+            <div style="padding:24px;">
+                <!-- Fila 1: Etapa + Curso -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Etapa *</label>
+                        <select id="ia_etapa" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem;">
+                            <option value="Infantil">Infantil</option>
+                            <option value="Primaria" selected>Primaria</option>
+                            <option value="Secundaria">Secundaria</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Curso *</label>
+                        <input id="ia_curso" type="text" placeholder="ej: 1º Primaria / 5 años" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                    </div>
+                </div>
+
+                <!-- Fila 2: Área + CCAA -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Área *</label>
+                        <input id="ia_area" type="text" placeholder="ej: Matemáticas" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Comunidad Autónoma *</label>
+                        <input id="ia_ccaa" type="text" placeholder="ej: Castilla-La Mancha" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                    </div>
+                </div>
+
+                <!-- Fila 3: Título SDA + SDA_ID -->
+                <div style="display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Título de la SDA *</label>
+                        <input id="ia_titulo" type="text" placeholder="ej: Los animales del campo" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">SDA_ID *</label>
+                        <input id="ia_sda_id" type="text" placeholder="ej: SDA1" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                    </div>
+                </div>
+
+                <!-- Fila 4: Fechas -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Fecha inicio *</label>
+                        <input id="ia_fecha_inicio" type="date" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Fecha fin *</label>
+                        <input id="ia_fecha_fin" type="date" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Duración (semanas)</label>
+                        <input id="ia_duracion" type="number" min="1" max="20" placeholder="ej: 4" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                    </div>
+                </div>
+
+                <!-- Sesiones -->
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Distribución semanal de sesiones *</label>
+                    <input id="ia_sesiones" type="text" placeholder="ej: 5 sesiones semanales, una por día de lunes a viernes" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box;">
+                </div>
+
+                <!-- Competencias y criterios -->
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:0.8rem; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Competencias específicas (CE) y criterios (CR)</label>
+                    <textarea id="ia_criterios" rows="3" placeholder="ej: CE2 → CR3 y CR4&#10;CE1 → CR1" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; box-sizing:border-box; resize:vertical;"></textarea>
+                    <p style="font-size:0.73rem; color:#6b7280; margin:4px 0 0;">Si lo dejas vacío, la IA seleccionará los criterios más adecuados del decreto vigente.</p>
+                </div>
+
+                <!-- Preview del prompt -->
+                <div id="ia_prompt_preview" style="display:none; margin-bottom:16px; background:#f8f7ff; border:1px solid #c4b5fd; border-radius:10px; padding:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:0.8rem; font-weight:700; color:#6366f1;">📋 Prompt generado</span>
+                        <button onclick="copiarPrompt()" style="background:#6366f1; color:white; border:none; padding:4px 12px; border-radius:6px; font-size:0.75rem; cursor:pointer;">📋 Copiar</button>
+                    </div>
+                    <pre id="ia_prompt_texto" style="font-size:0.72rem; white-space:pre-wrap; margin:0; color:#374151; max-height:150px; overflow-y:auto; font-family:monospace;"></pre>
+                </div>
+
+                <!-- Botones de acción -->
+                <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; padding-top:12px; border-top:1px solid #e5e7eb;">
+                    <button onclick="closeGenerarSdaModal()" style="padding:8px 16px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px; cursor:pointer; font-size:0.85rem; color:#374151;">Cancelar</button>
+                    <button onclick="generarPromptIA()" style="padding:8px 16px; background:#6366f1; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">⚡ Generar prompt</button>
+                    <button id="btn_abrir_claude" onclick="abrirEnIA('claude')" style="display:none; padding:8px 16px; background:#d97706; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">🟠 Abrir en Claude</button>
+                    <button id="btn_abrir_chatgpt" onclick="abrirEnIA('chatgpt')" style="display:none; padding:8px 16px; background:#10a37f; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">🟢 Abrir en ChatGPT</button>
+                    <button id="btn_abrir_gemini" onclick="abrirEnIA('gemini')" style="display:none; padding:8px 16px; background:#1a73e8; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600;">🔵 Abrir en Gemini</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function openGenerarSdaModal() {
+        document.getElementById('generarSdaModal').style.display = 'flex';
+        document.getElementById('ia_prompt_preview').style.display = 'none';
+        ['btn_abrir_claude','btn_abrir_chatgpt','btn_abrir_gemini'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+    }
+
+    function closeGenerarSdaModal() {
+        document.getElementById('generarSdaModal').style.display = 'none';
+    }
+
+    function generarPromptIA() {
+        const etapa = document.getElementById('ia_etapa').value;
+        const curso = document.getElementById('ia_curso').value.trim();
+        const area = document.getElementById('ia_area').value.trim();
+        const ccaa = document.getElementById('ia_ccaa').value.trim();
+        const titulo = document.getElementById('ia_titulo').value.trim();
+        const sdaId = document.getElementById('ia_sda_id').value.trim();
+        const fechaInicio = document.getElementById('ia_fecha_inicio').value;
+        const fechaFin = document.getElementById('ia_fecha_fin').value;
+        const duracion = document.getElementById('ia_duracion').value;
+        const sesiones = document.getElementById('ia_sesiones').value.trim();
+        const criterios = document.getElementById('ia_criterios').value.trim();
+
+        if (!curso || !area || !ccaa || !titulo || !sdaId || !fechaInicio || !fechaFin || !sesiones) {
+            alert('Por favor rellena todos los campos obligatorios (*)');
+            return;
+        }
+
+        const prompt = `Genera una Situación de Aprendizaje (SDA) para Educación ${etapa} siguiendo estrictamente este formato estructurado para exportación a CSV.
+
+DATOS DE ENTRADA
+- Etapa: ${etapa}
+- Curso: ${curso}
+- Área: ${area}
+- Comunidad Autónoma: ${ccaa}
+- Decreto de referencia: busca y aplica el decreto curricular vigente de ${ccaa} para ${etapa}, área de ${area}
+- Título SDA: ${titulo}
+- SDA_ID: ${sdaId}${duracion ? '\n- Duración en semanas: ' + duracion : ''}
+- Fecha inicio: ${fechaInicio}
+- Fecha fin: ${fechaFin}
+- Distribución semanal de sesiones: ${sesiones}${criterios ? '\n- Competencias específicas (CE) y criterios (CR): ' + criterios : '\n- Competencias específicas y criterios: selecciona los más adecuados del decreto vigente'}
+
+FORMATO OBLIGATORIO DE SALIDA
+
+Genera SOLO actividades con este formato EXACTO:
+
+Actividad X: "Título de la actividad (tipo de aprendizaje)"
+
+Trimestre: [nº]
+Fecha: [YYYY-MM-DD]
+SDA: [nombre exacto]
+SDA_ID: [código corto]
+Área: [nombre]
+CE: [ej: CE1, CE2]
+CR: [ej: CE1_C3;CE2_C4]
+Evaluable: Si
+
+Descripción:
+1. Paso claro y aplicable en aula
+2. Desarrollo de la actividad
+3. Interacción o práctica
+4. Cierre/reflexión
+
+Materiales:
+- Material realista y sencillo
+
+REGLAS OBLIGATORIAS
+1. La PRIMERA actividad de cada SDA incluye además:
+   - CE_Descripcion: [texto oficial del decreto de ${ccaa}]
+   - CR_Descripcion: [texto oficial del criterio según ese decreto]
+   Las siguientes actividades omiten estos campos.
+2. Busca y aplica el decreto curricular vigente de ${ccaa} para ${etapa} y ${area}
+3. Cada sesión = una actividad (no agrupar)
+4. Si hay varias sesiones en un día → varias actividades con misma fecha
+5. Criterios siempre en formato CE1_C3;CE2_C4
+6. Progresión pedagógica real y coherente
+7. NO tablas ni texto fuera del formato
+8. TODO debe ser directamente exportable a CSV`;
+
+        document.getElementById('ia_prompt_texto').textContent = prompt;
+        document.getElementById('ia_prompt_preview').style.display = 'block';
+        ['btn_abrir_claude','btn_abrir_chatgpt','btn_abrir_gemini'].forEach(id => {
+            document.getElementById(id).style.display = 'inline-flex';
+        });
+        document.getElementById('ia_prompt_preview').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function copiarPrompt() {
+        const texto = document.getElementById('ia_prompt_texto').textContent;
+        navigator.clipboard.writeText(texto).then(() => {
+            showToast('Prompt copiado al portapapeles', 'success');
+        });
+    }
+
+    function abrirEnIA(ia) {
+        const prompt = document.getElementById('ia_prompt_texto').textContent;
+        const encoded = encodeURIComponent(prompt);
+        const urls = {
+            claude:  `https://claude.ai/new?q=${encoded}`,
+            chatgpt: `https://chatgpt.com/?q=${encoded}`,
+            gemini:  `https://gemini.google.com/app?q=${encoded}`
+        };
+        window.open(urls[ia], '_blank');
+    }
+    </script>
 </body>
 </html>

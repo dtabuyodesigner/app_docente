@@ -70,6 +70,7 @@ def run_migrations():
         # --- programacion_diaria ---
         ("ALTER TABLE programacion_diaria ADD COLUMN completado INTEGER DEFAULT 0", "programacion_diaria.completado"),
         ("ALTER TABLE programacion_diaria ADD COLUMN criterio_id INTEGER REFERENCES criterios(id)", "programacion_diaria.criterio_id"),
+        ("ALTER TABLE programacion_diaria ADD COLUMN guia_sesion TEXT", "programacion_diaria.guia_sesion"),
         # --- etapas ---
         ("ALTER TABLE etapas ADD COLUMN activa INTEGER DEFAULT 1", "etapas.activa"),
         # --- informe_grupo ---

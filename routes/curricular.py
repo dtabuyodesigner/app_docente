@@ -528,7 +528,7 @@ def importar_sda_csv():
                     material = row.get("Material", "").strip()
                     evaluable = 1 if row.get("Evaluable", "").lower() in ("si", "sí", "true", "1") else 0
                     fecha = row.get("Fecha", "").strip()
-                    
+
                     # Solo insertamos en programacion_diaria si hay fecha (es obligatoria en el esquema)
                     if fecha:
                         db_fecha = None
@@ -537,24 +537,26 @@ def importar_sda_csv():
                                 db_fecha = datetime.strptime(fecha, fmt).strftime("%Y-%m-%d")
                                 break
                             except ValueError: continue
-                        
+
                         if db_fecha:
                             cur.execute("SELECT id FROM programacion_diaria WHERE actividad_id = ? AND numero_sesion = ?", (act_id, ses_num))
                             pd_row = cur.fetchone()
-                            
-                            desc_final = ses_desc or ses_tit or act_tit
-                            
+
+                            # Nombre = título de sesión; guía = descripción detallada
+                            nombre_sesion = ses_tit or act_tit
+                            guia_sesion = ses_desc
+
                             if pd_row:
                                 cur.execute("""
-                                    UPDATE programacion_diaria 
-                                    SET descripcion = ?, material = ?, evaluable = ?, sda_id = ?, fecha = ?
+                                    UPDATE programacion_diaria
+                                    SET descripcion = ?, guia_sesion = ?, material = ?, evaluable = ?, sda_id = ?, fecha = ?
                                     WHERE id = ?
-                                """, (desc_final, material, evaluable, sda_id, db_fecha, pd_row["id"]))
+                                """, (nombre_sesion, guia_sesion, material, evaluable, sda_id, db_fecha, pd_row["id"]))
                             else:
                                 cur.execute("""
-                                    INSERT INTO programacion_diaria (fecha, sda_id, actividad_id, numero_sesion, descripcion, material, evaluable)
-                                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                                """, (db_fecha, sda_id, act_id, ses_num, desc_final, material, evaluable))
+                                    INSERT INTO programacion_diaria (fecha, sda_id, actividad_id, numero_sesion, descripcion, guia_sesion, material, evaluable)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                """, (db_fecha, sda_id, act_id, ses_num, nombre_sesion, guia_sesion, material, evaluable))
                                 stats["sesiones"] += 1
 
             except Exception as e:

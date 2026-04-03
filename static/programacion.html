@@ -2485,7 +2485,7 @@
                     } else {
                         sesiones.forEach(s => {
                             const descToUse = s.descripcion ? s.descripcion : (act.descripcion || '');
-                            addSessionRow(s.numero_sesion, descToUse, s.fecha || '', s.id);
+                            addSessionRow(s.numero_sesion, descToUse, s.fecha || '', s.id, s.guia_sesion || '');
                         });
                     }
                 })
@@ -2496,14 +2496,14 @@
         function closeSessionsModal() {
             document.getElementById('sessionsModal').style.display = 'none';
         }
-        function addSessionRow(numero = 1, desc = '', fecha = '', id = '') {
+        function addSessionRow(numero = 1, desc = '', fecha = '', id = '', guia = '') {
             const container = document.getElementById('sessionsListContainer');
             const div = document.createElement('div');
             div.style.display = 'flex';
             div.style.gap = '10px';
             div.style.marginBottom = '10px';
             div.className = 'session-row';
-            div.style.alignItems = 'center';
+            div.style.alignItems = 'flex-start';
             div.style.background = '#f8f9fa';
             div.style.padding = '10px';
             div.style.borderRadius = '8px';
@@ -2514,15 +2514,21 @@
                     <label style="font-size: 0.8rem; display:block; margin-bottom: 2px;">Sesión</label>
                     <input type="number" class="ses-num" value="${numero}" min="1" style="width: 100%; padding: 8px;">
                 </div>
-                <div style="flex: 2;">
-                    <label style="font-size: 0.8rem; display:block; margin-bottom: 2px;">Descripción / Nombre</label>
-                    <textarea class="ses-desc" placeholder="Descripción de la sesión..." style="width: 100%; padding: 8px; height: 60px; resize: vertical; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; font-size: 0.9rem;">${desc}</textarea>
+                <div style="flex: 2; display: flex; flex-direction: column; gap: 6px;">
+                    <div>
+                        <label style="font-size: 0.8rem; display:block; margin-bottom: 2px;">Nombre</label>
+                        <input type="text" class="ses-desc" placeholder="Nombre de la sesión..." style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; font-size: 0.9rem;" value="${desc.replace(/"/g, '&quot;')}">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; display:block; margin-bottom: 2px;">Descripción / Guía</label>
+                        <textarea class="ses-guia" placeholder="Cómo llevar a cabo la sesión..." style="width: 100%; padding: 8px; height: 60px; resize: vertical; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; font-size: 0.9rem;">${guia}</textarea>
+                    </div>
                 </div>
                 <div style="flex: 1;">
                     <label style="font-size: 0.8rem; display:block; margin-bottom: 2px;">Fecha (Opcional)</label>
                     <input type="date" class="ses-fecha" value="${fecha}" style="width: 100%; padding: 8px;">
                 </div>
-                <div style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                <div style="flex: 0 0 auto; display: flex; align-items: flex-start; padding-top: 22px;">
                     <button class="btn btn-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 8px 12px; height: 38px;">X</button>
                 </div>
             `;
@@ -2535,8 +2541,9 @@
                 const s_id = row.querySelector('.ses-id').value;
                 const num = parseInt(row.querySelector('.ses-num').value) || 1;
                 const desc = row.querySelector('.ses-desc').value.trim();
+                const guia = row.querySelector('.ses-guia').value.trim();
                 const fecha = row.querySelector('.ses-fecha').value;
-                sesiones.push({ id: s_id, numero_sesion: num, descripcion: desc, fecha: fecha });
+                sesiones.push({ id: s_id, numero_sesion: num, descripcion: desc, guia_sesion: guia, fecha: fecha });
             });
             toggleLoading(true, 'Guardando sesiones...');
             fetch(`/api/actividades/${actId}/sesiones`, {

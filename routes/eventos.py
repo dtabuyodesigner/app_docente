@@ -220,6 +220,7 @@ def api_sesiones_actividad(act_id):
                 s_id = s.get("id")
                 num = int(s.get("numero_sesion", 1))
                 desc = s.get("descripcion", "").strip()
+                guia = s.get("guia_sesion", "").strip()
                 fecha = s.get("fecha") or ""
                 material = s.get("material", "").strip()
                 evaluable = int(s.get("evaluable", 0))
@@ -229,16 +230,16 @@ def api_sesiones_actividad(act_id):
                     # Preserve existing evaluable/criterio if not provided
                     cur.execute("SELECT evaluable, criterio_id, material FROM programacion_diaria WHERE id = ?", (s_id,))
                     old = cur.fetchone()
-                    
+
                     if "evaluable" not in s and old: evaluable = old["evaluable"]
                     if "criterio_id" not in s and old: criterio_id = old["criterio_id"]
                     if "material" not in s and old: material = old["material"]
 
                     cur.execute("""
                         UPDATE programacion_diaria
-                        SET descripcion = ?, fecha = ?, material = ?, evaluable = ?, criterio_id = ?
+                        SET descripcion = ?, guia_sesion = ?, fecha = ?, material = ?, evaluable = ?, criterio_id = ?
                         WHERE id = ?
-                    """, (desc, fecha, material, evaluable, criterio_id, s_id))
+                    """, (desc, guia, fecha, material, evaluable, criterio_id, s_id))
                 else:
                     # Comprobar si ya existe para esta actividad y número de sesión
                     cur.execute("""
@@ -250,18 +251,18 @@ def api_sesiones_actividad(act_id):
                         if "evaluable" not in s: evaluable = existing["evaluable"]
                         if "criterio_id" not in s: criterio_id = existing["criterio_id"]
                         if "material" not in s: material = existing["material"]
-                        
+
                         cur.execute("""
                             UPDATE programacion_diaria
-                            SET descripcion = ?, fecha = ?, material = ?, evaluable = ?, criterio_id = ?
+                            SET descripcion = ?, guia_sesion = ?, fecha = ?, material = ?, evaluable = ?, criterio_id = ?
                             WHERE id = ?
-                        """, (desc, fecha, material, evaluable, criterio_id, existing["id"]))
+                        """, (desc, guia, fecha, material, evaluable, criterio_id, existing["id"]))
                     else:
                         cur.execute("""
                             INSERT INTO programacion_diaria
-                                (sda_id, actividad_id, numero_sesion, descripcion, fecha, material, evaluable, criterio_id)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (sda_id, act_id, num, desc, fecha, material, evaluable, criterio_id))
+                                (sda_id, actividad_id, numero_sesion, descripcion, guia_sesion, fecha, material, evaluable, criterio_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (sda_id, act_id, num, desc, guia, fecha, material, evaluable, criterio_id))
             conn.commit()
             return jsonify({"ok": True})
         except Exception as e:
@@ -270,7 +271,7 @@ def api_sesiones_actividad(act_id):
 
     # GET
     cur.execute("""
-        SELECT sa.id, sa.fecha, sa.descripcion, sa.numero_sesion, sa.actividad_id, sa.evaluable, sa.criterio_id, sa.material
+        SELECT sa.id, sa.fecha, sa.descripcion, sa.guia_sesion, sa.numero_sesion, sa.actividad_id, sa.evaluable, sa.criterio_id, sa.material
         FROM programacion_diaria sa
         WHERE sa.actividad_id = ?
         ORDER BY sa.numero_sesion

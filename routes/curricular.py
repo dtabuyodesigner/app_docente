@@ -385,7 +385,7 @@ def importar_sda_csv():
                     etapa_id = cur.lastrowid
                     etapas_map[etapa_nom.lower()] = etapa_id
                 
-                cur.execute("SELECT id FROM areas WHERE nombre = ? AND etapa_id = ?", (area_nom, etapa_id))
+                cur.execute("SELECT id FROM areas WHERE nombre = ? COLLATE NOCASE AND etapa_id = ?", (area_nom, etapa_id))
                 area_row = cur.fetchone()
                 if area_row:
                     area_id = area_row["id"]

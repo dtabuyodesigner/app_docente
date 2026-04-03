@@ -467,12 +467,18 @@ def importar_sda_csv():
                         cur.execute("SELECT id FROM criterios WHERE codigo = ? AND area_id = ?", (cod, area_id))
                         cv_row = cur.fetchone()
                         if cv_row:
-                            cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, cv_row["id"]))
-                            periodo = f"T{trim}"
-                            cur.execute("""
-                                INSERT OR IGNORE INTO criterios_periodo (criterio_id, grupo_id, periodo, activo)
-                                VALUES (?, ?, ?, 1)
-                            """, (cv_row["id"], grupo_id, periodo))
+                            cv_id = cv_row["id"]
+                        else:
+                            cur.execute("INSERT INTO criterios (codigo, descripcion, area_id) VALUES (?, ?, ?)",
+                                        (cod, "", area_id))
+                            cv_id = cur.lastrowid
+                            stats["criterios"] += 1
+                        cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, cv_id))
+                        periodo = f"T{trim}"
+                        cur.execute("""
+                            INSERT OR IGNORE INTO criterios_periodo (criterio_id, grupo_id, periodo, activo)
+                            VALUES (?, ?, ?, 1)
+                        """, (cv_id, grupo_id, periodo))
 
                 # 4. Actividades
                 act_cod = row.get("Actividad_ID", "").strip()

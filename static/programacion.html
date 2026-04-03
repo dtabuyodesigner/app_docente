@@ -2914,40 +2914,35 @@ DATOS DE ENTRADA
 
 FORMATO OBLIGATORIO DE SALIDA
 
-Genera SOLO actividades con este formato EXACTO:
+Genera SOLO el CSV con esta cabecera exacta (primera línea) y luego las filas de datos:
 
-Actividad X: "Título de la actividad (tipo de aprendizaje)"
+Etapa,Area,Trimestre,SDA_ID,SDA_Titulo,Criterio_Codigo,Criterio_Descriptor,Competencia_Codigo,Competencia_Descriptor,Actividad_ID,Actividad_Titulo,Criterios_Vinculados,Fecha,Sesion_Numero
 
-Trimestre: [nº]
-Fecha: [YYYY-MM-DD]
-SDA: [nombre exacto]
-SDA_ID: [código corto]
-Área: [nombre]
-CE: [ej: CE1, CE2]
-CR: [ej: CE1_C3;CE2_C4]
-Evaluable: Si
-
-Descripción:
-1. Paso claro y aplicable en aula
-2. Desarrollo de la actividad
-3. Interacción o práctica
-4. Cierre/reflexión
-
-Materiales:
-- Material realista y sencillo
+Significado de cada columna:
+- Etapa: ${etapa}
+- Area: ${area}
+- Trimestre: T1, T2 o T3
+- SDA_ID: ${sdaId}
+- SDA_Titulo: ${titulo}
+- Criterio_Codigo: código del criterio principal de la sesión (ej: CE1_C3)
+- Criterio_Descriptor: descripción oficial del criterio (solo en la primera fila de cada criterio nuevo; dejar vacío en las siguientes)
+- Competencia_Codigo: código de la competencia (ej: CE1)
+- Competencia_Descriptor: descripción oficial de la competencia (solo en la primera fila; vacío en las siguientes)
+- Actividad_ID: código de la actividad (ej: ACT1, ACT2…)
+- Actividad_Titulo: título de la actividad/sesión
+- Criterios_Vinculados: todos los criterios que evalúa esta sesión, separados por coma (ej: CE1_C3,CE2_C4)
+- Fecha: formato YYYY-MM-DD
+- Sesion_Numero: número de sesión dentro de la actividad (1, 2, 3…)
 
 REGLAS OBLIGATORIAS
-1. La PRIMERA actividad de cada SDA incluye además:
-   - CE_Descripcion: [texto oficial del decreto de ${ccaa}]
-   - CR_Descripcion: [texto oficial del criterio según ese decreto]
-   Las siguientes actividades omiten estos campos.
-2. Busca y aplica el decreto curricular vigente de ${ccaa} para ${etapa} y ${area}
-3. Cada sesión = una actividad (no agrupar)
-4. Si hay varias sesiones en un día → varias actividades con misma fecha
-5. Criterios siempre en formato CE1_C3;CE2_C4
+1. Una fila por sesión
+2. Varias sesiones el mismo día → varias filas con la misma fecha
+3. Busca y aplica el decreto curricular vigente de ${ccaa} para ${etapa} y ${area}
+4. Si una actividad tiene varias sesiones, repite Actividad_ID y Actividad_Titulo en cada fila
+5. Criterios en Criterios_Vinculados siempre en formato CE1_C3 separados por coma
 6. Progresión pedagógica real y coherente
-7. NO tablas ni texto fuera del formato
-8. TODO debe ser directamente exportable a CSV`;
+7. NO incluyas texto fuera del CSV (ni explicaciones, ni encabezado, ni pie de página)
+8. Usa coma como separador; si un campo contiene comas, enciérralo entre comillas dobles`;
 
         document.getElementById('ia_prompt_texto').textContent = prompt;
         document.getElementById('ia_prompt_preview').style.display = 'block';

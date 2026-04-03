@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, session
 from utils.db import get_db
 import csv
 import io
+import re
 from datetime import datetime
 from utils.cache import simple_cache
 
@@ -456,6 +457,23 @@ def importar_sda_csv():
                     
                     cur.execute("INSERT OR IGNORE INTO sda_competencias (sda_id, competencia_id) VALUES (?, ?)", (sda_id, comp_id))
 
+                # Criterios vinculados (lista separada por comas o puntos y coma)
+                crit_vinculados_str = row.get("Criterios_Vinculados", "").strip()
+                if crit_vinculados_str:
+                    for cod in re.split(r'[,;]', crit_vinculados_str):
+                        cod = cod.strip()
+                        if not cod or cod == crit_cod:
+                            continue
+                        cur.execute("SELECT id FROM criterios WHERE codigo = ? AND area_id = ?", (cod, area_id))
+                        cv_row = cur.fetchone()
+                        if cv_row:
+                            cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (sda_id, cv_row["id"]))
+                            periodo = f"T{trim}"
+                            cur.execute("""
+                                INSERT OR IGNORE INTO criterios_periodo (criterio_id, grupo_id, periodo, activo)
+                                VALUES (?, ?, ?, 1)
+                            """, (cv_row["id"], grupo_id, periodo))
+
                 # 4. Actividades
                 act_cod = row.get("Actividad_ID", "").strip()
                 act_tit = row.get("Actividad_Titulo", "").strip()
@@ -499,7 +517,7 @@ def importar_sda_csv():
                     ses_num = row.get("Sesion_Numero")
                     ses_num = int(ses_num) if ses_num and ses_num.isdigit() else act_session_tracker[tracker_key]
                     
-                    ses_tit = row.get("Sesion_Titulo", "").strip()
+                    ses_tit = (row.get("Sesion_Titulo", "") or act_tit).strip()
                     ses_desc = row.get("Descripcion_Sesion", "").strip()
                     material = row.get("Material", "").strip()
                     evaluable = 1 if row.get("Evaluable", "").lower() in ("si", "sí", "true", "1") else 0

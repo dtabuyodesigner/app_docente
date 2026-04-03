@@ -801,31 +801,27 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                     </ol>
 
                     <h2>3. Formato del archivo CSV</h2>
-                    <p>La plantilla incluye estas columnas principales:</p>
+                    <p>La plantilla tiene exactamente estas columnas (ni más ni menos):</p>
                     <ul>
                         <li><code>Etapa</code> — Infantil, Primaria o Secundaria</li>
                         <li><code>Area</code> — Nombre exacto del área curricular</li>
                         <li><code>Trimestre</code> — T1, T2 o T3</li>
                         <li><code>SDA_ID</code> — Código único de la SDA (ej: SDA1, SDA2)</li>
                         <li><code>SDA_Titulo</code> — Nombre completo de la situación de aprendizaje</li>
-                        <li><code>Duracion_Semanas</code> — Número de semanas que dura</li>
-                        <li><code>Criterio_Codigo</code> — Código del criterio (ej: CE1_C3)</li>
-                        <li><code>Criterio_Descriptor</code> — Texto oficial del criterio (solo en la primera fila de cada criterio)</li>
+                        <li><code>Criterio_Codigo</code> — Código del criterio principal de la sesión (ej: CE1_C3)</li>
+                        <li><code>Criterio_Descriptor</code> — Texto oficial del criterio (solo en la primera fila de cada criterio; vacío en las siguientes)</li>
                         <li><code>Competencia_Codigo</code> — Código de la competencia específica (ej: CE1)</li>
-                        <li><code>Competencia_Descriptor</code> — Texto oficial de la competencia (solo en la primera fila)</li>
-                        <li><code>Actividad_ID</code> — Código único de la actividad dentro de la SDA</li>
-                        <li><code>Actividad_Titulo</code> — Nombre de la actividad</li>
-                        <li><code>Actividad_Descripcion</code> — Descripción de la actividad</li>
-                        <li><code>Actividad_Sesiones</code> — Número total de sesiones de esta actividad</li>
-                        <li><code>Criterios_Vinculados</code> — Criterios que evalúa esta actividad, separados por coma (ej: CE1_C3,CE2_C4)</li>
-                        <li><code>Fecha</code> — Fecha de la sesión en formato DD-MM-YYYY</li>
-                        <li><code>Sesion_Numero</code> — Número de sesión dentro de la actividad</li>
-                        <li><code>Evaluable</code> — Si o No</li>
+                        <li><code>Competencia_Descriptor</code> — Texto oficial de la competencia (solo en la primera fila; vacío en las siguientes)</li>
+                        <li><code>Actividad_ID</code> — Código único de la actividad dentro de la SDA (ej: ACT1)</li>
+                        <li><code>Actividad_Titulo</code> — Nombre de la actividad y de la sesión</li>
+                        <li><code>Criterios_Vinculados</code> — Todos los criterios que evalúa esta sesión, separados por coma (ej: CE1_C3,CE2_C4)</li>
+                        <li><code>Fecha</code> — Fecha de la sesión en formato YYYY-MM-DD</li>
+                        <li><code>Sesion_Numero</code> — Número de sesión dentro de la actividad (1, 2, 3…)</li>
                     </ul>
                     <div class="highlight-box">
                         <strong>💡 Regla clave:</strong> Cada fila del CSV representa <strong>una sesión</strong>.
-                        Los campos de criterio y competencia solo se rellenan en la primera aparición de cada uno.
-                        El campo <code>Criterios_Vinculados</code> se rellena en cada fila de actividad para indicar qué criterios evalúa esa actividad.
+                        Si una actividad tiene varias sesiones, repite <code>Actividad_ID</code> y <code>Actividad_Titulo</code> en cada fila.
+                        <code>Criterios_Vinculados</code> lista todos los criterios que evalúa esa sesión.
                     </div>
 
                     <h2>4. Generación con IA (más fácil)</h2>

@@ -599,7 +599,13 @@
                         </div>
                         <div class="form-group" style="flex:1;">
                             <label>Área / Materia</label>
-                            <select id="critArea" required></select>
+                            <select id="critArea" required onchange="cargarSdasCritModal(this.value, document.getElementById('critId').value || null)"></select>
+                        </div>
+                    </div>
+                    <div id="sdaVinculacionWrap" class="form-group" style="display:none;">
+                        <label>Situaciones de Aprendizaje vinculadas</label>
+                        <div id="critSdaList" style="max-height:150px; overflow-y:auto; border:1px solid #ddd; border-radius:6px; padding:8px 10px; background:#fafafa; font-size:0.9rem;">
+                            <small style="color:#999;">Selecciona un área para ver las SA disponibles.</small>
                         </div>
                     </div>
                     <div class="form-group" style="display:flex; align-items:center; gap:10px;">
@@ -861,7 +867,29 @@
                     const areas = await r.json();
                     critArea.innerHTML = '';
                     areas.forEach(a => { critArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
+                    await cargarSdasCritModal(critArea.value, null);
                 } catch(e) { console.error('Error cargando áreas del modal:', e); }
+            }
+            async function cargarSdasCritModal(area_id, criterio_id) {
+                const wrap = document.getElementById('sdaVinculacionWrap');
+                const list = document.getElementById('critSdaList');
+                if (!area_id) { wrap.style.display = 'none'; return; }
+                try {
+                    const [rSda, rLinked] = await Promise.all([
+                        fetch(`/api/evaluacion/sda/lista?area_id=${area_id}`),
+                        criterio_id ? fetch(`/api/criterios/${criterio_id}/sdas`) : Promise.resolve(null)
+                    ]);
+                    const sdas = await rSda.json();
+                    const linked = rLinked ? (await rLinked.json()).sda_ids || [] : [];
+                    if (!sdas.length) { wrap.style.display = 'none'; return; }
+                    wrap.style.display = 'block';
+                    list.innerHTML = sdas.map(s => `
+                        <label style="display:flex; align-items:center; gap:8px; padding:3px 0; cursor:pointer;">
+                            <input type="checkbox" name="critSda" value="${s.id}" ${linked.includes(s.id) ? 'checked' : ''} style="width:auto; margin:0;">
+                            <span>${s.nombre}</span>
+                        </label>
+                    `).join('');
+                } catch(e) { wrap.style.display = 'none'; console.error('Error cargando SA del modal:', e); }
             }
             window.cambiarEtapa = function (etapa_id) {
                 // Al cambiar la etapa, recargar las áreas filtradas
@@ -991,6 +1019,7 @@
                 document.getElementById('critEtapa').value = etapaValue;
                 await cargarAreasCritModal(etapaValue);
                 document.getElementById('critArea').value = c.area_id;
+                await cargarSdasCritModal(c.area_id, c.id);
                 document.getElementById('critActivo').checked = c.activo;
                 document.getElementById('modalCritTitle').innerText = 'Editar Criterio';
                 document.getElementById('modalCriterio').style.display = 'flex';
@@ -999,12 +1028,14 @@
             window.guardarCriterioConfig = async function (e) {
                 e.preventDefault();
                 const id = document.getElementById('critId').value;
+                const sdaChecks = document.querySelectorAll('#critSdaList input[name="critSda"]:checked');
                 const payload = {
                     codigo: document.getElementById('critCodigo').value,
                     descripcion: document.getElementById('critDescripcion').value,
                     etapa: document.getElementById('critEtapa').value,
                     area_id: document.getElementById('critArea').value,
-                    activo: document.getElementById('critActivo').checked
+                    activo: document.getElementById('critActivo').checked,
+                    sda_ids: Array.from(sdaChecks).map(cb => parseInt(cb.value))
                 };
                 const url = id ? `/api/criterios/${id}` : '/api/criterios';
                 const method = id ? 'PUT' : 'POST';

@@ -309,6 +309,10 @@ def crear_criterio():
             VALUES (?, ?, ?, ?, ?)
         """, (d["codigo"].strip(), d["descripcion"].strip(), d["area_id"], d.get("activo", 1), d.get("oficial", 1)))
         new_id = cur.lastrowid
+        sda_ids = req_data.get("sda_ids")
+        if isinstance(sda_ids, list):
+            for sid in sda_ids:
+                cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (int(sid), new_id))
         audit_log(session.get('username'), "CREATE", "criterio", f"ID: {new_id}, Código: {d['codigo']}")
         conn.commit()
         invalidate_cache_prefix("/api/criterios")
@@ -338,12 +342,24 @@ def actualizar_criterio(criterio_id):
         else:
             cur.execute("UPDATE criterios SET codigo = ?, descripcion = ?, area_id = ?, activo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                        (d["codigo"].strip(), d["descripcion"].strip(), d["area_id"], d.get("activo", 1), criterio_id))
+        sda_ids = req_data.get("sda_ids")
+        if isinstance(sda_ids, list):
+            cur.execute("DELETE FROM sda_criterios WHERE criterio_id = ?", (criterio_id,))
+            for sid in sda_ids:
+                cur.execute("INSERT OR IGNORE INTO sda_criterios (sda_id, criterio_id) VALUES (?, ?)", (int(sid), criterio_id))
         audit_log(session.get('username'), "UPDATE", "criterio", f"ID: {criterio_id}, Código: {d.get('codigo')}")
         conn.commit()
         invalidate_cache_prefix("/api/criterios")
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400
+
+@criterios_bp.route("/api/criterios/<int:criterio_id>/sdas", methods=["GET"])
+def get_criterio_sdas(criterio_id):
+    if not session.get('logged_in'): return jsonify({"ok": False}), 401
+    conn = get_db(); cur = conn.cursor()
+    cur.execute("SELECT sda_id FROM sda_criterios WHERE criterio_id = ?", (criterio_id,))
+    return jsonify({"ok": True, "sda_ids": [r["sda_id"] for r in cur.fetchall()]})
 
 @criterios_bp.route("/api/criterios/<int:criterio_id>", methods=["DELETE"])
 def eliminar_criterio(criterio_id):

@@ -401,10 +401,6 @@ def datos_tabla_evaluacion():
             ORDER BY c.codigo
         """, (area_id, trimestre, grupo_id, area_id, trimestre, grupo_id))
         criterios = [dict(r) for r in cur.fetchall()]
-        if not criterios:
-            # Fallback: si no hay SDAs con criterios vinculados, mostrar todos los del área
-            cur.execute("SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? AND activo = 1 ORDER BY codigo", (area_id,))
-            criterios = [dict(r) for r in cur.fetchall()]
 
     # 3. Evaluaciones actuales
     if sda_id:

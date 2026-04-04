@@ -352,40 +352,29 @@ def datos_tabla_evaluacion():
     cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ? ORDER BY nombre", (grupo_id,))
     alumnos = [dict(r) for r in cur.fetchall()]
     
-    # 2. Criterios de la SDA o del Área/Periodo (Directa)
-    if sda_id:
-        cur.execute("""
-            SELECT c.id, c.codigo, c.descripcion
-            FROM criterios c
-            JOIN sda_criterios sc ON sc.criterio_id = c.id
-            WHERE sc.sda_id = ?
-            ORDER BY c.id
-        """, (sda_id,))
-    else:
-        # Criterios directos para el área y periodo (T1, T2, T3)
-        periodo = f"T{trimestre}"
-        cur.execute("""
-            SELECT c.id, c.codigo, c.descripcion
-            FROM criterios c
-            JOIN criterios_periodo cp ON cp.criterio_id = c.id
-            WHERE cp.grupo_id = ? AND cp.periodo = ? AND c.area_id = ? AND cp.activo = 1
-            ORDER BY c.id
-        """, (grupo_id, periodo, area_id))
-    
+    # 2. Todos los criterios activos del área
+    cur.execute("""
+        SELECT id, codigo, descripcion
+        FROM criterios
+        WHERE area_id = ? AND activo = 1
+        ORDER BY codigo
+    """, (area_id,))
     criterios = [dict(r) for r in cur.fetchall()]
-    
+
     # 3. Evaluaciones actuales
     if sda_id:
+        # Incluye evaluaciones de esta SDA y las guardadas sin SDA (guardar_masivo)
         cur.execute("""
-            SELECT alumno_id, criterio_id, nivel 
+            SELECT alumno_id, criterio_id, nivel
             FROM evaluaciones
-            WHERE sda_id = ? AND trimestre = ?
-        """, (sda_id, trimestre))
+            WHERE area_id = ? AND trimestre = ?
+              AND (sda_id = ? OR sda_id IS NULL)
+        """, (area_id, trimestre, sda_id))
     else:
         cur.execute("""
-            SELECT alumno_id, criterio_id, nivel 
+            SELECT alumno_id, criterio_id, nivel
             FROM evaluaciones
-            WHERE sda_id IS NULL AND area_id = ? AND trimestre = ?
+            WHERE area_id = ? AND trimestre = ?
         """, (area_id, trimestre))
     
     evals = cur.fetchall()

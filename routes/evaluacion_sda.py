@@ -352,14 +352,32 @@ def datos_tabla_evaluacion():
     cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ? ORDER BY nombre", (grupo_id,))
     alumnos = [dict(r) for r in cur.fetchall()]
     
-    # 2. Todos los criterios activos del área
-    cur.execute("""
-        SELECT id, codigo, descripcion
-        FROM criterios
-        WHERE area_id = ? AND activo = 1
-        ORDER BY codigo
-    """, (area_id,))
-    criterios = [dict(r) for r in cur.fetchall()]
+    # 2. Criterios del área, filtrando por SDA si se especifica
+    if sda_id:
+        # Criterios vinculados a esta SDA: via sda_criterios O via actividades de la SDA
+        cur.execute("""
+            SELECT DISTINCT c.id, c.codigo, c.descripcion
+            FROM criterios c
+            WHERE c.area_id = ? AND c.activo = 1
+              AND (
+                EXISTS (SELECT 1 FROM sda_criterios sc WHERE sc.criterio_id = c.id AND sc.sda_id = ?)
+                OR EXISTS (
+                    SELECT 1 FROM actividades_sda a
+                    JOIN actividad_criterio ac ON ac.actividad_id = a.id
+                    WHERE ac.criterio_id = c.id AND a.sda_id = ?
+                )
+              )
+            ORDER BY c.codigo
+        """, (area_id, sda_id, sda_id))
+        criterios = [dict(r) for r in cur.fetchall()]
+        # Fallback: si la SDA no tiene criterios vinculados por ninguna vía, mostrar todos los del área
+        if not criterios:
+            cur.execute("SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? AND activo = 1 ORDER BY codigo", (area_id,))
+            criterios = [dict(r) for r in cur.fetchall()]
+    else:
+        # Sin SDA: todos los criterios activos del área
+        cur.execute("SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? AND activo = 1 ORDER BY codigo", (area_id,))
+        criterios = [dict(r) for r in cur.fetchall()]
 
     # 3. Evaluaciones actuales
     if sda_id:

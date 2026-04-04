@@ -1162,9 +1162,11 @@
                 }
             });
             alumnoSelect.addEventListener("change", () => {
-                // Mantener el área seleccionada al cambiar de alumno
-                // Solo recargamos las notas y el resumen del nuevo alumno
-                if (areaSelect.value) {
+                const conf = getAreaConfig();
+                if (conf && (conf.modo_evaluacion === 'POR_ACTIVIDADES' || conf.modo_evaluacion === 'POR_SA')) {
+                    // Vistas unificadas: re-renderizar con datos del nuevo alumno
+                    cargarCuadernoUnificado();
+                } else if (areaSelect.value) {
                     cargarNotasExistentes();
                 }
                 cargarResumenAlumno();
@@ -1364,7 +1366,9 @@
                 }
 
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
-                const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
+                const sdaParam = (sdaId && sdaId !== 'null' && sdaId !== '')
+                    ? `sda_id=${sdaId}`
+                    : `sda_id=null&area_id=${conf.id}`;
                 fetch(`/api/evaluacion/sda/media?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
                     .then(r => r.json()).then(d => {
                         const el = document.getElementById("mediaSDA");

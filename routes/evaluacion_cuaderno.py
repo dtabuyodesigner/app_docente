@@ -300,6 +300,7 @@ def cuaderno_unificado():
                 """, criterio_ids + alumno_ids + [sda_id, trimestre]).fetchall()
             elif sda_ids:
                 # Evaluaciones para todas las SDAs del área/trimestre
+                # Incluye también evaluaciones guardadas sin SDA específica (sda_id IS NULL)
                 sda_placeholders = ",".join("?" * len(sda_ids))
                 evals = cur.execute(f"""
                     SELECT alumno_id, criterio_id, nivel
@@ -308,7 +309,7 @@ def cuaderno_unificado():
                       AND alumno_id IN ({alum_placeholders})
                       AND area_id = ?
                       AND trimestre = ?
-                      AND sda_id IN ({sda_placeholders})
+                      AND (sda_id IN ({sda_placeholders}) OR sda_id IS NULL)
                 """, criterio_ids + alumno_ids + [area_id, trimestre] + sda_ids).fetchall()
             else:
                 # Sin SDAs, buscar evaluaciones generales del área
@@ -498,13 +499,14 @@ def _calcular_medias_sda(cur, alumno_ids, area_id, trimestre, sda_id=None):
         
         # 1. Calcular media por criterio para este alumno
         if target_sda := sda_id:
-            # Solo evaluaciones vinculadas a esta SDA concreta
+            # Evaluaciones de esta SDA concreta, o guardadas sin SDA (guardar_masivo) del mismo área
             rows_crit = cur.execute("""
                 SELECT criterio_id, AVG(nota) as media_crit
                 FROM evaluaciones
-                WHERE alumno_id = ? AND sda_id = ? AND trimestre = ? AND criterio_id IS NOT NULL
+                WHERE alumno_id = ? AND area_id = ? AND trimestre = ? AND criterio_id IS NOT NULL
+                  AND (sda_id = ? OR sda_id IS NULL)
                 GROUP BY criterio_id
-            """, (alumno_id, target_sda, trimestre)).fetchall()
+            """, (alumno_id, area_id, trimestre, target_sda)).fetchall()
         else:
             # Toda el área (Todas las SDAs + Evaluaciones directas)
             rows_crit = cur.execute("""
@@ -522,8 +524,9 @@ def _calcular_medias_sda(cur, alumno_ids, area_id, trimestre, sda_id=None):
             row = cur.execute("""
                 SELECT ROUND(AVG(nota), 2) as media
                 FROM evaluaciones
-                WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
-            """, (alumno_id, sda_id, trimestre)).fetchone()
+                WHERE alumno_id = ? AND area_id = ? AND trimestre = ?
+                  AND (sda_id = ? OR sda_id IS NULL)
+            """, (alumno_id, area_id, trimestre, sda_id)).fetchone()
         else:
             # Si no hay SDA específica, promedia TODO lo del área y trimestre para el alumno
             row = cur.execute("""

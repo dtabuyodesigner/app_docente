@@ -289,15 +289,16 @@ def cuaderno_unificado():
             alum_placeholders = ",".join("?" * len(alumno_ids))
 
             if sda_id and sda_id not in ('', 'null', '0'):
-                # Evaluaciones para una SDA específica
+                # Evaluaciones para una SDA específica, incluyendo las guardadas sin SDA (guardar_masivo)
                 evals = cur.execute(f"""
                     SELECT alumno_id, criterio_id, nivel
                     FROM evaluaciones
                     WHERE criterio_id IN ({crit_placeholders})
                       AND alumno_id IN ({alum_placeholders})
-                      AND sda_id = ?
+                      AND area_id = ?
+                      AND (sda_id = ? OR sda_id IS NULL)
                       AND trimestre = ?
-                """, criterio_ids + alumno_ids + [sda_id, trimestre]).fetchall()
+                """, criterio_ids + alumno_ids + [area_id, sda_id, trimestre]).fetchall()
             elif sda_ids:
                 # Evaluaciones para todas las SDAs del área/trimestre
                 # Incluye también evaluaciones guardadas sin SDA específica (sda_id IS NULL)

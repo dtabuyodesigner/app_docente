@@ -173,12 +173,29 @@ def check_updates():
         except Exception:
             local_sha = ""
 
-        # Sin git local — no podemos comparar, devolver sin error
+        # Sin git local — comparar versiones directamente desde GitHub
         if not local_sha:
+            latest_version = APP_VERSION
+            try:
+                branch_fallback = "feature/refactor-evaluacion-curricular"
+                version_url = f"https://raw.githubusercontent.com/{github_repo}/{branch_fallback}/version.py"
+                rv = requests.get(version_url, timeout=4)
+                if rv.status_code == 200:
+                    import re as _re
+                    m = _re.search(r'APP_VERSION\s*=\s*["\']([^"\']+)["\']', rv.text)
+                    if m:
+                        latest_version = m.group(1)
+            except Exception:
+                pass
+            update_available = (latest_version != APP_VERSION)
             return jsonify({
                 "ok": True,
-                "update_available": False,
+                "update_available": update_available,
                 "current_version": APP_VERSION,
+                "latest_version": latest_version,
+                "local_sha": "desconocido",
+                "latest_sha": "desconocido",
+                "cambios": [{"sha": "—", "mensaje": f"Nueva versión disponible: {latest_version}", "fecha": ""}] if update_available else [],
                 "reason": "git_not_available"
             })
 

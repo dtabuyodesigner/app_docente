@@ -1495,7 +1495,7 @@
                     vTable.style.display = 'block';
                     if (lblAlumno) lblAlumno.style.display = 'none';
                     alumnoSelect.style.display = 'none';
-                    document.getElementById('quickActions').style.display = 'none';
+                    document.getElementById('quickActions').style.display = 'flex';
                     document.getElementById('mediaSDA').style.display = 'none';
                     document.getElementById('mediaArea').style.display = 'none';
                     document.querySelector('h3 + #resumenAlumno').parentElement.style.display = 'none';
@@ -1646,10 +1646,54 @@
                 window.guardar(criterio_id, nivel, true, element, alumno_id);
             };
             window.rellenarTodos = async function (nivel) {
-                const alumId = alumnoSelect.value;
-                if (!alumId) { alert("Por favor, selecciona un alumno primero."); return; }
                 const conf = getAreaConfig();
                 if (!conf) return;
+
+                if (modoTabla) {
+                    if (!confirm("¿Asignar este nivel (o borrar) a todos los alumnos mostrados en la rejilla?")) return;
+                    const celdas = document.querySelectorAll('#tbodyTabla td.eval-grid-cell');
+                    if (celdas.length === 0) return;
+                    
+                    let evaluaciones = [];
+                    celdas.forEach(c => {
+                        const parts = c.id.split('-'); // cell-{alumId}-{critId}
+                        if (parts.length === 3) {
+                            evaluaciones.push({
+                                alumno_id: parseInt(parts[1]),
+                                criterio_id: parseInt(parts[2]),
+                                nivel: nivel,
+                                sda_id: (sdaSelect.value === 'null' || !sdaSelect.value || sdaSelect.value === 'directo') ? null : parseInt(sdaSelect.value)
+                            });
+                        }
+                    });
+
+                    // Update UI
+                    celdas.forEach(c => {
+                        const pills = c.querySelectorAll('.eval-pill');
+                        pills.forEach(p => p.classList.remove('active'));
+                        if (nivel !== null) {
+                            const exactPill = c.querySelector(`.eval-pill.p-${nivel}`);
+                            if (exactPill) exactPill.classList.add('active');
+                        }
+                    });
+
+                    try {
+                        const res = await fetch("/api/evaluacion/guardar_masivo", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ periodo: 'T' + trimestreSelect.value, evaluaciones })
+                        });
+                        const data = await res.json();
+                        if (!data.ok) alert("Error al rellenar: " + data.error);
+                    } catch (e) {
+                        console.error("Error rellenar masivo rejilla:", e);
+                        alert("Error de conexión.");
+                    }
+                    return;
+                }
+
+                const alumId = alumnoSelect.value;
+                if (!alumId) { alert("Por favor, selecciona un alumno primero."); return; }
 
                 const trs = document.getElementById("tbody").querySelectorAll("tr");
                 if (trs.length === 0) return;
@@ -1729,9 +1773,17 @@
                 }
             };
             window.limpiarTodos = function () {
-                const alumId = alumnoSelect.value;
                 const conf = getAreaConfig();
-                if (!alumId || !conf) { alert("Por favor, selecciona un alumno primero."); return; }
+                if (!conf) return;
+
+                if (modoTabla) {
+                    if (!confirm("¿Borrar todas las notas de todos los alumnos visibles en esta rejilla?")) return;
+                    rellenarTodos(null);
+                    return;
+                }
+
+                const alumId = alumnoSelect.value;
+                if (!alumId) { alert("Por favor, selecciona un alumno primero."); return; }
                 if (!confirm("¿Borrar todas las notas de este alumno en esta selección?")) return;
                 const sdaId = sdaSelect.value === 'directo' ? null : sdaSelect.value;
                 const areaId = conf.id;

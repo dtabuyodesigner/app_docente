@@ -138,7 +138,7 @@ git push
 ### 1. Reiniciar Servidor
 ```bash
 cd /home/danito73/Documentos/APP_EVALUAR
-python3 app.py
+./start_app.sh
 ```
 
 ### 2. Probar Infantil

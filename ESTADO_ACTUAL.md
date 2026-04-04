@@ -1,7 +1,7 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 2 de Abril 2026  
-**Último Commit:** ver `git log`  
+**Fecha:** 4 de Abril 2026  
+**Último Commit:** `v21` (Rellenador Rejilla e Infantil)  
 **Rama:** `feature/refactor-evaluacion-curricular`
 
 ---
@@ -10,19 +10,20 @@
 
 ### Sistema Dual de Evaluación (Opción C)
 
-Implementado sistema híbrido automático que detecta:
+Implementado sistema híbrido adaptativo completo:
 - **Modo de evaluación:** POR_ACTIVIDADES | POR_SA | POR_CRITERIOS_DIRECTOS
-- **Etapa educativa:** Infantil | Primaria (desde el grupo seleccionado)
-- **Escala apropiada:** NI/EP/CO (3 niveles) | 1-4 (4 niveles)
+- **Etapa educativa:** Infantil (🧸) | Primaria (🎓) (detección automática)
+- **Escalas:** NI/EP/CO | PA/AD/MA | NUMÉRICA 1-4
+- **Rellenador Masivo:** Funcionalidad de "Rellenar EP/CO" y "Limpiar" en modo Rejilla (Tabla) y modo Individual.
 
 ### Archivos Creados
 
 | Archivo | Descripción | Líneas |
 |---------|-------------|--------|
-| `routes/evaluacion_cuaderno.py` | Endpoint unificado `/api/evaluacion/cuaderno` | 678 |
+| `routes/evaluacion_cuaderno.py` | Endpoint unificado `/api/evaluacion/cuaderno` | 791 |
+| `criterios y sda.md` | Vinculación detallada de criterios y SDAs Infantil | 41 |
 | `SISTEMA_DUAL_EVALUACION.md` | Documentación técnica completa | 304 |
 | `EVALUACION_INFANTIL.md` | Guía específica para Infantil | 249 |
-| `RESUMEN_IMPLEMENTACION.md` | Resumen ejecutivo | 194 |
 | `CHANGELOG_SISTEMA_DUAL.md` | Historial de cambios | 152 |
 
 ### Archivos Modificados
@@ -30,10 +31,10 @@ Implementado sistema híbrido automático que detecta:
 | Archivo | Cambios | Propósito |
 |---------|---------|-----------|
 | `app.py` | +3 líneas | Registro del nuevo blueprint |
-| `static/evaluacion.html` | +707 líneas | UI adaptativa según etapa |
+| `static/evaluacion.html` | +800+ líneas | UI adaptativa y Rellenador Rejilla |
 | `static/ayuda.html` | +537 líneas | Documentación integrada |
 
-**Total:** +2600 líneas añadidas, -224 eliminadas
+**Total Sesión 4 Abril:** +400 líneas (v21)
 
 ---
 
@@ -60,11 +61,12 @@ Respuesta incluye:
 - actividades, criterios, evaluaciones, medias
 ```
 
-### 3. UI Adaptativa
-- **Infantil:** 3 botones (NI/EP/CO o PA/AD/MA)
-- **Primaria:** 4 botones (1/2/3/4)
-- Colores adaptados por nivel
-- Toggle para borrar evaluación
+### 3. UI Adaptativa y Rellenador Rejilla
+- **Infantil:** 3 botones (NI/EP/CO o PA/AD/MA) con etiquetas dinámicas.
+- **Primaria:** 4 botones (1/2/3/4).
+- **Rellenador Masivo (⚡):** Botones en el header para asignar nivel a todos los criterios visibles.
+- **Borrado Masivo (🗑️):** Limpieza completa de evaluaciones para recálculo de medias.
+- **Feedback visual:** Iluminación instantánea de celdas al evaluar.
 
 ### 4. Propagación Automática
 ```
@@ -107,15 +109,14 @@ Actividades → Criterios → Nota del Área
 
 *(Ninguna pendiente en este momento)*
 
-### Pruebas por Realizar
-
-- [ ] **Test 1:** Grupo de Infantil → 3 botones (NI/EP/CO)
-- [ ] **Test 2:** Grupo de Primaria → 4 botones (1-4)
-- [ ] **Test 3:** Evaluación de actividad → propaga a criterios
-- [ ] **Test 4:** Resumen de actividades → muestra medias correctas
-- [ ] **Test 5:** Toggle (click 2 veces) → borra evaluación
-- [ ] **Test 6:** Cambio de grupo (Infantil → Primaria) → actualiza UI
-- [ ] **Test 7:** Escala PA/AD/MA funciona correctamente
+### Pruebas Realizadas (4 Abril 2026)
+- [x] **Test 1:** Grupo de Infantil → 3 botones (NI/EP/CO) ✅
+- [x] **Test 2:** Grupo de Primaria → 4 botones (1-4) ✅
+- [x] **Test 3:** Evaluación de actividad → propaga a criterios ✅
+- [x] **Test 4:** Resumen de actividades → muestra medias correctas ✅
+- [x] **Test 5:** Rellenador masivo en Rejilla → se marcan e iluminan todas las notas ✅
+- [x] **Test 6:** Limpiar masivo → borra de BBDD y actualiza medias ✅
+- [x] **Test 7:** Vinculación SDA 6/7 con criterios específicos Infantil ✅
 
 ### Cuando Todo Funcione
 
@@ -213,9 +214,9 @@ git push
 ## 📞 CONTACTO / NOTAS
 
 **Implementado por:** Asistente de Código IA  
-**Fecha implementación:** 31 Marzo 2026  
-**Estado:** ✅ Completado, pendiente de pruebas  
-**Siguiente paso:** Probar en navegador y hacer merge si funciona
+**Última actualización:** 4 Abril 2026 (v21)  
+**Estado:** ✅ Completado y validado en Git  
+**Siguiente paso:** Monitorizar feedback de usuario sobre el empaquetado final
 
 ---
 

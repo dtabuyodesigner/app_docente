@@ -1148,13 +1148,22 @@
             sdaSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
                 if (conf && (conf.modo_evaluacion === 'POR_ACTIVIDADES' || conf.modo_evaluacion === 'POR_SA')) {
-                    cargarCuadernoUnificado();
+                    if (modoTabla) {
+                        cargarDatosTabla();
+                    } else {
+                        cargarCuadernoUnificado();
+                    }
                 }
             });
-            trimestreSelect.addEventListener("change", () => {
+            trimestreSelect.addEventListener("change", async () => {
                 const conf = getAreaConfig();
                 if (conf && (conf.modo_evaluacion === 'POR_ACTIVIDADES' || conf.modo_evaluacion === 'POR_SA')) {
-                    cargarCuadernoUnificado();
+                    if (modoTabla) {
+                        await cargarCuadernoUnificado(); // actualiza dropdown SDAs antes de cargar rejilla
+                        cargarDatosTabla();
+                    } else {
+                        cargarCuadernoUnificado();
+                    }
                 }
                 if (alumnoSelect.value) {
                     cargarNotasExistentes();

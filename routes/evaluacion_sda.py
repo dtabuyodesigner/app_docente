@@ -354,11 +354,12 @@ def datos_tabla_evaluacion():
     
     # 2. Criterios del área, filtrando por SDA si se especifica
     if sda_id:
-        # Criterios vinculados a esta SDA: via sda_criterios O via actividades de la SDA
+        # Criterios vinculados a esta SDA: via sda_criterios O via actividades de la SDA.
+        # Sin filtro c.area_id para evitar falsos negativos si el area_id del criterio difiere.
         cur.execute("""
             SELECT DISTINCT c.id, c.codigo, c.descripcion
             FROM criterios c
-            WHERE c.area_id = ? AND c.activo = 1
+            WHERE c.activo = 1
               AND (
                 EXISTS (SELECT 1 FROM sda_criterios sc WHERE sc.criterio_id = c.id AND sc.sda_id = ?)
                 OR EXISTS (
@@ -368,7 +369,7 @@ def datos_tabla_evaluacion():
                 )
               )
             ORDER BY c.codigo
-        """, (area_id, sda_id, sda_id))
+        """, (sda_id, sda_id))
         criterios = [dict(r) for r in cur.fetchall()]
         # Fallback: si la SDA no tiene criterios vinculados por ninguna vía, mostrar todos los del área
         if not criterios:

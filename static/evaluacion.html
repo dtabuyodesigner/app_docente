@@ -88,7 +88,9 @@
         .btn-nivel[data-label="PA"].selected,
         .btn-nivel[data-label="NI/PA"].selected,
         .btn-nivel[data-label="NI-PA"].selected {
-            background: #ef4444; border-color: #ef4444; color: white;
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
         }
 
         .btn-nivel[data-label="EP"].selected,
@@ -97,7 +99,9 @@
         .btn-nivel[data-label="EP-AD"].selected,
         .btn-nivel[data-label="EP-A"].selected,
         .btn-nivel[data-label="EP/A"].selected {
-            background: #f59e0b; border-color: #f59e0b; color: white;
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
         }
 
         .btn-nivel[data-label="C"].selected,
@@ -105,7 +109,9 @@
         .btn-nivel[data-label="MA"].selected,
         .btn-nivel[data-label="CO/MA"].selected,
         .btn-nivel[data-label="CO-MA"].selected {
-            background: #10b981; border-color: #10b981; color: white;
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
         }
 
         /* Rubric Tooltip */
@@ -773,9 +779,9 @@
             function getColorNota(nota, tipoEscala) {
                 if (tipoEscala && tipoEscala.startsWith('INFANTIL_')) {
                     const lab = notaToNivel(nota, tipoEscala);
-                    if (lab === "NI" || lab === "PA") return "#dc3545";
-                    if (lab === "EP" || lab === "AD") return "#e0a800";
-                    return "#28a745"; // CO/MA
+                    if (lab.includes("NI") || lab.includes("PA")) return "#dc3545"; // Rojo
+                    if (lab.includes("EP") || lab.includes("AD")) return "#ffc107"; // Ámbar/Amarillo
+                    return "#28a745"; // CO/MA - Verde
                 }
                 if (nota < 5) return "#dc3545";
                 if (nota < 7) return "#ffc107";
@@ -1121,16 +1127,15 @@
                     btnCriterioExtra.style.display = 'none';
                     document.getElementById("directControlsAction").style.display = 'none';
                     document.getElementById("btnResumenActividades").style.display = 'inline-block';
-                    // BUG FIX: Cargar SDAs para poder filtrar actividades
-                    cargarSDA();
-                    // Usar la nueva vista unificada de actividades
+                    // Usar la nueva vista unificada de actividades (ya incluye carga de SDAs)
                     cargarCuadernoUnificado();
                 } else if (conf.modo_evaluacion === 'POR_SA') {
                     lblSDA.style.display = 'flex';
                     btnCriterioExtra.style.display = 'inline-block';
                     document.getElementById("directControlsAction").style.display = 'none';
                     document.getElementById("btnResumenActividades").style.display = 'none';
-                    cargarSDA();
+                    // Usar la vista unificada para POR_SA también
+                    cargarCuadernoUnificado();
                 } else {
                     lblSDA.style.display = 'none';
                     btnCriterioExtra.style.display = 'none';
@@ -1142,18 +1147,14 @@
             });
             sdaSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
-                if (conf && conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                if (conf && (conf.modo_evaluacion === 'POR_ACTIVIDADES' || conf.modo_evaluacion === 'POR_SA')) {
                     cargarCuadernoUnificado();
-                } else if (conf && conf.modo_evaluacion === 'POR_SA') {
-                    cargarCriteriosSA();
                 }
             });
             trimestreSelect.addEventListener("change", () => {
                 const conf = getAreaConfig();
-                if (conf && conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                if (conf && (conf.modo_evaluacion === 'POR_ACTIVIDADES' || conf.modo_evaluacion === 'POR_SA')) {
                     cargarCuadernoUnificado();
-                } else if (conf && conf.modo_evaluacion === 'POR_SA') {
-                    cargarSDA();
                 }
                 if (alumnoSelect.value) {
                     cargarNotasExistentes();
@@ -1236,6 +1237,7 @@
             function renderTabla(criterios) {
                 const conf = getAreaConfig();
                 const esInfantil = conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_');
+                const isPama = conf.tipo_escala === 'INFANTIL_PA_A_MA';
                 thead.innerHTML = `<tr><th style="width:150px;">Código</th><th>Descripción</th><th style="width:${esInfantil ? 220 : 280}px;">Nivel</th></tr>`;
                 tbody.innerHTML = "";
                 criterios.forEach(c => {
@@ -1243,15 +1245,15 @@
                     tr.id = 'row-' + c.id; // necesario para rellenarTodos()
                     if (esInfantil) {
                         const mappingInfantil = [
-                            { n: 1, label: "NI/PA: No Inic. / Poco Adeq.", db: "NI/PA" },
-                            { n: 2, label: "EP/AD: En Proc. / Adecuado", db: "EP/AD" },
-                            { n: 3, label: "CO/MA: Cons. / Muy Adeq.", db: "CO/MA" }
+                            { n: 1, label: isPama ? "PA" : "NI/PA", db: isPama ? "PA" : "NI/PA" },
+                            { n: 2, label: isPama ? "AD" : "EP/AD", db: isPama ? "AD" : "EP/AD" },
+                            { n: 3, label: isPama ? "MA" : "CO/MA", db: isPama ? "MA" : "CO/MA" }
                         ];
                         tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
-                        <td><div style="display:flex; gap:6px; justify-content:center;">${mappingInfantil.map(m => {
+                        <td><div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; max-width:350px; margin:0 auto;">${mappingInfantil.map(m => {
                             return `<button class="btn-nivel" data-label="${m.db}" data-criterio="${c.id}" data-nivel="${m.n}"
                                 onclick="guardar(${c.id},${m.n})" id="btn-${c.id}-${m.n}"
-                                style="font-weight:700; min-width:110px; padding:6px 4px; font-size:0.7rem;">${m.label}</button>`;
+                                style="font-weight:700; min-width:100%; padding:6px 4px; font-size:0.7rem;">${m.label}</button>`;
                         }).join('')}</div></td>`;
                     } else {
                         tr.innerHTML = `<td><strong>${c.codigo}</strong></td><td style="text-align:left;">${c.descripcion}</td>
@@ -1273,6 +1275,17 @@
                 if (!alumId || !conf) return;
 
                 if (conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                    // Detectar si estamos en la vista unificada (renderVistaActividades)
+                    // Si hay botones con clase "btn-nivel-act", la vista unificada ya pintó los botones correctamente
+                    const botonesUnificados = document.querySelectorAll('.btn-nivel-act');
+                    if (botonesUnificados.length > 0) {
+                        // La vista unificada ya renderizó los botones con los datos correctos
+                        // Solo necesitamos cargar las medias
+                        cargarMedia();
+                        return;
+                    }
+
+                    // Vista simple (renderTablaActividades) - usar el método antiguo
                     const sdaId = sdaSelect.value || '';
                     let url = `/api/evaluacion/actividades/notas_alumno?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`;
                     if (sdaId && sdaId !== 'null') url += `&sda_id=${sdaId}`;
@@ -1288,24 +1301,38 @@
                 }
 
                 const sdaId = conf.modo_evaluacion === 'POR_SA' ? sdaSelect.value : null;
-                if (conf.modo_evaluacion === 'POR_SA' && !sdaId) return;
-                document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+
+                // En modo POR_SA, detectar si estamos en la vista unificada
+                if (conf.modo_evaluacion === 'POR_SA') {
+                    const botonesUnificados = document.querySelectorAll('.btn-nivel-sda');
+                    if (botonesUnificados.length > 0) {
+                        // La vista unificada ya renderizó los botones con los datos correctos
+                        // Solo necesitamos cargar las medias
+                        cargarMedia();
+                        return;
+                    }
+
+                    // Vista antigua - usar el método antiguo
+                    if (!sdaId) return;
+                    document.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+                    const sdaParam = `sda_id=${sdaId}`;
+                    fetch(`/api/evaluacion/sda/alumno?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
+                        .then(r => r.json()).then(notas => {
+                            for (const [criterioId, nivel] of Object.entries(notas)) {
+                                let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
+                                if (btn) btn.classList.add("selected");
+                            }
+                            cargarMedia();
+                        });
+                    return;
+                }
+
                 if (conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS') {
                     const periodo = 'T' + trimestreSelect.value;
                     fetch(`/api/evaluacion/directa/alumno?alumno_id=${alumId}&area_id=${conf.id}&trimestre=${trimestreSelect.value}`)
                         .then(r => r.json()).then(data => {
                             // Backend returns { "crit_id": nivel }
                             for (const [criterioId, nivel] of Object.entries(data)) {
-                                let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
-                                if (btn) btn.classList.add("selected");
-                            }
-                            cargarMedia();
-                        });
-                } else {
-                    const sdaParam = sdaId ? `sda_id=${sdaId}` : `sda_id=null&area_id=${conf.id}`;
-                    fetch(`/api/evaluacion/sda/alumno?alumno_id=${alumId}&${sdaParam}&trimestre=${trimestreSelect.value}`)
-                        .then(r => r.json()).then(notas => {
-                            for (const [criterioId, nivel] of Object.entries(notas)) {
                                 let btn = document.getElementById(`btn-${criterioId}-${nivel}`);
                                 if (btn) btn.classList.add("selected");
                             }
@@ -1561,22 +1588,52 @@
 
                 if (conf.modo_evaluacion === 'POR_ACTIVIDADES') {
                     url = "/api/evaluacion/actividades/guardar_alumno_masivo";
+                    const actRows = Array.from(trs).filter(tr => tr.id.startsWith("act-row-"));
                     payload = {
                         alumno_id: parseInt(alumId),
                         trimestre: trimestreSelect.value,
-                        evaluaciones: Array.from(trs).map(tr => ({
-                            actividad_id: parseInt(tr.id.replace("row-act-", "")),
+                        evaluaciones: actRows.map(tr => ({
+                            actividad_id: parseInt(tr.id.replace("act-row-", "")),
                             nivel: nivel
                         }))
                     };
                 } else {
-                    payload.evaluaciones = Array.from(trs).map(tr => ({
+                    const critRows = Array.from(trs).filter(tr => tr.id.startsWith("row-"));
+                    payload.evaluaciones = critRows.map(tr => ({
                         alumno_id: parseInt(alumId),
                         criterio_id: parseInt(tr.id.replace("row-", "")),
                         nivel: nivel,
-                        sda_id: sdaSelect.value || null
+                        sda_id: (sdaSelect.value === 'null' || !sdaSelect.value || sdaSelect.value === 'directo') ? null : parseInt(sdaSelect.value)
                     }));
                 }
+
+                // Feedback visual instantáneo para evitar sensación de que no funciona
+                const esInfantil = conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_');
+                const colors = esInfantil ? ['#dc3545', '#ffc107', '#28a745'] : ['#ff4d4d', '#ffcc00', '#2ecc71', '#3498db'];
+                trs.forEach(tr => {
+                    const selector = conf.modo_evaluacion === 'POR_ACTIVIDADES' ? '.btn-nivel-act' : '.btn-nivel, .btn-nivel-sda';
+                    const btns = tr.querySelectorAll(selector);
+                    btns.forEach(btn => {
+                        const nBtn = parseInt(btn.getAttribute('data-nivel'));
+                        if (nBtn === nivel) {
+                            if (btn.classList.contains('btn-nivel')) {
+                                btn.classList.add('selected');
+                            } else {
+                                btn.style.background = colors[nivel - 1];
+                                btn.style.color = 'white';
+                                btn.style.borderColor = colors[nivel - 1];
+                            }
+                        } else {
+                            if (btn.classList.contains('btn-nivel')) {
+                                btn.classList.remove('selected');
+                            } else {
+                                btn.style.background = '';
+                                btn.style.color = '';
+                                btn.style.borderColor = '#e0e0e0';
+                            }
+                        }
+                    });
+                });
 
                 try {
                     const res = await fetch(url, {
@@ -1586,7 +1643,7 @@
                     });
                     const data = await res.json();
                     if (data.ok) {
-                        cargarNotasExistentes();
+                        cargarCuadernoUnificado();
                         cargarMedia();
                         cargarResumenAlumno();
                     } else {
@@ -1606,12 +1663,27 @@
                 const areaId = conf.id;
                 const trimestre = trimestreSelect.value;
 
-                // Usamos el endpoint de borrado de evaluacion
-                const url = sdaId ? `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=${sdaId}&trimestre=${trimestre}`
-                    : `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=null&area_id=${areaId}&trimestre=${trimestre}`;
+                // Usamos el endpoint de borrado según el modo
+                let url;
+                if (conf.modo_evaluacion === 'POR_ACTIVIDADES') {
+                    url = `/api/evaluacion/actividades/limpiar?alumno_id=${alumId}&area_id=${areaId}&trimestre=${trimestre}`;
+                    if (sdaId && sdaId !== 'null' && sdaId !== 'directo') url += `&sda_id=${sdaId}`;
+                } else {
+                    const sid = (sdaId && sdaId !== 'null' && sdaId !== 'directo') ? sdaId : 'null';
+                    url = `/api/evaluacion/sda/?alumno_id=${alumId}&sda_id=${sid}&area_id=${areaId}&trimestre=${trimestre}`;
+                }
 
                 fetch(url, { method: 'DELETE' }).then(r => r.json()).then(d => {
                     if (d.ok) {
+                        // Resetear etiquetas de media visualmente de inmediato
+                        document.getElementById("mediaSDA").innerText = "📊 Resultado: —";
+                        document.getElementById("mediaArea").innerText = "📈 Resultado del Área: —";
+                        document.getElementById("mediaSDA").style.color = "#333";
+
+                        // En vistas unificadas, recargar todo el cuaderno
+                        if (conf.modo_evaluacion === 'POR_ACTIVIDADES' || conf.modo_evaluacion === 'POR_SA') {
+                            cargarCuadernoUnificado();
+                        }
                         cargarNotasExistentes();
                         cargarMedia();
                         cargarResumenAlumno();
@@ -1766,13 +1838,13 @@
                         <td style="text-align:left;">${act.nombre}${act.descripcion ? `<br><small style="color:#888;">${act.descripcion}</small>` : ''}</td>`;
                     if (esInfantil) {
                         const mapping = [
-                            { n: 1, label: "NI/PA: No Inic. / Poco Adeq.", db: "NI/PA" },
-                            { n: 2, label: "EP/AD: En Proc. / Adecuado", db: "EP/AD" },
-                            { n: 3, label: "CO/MA: Cons. / Muy Adeq.", db: "CO/MA" }
+                            { n: 1, label: isPama ? 'PA' : "NI/PA", db: isPama ? 'PA' : "NI/PA" },
+                            { n: 2, label: isPama ? 'AD' : "EP/AD", db: isPama ? 'AD' : "EP/AD" },
+                            { n: 3, label: isPama ? 'MA' : "CO/MA", db: isPama ? 'MA' : "CO/MA" }
                         ];
-                        tr.innerHTML = nombreCell + `<td><div style="display:flex;gap:6px;justify-content:center;">${mapping.map(m => `<button class="btn-nivel" data-label="${m.db}" data-actividad="${act.id}" data-nivel="${m.n}"
+                        tr.innerHTML = nombreCell + `<td><div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; max-width:350px; margin:0 auto;">${mapping.map(m => `<button class="btn-nivel" data-label="${m.db}" data-actividad="${act.id}" data-nivel="${m.n}"
                                 onclick="guardarActividad(${act.id},${m.n})" id="btn-act-${act.id}-${m.n}"
-                                style="font-weight:700;min-width:110px;padding:6px 4px;font-size:0.7rem;">${m.label}</button>`).join('')
+                                style="font-weight:700;min-width:100%;padding:6px 4px;font-size:0.7rem;">${m.label}</button>`).join('')
                             }</div></td>`;
                     } else {
                         tr.innerHTML = nombreCell + `<td>${[1, 2, 3, 4].map(n =>
@@ -1893,6 +1965,26 @@
                         return;
                     }
 
+                    // Actualizar dropdown de SDAs si estamos en modo POR_ACTIVIDADES o POR_SA
+                    if ((data.modo === 'POR_ACTIVIDADES' || data.modo === 'POR_SA') && data.sdas) {
+                        const sdaSelectEl = document.getElementById('sda');
+
+                        if (sdaSelectEl && data.sdas.length > 0) {
+                            // Guardar SDA seleccionada actual
+                            const sdaSeleccionada = sdaSelectEl.value;
+
+                            // Llenar dropdown con TODAS las SDAs del backend
+                            let options = `<option value="null" ${!sdaSeleccionada || sdaSeleccionada === 'null' ? 'selected' : ''}>-- Todas las SA --</option>`;
+                            data.sdas.forEach(s => {
+                                const isSelected = sdaSeleccionada && sdaSeleccionada === s.id.toString();
+                                options += `<option value="${s.id}" ${isSelected ? 'selected' : ''}>${s.nombre}</option>`;
+                            });
+                            sdaSelectEl.innerHTML = options;
+                        } else if (sdaSelectEl && data.sdas.length === 0) {
+                            sdaSelectEl.innerHTML = '<option value="" disabled selected>No hay SDAs</option>';
+                        }
+                    }
+
                     // Actualizar UI según el modo
                     if (data.modo === 'POR_ACTIVIDADES') {
                         renderVistaActividades(data);
@@ -1922,7 +2014,7 @@
                 // Configurar labels y niveles según etapa
                 let labels, niveles;
                 if (esInfantil) {
-                    labels = ['NI/PA', 'EP/AD', 'CO/MA'];
+                    labels = esPama ? ['PA', 'AD', 'MA'] : ['NI/PA', 'EP/AD', 'CO/MA'];
                     niveles = [1, 2, 3];
                 } else {
                     labels = ['1', '2', '3', '4'];
@@ -1952,7 +2044,7 @@
 
                 // Colores para Infantil vs Primaria
                 const colors = esInfantil
-                    ? ['#ef4444', '#f59e0b', '#10b981']  // NI/EP/CO o PA/AD/MA
+                    ? ['#dc3545', '#ffc107', '#28a745']  // NI/EP/CO o PA/AD/MA
                     : ['#ff4d4d', '#ffcc00', '#2ecc71', '#3498db'];  // 1-4
 
                 actividades.forEach(act => {
@@ -1985,8 +2077,8 @@
                                     data-nivel="${n}"
                                     onclick="guardarActividad(${act.id}, ${n}, this)"
                                     id="btn-act-${act.id}-${n}"
-                                    style="font-weight:700; min-width:${esInfantil ? '60px' : '50px'}; padding:6px 8px; margin:2px; border:2px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.2s; ${style}"
-                                    onmouseover="this.style.transform='scale(1.1)'"
+                                    style="font-weight:700; width:100%; padding:6px 8px; margin:0; border:2px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.2s; ${style}"
+                                    onmouseover="this.style.transform='scale(1.05)'"
                                     onmouseout="this.style.transform='scale(1)'">
                                     ${labels[idx]}
                                 </button>`;
@@ -2000,7 +2092,7 @@
                             <div style="margin-top:6px;">${criteriosHtml} ${sdaBadge}</div>
                         </td>
                         <td>
-                            <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
+                            <div style="display:grid; grid-template-columns: repeat(${niveles.length}, 1fr); gap:6px; max-width:${esInfantil ? '350px' : '220px'}; margin:0 auto;">
                                 ${botonesHtml}
                             </div>
                         </td>
@@ -2017,6 +2109,32 @@
                 if (!alumId) {
                     alert("Selecciona un alumno primero.");
                     return;
+                }
+
+                // Limpiar botones hermanos antes de guardar
+                if (element) {
+                    const container = element.parentElement;
+                    const btns = container.querySelectorAll('button');
+                    const conf = getAreaConfig();
+                    const esInfantil = conf && conf.etapa === 'INFANTIL';
+                    const colors = esInfantil
+                        ? ['#dc3545', '#ffc107', '#28a745']
+                        : ['#ff4d4d', '#ffcc00', '#2ecc71', '#3498db'];
+
+                    // Resetear todos los botones al estado no seleccionado
+                    btns.forEach((btn, idx) => {
+                        btn.style.background = '';
+                        btn.style.color = '';
+                        btn.style.borderColor = '#e0e0e0';
+                    });
+
+                    // Aplicar estilo al botón seleccionado
+                    const idx = Array.from(btns).indexOf(element);
+                    if (idx >= 0 && idx < colors.length) {
+                        element.style.background = colors[idx];
+                        element.style.color = 'white';
+                        element.style.borderColor = colors[idx];
+                    }
                 }
 
                 // Recargar vista completa para mostrar estado actualizado
@@ -2040,9 +2158,6 @@
                         return;
                     }
 
-                    // Recargar vista completa para mostrar estado actualizado
-                    cargarCuadernoUnificado();
-
                     // Recargar medias
                     cargarMedia();
                     cargarResumenAlumno();
@@ -2053,10 +2168,307 @@
                 }
             };
 
+            // Función para guardar criterios en modo POR_SA
+            window.guardarCriterioSDA = async function (criterio_id, nivel, element, sda_id) {
+                const alumId = alumnoSelect.value;
+                const trimestre = trimestreSelect.value;
+                const areaId = areaSelect.value;
+
+                if (!alumId) {
+                    alert("Selecciona un alumno primero.");
+                    return;
+                }
+
+                console.log('[guardarCriterioSDA] Guardando:', { alumno_id: alumId, area_id: areaId, criterio_id, nivel, sda_id, trimestre });
+
+                // Limpiar botones hermanos antes de guardar
+                if (element) {
+                    const container = element.parentElement;
+                    const btns = container.querySelectorAll('button');
+                    const conf = getAreaConfig();
+                    const esInfantil = conf && conf.etapa === 'INFANTIL';
+                    const colors = esInfantil
+                        ? ['#dc3545', '#ffc107', '#28a745']
+                        : ['#ff4d4d', '#ffcc00', '#2ecc71', '#3498db'];
+
+                    // Resetear todos los botones al estado no seleccionado
+                    btns.forEach((btn, idx) => {
+                        btn.style.background = '';
+                        btn.style.color = '';
+                        btn.style.borderColor = '#e0e0e0';
+                    });
+
+                    // Aplicar estilo al botón seleccionado
+                    const idx = Array.from(btns).indexOf(element);
+                    if (idx >= 0 && idx < colors.length) {
+                        element.style.background = colors[idx];
+                        element.style.color = 'white';
+                        element.style.borderColor = colors[idx];
+                    }
+                }
+
+                try {
+                    const res = await fetch('/api/evaluacion/sda/guardar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            alumno_id: parseInt(alumId),
+                            area_id: parseInt(areaId),
+                            criterio_id: criterio_id,
+                            nivel: nivel,
+                            sda_id: sda_id ? parseInt(sda_id) : null,
+                            trimestre: parseInt(trimestre)
+                        })
+                    });
+
+                    const data = await res.json();
+                    console.log('[guardarCriterioSDA] Respuesta:', data);
+
+                    if (!data.ok) {
+                        alert("Error: " + (data.error || "No se pudo guardar"));
+                        return;
+                    }
+
+                    // Recargar medias
+                    cargarMedia();
+                    cargarResumenAlumno();
+
+                } catch (e) {
+                    console.error("Error guardando criterio SDA:", e);
+                    alert("Error de conexión.");
+                }
+            };
+
+            // Función para evaluar SDA directamente (sin criterios)
+            window.guardarSDADirecta = async function (sda_id, nivel, element) {
+                const alumId = alumnoSelect.value;
+                const trimestre = trimestreSelect.value;
+                const areaId = areaSelect.value;
+
+                if (!alumId) {
+                    alert("Selecciona un alumno primero.");
+                    return;
+                }
+
+                // Limpiar botones hermanos antes de guardar
+                if (element) {
+                    const container = element.parentElement;
+                    const btns = container.querySelectorAll('button');
+                    const conf = getAreaConfig();
+                    const esInfantil = conf && conf.etapa === 'INFANTIL';
+                    const colors = esInfantil
+                        ? ['#dc3545', '#ffc107', '#28a745']
+                        : ['#ff4d4d', '#ffcc00', '#2ecc71', '#3498db'];
+
+                    // Resetear todos los botones al estado no seleccionado
+                    btns.forEach((btn, idx) => {
+                        btn.style.background = '';
+                        btn.style.color = '';
+                        btn.style.borderColor = '#e0e0e0';
+                    });
+
+                    // Aplicar estilo al botón seleccionado
+                    const idx = Array.from(btns).indexOf(element);
+                    if (idx >= 0 && idx < colors.length) {
+                        element.style.background = colors[idx];
+                        element.style.color = 'white';
+                        element.style.borderColor = colors[idx];
+                    }
+                }
+
+                try {
+                    const res = await fetch('/api/evaluacion/sda/guardar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            alumno_id: parseInt(alumId),
+                            area_id: parseInt(areaId),
+                            criterio_id: null,  // null indica evaluación directa de SDA
+                            nivel: nivel,
+                            sda_id: parseInt(sda_id),
+                            trimestre: parseInt(trimestre)
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.ok) {
+                        alert("Error: " + (data.error || "No se pudo guardar"));
+                        return;
+                    }
+
+                    // Recargar medias
+                    cargarMedia();
+                    cargarResumenAlumno();
+
+                } catch (e) {
+                    console.error("Error guardando SDA directa:", e);
+                    alert("Error de conexión.");
+                }
+            };
+
             function renderVistaSDA(data) {
-                // Mantener comportamiento existente para POR_SA
-                // Esta función puede llamarse desde el endpoint unificado
-                cargarCriteriosSA();
+                const { sdas, criterios, evaluaciones, escala_evaluacion, alumnos } = data;
+                const alumnoId = alumnos[0]?.id;
+
+                console.log('[renderVistaSDA] Datos recibidos:', {
+                    sdasCount: sdas ? sdas.length : 0,
+                    criteriosCount: criterios ? criterios.length : 0,
+                    evaluacionesCount: evaluaciones ? Object.keys(evaluaciones).length : 0,
+                    alumnoId: alumnoId,
+                    alumnos: alumnos
+                });
+                if (evaluaciones) {
+                    console.log('[renderVistaSDA] Claves de evaluaciones:', Object.keys(evaluaciones));
+                }
+                
+                const conf = getAreaConfig() || {};
+
+                // Determinar si es Infantil según la escala
+                const esInfantil = escala_evaluacion && escala_evaluacion.tipo.startsWith('INFANTIL_');
+
+                // Configurar labels y niveles según etapa
+                let labels, niveles, colors;
+                if (esInfantil) {
+                    const isPama = conf.tipo_escala === 'INFANTIL_PA_A_MA';
+                    labels = isPama
+                        ? ['PA', 'AD', 'MA']
+                        : ['NI/PA', 'EP/AD', 'CO/MA'];
+                    niveles = [1, 2, 3];
+                    colors = ['#dc3545', '#ffc107', '#28a745'];
+                } else {
+                    labels = ['1', '2', '3', '4'];
+                    niveles = [1, 2, 3, 4];
+                    colors = ['#ff4d4d', '#ffcc00', '#2ecc71', '#3498db'];
+                }
+
+                // Crear mapa de criterios
+                const critMap = {};
+                criterios.forEach(c => { critMap[c.id] = c; });
+
+                thead.innerHTML = `<tr>
+                    <th style="width:80px;">Código</th>
+                    <th style="text-align:left;">SDA / Criterios</th>
+                    <th style="width:${esInfantil ? '220px' : '280px'};">Nivel</th>
+                </tr>`;
+
+                tbody.innerHTML = "";
+
+                if (!sdas || sdas.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="padding:20px; color:#666; text-align:center;">
+                        No hay SDAs registradas para esta área/trimestre.
+                    </td></tr>`;
+                    return;
+                }
+
+                const sdaSeleccionada = document.getElementById("sda")?.value;
+                const sdasARenderizar = (sdaSeleccionada && sdaSeleccionada !== 'null') 
+                    ? sdas.filter(s => s.id.toString() === sdaSeleccionada)
+                    : sdas;
+
+                if (sdasARenderizar.length === 0) {
+                     tbody.innerHTML = `<tr><td colspan="3" style="padding:20px; color:#666; text-align:center;">
+                        No se encontró la SDA seleccionada.
+                    </td></tr>`;
+                    return;
+                }
+
+                // Renderizar cada SDA con sus criterios
+                sdasARenderizar.forEach(sda => {
+                    // Fila de cabecera de la SDA
+                    const trSda = document.createElement('tr');
+                    trSda.innerHTML = `<td colspan="3" style="background:#e8f4fd; color:#0056a0; font-weight:700; padding:10px 15px; font-size:0.9rem; border-left:4px solid #007bff;">
+                        📚 ${sda.nombre}
+                    </td>`;
+                    tbody.appendChild(trSda);
+
+                    // Obtener criterios de esta SDA
+                    const criteriosSda = sda.criterio_ids || [];
+
+                    if (criteriosSda.length === 0) {
+                        // Permitir evaluar la SDA directamente sin criterios
+                        const trSdaEval = document.createElement('tr');
+                        trSdaEval.id = `sda-row-${sda.id}`;
+
+                        // Las evaluaciones directas de SDA usan clave especial "{alumnoId}_sda_{sdaId}"
+                        const nivelActual = evaluaciones[`${alumnoId}_sda_${sda.id}`] || 0;
+
+                        const botonesHtml = niveles.map((n, idx) => {
+                            const isSelected = nivelActual === n;
+                            const style = isSelected
+                                ? `background:${colors[idx]}; color:white; border-color:${colors[idx]};`
+                                : '';
+                            return `<button class="btn-nivel-sda"
+                                        data-sda="${sda.id}"
+                                        data-nivel="${n}"
+                                        onclick="guardarSDADirecta(${sda.id}, ${n}, this)"
+                                        id="btn-sda-${sda.id}-${n}"
+                                        style="font-weight:700; min-width:${esInfantil ? '110px' : '50px'}; padding:6px 4px; margin:2px; border:2px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.2s; font-size:${esInfantil ? '0.7rem' : '1rem'}; ${style}"
+                                        onmouseover="this.style.transform='scale(1.1)'"
+                                        onmouseout="this.style.transform='scale(1)'">
+                                        ${labels[idx]}
+                                    </button>`;
+                        }).join('');
+
+                        trSdaEval.innerHTML = `
+                            <td colspan="2" style="text-align:left; padding:10px 15px;">
+                                <div style="font-weight:600;">Evaluar SDA directamente</div>
+                                <div style="font-size:0.8rem; color:#999; font-style:italic;">Sin criterios vinculados</div>
+                            </td>
+                            <td>
+                                <div style="display:grid; grid-template-columns: repeat(${niveles.length}, 1fr); gap:6px; max-width:${esInfantil ? '350px' : '220px'}; margin:0 auto;">
+                                    ${botonesHtml}
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(trSdaEval);
+                        return;
+                    }
+
+                    // Renderizar cada criterio
+                    criteriosSda.forEach(critId => {
+                        const crit = critMap[critId];
+                        if (!crit) return;
+
+                        const tr = document.createElement('tr');
+                        tr.id = `row-${critId}`;
+
+                        const nivelActual = evaluaciones[`${alumnoId}_${critId}`] || 0;
+                        console.log(`[renderVistaSDA] Criterio ${critId} (${crit.codigo}): alumnoId=${alumnoId}, nivelActual=${nivelActual}, evaluaciones key=${alumnoId}_${critId}, valor=${evaluaciones[`${alumnoId}_${critId}`]}`);
+
+                        // Generar botones según la etapa
+                        const botonesHtml = niveles.map((n, idx) => {
+                            const isSelected = nivelActual === n;
+                            const style = isSelected
+                                ? `background:${colors[idx]}; color:white; border-color:${colors[idx]};`
+                                : '';
+                            return `<button class="btn-nivel-sda"
+                                        data-crit="${critId}"
+                                        data-nivel="${n}"
+                                        onclick="guardarCriterioSDA(${critId}, ${n}, this, '${sda.id}')"
+                                        id="btn-${critId}-${n}"
+                                        style="font-weight:700; width:100%; padding:6px 4px; margin:0; border:2px solid #e0e0e0; border-radius:6px; cursor:pointer; transition:all 0.2s; font-size:${esInfantil ? '0.7rem' : '1rem'}; ${style}"
+                                        onmouseover="this.style.transform='scale(1.05)'"
+                                        onmouseout="this.style.transform='scale(1)'">
+                                        ${labels[idx]}
+                                    </button>`;
+                        }).join('');
+
+                        tr.innerHTML = `
+                            <td><strong style="font-size:0.78rem; color:#555;">${crit.codigo || '—'}</strong></td>
+                            <td style="text-align:left;">
+                                <div style="font-weight:600; margin-bottom:2px;">${crit.descripcion || crit.codigo}</div>
+                            </td>
+                            <td>
+                                <div style="display:grid; grid-template-columns: repeat(${niveles.length}, 1fr); gap:6px; max-width:${esInfantil ? '350px' : '220px'}; margin:0 auto;">
+                                    ${botonesHtml}
+                                </div>
+                            </td>
+                        `;
+
+                        tbody.appendChild(tr);
+                    });
+                });
             }
 
             function renderVistaCriteriosDirectos(data) {
@@ -2068,20 +2480,27 @@
                 const elMediaSDA = document.getElementById("mediaSDA");
                 const elMediaArea = document.getElementById("mediaArea");
 
-                if (elMediaSDA && medias.criterios) {
-                    // Mostrar media de criterios individuales si hay
-                    const criteriosCount = Object.keys(medias.criterios).length;
-                    if (criteriosCount > 0) {
+                if (elMediaSDA) {
+                    const label = (conf.tipo_escala && conf.tipo_escala.startsWith('INFANTIL_')) ? "Media de la SA" : "Media criterios";
+                    if (medias.criterios && Object.keys(medias.criterios).length > 0) {
                         const suma = Object.values(medias.criterios).reduce((a, b) => a + b, 0);
-                        const mediaCrit = suma / criteriosCount;
-                        elMediaSDA.innerText = `📊 Media criterios: ${mediaCrit.toFixed(2)}`;
+                        const mediaCrit = suma / Object.keys(medias.criterios).length;
+                        elMediaSDA.innerText = `📊 ${label}: ${formatNota(mediaCrit, conf.tipo_escala)}`;
                         elMediaSDA.style.color = getColorNota(mediaCrit, conf.tipo_escala);
+                    } else {
+                        elMediaSDA.innerText = `📊 ${label}: —`;
+                        elMediaSDA.style.color = '#333';
                     }
                 }
 
-                if (elMediaArea && medias.area !== null) {
-                    elMediaArea.innerText = `📈 Resultado del Área: ${medias.area.toFixed(2)}`;
-                    elMediaArea.style.color = getColorNota(medias.area, conf.tipo_escala);
+                if (elMediaArea) {
+                    if (medias.area !== null && medias.area !== undefined) {
+                        elMediaArea.innerText = `📈 Resultado del Área: ${formatNota(medias.area, conf.tipo_escala)}`;
+                        elMediaArea.style.color = getColorNota(medias.area, conf.tipo_escala);
+                    } else {
+                        elMediaArea.innerText = `📈 Resultado del Área: —`;
+                        elMediaArea.style.color = '#28a745';
+                    }
                 }
             }
 

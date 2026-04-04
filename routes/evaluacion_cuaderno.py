@@ -144,7 +144,7 @@ def cuaderno_unificado():
                        (SELECT MIN(fecha) FROM sesiones_actividad WHERE actividad_id = a.id) as min_fecha
                 FROM actividades_sda a
                 JOIN sda s ON a.sda_id = s.id
-                WHERE s.area_id = ? AND s.trimestre = ? AND a.sda_id = ?
+                WHERE s.area_id = ? AND (s.trimestre = ? OR s.trimestre IS NULL) AND a.sda_id = ?
                   AND (s.grupo_id = ? OR s.grupo_id IS NULL)
                 ORDER BY s.nombre, min_fecha, a.id
             """, (area_id, trimestre, sda_id, grupo_id)).fetchall()
@@ -155,13 +155,31 @@ def cuaderno_unificado():
                        (SELECT MIN(fecha) FROM sesiones_actividad WHERE actividad_id = a.id) as min_fecha
                 FROM actividades_sda a
                 JOIN sda s ON a.sda_id = s.id
-                WHERE s.area_id = ? AND s.trimestre = ?
+                WHERE s.area_id = ? AND (s.trimestre = ? OR s.trimestre IS NULL)
                   AND (s.grupo_id = ? OR s.grupo_id IS NULL)
                 ORDER BY s.nombre, min_fecha, a.id
             """, (area_id, trimestre, grupo_id)).fetchall()
         
         actividades = [dict(a) for a in actividades_rows]
         actividad_ids = [a["id"] for a in actividades]
+
+        # Obtener TODAS las SDAs del área/trimestre para el dropdown (siempre todas, no solo la seleccionada)
+        sdas_rows = cur.execute("""
+            SELECT DISTINCT s.id, s.nombre, s.trimestre
+            FROM sda s
+            JOIN actividades_sda a ON a.sda_id = s.id
+            WHERE s.area_id = ? AND (s.trimestre = ? OR s.trimestre IS NULL)
+              AND (s.grupo_id = ? OR s.grupo_id IS NULL)
+            ORDER BY s.nombre
+        """, (area_id, trimestre, grupo_id)).fetchall()
+
+        sdas = []
+        for s in sdas_rows:
+            sda_dict = dict(s)
+            # Formatear nombre con trimestre para el frontend
+            if s["trimestre"]:
+                sda_dict["nombre"] = f"[T{s['trimestre']}] {s['nombre']}"
+            sdas.append(sda_dict)
         
         # Obtener criterios del área (para mostrar en resumen)
         criterios = cur.execute("""
@@ -190,36 +208,46 @@ def cuaderno_unificado():
                 act["criterio_ids"] = []
         
         # Calcular medias (esto puebla medias[alumno_id]["criterios"])
-        medias = _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, area["tipo_escala"])
-        
-        # Para que el cuaderno (que muestra criterios) tenga datos, 
-        # aplanamos las medias de los criterios en el objeto evaluaciones.
+        medias = _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, area["tipo_escala"], sda_id)
+
+        # Obtener evaluaciones de actividades para mostrar en el cuaderno
         evaluaciones = {}
-        for alum_id_str, m_data in medias.items():
-            if "criterios" in m_data:
-                for crit_id_str, nota_media in m_data["criterios"].items():
-                    # El nivel es la nota redondeada (asumiendo escala 1-4 o similar)
-                    evaluaciones[f"{alum_id_str}_{crit_id_str}"] = int(round(nota_media))
         
+        if actividad_ids and alumno_ids:
+            act_placeholders = ",".join("?" * len(actividad_ids))
+            alum_placeholders = ",".join("?" * len(alumno_ids))
+            
+            evals = cur.execute(f"""
+                SELECT alumno_id, actividad_id, nivel
+                FROM evaluaciones_actividad
+                WHERE actividad_id IN ({act_placeholders})
+                  AND alumno_id IN ({alum_placeholders})
+                  AND trimestre = ?
+            """, actividad_ids + alumno_ids + [trimestre]).fetchall()
+            
+            evaluaciones = {
+                f"{e['alumno_id']}_{e['actividad_id']}": e['nivel']
+                for e in evals
+            }
+
     elif modo == "POR_SA":
         # Obtener SDAs del área/trimestre
-        if sda_id and sda_id not in ('', 'null', '0'):
-            sdas_rows = cur.execute("""
-                SELECT s.id, s.nombre, s.trimestre
-                FROM sda s
-                WHERE s.area_id = ? AND s.trimestre = ? AND s.id = ?
-                  AND (s.grupo_id = ? OR s.grupo_id IS NULL)
-            """, (area_id, trimestre, sda_id, grupo_id)).fetchall()
-        else:
-            sdas_rows = cur.execute("""
-                SELECT s.id, s.nombre, s.trimestre
-                FROM sda s
-                WHERE s.area_id = ? AND s.trimestre = ?
-                  AND (s.grupo_id = ? OR s.grupo_id IS NULL)
-                ORDER BY s.nombre
-            """, (area_id, trimestre, grupo_id)).fetchall()
-        
-        sdas = [dict(s) for s in sdas_rows]
+        # Obtener TODAS las SDAs del área/trimestre para el dropdown (siempre todas, no solo la seleccionada)
+        sdas_rows = cur.execute("""
+            SELECT s.id, s.nombre, s.trimestre
+            FROM sda s
+            WHERE s.area_id = ? AND (s.trimestre = ? OR s.trimestre IS NULL)
+              AND (s.grupo_id = ? OR s.grupo_id IS NULL)
+            ORDER BY s.nombre
+        """, (area_id, trimestre, grupo_id)).fetchall()
+
+        sdas = []
+        for s in sdas_rows:
+            sda_dict = dict(s)
+            # Formatear nombre con trimestre para el frontend
+            if s["trimestre"]:
+                sda_dict["nombre"] = f"[T{s['trimestre']}] {s['nombre']}"
+            sdas.append(sda_dict)
         sda_ids = [s["id"] for s in sdas]
         
         # Obtener criterios de las SDAs
@@ -259,8 +287,9 @@ def cuaderno_unificado():
         if criterio_ids and alumno_ids:
             crit_placeholders = ",".join("?" * len(criterio_ids))
             alum_placeholders = ",".join("?" * len(alumno_ids))
-            
+
             if sda_id and sda_id not in ('', 'null', '0'):
+                # Evaluaciones para una SDA específica
                 evals = cur.execute(f"""
                     SELECT alumno_id, criterio_id, nivel
                     FROM evaluaciones
@@ -269,7 +298,9 @@ def cuaderno_unificado():
                       AND sda_id = ?
                       AND trimestre = ?
                 """, criterio_ids + alumno_ids + [sda_id, trimestre]).fetchall()
-            else:
+            elif sda_ids:
+                # Evaluaciones para todas las SDAs del área/trimestre
+                sda_placeholders = ",".join("?" * len(sda_ids))
                 evals = cur.execute(f"""
                     SELECT alumno_id, criterio_id, nivel
                     FROM evaluaciones
@@ -277,19 +308,47 @@ def cuaderno_unificado():
                       AND alumno_id IN ({alum_placeholders})
                       AND area_id = ?
                       AND trimestre = ?
-                      AND sda_id IS NULL
+                      AND sda_id IN ({sda_placeholders})
+                """, criterio_ids + alumno_ids + [area_id, trimestre] + sda_ids).fetchall()
+            else:
+                # Sin SDAs, buscar evaluaciones generales del área
+                evals = cur.execute(f"""
+                    SELECT alumno_id, criterio_id, nivel
+                    FROM evaluaciones
+                    WHERE criterio_id IN ({crit_placeholders})
+                      AND alumno_id IN ({alum_placeholders})
+                      AND area_id = ?
+                      AND trimestre = ?
                 """, criterio_ids + alumno_ids + [area_id, trimestre]).fetchall()
-            
+
             evaluaciones = {
                 f"{e['alumno_id']}_{e['criterio_id']}": e['nivel']
                 for e in evals
             }
+            
+            # También obtener evaluaciones directas de SDA (criterio_id = NULL)
+            if sda_ids and alumno_ids:
+                sda_placeholders_direct = ",".join("?" * len(sda_ids))
+                alum_placeholders_direct = ",".join("?" * len(alumno_ids))
+                evals_direct = cur.execute(f"""
+                    SELECT alumno_id, sda_id, nivel
+                    FROM evaluaciones
+                    WHERE criterio_id IS NULL
+                      AND alumno_id IN ({alum_placeholders_direct})
+                      AND area_id = ?
+                      AND trimestre = ?
+                      AND sda_id IN ({sda_placeholders_direct})
+                """, alumno_ids + [area_id, trimestre] + sda_ids).fetchall()
+                
+                for e in evals_direct:
+                    # Usar una clave especial para evaluaciones directas de SDA
+                    evaluaciones[f"{e['alumno_id']}_sda_{e['sda_id']}"] = e['nivel']
         else:
             evaluaciones = {}
-        
+
         # Calcular medias
         medias = _calcular_medias_sda(cur, alumno_ids, area_id, trimestre, sda_id)
-        
+
     else:  # POR_CRITERIOS_DIRECTOS
         # Obtener criterios activados para el periodo
         periodo = f"T{trimestre}"
@@ -367,7 +426,7 @@ def cuaderno_unificado():
         return jsonify({"error": str(e), "ok": False}), 500
 
 
-def _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, tipo_escala):
+def _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, tipo_escala, sda_id=None):
     """
     Calcula las medias para el modo POR_ACTIVIDADES.
     Para cada alumno:
@@ -382,6 +441,10 @@ def _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, tipo_escal
     """, (area_id,)).fetchall()
     criterio_ids = [c["id"] for c in criterios]
     
+    # Normalizar sda_id
+    if sda_id in ('', 'null', '0', 'None'):
+        sda_id = None
+    
     for alumno_id in alumno_ids:
         medias_alumno = {"criterios": {}, "area": None}
         
@@ -389,28 +452,27 @@ def _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, tipo_escal
         cuenta_criterios = 0
         
         for criterio_id in criterio_ids:
-            # Verificar si hay mapeo actividad_criterio
-            cur.execute("SELECT COUNT(*) as cuenta FROM actividad_criterio WHERE criterio_id = ?", (criterio_id,))
-            tiene_mapeo = cur.fetchone()["cuenta"] > 0
-            
-            if tiene_mapeo:
-                # Usar solo actividades mapeadas a este criterio
+            # Construir la consulta base según si hay sda_id o no
+            if target_sda := sda_id:
+                # Filtrar solo por actividades de la SA seleccionada
                 stats = cur.execute("""
                     SELECT AVG(ea.nota) as media_nota
                     FROM evaluaciones_actividad ea
                     JOIN actividades_sda a ON ea.actividad_id = a.id
                     JOIN actividad_criterio ac ON ac.actividad_id = a.id
-                    WHERE ea.alumno_id = ? AND ea.trimestre = ? AND ac.criterio_id = ?
-                """, (alumno_id, trimestre, criterio_id)).fetchone()
+                    WHERE ea.alumno_id = ? AND ea.trimestre = ? AND ac.criterio_id = ? AND a.sda_id = ?
+                """, (alumno_id, trimestre, criterio_id, target_sda)).fetchone()
             else:
-                # Usar todas las actividades de las SDAs que contienen este criterio
+                # Comportamiento anterior: Promediar todas las actividades del área
                 stats = cur.execute("""
                     SELECT AVG(ea.nota) as media_nota
                     FROM evaluaciones_actividad ea
                     JOIN actividades_sda a ON ea.actividad_id = a.id
-                    JOIN sda_criterios sc ON sc.sda_id = a.sda_id
-                    WHERE ea.alumno_id = ? AND ea.trimestre = ? AND sc.criterio_id = ?
-                """, (alumno_id, trimestre, criterio_id)).fetchone()
+                    JOIN actividad_criterio ac ON ac.actividad_id = a.id
+                    JOIN sda s ON a.sda_id = s.id
+                    WHERE ea.alumno_id = ? AND ea.trimestre = ? AND ac.criterio_id = ?
+                      AND s.area_id = ?
+                """, (alumno_id, trimestre, criterio_id, area_id)).fetchone()
             
             if stats["media_nota"] is not None:
                 medias_alumno["criterios"][str(criterio_id)] = round(stats["media_nota"], 2)
@@ -434,7 +496,28 @@ def _calcular_medias_sda(cur, alumno_ids, area_id, trimestre, sda_id=None):
     for alumno_id in alumno_ids:
         medias_alumno = {"criterios": {}, "area": None}
         
-        # Obtener media del área directamente
+        # 1. Calcular media por criterio para este alumno
+        if target_sda := sda_id:
+            # Solo evaluaciones vinculadas a esta SDA concreta
+            rows_crit = cur.execute("""
+                SELECT criterio_id, AVG(nota) as media_crit
+                FROM evaluaciones
+                WHERE alumno_id = ? AND sda_id = ? AND trimestre = ? AND criterio_id IS NOT NULL
+                GROUP BY criterio_id
+            """, (alumno_id, target_sda, trimestre)).fetchall()
+        else:
+            # Toda el área (Todas las SDAs + Evaluaciones directas)
+            rows_crit = cur.execute("""
+                SELECT criterio_id, AVG(nota) as media_crit
+                FROM evaluaciones
+                WHERE alumno_id = ? AND area_id = ? AND trimestre = ? AND criterio_id IS NOT NULL
+                GROUP BY criterio_id
+            """, (alumno_id, area_id, trimestre)).fetchall()
+        
+        for rc in rows_crit:
+            medias_alumno["criterios"][str(rc["criterio_id"])] = round(rc["media_crit"], 2)
+
+        # 2. Obtener media del área directamente (Promedio de todas las notas del área)
         if sda_id:
             row = cur.execute("""
                 SELECT ROUND(AVG(nota), 2) as media
@@ -442,10 +525,11 @@ def _calcular_medias_sda(cur, alumno_ids, area_id, trimestre, sda_id=None):
                 WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
             """, (alumno_id, sda_id, trimestre)).fetchone()
         else:
+            # Si no hay SDA específica, promedia TODO lo del área y trimestre para el alumno
             row = cur.execute("""
                 SELECT ROUND(AVG(nota), 2) as media
                 FROM evaluaciones
-                WHERE alumno_id = ? AND area_id = ? AND trimestre = ? AND sda_id IS NULL
+                WHERE alumno_id = ? AND area_id = ? AND trimestre = ?
             """, (alumno_id, area_id, trimestre)).fetchone()
         
         medias_alumno["area"] = row["media"] if row["media"] else None

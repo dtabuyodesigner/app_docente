@@ -37,14 +37,15 @@ El sistema detecta automáticamente la etapa educativa desde el **grupo seleccio
 
 ### Niveles de Logro (Infantil)
 
-| Nivel | Label | Color | Descripción |
-|-------|-------|-------|-------------|
-| 1 | **NI** | 🔴 Rojo | No Iniciado - No ha comenzado a adquirir el criterio |
-| 2 | **EP** | 🟠 Naranja | En Proceso - Está en proceso de adquisición |
-| 3 | **CO** | 🟢 Verde | Conseguido - Ha alcanzado el criterio |
+El cuaderno utiliza preferentemente acrónimos compuestos unificados para Infantil.
 
-**Otra escala disponible:**
-- **PA/AD/MA**: Parcialmente Adquirido / Adquirido / Muy Adquirido
+| Nivel | Label Pordefecto | Exclusivo PAMA | Descripción (Aproximada) |
+|-------|------------------|----------------|--------------------------|
+| 1 | **NI/PA** | **PA** | No Iniciado / Pocamente Adecuado |
+| 2 | **EP/AD** | **AD** | En Proceso / Adecuado |
+| 3 | **CO/MA** | **MA** | Conseguido / Muy Adecuado |
+
+*Nota: La aplicación dispone ahora de un formato en diseño de cuadrícula (`grid layout`) que asegura que todos los botones de nivel mantienen tamaños proporcionales para una interfaz táctil o de puntero más cómoda y agradable.*
 
 ## 🔄 Flujo de Evaluación (Infantil)
 

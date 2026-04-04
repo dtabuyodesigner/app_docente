@@ -477,3 +477,49 @@ def guardar_alumno_masivo():
     except Exception as e:
         db.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@evaluacion_actividades_bp.route("/limpiar", methods=["DELETE"])
+def limpiar_actividades():
+    """
+    Borra todas las evaluaciones de actividades de un alumno en un área/trimestre.
+    Parámetros: alumno_id, area_id, trimestre, sda_id (opcional).
+    """
+    alumno_id = request.args.get("alumno_id")
+    area_id = request.args.get("area_id")
+    trimestre = request.args.get("trimestre")
+    sda_id = request.args.get("sda_id")
+
+    if not alumno_id or not area_id or not trimestre:
+        return jsonify({"ok": False, "error": "Faltan parámetros"}), 400
+
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        cur.execute("BEGIN")
+        if sda_id and sda_id not in ("null", "directo", "", "0"):
+            cur.execute("""
+                DELETE FROM evaluaciones_actividad
+                WHERE alumno_id = ? AND trimestre = ?
+                  AND actividad_id IN (
+                      SELECT a.id FROM actividades_sda a
+                      JOIN sda s ON a.sda_id = s.id
+                      WHERE s.id = ? AND s.area_id = ?
+                  )
+            """, (alumno_id, trimestre, sda_id, area_id))
+        else:
+            cur.execute("""
+                DELETE FROM evaluaciones_actividad
+                WHERE alumno_id = ? AND trimestre = ?
+                  AND actividad_id IN (
+                      SELECT a.id FROM actividades_sda a
+                      JOIN sda s ON a.sda_id = s.id
+                      WHERE s.area_id = ?
+                  )
+            """, (alumno_id, trimestre, area_id))
+        db.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500

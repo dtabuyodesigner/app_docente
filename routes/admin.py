@@ -199,57 +199,42 @@ def check_updates():
                 "reason": "git_not_available"
             })
 
-        # Detectar rama actual
-        branch = "feature/refactor-evaluacion-curricular"
+        # Siempre comparar versión desde la rama de desarrollo (fuente de verdad)
+        dev_branch = "feature/refactor-evaluacion-curricular"
+        latest_version = APP_VERSION
         try:
-            branch_auto = subprocess.check_output(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                cwd=root_dir, stderr=subprocess.PIPE, timeout=3
-            ).decode().strip()
-            if branch_auto:
-                branch = branch_auto
+            import re as _re
+            version_url = f"https://raw.githubusercontent.com/{github_repo}/{dev_branch}/version.py"
+            rv = requests.get(version_url, timeout=4)
+            if rv.status_code == 200:
+                m = _re.search(r'APP_VERSION\s*=\s*["\']([^"\']+)["\']', rv.text)
+                if m:
+                    latest_version = m.group(1)
         except Exception:
             pass
 
-        # Consultar GitHub
-        commits_url = f"https://api.github.com/repos/{github_repo}/commits?sha={branch}&per_page=5"
+        # Si la versión remota es distinta → hay actualización (chequeo primario)
+        update_available = (latest_version != APP_VERSION)
+
+        # Consultar GitHub para lista de cambios
+        commits_url = f"https://api.github.com/repos/{github_repo}/commits?sha={dev_branch}&per_page=5"
         r = requests.get(commits_url, timeout=5, headers={
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "AppEvaluar-TeacherNotebook"
         })
 
-        if r.status_code != 200:
-            return jsonify({"ok": True, "update_available": False, "current_version": APP_VERSION})
-
-        commits = r.json()
+        commits = r.json() if r.status_code == 200 else []
         latest_sha = commits[0]["sha"] if commits else ""
-        
-        update_available = False
-        if latest_sha and local_sha and latest_sha != local_sha:
+
+        # Chequeo secundario por SHA (si git disponible y versiones coinciden)
+        if not update_available and latest_sha and local_sha and latest_sha != local_sha:
             try:
-                # Si latest_sha es ancestro de local_sha, local está actualizado o por delante (commits sin empujar)
                 subprocess.check_call(
                     ["git", "merge-base", "--is-ancestor", latest_sha, local_sha],
                     cwd=root_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
             except Exception:
-                # Si falla, latest_sha no es ancestro (o no existe localmente), por tanto hay actualización
                 update_available = True
-        elif latest_sha and not local_sha:
-            update_available = True
-
-        # Versión remota
-        latest_version = APP_VERSION
-        try:
-            version_url = f"https://raw.githubusercontent.com/{github_repo}/{branch}/version.py"
-            rv = requests.get(version_url, timeout=3)
-            if rv.status_code == 200:
-                import re
-                match = re.search(r'APP_VERSION\s*=\s*["\']([^"\']+)["\']', rv.text)
-                if match:
-                    latest_version = match.group(1)
-        except Exception:
-            pass
 
         cambios = []
         for c in commits:

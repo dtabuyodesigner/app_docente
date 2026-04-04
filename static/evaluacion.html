@@ -1127,15 +1127,15 @@
                     btnCriterioExtra.style.display = 'none';
                     document.getElementById("directControlsAction").style.display = 'none';
                     document.getElementById("btnResumenActividades").style.display = 'inline-block';
-                    // Usar la nueva vista unificada de actividades (ya incluye carga de SDAs)
-                    cargarCuadernoUnificado();
+                    if (modoTabla) { cargarCuadernoUnificado().then(() => cargarDatosTabla()); }
+                    else { cargarCuadernoUnificado(); }
                 } else if (conf.modo_evaluacion === 'POR_SA') {
                     lblSDA.style.display = 'flex';
                     btnCriterioExtra.style.display = 'inline-block';
                     document.getElementById("directControlsAction").style.display = 'none';
                     document.getElementById("btnResumenActividades").style.display = 'none';
-                    // Usar la vista unificada para POR_SA también
-                    cargarCuadernoUnificado();
+                    if (modoTabla) { cargarCuadernoUnificado().then(() => cargarDatosTabla()); }
+                    else { cargarCuadernoUnificado(); }
                 } else {
                     lblSDA.style.display = 'none';
                     btnCriterioExtra.style.display = 'none';

@@ -591,7 +591,7 @@
                     <div style="display:flex; gap:15px;">
                         <div class="form-group" style="flex:1;">
                             <label>Etapa</label>
-                            <select id="critEtapa" required>
+                            <select id="critEtapa" required onchange="cargarAreasCritModal(this.value)">
                                 <option value="Infantil">Infantil</option>
                                 <option value="Primaria">Primaria</option>
                                 <option value="Secundaria">Secundaria</option>
@@ -835,14 +835,11 @@
                 const datos = await r.json();
                 areaSelect.innerHTML = '<option value="" selected disabled>-- Seleccionar Área --</option>';
                 const filterArea = document.getElementById('filterArea');
-                const critArea = document.getElementById('critArea');
                 filterArea.innerHTML = '<option value="">Todas las Áreas</option>';
-                critArea.innerHTML = '';
                 datos.forEach(a => {
                     areasData[a.id] = a;
                     areaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
                     filterArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
-                    critArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
                 });
                 // Autodetectar etapa del grupo activo y actualizar selector
                 if (!etapa_id_override && datos.length > 0 && datos[0].etapa_id) {
@@ -851,6 +848,20 @@
                         etapaSel.value = datos[0].etapa_id;
                     }
                 }
+            }
+            // Carga áreas en el select del modal de criterios, filtradas por etapa nombre
+            const _etapaNameToId = { 'Infantil': 1, 'Primaria': 2, 'Secundaria': 3 };
+            const _etapaIdToName = { '1': 'Infantil', '2': 'Primaria', '3': 'Secundaria' };
+            async function cargarAreasCritModal(etapaNombre) {
+                const critArea = document.getElementById('critArea');
+                let url = '/api/curricular/areas';
+                if (etapaNombre && _etapaNameToId[etapaNombre]) url += '?etapa_id=' + _etapaNameToId[etapaNombre];
+                try {
+                    const r = await fetch(url);
+                    const areas = await r.json();
+                    critArea.innerHTML = '';
+                    areas.forEach(a => { critArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
+                } catch(e) { console.error('Error cargando áreas del modal:', e); }
             }
             window.cambiarEtapa = function (etapa_id) {
                 // Al cambiar la etapa, recargar las áreas filtradas
@@ -882,7 +893,15 @@
                             btnBack.onclick = null;
                         }
                     }
-                    cargarListaCriterios();
+                    // Auto-preseleccionar etapa del grupo activo en el filtro de criterios
+                    const filterEtapa = document.getElementById('filterEtapa');
+                    const activeEtapaNombre = _etapaIdToName[document.getElementById('etapaFiltro').value];
+                    if (activeEtapaNombre && !filterEtapa.value) {
+                        filterEtapa.value = activeEtapaNombre;
+                        filtrarEtapaCrit(activeEtapaNombre);
+                    } else {
+                        cargarListaCriterios();
+                    }
                 }
             };
             // Filtrado encadenado Etapa → Área en el panel de criterios
@@ -945,21 +964,32 @@
                     console.error(e);
                 }
             }
-            window.abrirModalNuevo = function () {
+            window.abrirModalNuevo = async function () {
                 document.getElementById('critId').value = '';
                 document.getElementById('critCodigo').value = '';
                 document.getElementById('critDescripcion').value = '';
-                if (document.getElementById('filterEtapa').value) document.getElementById('critEtapa').value = document.getElementById('filterEtapa').value;
-                if (document.getElementById('filterArea').value) document.getElementById('critArea').value = document.getElementById('filterArea').value;
+                // Default etapa: grupo activo > filtro etapa actual > Infantil
+                const activeEtapa = _etapaIdToName[document.getElementById('etapaFiltro').value]
+                    || document.getElementById('filterEtapa').value
+                    || 'Infantil';
+                document.getElementById('critEtapa').value = activeEtapa;
+                await cargarAreasCritModal(activeEtapa);
+                if (document.getElementById('filterArea').value) {
+                    document.getElementById('critArea').value = document.getElementById('filterArea').value;
+                }
                 document.getElementById('critActivo').checked = true;
                 document.getElementById('modalCritTitle').innerText = 'Nuevo Criterio';
                 document.getElementById('modalCriterio').style.display = 'flex';
             };
-            window.abrirModalEditar = function (c) {
+            window.abrirModalEditar = async function (c) {
                 document.getElementById('critId').value = c.id;
                 document.getElementById('critCodigo').value = c.codigo;
                 document.getElementById('critDescripcion').value = c.descripcion;
-                document.getElementById('critEtapa').value = c.etapa || 'Primaria';
+                // Etapa: la del criterio, o la del grupo activo como fallback
+                const activeEtapa = _etapaIdToName[document.getElementById('etapaFiltro').value] || 'Infantil';
+                const etapaValue = c.etapa || activeEtapa;
+                document.getElementById('critEtapa').value = etapaValue;
+                await cargarAreasCritModal(etapaValue);
                 document.getElementById('critArea').value = c.area_id;
                 document.getElementById('critActivo').checked = c.activo;
                 document.getElementById('modalCritTitle').innerText = 'Editar Criterio';

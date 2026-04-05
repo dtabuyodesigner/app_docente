@@ -1,7 +1,7 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 4 de Abril 2026  
-**Último Commit:** `v21` (Rellenador Rejilla e Infantil)  
+**Fecha:** 5 de Abril 2026  
+**Último Commit:** `v1.1.22` (Medias rejilla, cross-mode, editar criterio, selección masiva)  
 **Rama:** `feature/refactor-evaluacion-curricular`
 
 ---
@@ -14,7 +14,7 @@ Implementado sistema híbrido adaptativo completo:
 - **Modo de evaluación:** POR_ACTIVIDADES | POR_SA | POR_CRITERIOS_DIRECTOS
 - **Etapa educativa:** Infantil (🧸) | Primaria (🎓) (detección automática)
 - **Escalas:** NI/EP/CO | PA/AD/MA | NUMÉRICA 1-4
-- **Rellenador Masivo:** Funcionalidad de "Rellenar EP/CO" y "Limpiar" en modo Rejilla (Tabla) y modo Individual.
+- **Rellenador Masivo:** Funcionalidad de "Rellenar EP/CO" y "Limpiar" en modo Rejilla (Tabla) y modo Individual, incluyendo áreas POR_CRITERIOS_DIRECTOS (Infantil sin SDAs).
 
 ### Archivos Creados
 
@@ -34,7 +34,7 @@ Implementado sistema híbrido adaptativo completo:
 | `static/evaluacion.html` | +800+ líneas | UI adaptativa y Rellenador Rejilla |
 | `static/ayuda.html` | +537 líneas | Documentación integrada |
 
-**Total Sesión 4 Abril:** +400 líneas (v21)
+**Total Sesión 4 Abril:** +400 líneas (v21) + correcciones rejilla POR_CRITERIOS_DIRECTOS (v22)
 
 ---
 
@@ -90,6 +90,10 @@ Actividades → Criterios → Nota del Área
 | **Gestión de Criterios** | No borra criterios en Evaluación → Gestión de Criterios | Alta | ✅ CORREGIDO |
 | **Cuaderno de Evaluación** | Evaluación → Cuaderno → Cuaderno de evaluación no muestra nada | Alta | ✅ CORREGIDO |
 | **Informe de Acta - Firmas** | Cuadro de firmas no muestra automáticamente la firma del tutor desde Logos | Media | ✅ CORREGIDO |
+| **Rejilla EP/CO para POR_CRITERIOS_DIRECTOS** | El rellenador masivo en rejilla no funcionaba para áreas Infantil sin SDAs (escribía en tabla errónea, deseleccionar píldora activa crasheaba) | Alta | ✅ CORREGIDO |
+| **Medias SDA/Área en tiempo real** | `_calcular_medias_actividades` ignoraba criterios sin mapeo `actividad_criterio` → medias siempre "—" | Alta | ✅ CORREGIDO |
+| **Editar criterio — Errores de validación** | `activo` se enviaba como boolean (`true`/`false`) en vez de entero (0/1); schema marshmallow rechazaba | Alta | ✅ CORREGIDO |
+| **Evaluaciones cross-mode invisibles** | Evaluaciones guardadas en `evaluacion_criterios` no se mostraban en vista POR_SA (y viceversa) | Alta | ✅ CORREGIDO |
 
 #### Correcciones Aplicadas (1 Abril 2026)
 
@@ -117,6 +121,12 @@ Actividades → Criterios → Nota del Área
 - [x] **Test 5:** Rellenador masivo en Rejilla → se marcan e iluminan todas las notas ✅
 - [x] **Test 6:** Limpiar masivo → borra de BBDD y actualiza medias ✅
 - [x] **Test 7:** Vinculación SDA 6/7 con criterios específicos Infantil ✅
+- [ ] **Test 8:** Rejilla POR_CRITERIOS_DIRECTOS → botones EP/CO se iluminan y se guardan en `evaluacion_criterios`
+- [ ] **Test 9:** Rellenar EP en rejilla POR_CRITERIOS_DIRECTOS → medias del área se recalculan correctamente
+- [ ] **Test 10:** Clic en píldora activa en rejilla → la borra de `evaluacion_criterios`
+- [ ] **Test 11:** Evaluar alumno en POR_ACTIVIDADES → cambiar a POR_SA → los criterios evaluados aparecen
+- [ ] **Test 12:** Editar criterio → Guardar → sin error de validación
+- [ ] **Test 13:** Seleccionar todo en lista criterios → Borrar seleccionados → borra los que no tienen evaluaciones
 
 ### Cuando Todo Funcione
 

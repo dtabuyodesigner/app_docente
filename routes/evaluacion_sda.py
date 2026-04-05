@@ -347,11 +347,38 @@ def datos_tabla_evaluacion():
     
     conn = get_db()
     cur = conn.cursor()
-    
+
+    # 0. Modo del área
+    cur.execute("SELECT modo_evaluacion FROM areas WHERE id = ?", (area_id,))
+    area_row = cur.fetchone()
+    modo = area_row["modo_evaluacion"] if area_row else "POR_SA"
+
     # 1. Alumnos del grupo
     cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ? ORDER BY nombre", (grupo_id,))
     alumnos = [dict(r) for r in cur.fetchall()]
-    
+
+    # Para POR_CRITERIOS_DIRECTOS: todos los criterios del área y datos de evaluacion_criterios
+    if modo == "POR_CRITERIOS_DIRECTOS":
+        cur.execute(
+            "SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? AND activo = 1 ORDER BY codigo",
+            (area_id,)
+        )
+        criterios = [dict(r) for r in cur.fetchall()]
+        eval_map = {}
+        alumno_ids = [a["id"] for a in alumnos]
+        criterio_ids = [c["id"] for c in criterios]
+        if alumno_ids and criterio_ids:
+            a_ph = ",".join("?" * len(alumno_ids))
+            c_ph = ",".join("?" * len(criterio_ids))
+            evals = cur.execute(f"""
+                SELECT alumno_id, criterio_id, nivel
+                FROM evaluacion_criterios
+                WHERE alumno_id IN ({a_ph}) AND criterio_id IN ({c_ph}) AND periodo = ?
+            """, alumno_ids + criterio_ids + [f"T{trimestre}"]).fetchall()
+            for ev in evals:
+                eval_map[f"{ev['alumno_id']}_{ev['criterio_id']}"] = ev["nivel"]
+        return jsonify({"alumnos": alumnos, "criterios": criterios, "evaluaciones": eval_map})
+
     # 2. Criterios del área, filtrando por SDA si se especifica
     if sda_id:
         # Criterios vinculados a esta SDA: via sda_criterios O via actividades de la SDA.

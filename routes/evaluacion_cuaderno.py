@@ -327,7 +327,20 @@ def cuaderno_unificado():
                 f"{e['alumno_id']}_{e['criterio_id']}": e['nivel']
                 for e in evals
             }
-            
+
+            # Cross-mode: también buscar en evaluacion_criterios (datos guardados en modo POR_CRITERIOS_DIRECTOS)
+            ec_crossmode = cur.execute(f"""
+                SELECT alumno_id, criterio_id, nivel
+                FROM evaluacion_criterios
+                WHERE criterio_id IN ({crit_placeholders})
+                  AND alumno_id IN ({alum_placeholders})
+                  AND periodo = ?
+            """, criterio_ids + alumno_ids + [f"T{trimestre}"]).fetchall()
+            for e in ec_crossmode:
+                key = f"{e['alumno_id']}_{e['criterio_id']}"
+                if key not in evaluaciones:
+                    evaluaciones[key] = e['nivel']
+
             # También obtener evaluaciones directas de SDA (criterio_id = NULL)
             if sda_ids and alumno_ids:
                 sda_placeholders_direct = ",".join("?" * len(sda_ids))
@@ -399,9 +412,22 @@ def cuaderno_unificado():
                 f"{e['alumno_id']}_{e['criterio_id']}": e['nivel']
                 for e in evals
             }
+
+            # Cross-mode: también buscar en evaluaciones (datos guardados en modo POR_SA/POR_ACTIVIDADES)
+            ev_crossmode = cur.execute(f"""
+                SELECT alumno_id, criterio_id, nivel
+                FROM evaluaciones
+                WHERE criterio_id IN ({crit_placeholders})
+                  AND alumno_id IN ({alum_placeholders})
+                  AND trimestre = ?
+            """, criterio_ids + alumno_ids + [trimestre]).fetchall()
+            for e in ev_crossmode:
+                key = f"{e['alumno_id']}_{e['criterio_id']}"
+                if key not in evaluaciones:
+                    evaluaciones[key] = e['nivel']
         else:
             evaluaciones = {}
-        
+
         # Calcular medias
         medias = _calcular_medias_directas(cur, alumno_ids, area_id, periodo)
 
@@ -454,28 +480,53 @@ def _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, tipo_escal
         cuenta_criterios = 0
         
         for criterio_id in criterio_ids:
-            # Construir la consulta base según si hay sda_id o no
-            if target_sda := sda_id:
-                # Filtrar solo por actividades de la SA seleccionada
-                stats = cur.execute("""
-                    SELECT AVG(ea.nota) as media_nota
-                    FROM evaluaciones_actividad ea
-                    JOIN actividades_sda a ON ea.actividad_id = a.id
-                    JOIN actividad_criterio ac ON ac.actividad_id = a.id
-                    WHERE ea.alumno_id = ? AND ea.trimestre = ? AND ac.criterio_id = ? AND a.sda_id = ?
-                """, (alumno_id, trimestre, criterio_id, target_sda)).fetchone()
+            # Comprobar si este criterio tiene mapeo actividad_criterio explícito
+            tiene_mapeo = cur.execute(
+                "SELECT COUNT(*) as cnt FROM actividad_criterio WHERE criterio_id = ?",
+                (criterio_id,)
+            ).fetchone()["cnt"] > 0
+
+            if tiene_mapeo:
+                # Usar solo las actividades mapeadas a este criterio
+                if sda_id:
+                    stats = cur.execute("""
+                        SELECT AVG(ea.nota) as media_nota
+                        FROM evaluaciones_actividad ea
+                        JOIN actividades_sda a ON ea.actividad_id = a.id
+                        JOIN actividad_criterio ac ON ac.actividad_id = a.id
+                        WHERE ea.alumno_id = ? AND ea.trimestre = ? AND ac.criterio_id = ? AND a.sda_id = ?
+                    """, (alumno_id, trimestre, criterio_id, sda_id)).fetchone()
+                else:
+                    stats = cur.execute("""
+                        SELECT AVG(ea.nota) as media_nota
+                        FROM evaluaciones_actividad ea
+                        JOIN actividades_sda a ON ea.actividad_id = a.id
+                        JOIN actividad_criterio ac ON ac.actividad_id = a.id
+                        JOIN sda s ON a.sda_id = s.id
+                        WHERE ea.alumno_id = ? AND ea.trimestre = ? AND ac.criterio_id = ?
+                          AND s.area_id = ?
+                    """, (alumno_id, trimestre, criterio_id, area_id)).fetchone()
             else:
-                # Comportamiento anterior: Promediar todas las actividades del área
-                stats = cur.execute("""
-                    SELECT AVG(ea.nota) as media_nota
-                    FROM evaluaciones_actividad ea
-                    JOIN actividades_sda a ON ea.actividad_id = a.id
-                    JOIN actividad_criterio ac ON ac.actividad_id = a.id
-                    JOIN sda s ON a.sda_id = s.id
-                    WHERE ea.alumno_id = ? AND ea.trimestre = ? AND ac.criterio_id = ?
-                      AND s.area_id = ?
-                """, (alumno_id, trimestre, criterio_id, area_id)).fetchone()
-            
+                # Sin mapeo explícito: todas las actividades de las SDAs que incluyen este criterio
+                if sda_id:
+                    stats = cur.execute("""
+                        SELECT AVG(ea.nota) as media_nota
+                        FROM evaluaciones_actividad ea
+                        JOIN actividades_sda a ON ea.actividad_id = a.id
+                        JOIN sda_criterios sc ON sc.sda_id = a.sda_id
+                        WHERE ea.alumno_id = ? AND ea.trimestre = ? AND sc.criterio_id = ? AND a.sda_id = ?
+                    """, (alumno_id, trimestre, criterio_id, sda_id)).fetchone()
+                else:
+                    stats = cur.execute("""
+                        SELECT AVG(ea.nota) as media_nota
+                        FROM evaluaciones_actividad ea
+                        JOIN actividades_sda a ON ea.actividad_id = a.id
+                        JOIN sda_criterios sc ON sc.sda_id = a.sda_id
+                        JOIN sda s ON a.sda_id = s.id
+                        WHERE ea.alumno_id = ? AND ea.trimestre = ? AND sc.criterio_id = ?
+                          AND s.area_id = ?
+                    """, (alumno_id, trimestre, criterio_id, area_id)).fetchone()
+
             if stats["media_nota"] is not None:
                 medias_alumno["criterios"][str(criterio_id)] = round(stats["media_nota"], 2)
                 suma_medias += stats["media_nota"]

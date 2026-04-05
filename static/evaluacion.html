@@ -547,7 +547,11 @@
                         </select>
                     </div>
                 </div>
-                <div class="actions" style="display:flex; gap:10px;">
+                <div class="actions" style="display:flex; gap:10px; align-items:center;">
+                    <button id="btnBorrarSeleccionados" onclick="eliminarSeleccionados()"
+                        style="display:none; background:#dc3545; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;">
+                        🗑️ Borrar seleccionados (<span id="countSeleccionados">0</span>)
+                    </button>
                     <button class="btn-success" style="background:var(--success); color:white;"
                         onclick="abrirModalImportar()">📥 Importar CSV</button>
                     <button class="btn-primary" style="background:var(--primary); color:white;"
@@ -557,8 +561,13 @@
             <table class="table-crit">
                 <thead>
                     <tr>
-                        <th style="width: 15%;">Código</th>
-                        <th style="width: 45%;">Descripción</th>
+                        <th style="width:3%; text-align:center;">
+                            <input type="checkbox" id="selectAllCrit" title="Seleccionar todo"
+                                onchange="toggleSelectAll(this.checked)"
+                                style="width:16px; height:16px; cursor:pointer;">
+                        </th>
+                        <th style="width: 14%;">Código</th>
+                        <th style="width: 43%;">Descripción</th>
                         <th style="width: 15%;">Etapa / Área</th>
                         <th style="width: 10%;">Estado</th>
                         <th style="width: 15%; text-align:center;">Acciones</th>
@@ -965,8 +974,13 @@
                     const data = await r.json();
                     const tbodyCrit = document.getElementById('listaCriterios');
                     tbodyCrit.innerHTML = '';
+                    // Reset selección
+                    const selAll = document.getElementById('selectAllCrit');
+                    if (selAll) selAll.checked = false;
+                    actualizarBotonBorrar();
+
                     if (!data.length) {
-                        tbodyCrit.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#666;">No se encontraron criterios con los filtros actuales.</td></tr>';
+                        tbodyCrit.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#666;">No se encontraron criterios con los filtros actuales.</td></tr>';
                         return;
                     }
                     data.forEach(c => {
@@ -975,6 +989,11 @@
                             ? `<span class="badge badge-active">Activo</span>`
                             : `<span class="badge badge-inactive">Desactivado</span>`;
                         tr.innerHTML = `
+                            <td style="text-align:center;">
+                                <input type="checkbox" class="crit-check" data-id="${c.id}" data-codigo="${c.codigo}"
+                                    onchange="actualizarBotonBorrar()"
+                                    style="width:16px; height:16px; cursor:pointer;">
+                            </td>
                             <td class="${!c.activo ? 'inactive' : ''}"><strong>${c.codigo}</strong></td>
                             <td class="${!c.activo ? 'inactive' : ''}" style="font-size:0.9rem; text-align:left;">${c.descripcion}</td>
                             <td class="${!c.activo ? 'inactive' : ''}" style="text-align:left;"><small>${c.etapa || '—'} <br> ${c.area_nombre || '—'}</small></td>
@@ -1030,11 +1049,11 @@
                 const id = document.getElementById('critId').value;
                 const sdaChecks = document.querySelectorAll('#critSdaList input[name="critSda"]:checked');
                 const payload = {
-                    codigo: document.getElementById('critCodigo').value,
-                    descripcion: document.getElementById('critDescripcion').value,
+                    codigo: document.getElementById('critCodigo').value.trim(),
+                    descripcion: document.getElementById('critDescripcion').value.trim(),
                     etapa: document.getElementById('critEtapa').value,
-                    area_id: document.getElementById('critArea').value,
-                    activo: document.getElementById('critActivo').checked,
+                    area_id: parseInt(document.getElementById('critArea').value),
+                    activo: document.getElementById('critActivo').checked ? 1 : 0,
                     sda_ids: Array.from(sdaChecks).map(cb => parseInt(cb.value))
                 };
                 const url = id ? `/api/criterios/${id}` : '/api/criterios';
@@ -1075,6 +1094,41 @@
                     console.error('Error en eliminarCriterio:', err);
                     alert("Error de conexión al intentar eliminar: " + err.message);
                 }
+            };
+            function actualizarBotonBorrar() {
+                const checks = document.querySelectorAll('.crit-check:checked');
+                const btn = document.getElementById('btnBorrarSeleccionados');
+                const cnt = document.getElementById('countSeleccionados');
+                if (btn) btn.style.display = checks.length > 0 ? 'inline-block' : 'none';
+                if (cnt) cnt.textContent = checks.length;
+            }
+            window.toggleSelectAll = function (checked) {
+                document.querySelectorAll('.crit-check').forEach(cb => { cb.checked = checked; });
+                actualizarBotonBorrar();
+            };
+            window.eliminarSeleccionados = async function () {
+                const checks = Array.from(document.querySelectorAll('.crit-check:checked'));
+                if (!checks.length) return;
+                const lista = checks.map(cb => cb.dataset.codigo).join(', ');
+                if (!confirm(`¿Borrar los ${checks.length} criterios seleccionados?\n\n${lista}\n\nSe saltarán los que tengan evaluaciones registradas.`)) return;
+
+                let borrados = 0, errores = [];
+                for (const cb of checks) {
+                    const id = cb.dataset.id;
+                    const codigo = cb.dataset.codigo;
+                    try {
+                        const r = await fetch(`/api/criterios/${id}`, { method: 'DELETE' });
+                        const d = await r.json();
+                        if (d.ok) { borrados++; }
+                        else { errores.push(`${codigo}: ${d.error}`); }
+                    } catch (e) { errores.push(`${codigo}: Error de red`); }
+                }
+
+                let msg = `✅ Borrados: ${borrados}`;
+                if (errores.length) msg += `\n\n⚠️ No borrados (${errores.length}):\n` + errores.join('\n');
+                alert(msg);
+                cargarListaCriterios();
+                if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
             };
             window.abrirModalImportar = function () {
                 document.getElementById('csvFile').value = '';
@@ -1200,9 +1254,10 @@
                 } else {
                     lblSDA.style.display = 'none';
                     btnCriterioExtra.style.display = 'none';
-                    document.getElementById("directControlsAction").style.display = 'block';
+                    document.getElementById("directControlsAction").style.display = modoTabla ? 'none' : 'block';
                     document.getElementById("btnResumenActividades").style.display = 'none';
-                    cargarCriteriosDirectos();
+                    if (modoTabla) { cargarDatosTabla(); }
+                    else { cargarCriteriosDirectos(); }
                 }
                 cargarNotasExistentes();
             });
@@ -1653,21 +1708,25 @@
                     if (!confirm("¿Asignar este nivel (o borrar) a todos los alumnos mostrados en la rejilla?")) return;
                     const celdas = document.querySelectorAll('#tbodyTabla td.eval-grid-cell');
                     if (celdas.length === 0) return;
-                    
+
+                    const esDirecto = conf.modo_evaluacion === 'POR_CRITERIOS_DIRECTOS';
                     let evaluaciones = [];
                     celdas.forEach(c => {
                         const parts = c.id.split('-'); // cell-{alumId}-{critId}
                         if (parts.length === 3) {
-                            evaluaciones.push({
+                            const entry = {
                                 alumno_id: parseInt(parts[1]),
                                 criterio_id: parseInt(parts[2]),
-                                nivel: nivel,
-                                sda_id: (sdaSelect.value === 'null' || !sdaSelect.value || sdaSelect.value === 'directo') ? null : parseInt(sdaSelect.value)
-                            });
+                                nivel: nivel
+                            };
+                            if (!esDirecto) {
+                                entry.sda_id = (sdaSelect.value === 'null' || !sdaSelect.value || sdaSelect.value === 'directo') ? null : parseInt(sdaSelect.value);
+                            }
+                            evaluaciones.push(entry);
                         }
                     });
 
-                    // Update UI
+                    // Feedback visual inmediato
                     celdas.forEach(c => {
                         const pills = c.querySelectorAll('.eval-pill');
                         pills.forEach(p => p.classList.remove('active'));
@@ -1677,8 +1736,12 @@
                         }
                     });
 
+                    const url = esDirecto
+                        ? "/api/evaluacion/directa/guardar_masivo"
+                        : "/api/evaluacion/guardar_masivo";
+
                     try {
-                        const res = await fetch("/api/evaluacion/guardar_masivo", {
+                        const res = await fetch(url, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ periodo: 'T' + trimestreSelect.value, evaluaciones })
@@ -2284,8 +2347,8 @@
                         return;
                     }
 
-                    // Recargar medias
-                    cargarMedia();
+                    // Recargar cuaderno completo para que las medias se recalculen correctamente
+                    await cargarCuadernoUnificado();
                     cargarResumenAlumno();
 
                 } catch (e) {
@@ -2355,8 +2418,7 @@
                         return;
                     }
 
-                    // Recargar medias
-                    cargarMedia();
+                    await cargarCuadernoUnificado();
                     cargarResumenAlumno();
 
                 } catch (e) {

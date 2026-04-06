@@ -2,7 +2,7 @@
 
 **Fecha:** 6 de Abril 2026
 **Versión:** `v1.1.28`
-**Último Commit:** `35cf2f7` — Historial de Observaciones en Diario
+**Último Commit:** `d7e69c8` — Fix selector firmante
 **Rama activa:** `master`
 
 ---
@@ -12,7 +12,12 @@
 ### Sistema de Actas de Incidencia
 - **Creación rápida desde Diario:** botón 📝 en cada ficha de alumno
 - **Campos:** Fecha del hecho, Lugar, Profesor implicado, Descripción, Firmante
-- **PDF automático:** genera acta formal con logos del centro y firma del tutor si está configurada
+- **PDF automático:** genera acta formal con logos del centro (izq/dcha) y firma del tutor
+- **Cabecera PDF:** logos del centro configurados en Ajustes > Logos
+- **Selector de docentes:** campos Profesor y Firmante cargan lista de usuarios del centro
+- **Firma automática:** si no se especifica firmante, usa la firma del tutor configurada
+- **Layout modal:** cabecera y botones fijos, cuerpo con scroll independiente
+- **Historial → Acta:** botón "Convertir a Acta" en cada observación del historial
 - **Base de datos:** nueva tabla `actas_incidencias`
 - **Archivos:** `routes/actas.py`, `static/diario.html`, `utils/db.py`
 
@@ -20,6 +25,7 @@
 - **Botón "Historial"** en la barra de controles del Diario
 - **Filtros rápidos:** búsqueda por texto, rango de fechas, alumno y área
 - **Carga eficiente:** últimas 200 observaciones con filtrado en frontend
+- **Layout Flexbox:** cabecera y filtros fijos, cuerpo con scroll
 - **Endpoint nuevo:** `/api/observaciones/historial`
 - **Archivos modificados:** `routes/observaciones.py`, `static/diario.html`
 

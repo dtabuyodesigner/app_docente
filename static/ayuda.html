@@ -407,6 +407,30 @@
                     <p>Selecciona la fecha y, opcionalmente, el área. Aparecerá un editor donde puedes relatar qué se ha
                         trabajado, anotaciones de cómo ha ido la clase, incidencias, etc. Este diario se guarda
                         vinculado a la fecha y el alumno.</p>
+                    <h2>📝 Crear Acta de Incidencia</h2>
+                    <p>En cada ficha de alumno hay un botón <strong>📝</strong> para crear un acta formal de incidencia.
+                        Se abrirá un formulario donde podrás indicar:</p>
+                    <ul>
+                        <li><strong>Fecha del hecho:</strong> cuándo ocurrió la incidencia</li>
+                        <li><strong>Lugar:</strong> aula, patio, comedor, etc.</li>
+                        <li><strong>Profesor implicado:</strong> quién redacta o intervino</li>
+                        <li><strong>Descripción:</strong> detalle de lo sucedido</li>
+                        <li><strong>Firmante:</strong> nombre del docente que firma (o se usa el tutor por defecto)</li>
+                    </ul>
+                    <p>Al guardar, se genera automáticamente un <strong>PDF con los logos del centro y la firma del
+                            tutor</strong>
+                        si está configurada en Ajustes > Logos. El acta queda guardada en la base de datos para
+                        consulta futura.</p>
+                    <h2>📋 Historial de Observaciones</h2>
+                    <p>El botón <strong>📋 Historial</strong> en la barra de controles te permite buscar rápidamente
+                        cualquier observación o incidencia anterior. Incluye filtros para:</p>
+                    <ul>
+                        <li><strong>Buscar texto:</strong> filtra por palabras clave en tiempo real</li>
+                        <li><strong>Rango de fechas:</strong> desde/hasta</li>
+                        <li><strong>Alumno:</strong> filtra por un alumno concreto</li>
+                        <li><strong>Área:</strong> filtra por materia o área</li>
+                    </ul>
+                    <p>Se muestran las últimas 200 observaciones ordenadas por fecha.</p>
                     <div class="highlight-box success">
                         <strong>💡 Integración:</strong>
                         Lo que apuntes en el Diario puedes aprovecharlo luego vinculándolo mentalmente a la Evaluación
@@ -760,14 +784,18 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                         impórtalo. La página te dirá inmediatamente cuántos han sido insertados y podrás empezar a
                         evaluarlos al instante.</p>
                     <h2>4. Eliminar criterios</h2>
-                    <p>El botón <strong>"🗑️ Eliminar"</strong> junto a cada criterio lo borra permanentemente. Ten en cuenta:</p>
+                    <p>El botón <strong>"🗑️ Eliminar"</strong> junto a cada criterio lo borra permanentemente. Ten en
+                        cuenta:</p>
                     <ul>
                         <li>Solo los usuarios con rol <strong>administrador</strong> pueden eliminar criterios.</li>
-                        <li>Un criterio con evaluaciones registradas <strong>no puede eliminarse</strong>; solo puede desactivarse.</li>
-                        <li>Al eliminar un criterio también se borran sus palabras clave y sus vínculos con SDAs (la SDA no se borra).</li>
+                        <li>Un criterio con evaluaciones registradas <strong>no puede eliminarse</strong>; solo puede
+                            desactivarse.</li>
+                        <li>Al eliminar un criterio también se borran sus palabras clave y sus vínculos con SDAs (la SDA
+                            no se borra).</li>
                     </ul>
                     <div class="highlight-box">
-                        <strong>💡 Consejo:</strong> Si ya evaluaste a alumnos con ese criterio, usa el botón <strong>"✏️ Editar"</strong>
+                        <strong>💡 Consejo:</strong> Si ya evaluaste a alumnos con ese criterio, usa el botón
+                        <strong>"✏️ Editar"</strong>
                         y desmarca la casilla "Activo" en vez de borrar. Así conservas el historial.
                     </div>
                 </section>
@@ -781,8 +809,10 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                     <p>El importador permite crear toda la estructura curricular de una vez:</p>
                     <ul>
                         <li><strong>Identificación:</strong> Nombre de la unidad (SDA), etapa, área y trimestre.</li>
-                        <li><strong>Criterios:</strong> Vinculación de criterios y su activación automática para la evaluación.</li>
-                        <li><strong>Actividades y Sesiones:</strong> Tareas específicas que se integran en el diario de clase y calendario.</li>
+                        <li><strong>Criterios:</strong> Vinculación de criterios y su activación automática para la
+                            evaluación.</li>
+                        <li><strong>Actividades y Sesiones:</strong> Tareas específicas que se integran en el diario de
+                            clase y calendario.</li>
                     </ul>
                     <div class="highlight-box success">
                         <strong>🚀 Importación Completa (Recomendado)</strong>
@@ -799,7 +829,8 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                     <ol>
                         <li>Ve a <strong>Programación → pestaña "🎯 Sit. Aprendizaje (SDA)"</strong>.</li>
                         <li>Descarga la plantilla con <strong>"📥 Descargar Plantilla CSV"</strong>.</li>
-                        <li>Rellena el archivo manteniendo las cabeceras intactas, o usa el botón <strong>"🤖 Generar SDA con IA"</strong> para que una IA lo rellene por ti.</li>
+                        <li>Rellena el archivo manteniendo las cabeceras intactas, o usa el botón <strong>"🤖 Generar
+                                SDA con IA"</strong> para que una IA lo rellene por ti.</li>
                         <li>Importa con <strong>"📤 Importar SDA desde CSV"</strong>.</li>
                     </ol>
 
@@ -812,31 +843,38 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                         <li><code>SDA_ID</code> — Código único de la SDA (ej: SDA1, SDA2)</li>
                         <li><code>SDA_Titulo</code> — Nombre completo de la situación de aprendizaje</li>
                         <li><code>Criterio_Codigo</code> — Código del criterio principal de la sesión (ej: CE1_C3)</li>
-                        <li><code>Criterio_Descriptor</code> — Texto oficial del criterio (solo en la primera fila de cada criterio; vacío en las siguientes)</li>
+                        <li><code>Criterio_Descriptor</code> — Texto oficial del criterio (solo en la primera fila de
+                            cada criterio; vacío en las siguientes)</li>
                         <li><code>Competencia_Codigo</code> — Código de la competencia específica (ej: CE1)</li>
-                        <li><code>Competencia_Descriptor</code> — Texto oficial de la competencia (solo en la primera fila; vacío en las siguientes)</li>
+                        <li><code>Competencia_Descriptor</code> — Texto oficial de la competencia (solo en la primera
+                            fila; vacío en las siguientes)</li>
                         <li><code>Actividad_ID</code> — Código único de la actividad dentro de la SDA (ej: ACT1)</li>
                         <li><code>Actividad_Titulo</code> — Nombre de la actividad y de la sesión</li>
-                        <li><code>Criterios_Vinculados</code> — Todos los criterios que evalúa esta sesión, separados por coma (ej: CE1_C3,CE2_C4)</li>
+                        <li><code>Criterios_Vinculados</code> — Todos los criterios que evalúa esta sesión, separados
+                            por coma (ej: CE1_C3,CE2_C4)</li>
                         <li><code>Fecha</code> — Fecha de la sesión en formato YYYY-MM-DD</li>
                         <li><code>Sesion_Numero</code> — Número de sesión dentro de la actividad (1, 2, 3…)</li>
                     </ul>
                     <div class="highlight-box">
                         <strong>💡 Regla clave:</strong> Cada fila del CSV representa <strong>una sesión</strong>.
-                        Si una actividad tiene varias sesiones, repite <code>Actividad_ID</code> y <code>Actividad_Titulo</code> en cada fila.
+                        Si una actividad tiene varias sesiones, repite <code>Actividad_ID</code> y
+                        <code>Actividad_Titulo</code> en cada fila.
                         <code>Criterios_Vinculados</code> lista todos los criterios que evalúa esa sesión.
                     </div>
 
                     <h2>4. Generación con IA (más fácil)</h2>
-                    <p>En lugar de rellenar el CSV manualmente, puedes usar el botón <strong>"🤖 Generar SDA con IA"</strong>
-                        del toolbar. Ver la sección <a href="#ia-sda" onclick="showSection('ia-sda')">🤖 Generar SDA con IA</a> para más detalles.</p>
+                    <p>En lugar de rellenar el CSV manualmente, puedes usar el botón <strong>"🤖 Generar SDA con
+                            IA"</strong>
+                        del toolbar. Ver la sección <a href="#ia-sda" onclick="showSection('ia-sda')">🤖 Generar SDA con
+                            IA</a> para más detalles.</p>
                 </section>
 
                 <!-- SECCIÓN GENERAR SDA CON IA -->
                 <section id="ia-sda" class="help-section">
                     <h1>🤖 Generar SDA con Inteligencia Artificial</h1>
                     <p>El botón <strong>"🤖 Generar SDA con IA"</strong> (en Programación → pestaña SDA) te permite
-                        generar automáticamente una Situación de Aprendizaje completa en formato CSV listo para importar,
+                        generar automáticamente una Situación de Aprendizaje completa en formato CSV listo para
+                        importar,
                         usando cualquier IA gratuita: Claude, ChatGPT o Gemini.</p>
 
                     <div class="highlight-box success">
@@ -857,27 +895,37 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                                 <li><strong>Etapa:</strong> Infantil, Primaria o Secundaria.</li>
                                 <li><strong>Curso:</strong> ej. "1º Primaria" o "5 años".</li>
                                 <li><strong>Área:</strong> ej. "Matemáticas" o "Crecimiento en Armonía".</li>
-                                <li><strong>Comunidad Autónoma:</strong> ej. "Castilla-La Mancha" o "Canarias". La IA buscará el decreto curricular vigente de tu CCAA.</li>
-                                <li><strong>Título y SDA_ID:</strong> El nombre de la unidad y un código corto (ej: SDA1).</li>
+                                <li><strong>Comunidad Autónoma:</strong> ej. "Castilla-La Mancha" o "Canarias". La IA
+                                    buscará el decreto curricular vigente de tu CCAA.</li>
+                                <li><strong>Título y SDA_ID:</strong> El nombre de la unidad y un código corto (ej:
+                                    SDA1).</li>
                                 <li><strong>Fechas:</strong> Inicio y fin de la unidad.</li>
-                                <li><strong>Distribución semanal:</strong> ej. "5 sesiones semanales, una por día de lunes a viernes".</li>
-                                <li><strong>Competencias y criterios (opcional):</strong> Si los conoces, indícalos. Si los dejas en blanco, la IA los seleccionará del decreto.</li>
+                                <li><strong>Distribución semanal:</strong> ej. "5 sesiones semanales, una por día de
+                                    lunes a viernes".</li>
+                                <li><strong>Competencias y criterios (opcional):</strong> Si los conoces, indícalos. Si
+                                    los dejas en blanco, la IA los seleccionará del decreto.</li>
                             </ul>
                         </li>
                         <li>Pulsa <strong>"⚡ Generar prompt"</strong>. Aparecerá el prompt listo.</li>
-                        <li>Pulsa el botón de la IA que prefieras: <strong>🟠 Claude</strong>, <strong>🟢 ChatGPT</strong> o <strong>🔵 Gemini</strong>. Se abre la IA con el prompt precargado.</li>
+                        <li>Pulsa el botón de la IA que prefieras: <strong>🟠 Claude</strong>, <strong>🟢
+                                ChatGPT</strong> o <strong>🔵 Gemini</strong>. Se abre la IA con el prompt precargado.
+                        </li>
                         <li>En la IA, pulsa enviar y espera la respuesta.</li>
                         <li>Copia el resultado generado por la IA.</li>
-                        <li>Vuelve a la app y usa <strong>"📤 Importar SDA desde CSV"</strong> → pega el texto en el área de importación manual.</li>
+                        <li>Vuelve a la app y usa <strong>"📤 Importar SDA desde CSV"</strong> → pega el texto en el
+                            área de importación manual.</li>
                     </ol>
 
                     <h2>2. El prompt y el decreto autonómico</h2>
                     <p>El prompt que genera la app le indica a la IA:</p>
                     <ul>
-                        <li>Que busque y aplique el <strong>decreto curricular vigente de tu CCAA</strong> para la etapa y área indicadas.</li>
-                        <li>Que incluya los textos oficiales de las competencias específicas y criterios de evaluación en la primera actividad.</li>
+                        <li>Que busque y aplique el <strong>decreto curricular vigente de tu CCAA</strong> para la etapa
+                            y área indicadas.</li>
+                        <li>Que incluya los textos oficiales de las competencias específicas y criterios de evaluación
+                            en la primera actividad.</li>
                         <li>Que respete exactamente el número de sesiones semanales y las fechas indicadas.</li>
-                        <li>Que genere el resultado en el <strong>formato exacto que necesita nuestro importador</strong>.</li>
+                        <li>Que genere el resultado en el <strong>formato exacto que necesita nuestro
+                                importador</strong>.</li>
                     </ul>
                     <div class="highlight-box">
                         <strong>💡 Funciona para cualquier CCAA de España.</strong> La IA conoce los decretos de
@@ -902,16 +950,22 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
 
                     <h2>4. Consejos para mejores resultados</h2>
                     <ul>
-                        <li><strong>Sé específico en el área:</strong> "Crecimiento en Armonía" funciona mejor que "Infantil".</li>
+                        <li><strong>Sé específico en el área:</strong> "Crecimiento en Armonía" funciona mejor que
+                            "Infantil".</li>
                         <li><strong>Indica la CCAA exacta:</strong> "Castilla-La Mancha" no "CLM".</li>
-                        <li><strong>Si la IA no genera el formato correcto:</strong> Dile "Genera de nuevo siguiendo estrictamente el formato indicado sin añadir texto fuera de él".</li>
-                        <li><strong>Puedes pedir varias SDAs a la vez:</strong> Indica en el campo de criterios "genera 2 SDAs, SDA1 para abril-mayo y SDA2 para mayo-junio".</li>
-                        <li><strong>Revisa antes de importar:</strong> Echa un vistazo rápido al CSV generado para comprobar que las fechas y actividades tienen sentido.</li>
+                        <li><strong>Si la IA no genera el formato correcto:</strong> Dile "Genera de nuevo siguiendo
+                            estrictamente el formato indicado sin añadir texto fuera de él".</li>
+                        <li><strong>Puedes pedir varias SDAs a la vez:</strong> Indica en el campo de criterios "genera
+                            2 SDAs, SDA1 para abril-mayo y SDA2 para mayo-junio".</li>
+                        <li><strong>Revisa antes de importar:</strong> Echa un vistazo rápido al CSV generado para
+                            comprobar que las fechas y actividades tienen sentido.</li>
                     </ul>
 
                     <h2>5. Botón "📋 Copiar prompt"</h2>
-                    <p>Si prefieres usar una IA diferente a las tres disponibles (por ejemplo, Microsoft Copilot o tu propia IA),
-                        pulsa <strong>"📋 Copiar"</strong> en el preview del prompt y pégalo manualmente en la IA de tu elección.</p>
+                    <p>Si prefieres usar una IA diferente a las tres disponibles (por ejemplo, Microsoft Copilot o tu
+                        propia IA),
+                        pulsa <strong>"📋 Copiar"</strong> en el preview del prompt y pégalo manualmente en la IA de tu
+                        elección.</p>
                 </section>
                 <!-- SECCIÓN RÚBRICAS E INFORMES -->
                 <section id="rubricas" class="help-section">
@@ -1114,8 +1168,10 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                         <p style="font-size: 1.2rem; margin-bottom: 10px;"><em>Creador y Diseñador Principal</em></p>
                         <hr style="width: 50px; border: 2px solid var(--secondary); margin: 20px auto;">
                         <p>Para sugerencias, soporte técnico o colaboraciones:</p>
-                        <a href="/cdn-cgi/l/email-protection#690d1d080b1c10060d0c1a000e070c1b290e04080005470a0604" style="font-size: 1.3rem; color: var(--primary); font-weight: 700; text-decoration: none; display: block; margin-top: 10px;">
-                            📧 <span class="__cf_email__" data-cfemail="f99d8d989b8c80969d9c8a909e979c8bb99e94989095d79a9694">[email&#160;protected]</span>
+                        <a href="/cdn-cgi/l/email-protection#690d1d080b1c10060d0c1a000e070c1b290e04080005470a0604"
+                            style="font-size: 1.3rem; color: var(--primary); font-weight: 700; text-decoration: none; display: block; margin-top: 10px;">
+                            📧 <span class="__cf_email__"
+                                data-cfemail="f99d8d989b8c80969d9c8a909e979c8bb99e94989095d79a9694">[email&#160;protected]</span>
                         </a>
                     </div>
                     <p style="text-align: center; margin-top: 30px; color: #888; font-size: 0.9rem;">
@@ -1126,7 +1182,8 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
         </div>
     </div>
     <!-- Script para cambiar pestañas internamente -->
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script>
         function showSection(id) {
             // Esconder todas las secciones de contenido
             document.querySelectorAll('.help-section').forEach(sec => {
@@ -1142,10 +1199,11 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
             document.querySelector(`.help-menu a[onclick="showSection('${id}')"]`).classList.add('active');
         }
         // Leer el hash al cargar por si entran en /ayuda#evaluacion
-        window.onload = function() {
+        window.onload = function () {
             const hash = window.location.hash.replace('#', '');
             if (hash) showSection(hash);
         };
     </script>
 </body>
+
 </html>

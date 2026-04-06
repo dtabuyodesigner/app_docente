@@ -1,9 +1,37 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
 **Fecha:** 6 de Abril 2026
-**Versión:** `v1.1.27` (pendiente release)
-**Último Commit:** `8a1a35c` — Fix dropdown legible en modo oscuro
+**Versión:** `v1.1.28`
+**Último Commit:** `35cf2f7` — Historial de Observaciones en Diario
 **Rama activa:** `master`
+
+---
+
+## ✅ LO COMPLETADO EN v1.1.28
+
+### Sistema de Actas de Incidencia
+- **Creación rápida desde Diario:** botón 📝 en cada ficha de alumno
+- **Campos:** Fecha del hecho, Lugar, Profesor implicado, Descripción, Firmante
+- **PDF automático:** genera acta formal con logos del centro y firma del tutor si está configurada
+- **Base de datos:** nueva tabla `actas_incidencias`
+- **Archivos:** `routes/actas.py`, `static/diario.html`, `utils/db.py`
+
+### Historial de Observaciones
+- **Botón "Historial"** en la barra de controles del Diario
+- **Filtros rápidos:** búsqueda por texto, rango de fechas, alumno y área
+- **Carga eficiente:** últimas 200 observaciones con filtrado en frontend
+- **Endpoint nuevo:** `/api/observaciones/historial`
+- **Archivos modificados:** `routes/observaciones.py`, `static/diario.html`
+
+### Banner de Actualización Directa
+- **Banner verde** en Panel de Control si hay actualización disponible
+- **Actualización directa** al pulsar el banner (sin ir a configuración)
+- **Carga automática** de versión al abrir sección Actualizaciones
+- **Archivos modificados:** `static/index.html`, `static/configuracion.html`
+
+### Renombrado de Scripts
+- `arrancar.sh` → `cuadernodeltutor.sh` (nombre más descriptivo)
+- Actualizado `CuadernoDelTutor.desktop`
 
 ---
 

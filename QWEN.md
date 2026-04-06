@@ -13,3 +13,7 @@
 3. Informe de Acta - Firmas no muestra firma del tutor automáticamente desde Logos (informes.py)
 4. Feature: Rellenador masivo Infantil en Clase de Hoy
 - **FEATURE COMPLETADO**: Sistema de Actas de Incidencia desde el Diario. Permite crear actas formales con fecha, lugar, profesor implicado, descripción y firma. Genera PDF automático con logos y firma del tutor si está configurada. Tabla `actas_incidencias` añadida a la BD. Archivos: `routes/actas.py`, `static/diario.html`.
+- **APP_EVALUAR - Pendientes Actas (para próximo día):**
+1. BUG: No aparecen nombres de profesores en checkboxes (endpoint /api/actas/equipo_docente devuelve vacío o undefined)
+2. BUG: Campo firmante no se rellena con nombre del tutor
+3. FEATURE: PDF del acta necesita saltos de párrafo entre puntos (1., 2., 3.) en la descripción para mejor legibilidad

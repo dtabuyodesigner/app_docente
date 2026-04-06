@@ -26,7 +26,12 @@
       "Bash(mv *)",
       "Bash(chmod *)",
       "Bash(kill *)",
-      "Bash(/home/danito73/documentos/app_evaluar/venv/bin/python *)"
+      "Bash(/home/danito73/documentos/app_evaluar/venv/bin/python *)",
+      "Bash(pkill *)",
+      "Bash(nohup *)",
+      "Bash(lsof *)",
+      "Bash(ss *)",
+      "Bash(cat *)"
     ]
   },
   "$version": 3

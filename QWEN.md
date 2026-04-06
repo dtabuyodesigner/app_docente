@@ -12,3 +12,4 @@
 2. Cuaderno de Evaluación no muestra nada (revisar endpoint /api/evaluacion/cuaderno y cargarCuadernoUnificado())
 3. Informe de Acta - Firmas no muestra firma del tutor automáticamente desde Logos (informes.py)
 4. Feature: Rellenador masivo Infantil en Clase de Hoy
+- **FEATURE COMPLETADO**: Sistema de Actas de Incidencia desde el Diario. Permite crear actas formales con fecha, lugar, profesor implicado, descripción y firma. Genera PDF automático con logos y firma del tutor si está configurada. Tabla `actas_incidencias` añadida a la BD. Archivos: `routes/actas.py`, `static/diario.html`.

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Diario e Incidencias</title>
@@ -20,6 +21,7 @@
             --bg: #f0f2f5;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -27,10 +29,12 @@
             padding: 20px;
             color: var(--dark);
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
         /* Controls */
         .controls {
             background: white;
@@ -42,11 +46,13 @@
             align-items: center;
             margin-bottom: 20px;
         }
+
         /* List */
         .student-list {
             display: grid;
             gap: 15px;
         }
+
         .student-card {
             background: white;
             padding: 15px;
@@ -57,12 +63,14 @@
             gap: 15px;
             align-items: start;
         }
+
         .student-name {
             font-weight: bold;
             font-size: 1.1rem;
             color: var(--primary);
             padding-top: 10px;
         }
+
         textarea {
             width: 100%;
             height: 60px;
@@ -72,11 +80,13 @@
             resize: vertical;
             font-family: inherit;
         }
+
         textarea:focus {
             outline: none;
             border-color: var(--secondary);
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
+
         .status-indicator {
             text-align: right;
             font-size: 0.9rem;
@@ -85,9 +95,11 @@
             transition: opacity 0.3s;
             padding-top: 10px;
         }
+
         .status-indicator.visible {
             opacity: 1;
         }
+
         .student-photo {
             width: 50px;
             height: 50px;
@@ -95,6 +107,7 @@
             object-fit: cover;
             border: 2px solid #eee;
         }
+
         .attendance-tag {
             font-size: 0.75rem;
             padding: 2px 6px;
@@ -103,22 +116,27 @@
             margin-top: 5px;
             display: inline-block;
         }
+
         .attendance-tag.presente {
             background: #e8f5e9;
             color: #2e7d32;
         }
+
         .attendance-tag.retraso {
             background: #fff3e0;
             color: #ef6c00;
         }
+
         .attendance-tag.falta_justificada {
             background: #e3f2fd;
             color: #1565c0;
         }
+
         .attendance-tag.falta_no_justificada {
             background: #ffebee;
             color: #c62828;
         }
+
         .contact-info {
             font-size: 0.8rem;
             color: #666;
@@ -128,6 +146,7 @@
             border-radius: 6px;
             display: none;
         }
+
         .btn-contact {
             background: none;
             border: none;
@@ -138,15 +157,18 @@
             text-decoration: underline;
             margin-top: 5px;
         }
+
         @media (max-width: 600px) {
             .student-card {
                 grid-template-columns: 1fr;
                 gap: 5px;
             }
+
             .status-indicator {
                 text-align: left;
             }
         }
+
         /* Quick Tags */
         .quick-tags {
             display: flex;
@@ -154,6 +176,7 @@
             margin-top: 8px;
             flex-wrap: wrap;
         }
+
         .tag-btn {
             background: #f0f2f5;
             border: 1px solid #d1d9e6;
@@ -165,15 +188,18 @@
             transition: all 0.2s;
             font-weight: 600;
         }
+
         .tag-btn:hover {
             background: #e2e6ea;
             border-color: #c0c6cc;
         }
+
         .tag-btn.active {
             background: var(--secondary);
             color: white;
             border-color: var(--secondary);
         }
+
         .tag-badge {
             display: inline-block;
             background: #e7f3fe;
@@ -185,6 +211,7 @@
             margin: 0 2px;
             border: 1px solid #bde0fe;
         }
+
         /* Preview Modal */
         .modal {
             display: none;
@@ -197,6 +224,7 @@
             background-color: rgba(0, 0, 0, 0.5);
             overflow-y: auto;
         }
+
         .modal-content {
             background-color: white;
             margin: 5% auto;
@@ -207,6 +235,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             position: relative;
         }
+
         .close {
             position: absolute;
             right: 20px;
@@ -216,19 +245,23 @@
             cursor: pointer;
             color: #aaa;
         }
+
         .close:hover {
             color: black;
         }
+
         .preview-header {
             border-bottom: 2px solid #f0f2f5;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
+
         .preview-date-group {
             margin-bottom: 20px;
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
         }
+
         .preview-date {
             font-weight: bold;
             color: var(--primary);
@@ -236,10 +269,12 @@
             margin-bottom: 10px;
             display: block;
         }
+
         .preview-obs {
             margin-bottom: 5px;
             line-height: 1.4;
         }
+
         .btn-print {
             background: var(--success);
             color: white;
@@ -251,6 +286,7 @@
             display: block;
             margin: 20px auto 0;
         }
+
         .preview-textarea {
             width: 100%;
             border: 1px solid transparent;
@@ -262,10 +298,12 @@
             transition: all 0.2s;
             border-radius: 4px;
         }
+
         .preview-textarea:hover {
             border-color: #ddd;
             background: #fff;
         }
+
         .preview-textarea:focus {
             outline: none;
             border-color: var(--secondary);
@@ -280,10 +318,11 @@
     <script src="/static/js/navigation.js?v=1.6"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
+
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
-        
+
         <!-- Tabs de Sección Docencia -->
         <div class="section-tabs">
             <a href="/diario" class="section-tab-btn active">📖 Diario</a>
@@ -292,7 +331,7 @@
             <a href="/rubricas" class="section-tab-btn">📊 Rúbricas</a>
             <a href="/tareas" class="section-tab-btn">📝 Tareas</a>
         </div>
-        
+
         <div class="controls">
             <h2 style="margin:0;">📓 Diario e Incidencias</h2>
             <div style="display: flex; gap: 15px; align-items: center;">
@@ -393,8 +432,9 @@
                             ${s.madre_tel ? `<span>👩 ${s.madre_tel}</span>` : ''}
                             ${s.padre_tel ? `<span>👨 ${s.padre_tel}</span>` : ''}
                         </div>
-                        <div style="margin-top:6px;">
+                        <div style="margin-top:6px; display:flex; gap:5px;">
                             <button onclick="openPreview(${s.id})" style="background:none; border:none; cursor:pointer; font-size:1.2rem; padding:0;" title="Vista previa">👁️</button>
+                            <button onclick="openActaModal(${s.id}, '${s.nombre}')" style="background:none; border:none; cursor:pointer; font-size:1.2rem; padding:0;" title="Crear Acta de Incidencia">📝</button>
                         </div>
                     </div>
                 `;
@@ -405,7 +445,7 @@
                 txt.style.minHeight = "80px";
                 txt.style.fontSize = "0.95rem";
                 txt.style.lineHeight = "1.5";
-                
+
                 // Quick Tags
                 const tagsContainer = document.createElement('div');
                 tagsContainer.className = "quick-tags";
@@ -416,16 +456,16 @@
                     { id: '#MalComportamiento', label: '⚠️ Mal Comportamiento' },
                     { id: '#Participa', label: '🙋‍♂️ Participa' }
                 ];
-                
+
                 const updateTagToggles = () => {
-                   const val = txt.value || "";
-                   Array.from(tagsContainer.children).forEach(btn => {
-                       if (val.includes(btn.dataset.tag)) {
-                           btn.classList.add('active');
-                       } else {
-                           btn.classList.remove('active');
-                       }
-                   });
+                    const val = txt.value || "";
+                    Array.from(tagsContainer.children).forEach(btn => {
+                        if (val.includes(btn.dataset.tag)) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
                 };
 
                 tagsList.forEach(tag => {
@@ -484,7 +524,7 @@
                 statusDiv.className = 'status-indicator';
                 statusDiv.textContent = '💾 Guardado';
                 card.appendChild(nameDiv);
-                
+
                 // Group text and tags
                 const editorArea = document.createElement('div');
                 editorArea.style.display = "flex";
@@ -673,6 +713,93 @@
                 closePreview();
             }
         }
+
+        // --- LÓGICA DE ACTAS ---
+        let currentActaAlumnoId = null;
+        function openActaModal(alumnoId, alumnoNombre) {
+            currentActaAlumnoId = alumnoId;
+            document.getElementById('actaAlumnoNombre').innerText = alumnoNombre;
+            document.getElementById('actaFecha').valueAsDate = new Date();
+            document.getElementById('actaModal').style.display = 'flex';
+        }
+        function closeActaModal() {
+            document.getElementById('actaModal').style.display = 'none';
+            document.getElementById('actaForm').reset();
+        }
+        async function guardarActa() {
+            const data = {
+                alumno_id: currentActaAlumnoId,
+                fecha_hecho: document.getElementById('actaFecha').value,
+                lugar: document.getElementById('actaLugar').value,
+                profesor: document.getElementById('actaProfesor').value,
+                descripcion: document.getElementById('actaDescripcion').value,
+                firmante: document.getElementById('actaFirmante').value
+            };
+            try {
+                const res = await fetch('/api/actas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const r = await res.json();
+                if (r.ok) {
+                    alert("✅ Acta creada correctamente.");
+                    closeActaModal();
+                    window.open(`/api/actas/${r.id}/pdf`, '_blank');
+                } else {
+                    alert("❌ Error: " + r.error);
+                }
+            } catch (e) {
+                alert("❌ Error de conexión.");
+            }
+        }
     </script>
+    <!-- Modal Crear Acta -->
+    <div id="actaModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeActaModal()">&times;</span>
+            <div style="padding: 20px;">
+                <h2 style="color: var(--primary); margin-top:0;">📝 Crear Acta de Incidencia</h2>
+                <p style="margin-bottom:20px; color:#666;">Alumno/a: <strong id="actaAlumnoNombre"></strong></p>
+                <form id="actaForm" onsubmit="event.preventDefault(); guardarActa();">
+                    <div class="form-group">
+                        <label>Fecha del hecho:</label>
+                        <input type="date" id="actaFecha" required
+                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Lugar de los hechos:</label>
+                        <input type="text" id="actaLugar" placeholder="Ej: Aula, Patio, Comedor..."
+                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Profesor/a implicado/a:</label>
+                        <input type="text" id="actaProfesor" placeholder="Nombre del docente que redacta o interviene"
+                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción de los hechos:</label>
+                        <textarea id="actaDescripcion" rows="5" required
+                            placeholder="Describe lo sucedido con detalle..."
+                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Firma (Nombre del firmante):</label>
+                        <input type="text" id="actaFirmante"
+                            placeholder="Dejar en blanco para firma automática del tutor"
+                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button type="submit"
+                            style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">💾
+                            Guardar y Generar PDF</button>
+                        <button type="button" onclick="closeActaModal()"
+                            style="padding:10px 20px; background:#ccc; border:none; border-radius:8px; cursor:pointer;">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>

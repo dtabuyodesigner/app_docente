@@ -154,6 +154,19 @@ def run_migrations():
             padre_email TEXT,
             FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
         )""", "tabla ficha_alumno"),
+        ("""CREATE TABLE IF NOT EXISTS actas_incidencias (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha_creacion TEXT NOT NULL,
+            fecha_hecho TEXT NOT NULL,
+            lugar TEXT,
+            profesor TEXT,
+            alumno_id INTEGER,
+            descripcion TEXT,
+            firmante TEXT,
+            firma_filename TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE SET NULL
+        )""", "tabla actas_incidencias"),
         ("""CREATE TABLE IF NOT EXISTS encargados (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fecha DATE NOT NULL UNIQUE,

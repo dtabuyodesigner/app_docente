@@ -94,6 +94,7 @@ from routes.evaluacion_cuaderno import evaluacion_cuaderno_bp
 from routes.eventos import eventos_bp
 from routes.observaciones import observaciones_bp
 from routes.rubricas import rubricas_bp
+from routes.actas import actas_bp
 
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
@@ -117,11 +118,11 @@ app.register_blueprint(curricular_bp, url_prefix='/api/curricular')
 app.register_blueprint(evaluacion_sda_bp, url_prefix='/api/evaluacion/sda')
 app.register_blueprint(evaluacion_directa_bp, url_prefix='/api/evaluacion/directa')
 app.register_blueprint(evaluacion_actividades_bp, url_prefix='/api/evaluacion/actividades')
-app.register_blueprint(evaluacion_cuaderno_bp, url_prefix='/api/evaluacion')
-app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion', name='evaluacion_curricular_final')
+app.register_blueprint(evaluacion_cuaderno_bp, url_prefix='/api/evaluacion/cuaderno')
 app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
 app.register_blueprint(rubricas_bp)
+app.register_blueprint(actas_bp)
 
 # ==============================================================================
 # CONFIGURACIÓN DE SEGURIDAD Y CONTEXTO

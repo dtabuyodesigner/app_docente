@@ -6,19 +6,61 @@ evaluacion_directa_bp = Blueprint('evaluacion_directa', __name__)
 @evaluacion_directa_bp.route("/", methods=["POST"])
 def guardar_evaluacion_directa():
     d = request.json
-    nivel = int(d["nivel"])
-    nota = nivel_a_nota(nivel)
+    nivel = d.get("nivel")
     periodo = d.get("periodo", "T1")
+    alumno_id = d["alumno_id"]
+    criterio_id = d["criterio_id"]
     conn = get_db()
     cur = conn.cursor()
     try:
         cur.execute("BEGIN")
-        cur.execute("""
-            INSERT INTO evaluacion_criterios (alumno_id, criterio_id, periodo, nivel, nota)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(alumno_id, criterio_id, periodo)
-            DO UPDATE SET nivel = excluded.nivel, nota = excluded.nota
-        """, (d["alumno_id"], d["criterio_id"], periodo, nivel, nota))
+        if nivel is None:
+            cur.execute("""
+                DELETE FROM evaluacion_criterios
+                WHERE alumno_id = ? AND criterio_id = ? AND periodo = ?
+            """, (alumno_id, criterio_id, periodo))
+        else:
+            nivel = int(nivel)
+            nota = nivel_a_nota(nivel)
+            cur.execute("""
+                INSERT INTO evaluacion_criterios (alumno_id, criterio_id, periodo, nivel, nota)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(alumno_id, criterio_id, periodo)
+                DO UPDATE SET nivel = excluded.nivel, nota = excluded.nota
+            """, (alumno_id, criterio_id, periodo, nivel, nota))
+        conn.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@evaluacion_directa_bp.route("/guardar_masivo", methods=["POST"])
+def guardar_masivo_directa():
+    data = request.json
+    periodo = data["periodo"]
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute("BEGIN")
+        for item in data["evaluaciones"]:
+            alumno_id = item["alumno_id"]
+            criterio_id = item["criterio_id"]
+            nivel = item.get("nivel")
+            if nivel is None:
+                cur.execute("""
+                    DELETE FROM evaluacion_criterios
+                    WHERE alumno_id = ? AND criterio_id = ? AND periodo = ?
+                """, (alumno_id, criterio_id, periodo))
+            else:
+                nivel = int(nivel)
+                nota = nivel_a_nota(nivel)
+                cur.execute("""
+                    INSERT INTO evaluacion_criterios (alumno_id, criterio_id, periodo, nivel, nota)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT(alumno_id, criterio_id, periodo)
+                    DO UPDATE SET nivel = excluded.nivel, nota = excluded.nota
+                """, (alumno_id, criterio_id, periodo, nivel, nota))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:

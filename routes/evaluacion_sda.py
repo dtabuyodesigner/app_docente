@@ -37,31 +37,83 @@ def get_sda_criterios(sda_id):
 
 @evaluacion_sda_bp.route("/", methods=["POST"])
 def guardar_evaluacion_sda():
-    # Si sda_id es 'null' (string de JS) o está vacío, tratarlo como None (NULL en DB)
-    if sda_id == 'null' or sda_id == '': sda_id = None
-    
+    d = request.json
+    try:
+        alumno_id   = int(d.get("alumno_id"))
+        area_id     = int(d.get("area_id"))
+        trimestre   = int(d.get("trimestre"))
+        criterio_id = d.get("criterio_id")
+        if criterio_id is not None and criterio_id != 'null' and criterio_id != '' and criterio_id != 0:
+            criterio_id = int(criterio_id)
+        else:
+            criterio_id = None
+        nivel       = d.get("nivel")
+        nivel       = int(nivel) if nivel is not None else None
+        sda_id      = d.get("sda_id")
+        if sda_id in (None, 'null', 'None', '', 0): 
+            sda_id = None
+        else: 
+            sda_id = int(sda_id)
+    except (ValueError, TypeError) as e:
+        return jsonify({"ok": False, "error": f"Parámetros inválidos: {str(e)}"}), 400
+
     conn = get_db()
     cur = conn.cursor()
-    
+
     # Get scale of the area
-    cur.execute("SELECT tipo_escala FROM areas WHERE id = ?", (d["area_id"],))
+    cur.execute("SELECT tipo_escala FROM areas WHERE id = ?", (area_id,))
     area_row = cur.fetchone()
     escala = area_row["tipo_escala"] if area_row else None
-    
+
     nota = nivel_a_nota(nivel, escala)
-    
+
     try:
         cur.execute("BEGIN")
-        cur.execute("""
-            INSERT INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
-            DO UPDATE SET nivel = excluded.nivel, nota = excluded.nota
-        """, (d["alumno_id"], d["area_id"], d["trimestre"], sda_id, d["criterio_id"], nivel, nota))
+        
+        # Usamos DELETE + INSERT para evitar problemas con ON CONFLICT y NULL sda_id en SQLite
+        if criterio_id is not None:
+            # Evaluación de criterio específico dentro de una SDA
+            if sda_id is not None:
+                cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND criterio_id = ? AND sda_id = ? AND trimestre = ?", 
+                           (alumno_id, criterio_id, sda_id, trimestre))
+                cur.execute("""
+                    INSERT INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota))
+            else:
+                cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND criterio_id = ? AND sda_id IS NULL AND trimestre = ?", 
+                           (alumno_id, criterio_id, trimestre))
+                cur.execute("""
+                    INSERT INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
+                    VALUES (?, ?, ?, NULL, ?, ?, ?)
+                """, (alumno_id, area_id, trimestre, criterio_id, nivel, nota))
+        else:
+            # Evaluación directa de la SDA (sin criterio específico)
+            # ADVERTENCIA: La tabla 'evaluaciones' tiene criterio_id NOT NULL en el schema.
+            # Si esto falla, es porque se necesita un criterio_id válido o cambiar el schema.
+            if sda_id is not None:
+                cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ? AND criterio_id IS NULL", 
+                           (alumno_id, sda_id, trimestre))
+                cur.execute("""
+                    INSERT INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
+                    VALUES (?, ?, ?, ?, NULL, ?, ?)
+                """, (alumno_id, area_id, trimestre, sda_id, nivel, nota))
+            else:
+                # Caso poco probable: sin criterio y sin SDA
+                cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id IS NULL AND trimestre = ? AND criterio_id IS NULL", 
+                           (alumno_id, trimestre))
+                cur.execute("""
+                    INSERT INTO evaluaciones (alumno_id, area_id, trimestre, sda_id, criterio_id, nivel, nota)
+                    VALUES (?, ?, ?, NULL, NULL, ?, ?)
+                """, (alumno_id, area_id, trimestre, nivel, nota))
+        
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"[ERROR guardar_evaluacion_sda] {error_detail}")
         return jsonify({"ok": False, "error": str(e)}), 500
 
 @evaluacion_sda_bp.route("/alumno")
@@ -70,9 +122,21 @@ def evaluacion_sda_alumno():
     sda_id    = request.args.get("sda_id")
     trimestre = request.args.get("trimestre")
     area_id   = request.args.get("area_id")
+    
+    try:
+        if alumno_id: alumno_id = int(alumno_id)
+        if trimestre: trimestre = int(trimestre)
+        if area_id: area_id = int(area_id)
+        if sda_id and sda_id != 'null' and sda_id != 'None':
+            sda_id = int(sda_id)
+        else:
+            sda_id = None
+    except (ValueError, TypeError):
+        return jsonify({})
+
     conn = get_db()
     cur = conn.cursor()
-    if sda_id and sda_id != 'null' and sda_id != 'None':
+    if sda_id:
         cur.execute("""
             SELECT criterio_id, nivel FROM evaluaciones
             WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
@@ -91,18 +155,32 @@ def media_sda():
     sda_id    = request.args.get("sda_id")
     trimestre = request.args.get("trimestre")
     area_id   = request.args.get("area_id")
+
+    try:
+        if alumno_id: alumno_id = int(alumno_id)
+        if trimestre: trimestre = int(trimestre)
+        if area_id: area_id = int(area_id)
+        if sda_id and sda_id != 'null' and sda_id != 'None':
+            sda_id = int(sda_id)
+        else:
+            sda_id = None
+    except (ValueError, TypeError):
+        return jsonify({"media": 0})
+
     conn = get_db()
     cur = conn.cursor()
-    if sda_id and sda_id != 'null' and sda_id != 'None':
+    if sda_id:
         cur.execute("""
             SELECT ROUND(AVG(nota), 2) FROM evaluaciones
             WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?
         """, (alumno_id, sda_id, trimestre))
     else:
+        # Si no hay sda_id, promediar TODO lo del área y trimestre para el alumno
+        # Esto asegura que la media global coincida con todos los criterios visibles
         cur.execute("""
             SELECT ROUND(AVG(nota), 2) FROM evaluaciones
-            WHERE alumno_id = ? AND sda_id IS NULL AND trimestre = ? AND area_id = ?
-        """, (alumno_id, trimestre, area_id))
+            WHERE alumno_id = ? AND area_id = ? AND trimestre = ?
+        """, (alumno_id, area_id, trimestre))
     media = cur.fetchone()[0]
     return jsonify({"media": media if media is not None else 0})
 
@@ -111,6 +189,13 @@ def media_area():
     alumno_id = request.args.get("alumno_id")
     area_id = request.args.get("area_id")
     trimestre = request.args.get("trimestre")
+    if not all([alumno_id, area_id, trimestre]): return jsonify({"media": 0})
+    try:
+        alumno_id = int(alumno_id)
+        area_id = int(area_id)
+        trimestre = int(trimestre)
+    except (ValueError, TypeError):
+        return jsonify({"media": 0})
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT modo_evaluacion, tipo_escala FROM areas WHERE id = ?", (area_id,))
@@ -137,16 +222,23 @@ def media_area():
 def resumen_areas_alumno():
     alumno_id = request.args.get("alumno_id")
     trimestre = request.args.get("trimestre")
+    if not all([alumno_id, trimestre]): return jsonify([])
+    try:
+        alumno_id = int(alumno_id)
+        trimestre = int(trimestre)
+    except (ValueError, TypeError):
+        return jsonify([])
+    
     periodo = f"T{trimestre}"
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
         SELECT a.nombre as area_nombre, a.tipo_escala, val.codigo, val.nota
         FROM (
-            SELECT area_id, CriterionTable.codigo, nota 
+            SELECT evaluaciones.area_id, CriterionTable.codigo, nota 
             FROM evaluaciones 
             JOIN criterios as CriterionTable ON evaluaciones.criterio_id = CriterionTable.id
-            WHERE alumno_id = ? AND trimestre = ?
+            WHERE evaluaciones.alumno_id = ? AND evaluaciones.trimestre = ?
             
             UNION ALL
             
@@ -194,31 +286,49 @@ def borrar_evaluacion():
     sda_id    = request.args.get("sda_id")
     trimestre = request.args.get("trimestre")
     area_id   = request.args.get("area_id")
+    
+    if not (alumno_id and trimestre and area_id):
+        return jsonify({"ok": False, "error": "Faltan parámetros alumno_id, area_id o trimestre"}), 400
+
     conn = get_db()
     cur = conn.cursor()
     try:
         cur.execute("BEGIN")
-        if area_id:
-            cur.execute("SELECT modo_evaluacion FROM areas WHERE id = ?", (area_id,))
-            ar = cur.fetchone()
-            if ar and ar["modo_evaluacion"] == "POR_CRITERIOS_DIRECTOS":
-                cur.execute("""
-                    DELETE FROM evaluacion_criterios 
-                    WHERE alumno_id = ? AND periodo = ? AND criterio_id IN (
-                        SELECT id FROM criterios WHERE area_id = ?
-                    )
-                """, (alumno_id, f"T{trimestre}", area_id))
-                conn.commit()
-                return jsonify({"ok": True})
-        if sda_id and sda_id != 'null' and sda_id != 'None':
-            cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?", (alumno_id, sda_id, trimestre))
+        
+        # Determinar si el área es POR_CRITERIOS_DIRECTOS
+        cur.execute("SELECT modo_evaluacion FROM areas WHERE id = ?", (area_id,))
+        ar = cur.fetchone()
+        
+        if ar and ar["modo_evaluacion"] == "POR_CRITERIOS_DIRECTOS":
+            # Borrar de evaluacion_criterios
+            cur.execute("""
+                DELETE FROM evaluacion_criterios 
+                WHERE alumno_id = ? AND periodo = ? AND criterio_id IN (
+                    SELECT id FROM criterios WHERE area_id = ?
+                )
+            """, (alumno_id, f"T{trimestre}", area_id))
+            
+            # También borrar de evaluaciones por si acaso hay restos
+            cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND area_id = ? AND trimestre = ?", 
+                       (alumno_id, area_id, trimestre))
         else:
-            cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id IS NULL AND trimestre = ? AND area_id = ?", (alumno_id, trimestre, area_id))
+            # Modo SDA o POR_ACTIVIDADES
+            if sda_id and sda_id not in ('null', 'None', '', '0'):
+                # Borrar solo de una SDA específica
+                cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND sda_id = ? AND trimestre = ?", 
+                           (alumno_id, sda_id, trimestre))
+            else:
+                # Borrar TODAS las evaluaciones del área/trimestre para este alumno (Limpieza completa)
+                cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND area_id = ? AND trimestre = ?", 
+                           (alumno_id, area_id, trimestre))
+        
         conn.commit()
+        return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
+        import traceback
+        print(f"[ERROR borrar_evaluacion] {traceback.format_exc()}")
         return jsonify({"ok": False, "error": str(e)}), 500
-    return jsonify({"ok": True})
 
 @evaluacion_sda_bp.route("/tabla")
 def datos_tabla_evaluacion():
@@ -227,49 +337,112 @@ def datos_tabla_evaluacion():
     trimestre = request.args.get("trimestre")
     grupo_id = session.get('active_group_id')
     
-    if sda_id == 'null' or sda_id == '': sda_id = None
+    try:
+        area_id = int(area_id)
+        trimestre = int(trimestre)
+        if sda_id and sda_id != 'null': sda_id = int(sda_id)
+        else: sda_id = None
+    except (ValueError, TypeError):
+        return jsonify({"alumnos": [], "criterios": [], "evaluaciones": {}})
     
     conn = get_db()
     cur = conn.cursor()
-    
+
+    # 0. Modo del área
+    cur.execute("SELECT modo_evaluacion FROM areas WHERE id = ?", (area_id,))
+    area_row = cur.fetchone()
+    modo = area_row["modo_evaluacion"] if area_row else "POR_SA"
+
     # 1. Alumnos del grupo
     cur.execute("SELECT id, nombre FROM alumnos WHERE grupo_id = ? ORDER BY nombre", (grupo_id,))
     alumnos = [dict(r) for r in cur.fetchall()]
-    
-    # 2. Criterios de la SDA o del Área/Periodo (Directa)
+
+    # Para POR_CRITERIOS_DIRECTOS: todos los criterios del área y datos de evaluacion_criterios
+    if modo == "POR_CRITERIOS_DIRECTOS":
+        cur.execute(
+            "SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? AND activo = 1 ORDER BY codigo",
+            (area_id,)
+        )
+        criterios = [dict(r) for r in cur.fetchall()]
+        eval_map = {}
+        alumno_ids = [a["id"] for a in alumnos]
+        criterio_ids = [c["id"] for c in criterios]
+        if alumno_ids and criterio_ids:
+            a_ph = ",".join("?" * len(alumno_ids))
+            c_ph = ",".join("?" * len(criterio_ids))
+            evals = cur.execute(f"""
+                SELECT alumno_id, criterio_id, nivel
+                FROM evaluacion_criterios
+                WHERE alumno_id IN ({a_ph}) AND criterio_id IN ({c_ph}) AND periodo = ?
+            """, alumno_ids + criterio_ids + [f"T{trimestre}"]).fetchall()
+            for ev in evals:
+                eval_map[f"{ev['alumno_id']}_{ev['criterio_id']}"] = ev["nivel"]
+        return jsonify({"alumnos": alumnos, "criterios": criterios, "evaluaciones": eval_map})
+
+    # 2. Criterios del área, filtrando por SDA si se especifica
     if sda_id:
+        # Criterios vinculados a esta SDA: via sda_criterios O via actividades de la SDA.
+        # Sin filtro c.area_id para evitar falsos negativos si el area_id del criterio difiere.
         cur.execute("""
-            SELECT c.id, c.codigo, c.descripcion
+            SELECT DISTINCT c.id, c.codigo, c.descripcion
             FROM criterios c
-            JOIN sda_criterios sc ON sc.criterio_id = c.id
-            WHERE sc.sda_id = ?
-            ORDER BY c.id
-        """, (sda_id,))
+            WHERE c.activo = 1
+              AND (
+                EXISTS (SELECT 1 FROM sda_criterios sc WHERE sc.criterio_id = c.id AND sc.sda_id = ?)
+                OR EXISTS (
+                    SELECT 1 FROM actividades_sda a
+                    JOIN actividad_criterio ac ON ac.actividad_id = a.id
+                    WHERE ac.criterio_id = c.id AND a.sda_id = ?
+                )
+              )
+            ORDER BY c.codigo
+        """, (sda_id, sda_id))
+        criterios = [dict(r) for r in cur.fetchall()]
+        # Fallback: si la SDA no tiene criterios vinculados por ninguna vía, mostrar todos los del área
+        if not criterios:
+            cur.execute("SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? AND activo = 1 ORDER BY codigo", (area_id,))
+            criterios = [dict(r) for r in cur.fetchall()]
     else:
-        # Criterios directos para el área y periodo (T1, T2, T3)
-        periodo = f"T{trimestre}"
+        # Sin SDA específica: criterios vinculados a cualquier SDA del área en este trimestre
         cur.execute("""
-            SELECT c.id, c.codigo, c.descripcion
+            SELECT DISTINCT c.id, c.codigo, c.descripcion
             FROM criterios c
-            JOIN criterios_periodo cp ON cp.criterio_id = c.id
-            WHERE cp.grupo_id = ? AND cp.periodo = ? AND c.area_id = ? AND cp.activo = 1
-            ORDER BY c.id
-        """, (grupo_id, periodo, area_id))
-    
-    criterios = [dict(r) for r in cur.fetchall()]
-    
+            WHERE c.activo = 1
+              AND (
+                EXISTS (
+                  SELECT 1 FROM sda_criterios sc
+                  JOIN sda s ON s.id = sc.sda_id
+                  WHERE sc.criterio_id = c.id AND s.area_id = ?
+                    AND (s.trimestre = ? OR s.trimestre IS NULL)
+                    AND (s.grupo_id = ? OR s.grupo_id IS NULL)
+                )
+                OR EXISTS (
+                  SELECT 1 FROM actividades_sda a
+                  JOIN sda s ON s.id = a.sda_id
+                  JOIN actividad_criterio ac ON ac.actividad_id = a.id
+                  WHERE ac.criterio_id = c.id AND s.area_id = ?
+                    AND (s.trimestre = ? OR s.trimestre IS NULL)
+                    AND (s.grupo_id = ? OR s.grupo_id IS NULL)
+                )
+              )
+            ORDER BY c.codigo
+        """, (area_id, trimestre, grupo_id, area_id, trimestre, grupo_id))
+        criterios = [dict(r) for r in cur.fetchall()]
+
     # 3. Evaluaciones actuales
     if sda_id:
+        # Incluye evaluaciones de esta SDA y las guardadas sin SDA (guardar_masivo)
         cur.execute("""
-            SELECT alumno_id, criterio_id, nivel 
+            SELECT alumno_id, criterio_id, nivel
             FROM evaluaciones
-            WHERE sda_id = ? AND trimestre = ?
-        """, (sda_id, trimestre))
+            WHERE area_id = ? AND trimestre = ?
+              AND (sda_id = ? OR sda_id IS NULL)
+        """, (area_id, trimestre, sda_id))
     else:
         cur.execute("""
-            SELECT alumno_id, criterio_id, nivel 
+            SELECT alumno_id, criterio_id, nivel
             FROM evaluaciones
-            WHERE sda_id IS NULL AND area_id = ? AND trimestre = ?
+            WHERE area_id = ? AND trimestre = ?
         """, (area_id, trimestre))
     
     evals = cur.fetchall()
@@ -326,41 +499,73 @@ def obtener_cuaderno():
 @evaluacion_sda_bp.route("/guardar", methods=["POST"])
 def guardar_evaluacion_rapida():
     data = request.json
-    alumno_id = data["alumno_id"]
-    criterio_id = data["criterio_id"]
-    periodo = data["periodo"]
-    nivel = data.get("nivel")
-    
-    trimestre = int(periodo.replace('T', ''))
+    try:
+        alumno_id = int(data["alumno_id"])
+        criterio_id = int(data["criterio_id"])
+        
+        # Soportar 'periodo' (TX) o 'trimestre' (X)
+        if "periodo" in data and data["periodo"]:
+            trimestre = int(str(data["periodo"]).replace('T', ''))
+        elif "trimestre" in data and data["trimestre"]:
+            trimestre = int(data["trimestre"])
+        else:
+            return jsonify({"error": "Falta periodo o trimestre"}), 400
+            
+        nivel = data.get("nivel")
+        if nivel is not None: nivel = int(nivel)
+        
+        sda_id = data.get("sda_id")
+        if sda_id in (None, 'null', 'None', '', 0):
+            sda_id = None
+        else:
+            sda_id = int(sda_id)
+            
+    except (ValueError, KeyError, TypeError) as e:
+        return jsonify({"error": f"Parámetros inválidos: {str(e)}"}), 400
     
     db = get_db()
     cur = db.cursor()
 
-    # Get area_id and scale for the criterion
-    cur.execute("SELECT area_id FROM criterios WHERE id = ?", (criterio_id,))
+    # Obtener area_id y escala del criterio
+    cur.execute("""
+        SELECT c.area_id, a.tipo_escala 
+        FROM criterios c 
+        JOIN areas a ON c.area_id = a.id 
+        WHERE c.id = ?
+    """, (criterio_id,))
     row = cur.fetchone()
     if not row:
         return jsonify({"error": "Criterio no encontrado"}), 404
+    
     area_id = row["area_id"]
-    
-    cur.execute("SELECT tipo_escala FROM areas WHERE id = ?", (area_id,))
-    area_data = cur.fetchone()
-    escala = area_data["tipo_escala"] if area_data else None
-    
+    escala = row["tipo_escala"]
     nota = nivel_a_nota(nivel, escala) if nivel is not None else None
 
     try:
         cur.execute("BEGIN")
-        cur.execute("""
-            INSERT INTO evaluaciones (alumno_id, criterio_id, area_id, trimestre, sda_id, nivel, nota)
-            VALUES (?, ?, ?, ?, NULL, ?, ?)
-            ON CONFLICT(alumno_id, criterio_id, sda_id, trimestre)
-            DO UPDATE SET nivel=excluded.nivel, nota=excluded.nota
-        """, (alumno_id, criterio_id, area_id, trimestre, nivel, nota))
+        
+        # Usar DELETE + INSERT para evitar problemas con ON CONFLICT y NULL sda_id en SQLite
+        if sda_id is not None:
+            cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND criterio_id = ? AND sda_id = ? AND trimestre = ?", 
+                       (alumno_id, criterio_id, sda_id, trimestre))
+            cur.execute("""
+                INSERT INTO evaluaciones (alumno_id, criterio_id, area_id, trimestre, sda_id, nivel, nota)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (alumno_id, criterio_id, area_id, trimestre, sda_id, nivel, nota))
+        else:
+            cur.execute("DELETE FROM evaluaciones WHERE alumno_id = ? AND criterio_id = ? AND sda_id IS NULL AND trimestre = ?", 
+                       (alumno_id, criterio_id, trimestre))
+            cur.execute("""
+                INSERT INTO evaluaciones (alumno_id, criterio_id, area_id, trimestre, sda_id, nivel, nota)
+                VALUES (?, ?, ?, ?, NULL, ?, ?)
+            """, (alumno_id, criterio_id, area_id, trimestre, nivel, nota))
+            
         db.commit()
-        return jsonify({"status": "ok"})
+        return jsonify({"ok": True, "status": "ok"})
     except Exception as e:
         db.rollback()
+        import traceback
+        print(f"[ERROR guardar_evaluacion_rapida] {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
 
 @evaluacion_sda_bp.route("/resumen_clase")

@@ -140,6 +140,10 @@ def material_page():
 def configuracion_page():
     return send_from_directory("static", "configuracion.html")
 
+@main_bp.route("/cumpleanos")
+def cumpleanos_page():
+    return send_from_directory("static", "cumpleanos.html")
+
 @main_bp.route("/prestamos")
 def prestamos_page():
     return redirect("/biblioteca#prestamos")
@@ -601,7 +605,9 @@ def emergency_reset():
     except Exception as e:
         security_logger.error(f"Error during emergency reset: {e}")
         return jsonify({"ok": False, "error": "Error interno del servidor"}), 500
+
 @main_bp.route("/api/exit", methods=["POST"])
+
 def exit_app():
     """Cierra el proceso del servidor (útil para modo escritorio)."""
     # Solo permitir desde localhost para seguridad
@@ -615,7 +621,7 @@ def exit_app():
         import os
         import signal
         time.sleep(1)  # Dar tiempo a que la respuesta llegue al cliente
-        os.kill(os.getpid(), signal.SIGINT)
+        os._exit(0)
         
     import threading
     threading.Thread(target=shutdown).start()

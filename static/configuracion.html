@@ -52,7 +52,7 @@
             margin-bottom: 5px;
             color: #555;
         }
-        input,
+        input:not([type="checkbox"]):not([type="radio"]),
         select,
         textarea {
             width: 100%;
@@ -273,7 +273,7 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                 <div>
                     <label style="font-weight:600; display:block; margin-bottom:6px;">Logo izquierda:</label>
-                    <div id="logo-izda-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
+                    <div id="logo-izda-preview" style="height:80px; position:relative; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white; overflow:hidden;">
                         <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
                     </div>
                     <input type="file" id="logo-izda-file" accept="image/*" onchange="previewLogo('izda')" style="width:100%; font-size:0.85rem;">
@@ -287,7 +287,7 @@
                 </div>
                 <div>
                     <label style="font-weight:600; display:block; margin-bottom:6px;">Logo derecha:</label>
-                    <div id="logo-dcha-preview" style="height:60px; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white;">
+                    <div id="logo-dcha-preview" style="height:80px; position:relative; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white; overflow:hidden;">
                         <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
                     </div>
                     <input type="file" id="logo-dcha-file" accept="image/*" onchange="previewLogo('dcha')" style="width:100%; font-size:0.85rem;">
@@ -302,6 +302,20 @@
             </div>
             <button onclick="subirLogos()" style="margin-top:14px; padding:10px 20px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">📤 Guardar Logos</button>
             <span id="logos-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardado</span>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">🖋️ Firma Escaneada del Tutor/a</h3>
+                <p style="color:#666; font-size:0.85rem; margin-bottom:15px;">Sube tu firma escaneada (fondo blanco o transparente) para que aparezca automáticamente en las actas e informes.</p>
+                <div style="display: flex; gap: 20px; align-items: flex-start;">
+                    <div id="firma-preview" style="width: 200px; height: 100px; position:relative; display: flex; align-items: center; justify-content: center; border: 2px dashed #cbd5e1; border-radius: 6px; background: white; overflow: hidden;">
+                        <span style="color:#aaa; font-size:0.8rem;">Sin firma</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="file" id="firma-file" accept="image/*" onchange="subirFirmaAutomativa()" style="width:100%; font-size:0.85rem; margin-bottom: 10px;">
+                        <span id="firma-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardada</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -341,6 +355,7 @@
                     <label style="display:block; font-weight:600; margin-bottom:5px;">Etapa y Curso:</label>
                     <select id="newGroupStage"
                         style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                        <option value="" disabled selected>--- seleccionar etapa y curso ---</option>
                         <optgroup label="Educación Infantil">
                             <option value="infantil_3">Infantil 3 años</option>
                             <option value="infantil_4">Infantil 4 años</option>
@@ -365,6 +380,7 @@
                     <label style="display:block; font-weight:600; margin-bottom:5px;">Línea (Letra):</label>
                     <select id="newGroupLine"
                         style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                        <option value="" disabled selected>--- seleccionar letra ---</option>
                         <option value="">Ninguna (Línea Única)</option>
                         <option value="A">Línea A</option>
                         <option value="B">Línea B</option>
@@ -428,90 +444,90 @@
         async function checkUpdates() {
             const btn = event.target;
             const originalText = btn.innerHTML;
-            btn.innerHTML = '⏳ Buscando en GitHub...';
+            btn.innerHTML = '⏳ Buscando mejoras...';
             btn.disabled = true;
 
             const statusDiv = document.getElementById('updateStatus');
             statusDiv.style.display = 'none';
 
             try {
-                const res = await fetch('/api/admin/check_updates');
+                const res = await fetch('/api/admin/check_updates?t=' + Date.now());
                 const data = await res.json();
-
-                document.getElementById('currentAppVersion').innerText =
-                    `${data.current_version || "Desconocida"} (${data.local_sha || '?'})`;
-
+                document.getElementById('currentAppVersion').innerText = data.current_version || "v1.1.1";
                 statusDiv.style.display = 'block';
 
                 if (!data.ok) {
-                    statusDiv.style.background = '#f8d7da';
-                    statusDiv.style.color = '#721c24';
-                    statusDiv.style.border = '1px solid #f5c6cb';
-                    statusDiv.innerHTML = `❌ ${data.error}`;
+                    statusDiv.style.background = '#f8d7da'; statusDiv.style.color = '#721c24';
+                    statusDiv.innerHTML = `❌ Error: ${data.error}`;
                 } else if (data.update_available) {
-                    const cambiosHtml = data.cambios.map(c =>
-                        `<li style="margin:4px 0; font-size:0.85rem;"><code style="background:#e8f5e9; padding:2px 5px; border-radius:3px;">${c.sha}</code> ${c.fecha} — ${c.mensaje}</li>`
-                    ).join('');
-                    statusDiv.style.background = '#d4edda';
-                    statusDiv.style.color = '#155724';
-                    statusDiv.style.border = '1px solid #c3e6cb';
+                    statusDiv.style.background = '#d4edda'; statusDiv.style.color = '#155724'; statusDiv.style.border = '1px solid #c3e6cb';
                     statusDiv.innerHTML = `
-                        <b>🚀 ¡Hay actualizaciones disponibles!</b>
-                        <ul style="text-align:left; margin:10px 0 12px;">${cambiosHtml}</ul>
-                        <button onclick="applyUpdate(this)" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; width:100%;">
-                            ⬇️ Actualizar Ahora
+                        <div style="font-size:1.1rem; margin-bottom:12px;">🚀 <b>¡Nuevas mejoras disponibles!</b></div>
+                        <p style="font-size:0.9rem; margin-bottom:15px; opacity:0.8;">Se han encontrado optimizaciones para tu cuaderno.</p>
+                        <button onclick="applyUpdate(this)" style="padding:12px; background:#28a745; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold; width:100%; font-size:1rem; box-shadow:0 4px 6px rgba(40,167,69,0.2);">
+                            ⬇️ Instalar Ahora en Silencio
                         </button>
                     `;
                 } else {
-                    statusDiv.style.background = '#e2e3e5';
-                    statusDiv.style.color = '#383d41';
-                    statusDiv.style.border = '1px solid #d6d8db';
-                    statusDiv.innerHTML = `✅ Ya tienes la versión más reciente (${data.local_sha}).`;
+                    statusDiv.style.background = '#f8f9fa'; statusDiv.style.color = '#666'; statusDiv.style.border = '1px solid #ddd';
+                    statusDiv.innerHTML = `✅ Tu sistema está actualizado.`;
                 }
             } catch(e) {
-                statusDiv.style.display = 'block';
-                statusDiv.style.background = '#f8d7da';
-                statusDiv.style.color = '#721c24';
-                statusDiv.style.border = '1px solid #f5c6cb';
-                statusDiv.innerHTML = '❌ Error al comprobar actualizaciones. Revisa tu conexión a Internet.';
+                statusDiv.style.display = 'block'; statusDiv.style.background = '#f8d7da';
+                statusDiv.innerHTML = '❌ Sin conexión para buscar actualizaciones.';
             } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+        }
+
+        async function loadAppVersion() {
+            try {
+                const res = await fetch('/api/admin/version');
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('currentAppVersion').innerText = 
+                        `${data.version} (${data.sha})`;
+                }
+            } catch (e) {
+                console.error("Error cargando versión:", e);
             }
         }
 
         async function applyUpdate(btn) {
-            if (!confirm('¿Confirmas la actualización? Se descargará el código nuevo y la página se recargará.')) return;
-            btn.innerHTML = '⏳ Descargando actualización...';
-            btn.disabled = true;
+            if (!confirm('¿Instalar las mejoras ahora? El proceso es automático.')) return;
+            const container = btn.parentElement;
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px;">
+                    <div class="loader-eval" style="margin:0 auto 15px;"></div>
+                    <div id="updateStep" style="font-weight:700; color:var(--primary); margin-bottom:8px;">Aplicando cambios en silencio...</div>
+                    <p style="font-size:0.8rem; opacity:0.6;">No cierres la aplicación</p>
+                </div>
+            `;
             try {
                 const csrf = await getCsrfTokenManual();
                 const res = await fetch('/api/admin/apply_update', {
                     method: 'POST',
-                    headers: { 'X-CSRFToken': csrf }
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+                    body: JSON.stringify({ skip: [] })
                 });
                 const data = await res.json();
                 if (data.ok) {
-                    let secs = 5;
-                    btn.parentElement.innerHTML = `<div id="updateCountdown" style="color:#155724; text-align:center; padding:10px;">
-                        ✅ Actualización aplicada correctamente.<br>
-                        <small style="color:#555;">${data.detalle}</small><br><br>
-                        <b>⚠️ Reinicia la app manualmente para aplicar los cambios.</b><br>
-                        <span style="font-size:0.85rem;">Recargando página en <span id="cdSecs">${secs}</span>s...</span>
-                    </div>`;
-                    const interval = setInterval(() => {
-                        secs--;
-                        const el = document.getElementById('cdSecs');
-                        if (el) el.textContent = secs;
-                        if (secs <= 0) { clearInterval(interval); location.reload(); }
+                    document.getElementById('updateStep').innerHTML = '✅ ¡Sistema actualizado con éxito!';
+                    setTimeout(() => {
+                        container.innerHTML = `
+                            <div style="background:#d4edda; color:#155724; padding:20px; border-radius:12px; border:1px solid #c3e6cb; animation: fadeIn 0.5s;">
+                                <div style="font-size:1.2rem; margin-bottom:10px;"><b>✨ ¡Todo listo!</b></div>
+                                <p style="font-size:0.9rem;">Las mejoras se han aplicado correctamente.</p>
+                                <div style="margin:15px 0; font-weight:bold; color:var(--danger);">La aplicación se reiniciará en unos segundos...</div>
+                            </div>
+                        `;
+                        setTimeout(() => location.reload(), 3000);
                     }, 1000);
                 } else {
-                    btn.innerHTML = '❌ Error: ' + data.error;
-                    btn.disabled = false;
+                    container.innerHTML = `<div style="color:var(--danger); padding:10px;">❌ Fallo al aplicar: ${data.error}</div>`;
                 }
             } catch(e) {
-                btn.innerHTML = '❌ Error de conexión';
-                btn.disabled = false;
+                container.innerHTML = `<div style="color:var(--danger); padding:10px;">❌ Error de red</div>`;
             }
         }
 
@@ -765,7 +781,22 @@
         window.onload = () => {
             loadConfig();
             loadGruposAjustes();
+            loadAppVersion();
+            
+            // Manage deep linking via hash
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                mostrarSeccion(hash);
+            }
         };
+
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                mostrarSeccion(hash);
+            }
+        });
+
         function mostrarSeccion(seccionId) {
             document.querySelectorAll('.config-section').forEach(el => el.style.display = 'none');
             const target = document.getElementById(seccionId + 'ConfigSection');
@@ -774,6 +805,156 @@
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             if (seccionId === 'logos') cargarLogosPreviews();
+        }
+
+        async function subirLogos() {
+            const izda = document.getElementById('logo-izda-file').files[0];
+            const dcha = document.getElementById('logo-dcha-file').files[0];
+            const posIzda = document.getElementById('logo-izda-pos').value;
+            const posDcha = document.getElementById('logo-dcha-pos').value;
+
+            const upload = async (lado, file, pos) => {
+                if (!file && !pos) return;
+                const fd = new FormData();
+                if (file) fd.append('logo', file);
+                fd.append('lado', lado);
+                fd.append('posicion', pos);
+                const csrf = await getCsrfTokenManual();
+                await fetch('/api/configuracion/logo', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf },
+                    body: fd
+                });
+            };
+
+            if (izda || posIzda) await upload('izda', izda, posIzda);
+            if (dcha || posDcha) await upload('dcha', dcha, posDcha);
+            
+            const status = document.getElementById('logos-status');
+            status.style.display = 'inline';
+            setTimeout(() => status.style.display = 'none', 3000);
+            cargarLogosPreviews();
+        }
+
+        function previewLogo(lado) {
+            const file = document.getElementById(`logo-${lado}-file`).files[0];
+            const preview = document.getElementById(`logo-${lado}-preview`);
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" style="max-height:100%; max-width:100%; object-fit:contain;">
+                        <button onclick="borrarLogo('${lado}')" style="position:absolute; top:4px; right:4px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:4px; width:24px; height:24px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; z-index:5;">🗑️</button>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewFirma() {
+            const file = document.getElementById('firma-file').files[0];
+            const preview = document.getElementById('firma-preview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" style="max-height:100%; max-width:100%; object-fit:contain;">
+                        <button onclick="borrarFirma()" style="position:absolute; top:4px; right:4px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:4px; width:24px; height:24px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; z-index:5;">🗑️</button>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function subirFirmaAutomativa() {
+            const file = document.getElementById('firma-file').files[0];
+            if (!file) return;
+
+            // Primero mostramos la previsualización local
+            previewFirma();
+
+            // Luego subimos automáticamente
+            const fd = new FormData();
+            fd.append('firma', file);
+            const csrf = await getCsrfTokenManual();
+            try {
+                const res = await fetch('/api/configuracion/firma', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf },
+                    body: fd
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    const status = document.getElementById('firma-status');
+                    status.style.display = 'inline';
+                    setTimeout(() => status.style.display = 'none', 3000);
+                    cargarLogosPreviews(); // Refresca con el botón de borrar real
+                } else {
+                    alert("Error subiendo firma: " + data.error);
+                }
+            } catch (e) {
+                alert("Error de conexión");
+            }
+        }
+
+        async function cargarLogosPreviews() {
+            try {
+                const res = await fetch('/api/configuracion/logos');
+                const data = await res.json();
+                
+                const renderPreview = (id, filename, side) => {
+                    const el = document.getElementById(id);
+                    if (filename) {
+                        el.innerHTML = `
+                            <img src="/uploads/${filename}?t=${Date.now()}" style="max-height:100%; max-width:100%; object-fit:contain;">
+                            <button onclick="${side ? `borrarLogo('${side}')` : 'borrarFirma()'}" style="position:absolute; top:4px; right:4px; background:rgba(220,53,69,0.8); color:white; border:none; border-radius:4px; width:24px; height:24px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; z-index:5;">🗑️</button>
+                        `;
+                    } else {
+                        el.innerHTML = `<span style="color:#aaa; font-size:0.8rem;">Sin ${side ? 'logo' : 'firma'}</span>`;
+                    }
+                };
+
+                renderPreview('logo-izda-preview', data.izda, 'izda');
+                renderPreview('logo-dcha-preview', data.dcha, 'dcha');
+                renderPreview('firma-preview', data.firma, null);
+                
+                if (data.izda_posicion) document.getElementById('logo-izda-pos').value = data.izda_posicion;
+                if (data.dcha_posicion) document.getElementById('logo-dcha-pos').value = data.dcha_posicion;
+            } catch (e) {
+                console.error("Error cargando logos:", e);
+            }
+        }
+
+        async function borrarLogo(lado) {
+            if (!confirm(`¿Borrar el logo de la ${lado === 'izda' ? 'izquierda' : 'derecha'}?`)) return;
+            const csrf = await getCsrfTokenManual();
+            try {
+                const res = await fetch(`/api/configuracion/logo/${lado}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrf }
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    cargarLogosPreviews();
+                    document.getElementById(`logo-${lado}-file`).value = '';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function borrarFirma() {
+            if (!confirm("¿Borrar la firma guardada?")) return;
+            const csrf = await getCsrfTokenManual();
+            try {
+                const res = await fetch('/api/configuracion/firma', {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrf }
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    cargarLogosPreviews();
+                    document.getElementById('firma-file').value = '';
+                }
+            } catch (e) { console.error(e); }
         }
     </script>
 
@@ -846,65 +1027,9 @@
     </div>
 
     <script>
-        // ── Logos ─────────────────────────────────────────────────────────
-        function previewLogo(lado) {
-            const file = document.getElementById(`logo-${lado}-file`).files[0];
-            const preview = document.getElementById(`logo-${lado}-preview`);
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.innerHTML = `<img src="${e.target.result}" style="max-height:56px; max-width:100%; object-fit:contain;">`;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        async function subirLogos() {
-            const csrf = await getCsrfTokenManual();
-            const status = document.getElementById('logos-status');
-            const slots = ['izda', 'dcha'];
-            let subidos = 0;
-
-            for (const lado of slots) {
-                const file = document.getElementById(`logo-${lado}-file`).files[0];
-                const pos = document.getElementById(`logo-${lado}-pos`).value;
-                if (!file) continue;
-
-                const fd = new FormData();
-                fd.append('logo', file);
-                fd.append('lado', lado);
-                fd.append('posicion', pos);
-
-                const r = await fetch('/api/configuracion/logo', {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': csrf },
-                    body: fd
-                });
-                const d = await r.json();
-                if (d.ok) subidos++;
-            }
-
-            if (subidos > 0) {
-                status.style.display = 'inline';
-                setTimeout(() => status.style.display = 'none', 2500);
-                cargarLogosPreviews();
-            }
-        }
-
-        async function cargarLogosPreviews() {
-            try {
-                const r = await fetch('/api/configuracion/logos');
-                const d = await r.json();
-                ['izda', 'dcha'].forEach(lado => {
-                    if (d[lado]) {
-                        document.getElementById(`logo-${lado}-preview`).innerHTML =
-                            `<img src="/uploads/${d[lado]}" style="max-height:56px; max-width:100%; object-fit:contain;">`;
-                    }
-                });
-            } catch(e) {}
-        }
-        // Cargar previews al iniciar
+        // ── Cargar previews al iniciar ───────────────────────────
         window.addEventListener('DOMContentLoaded', () => { cargarLogosPreviews(); });
-        // ──────────────────────────────────────────────────────────────────
+        // ───────────────────────────────────────────────────────────
 
         async function getCsrfTokenManual() {
             const r = await fetch('/api/csrf-token');
@@ -1050,6 +1175,7 @@
                     <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Etapa y Curso:</label>
                     <select id="renameGroupStage" onchange="recargarAreas([])"
                         style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                        <option value="" disabled selected>--- seleccionar etapa y curso ---</option>
                         <optgroup label="Educación Infantil">
                             <option value="infantil_3">Infantil 3 años</option>
                             <option value="infantil_4">Infantil 4 años</option>
@@ -1074,6 +1200,7 @@
                     <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Línea (Letra):</label>
                     <select id="renameGroupLine"
                         style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+                        <option value="" disabled selected>--- seleccionar letra ---</option>
                         <option value="">Ninguna (Línea Única)</option>
                         <option value="A">Línea A</option>
                         <option value="B">Línea B</option>

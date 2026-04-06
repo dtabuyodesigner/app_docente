@@ -1,6 +1,14 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, send_file
 from utils.db import get_db
 from datetime import date
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.platypus import Image as RLImage
+import os
 
 reuniones_bp = Blueprint('reuniones', __name__)
 
@@ -233,6 +241,194 @@ def api_ciclo(cid):
             return jsonify({"ok": False, "error": "Error interno al borrar ciclo."}), 500
         finally:
             pass
+
+# ==============================================================================
+# INFORME PDF REUNIONES
+# ==============================================================================
+
+@reuniones_bp.route("/api/reuniones/<int:rid>/pdf")
+def reunion_pdf(rid):
+    """Genera informe PDF de una reunión con familia o ciclo."""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Obtener datos de la reunión
+    cur.execute("""
+        SELECT r.*, a.nombre as alumno_nombre
+        FROM reuniones r
+        LEFT JOIN alumnos a ON r.alumno_id = a.id
+        WHERE r.id = ?
+    """, (rid,))
+    reunion = cur.fetchone()
+    
+    if not reunion:
+        return "Reunión no encontrada", 404
+    
+    # Crear buffer PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                           rightMargin=2*cm, leftMargin=2*cm,
+                           topMargin=2*cm, bottomMargin=2*cm)
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Estilo título
+    styles.add(ParagraphStyle(
+        name='StyleTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#1a1a1a'),
+        spaceAfter=12,
+        alignment=1  # Center
+    ))
+    
+    # Estilo normal mejorado
+    styles.add(ParagraphStyle(
+        name='StyleNormal',
+        parent=styles['Normal'],
+        fontSize=11,
+        leading=14,
+        spaceAfter=6
+    ))
+    
+    # Estilo para subtítulos
+    styles.add(ParagraphStyle(
+        name='StyleHeading2',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#2c3e50'),
+        spaceAfter=8,
+        spaceBefore=12
+    ))
+    
+    # Cabecera
+    tipo_reunion = "Ciclo" if reunion["tipo"] == "CICLO" else "Familias"
+    alumno_nombre = reunion["alumno_nombre"] or ""
+    
+    header_data = [
+        [Paragraph(f"Acta de Reunión - {tipo_reunion}", styles['StyleTitle'])]
+    ]
+    if alumno_nombre:
+        header_data.append([Paragraph(f"Alumno/a: {alumno_nombre}", styles['StyleNormal'])])
+    
+    header_table = Table(header_data, colWidths=[16*cm])
+    header_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+    ]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 10))
+    
+    # Información básica
+    info_data = [
+        [Paragraph("<b>Fecha:</b>", styles['StyleNormal']), Paragraph(reunion["fecha"] or "—", styles['StyleNormal'])],
+        [Paragraph("<b>Asistentes:</b>", styles['StyleNormal']), Paragraph(reunion["asistentes"] or "—", styles['StyleNormal'])],
+    ]
+    
+    if reunion["tipo"] == "CICLO":
+        info_data.append([Paragraph("<b>Tipo:</b>", styles['StyleNormal']), Paragraph("Reunión de Ciclo", styles['StyleNormal'])])
+    else:
+        info_data.append([Paragraph("<b>Tipo:</b>", styles['StyleNormal']), Paragraph("Reunión con Familias", styles['StyleNormal'])])
+    
+    table_info = Table(info_data, colWidths=[4*cm, 12*cm])
+    table_info.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(table_info)
+    elements.append(Spacer(1, 15))
+    
+    # Temas tratados
+    elements.append(Paragraph("📝 TEMAS TRATADOS", styles['StyleHeading2']))
+    temas_text = reunion["temas"] or "Sin contenido"
+    # Escapar caracteres especiales para ReportLab
+    temas_text = temas_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    elements.append(Paragraph(temas_text, styles['StyleNormal']))
+    elements.append(Spacer(1, 15))
+    
+    # Acuerdos / Conclusiones
+    if reunion["acuerdos"]:
+        elements.append(Paragraph("🤝 ACUERDOS / CONCLUSIONES", styles['StyleHeading2']))
+        acuerdos_text = reunion["acuerdos"] or ""
+        acuerdos_text = acuerdos_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        elements.append(Paragraph(acuerdos_text, styles['StyleNormal']))
+        elements.append(Spacer(1, 15))
+    
+    # Dificultades (solo para tipo CICLO)
+    if reunion["tipo"] == "CICLO" and reunion.get("dificultades"):
+        elements.append(Paragraph("⚠️ DIFICULTADES", styles['StyleHeading2']))
+        dificultades_text = reunion["dificultades"]
+        dificultades_text = dificultades_text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        elements.append(Paragraph(dificultades_text, styles['StyleNormal']))
+        elements.append(Spacer(1, 15))
+    
+    # Pie de página con fecha de generación
+    elements.append(Spacer(1, 20))
+    footer_text = f"Documento generado el {date.today().strftime('%d/%m/%Y')}"
+    elements.append(Paragraph(footer_text, styles['StyleNormal']))
+    
+    # --- SECCIÓN DE FIRMAS ---
+    elements.append(Spacer(1, 40))
+    
+    # Obtener firma y nombre tutor
+    cur.execute("SELECT clave, valor FROM config WHERE clave IN ('tutor_firma_filename', 'nombre_tutor')")
+    cfg = {r["clave"]: r["valor"] for r in cur.fetchall()}
+    firma_fn = cfg.get("tutor_firma_filename")
+    tutor_nombre = cfg.get("nombre_tutor", "El Tutor/a")
+    
+    firma_path = None
+    if firma_fn:
+        from utils.db import get_app_data_dir
+        p = os.path.join(get_app_data_dir(), "uploads", firma_fn)
+        if os.path.exists(p):
+            firma_path = p
+            
+    # Tabla de firmas
+    col_tutor = [Paragraph("<b>Firma del Tutor/a:</b>", styles['StyleNormal']), Spacer(1, 10)]
+    if firma_path:
+        try:
+            img_f = RLImage(firma_path, width=4*cm, height=1.5*cm)
+            img_f.hAlign = 'LEFT'
+            col_tutor.append(img_f)
+        except:
+            col_tutor.append(Spacer(1, 15))
+    else:
+        col_tutor.append(Spacer(1, 25))
+    col_tutor.append(Paragraph(f"(Fdo: {tutor_nombre})", styles['StyleNormal']))
+    
+    col_padre = [
+        Paragraph("<b>Firma del Padre/Madre/Asistente:</b>", styles['StyleNormal']),
+        Spacer(1, 40),
+        Paragraph("(Fdo: ...........................................................)", styles['StyleNormal'])
+    ]
+    
+    sig_table = Table([[col_tutor, col_padre]], colWidths=[8.5*cm, 8.5*cm])
+    sig_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+    ]))
+    elements.append(sig_table)
+    
+    # Construir PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    # Nombre del archivo
+    if alumno_nombre:
+        filename = f"Reunion_{alumno_nombre.replace(' ', '_')}_{reunion['fecha']}.pdf"
+    else:
+        filename = f"Reunion_Ciclo_{reunion['fecha']}.pdf"
+    
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/pdf'
+    )
 
 @reuniones_bp.route("/api/reuniones/exportar/csv")
 def exportar_reuniones_csv():

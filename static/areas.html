@@ -136,6 +136,7 @@
                         <select id="tipo_escala" class="form-control">
                             <option value="NUMERICA_1_4">Numérica 1-4</option>
                             <option value="INFANTIL_NI_EP_C">Infantil (NI / EP / C)</option>
+                            <option value="INFANTIL_PA_A_MA">Infantil (PA / AD / MA)</option>
                             <option value="NUMERICA_1_10">Numérica 1-10 (Secundaria)</option>
                         </select>
                     </div>
@@ -201,7 +202,7 @@
             areas.forEach(a => {
                 const item = document.createElement('div');
                 item.className = 'area-list-item';
-                const scaleLabel = a.tipo_escala === 'INFANTIL_NI_EP_C' ? 'Infantil' : a.tipo_escala.replace('NUMERICA_', '');
+                const scaleLabel = (a.tipo_escala && a.tipo_escala.startsWith('INFANTIL_')) ? 'Infantil' : a.tipo_escala.replace('NUMERICA_', '');
                 item.innerHTML = `
                     <div class="area-info">
                         <h4>${a.nombre} ${!a.activa ? '<span style="color:var(--danger)">(Inactiva)</span>' : ''}</h4>

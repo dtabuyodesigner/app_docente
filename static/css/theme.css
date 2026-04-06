@@ -309,7 +309,7 @@ h4 {
     margin-bottom: var(--space-md);
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
     width: 100%;
@@ -318,6 +318,17 @@ textarea {
     border-radius: var(--radius-sm);
     font-size: 1rem;
     font-family: inherit;
+    min-height: 42px;
+    box-sizing: border-box;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary);
+    vertical-align: middle;
 }
 
 input:focus, select:focus, textarea:focus {

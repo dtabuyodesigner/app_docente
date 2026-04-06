@@ -1,6 +1,7 @@
 # ==============================================================================
 # IMPORTACIONES
 # ==============================================================================
+# Cuaderno del Tutor - Versión Final Sincronizada
 from flask import Flask, request, redirect, url_for, session, send_file, send_from_directory, jsonify
 try:
     from flasgger import Swagger
@@ -88,6 +89,8 @@ from routes.ayuda import ayuda_bp
 from routes.curricular import curricular_bp
 from routes.evaluacion_sda import evaluacion_sda_bp
 from routes.evaluacion_directa import evaluacion_directa_bp
+from routes.evaluacion_actividades import evaluacion_actividades_bp
+from routes.evaluacion_cuaderno import evaluacion_cuaderno_bp
 from routes.eventos import eventos_bp
 from routes.observaciones import observaciones_bp
 from routes.rubricas import rubricas_bp
@@ -95,7 +98,6 @@ from routes.rubricas import rubricas_bp
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
 app.register_blueprint(asistencia_bp)
-app.register_blueprint(evaluacion_bp)  # Solo una vez, sin prefijo
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(horario_bp)
 app.register_blueprint(comedor_bp)
@@ -114,7 +116,9 @@ app.register_blueprint(criterios_bp)
 app.register_blueprint(curricular_bp, url_prefix='/api/curricular')
 app.register_blueprint(evaluacion_sda_bp, url_prefix='/api/evaluacion/sda')
 app.register_blueprint(evaluacion_directa_bp, url_prefix='/api/evaluacion/directa')
-# ELIMINADO: app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion') <- ESTO CAUSABA EL ERROR
+app.register_blueprint(evaluacion_actividades_bp, url_prefix='/api/evaluacion/actividades')
+app.register_blueprint(evaluacion_cuaderno_bp, url_prefix='/api/evaluacion')
+app.register_blueprint(evaluacion_bp, url_prefix='/api/evaluacion', name='evaluacion_curricular_final')
 app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
 app.register_blueprint(rubricas_bp)
@@ -130,6 +134,10 @@ csrf = CSRFProtect()
 csrf.init_app(app)
 csrf.exempt(curricular_bp)
 csrf.exempt(alumnos_bp)
+csrf.exempt(criterios_bp)
+csrf.exempt(evaluacion_actividades_bp)
+csrf.exempt(evaluacion_cuaderno_bp)
+csrf.exempt("routes.main.exit_app")
 
 # ==============================================================================
 # RUTAS Y ENDPOINTS
@@ -138,6 +146,17 @@ csrf.exempt(alumnos_bp)
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
     return {"ok": True, "csrf_token": generate_csrf()}
+
+@app.route('/api/version', methods=['GET'])
+def get_version():
+    """Devuelve la versión actual de la aplicación desde el fichero VERSION."""
+    version_path = os.path.join(app.root_path, 'VERSION')
+    try:
+        with open(version_path, 'r') as f:
+            version = f.read().strip()
+    except FileNotFoundError:
+        version = "desconocida"
+    return jsonify({"version": version})
 
 @app.route('/service-worker.js')
 def serve_sw():

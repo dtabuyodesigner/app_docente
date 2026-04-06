@@ -262,13 +262,20 @@
                 const groupRes = await fetch('/api/grupo_activo');
                 const groupData = await groupRes.json();
                 if (groupData.etapa_id) {
-                    etapaSelect.value = groupData.etapa_id;
+                    etapaSelect.value = String(groupData.etapa_id);
+                    // Ocultar el selector si la etapa viene del grupo activo (como evaluacion.html)
+                    etapaSelect.closest('.info-item').style.display = 'none';
                     await loadAreasByEtapa();
                 }
-                // If period is in URL, set it
+                // Auto-seleccionar trimestre según el mes actual si no viene en URL
                 const urlPeriodo = params.get('periodo'); // T1, T2, T3
                 if (urlPeriodo) {
                     periodoSelect.value = urlPeriodo.replace('T', '');
+                } else {
+                    const mes = new Date().getMonth() + 1; // 1-12
+                    if (mes >= 9) periodoSelect.value = '1';
+                    else if (mes <= 3) periodoSelect.value = '2';
+                    else periodoSelect.value = '3';
                 }
                 // If area_id is in URL, try to pre-select
                 const urlAreaId = params.get('area_id');
@@ -304,6 +311,7 @@
                     opt.textContent = a.nombre;
                     areaSelect.appendChild(opt);
                 });
+                renderStudents(); // Actualiza etiquetas de aplicar a todo aunque no haya alumnos cargados
             } catch (e) { console.error(e); }
         }
         async function onAreaOrTrimChange() {
@@ -386,10 +394,11 @@
             const bulkButtons = document.getElementById('bulk-buttons');
             
             // Infantil labels
+            const usePama = true; // Estandarizado a PA/AD/MA para Infantil
             if (etapaId == "1") {
                 bulkButtons.innerHTML = `
                     <button class="eval-btn" onclick="applyToAll(1)" data-level="1" style="width:auto; border-radius:8px; padding:0 10px;">NI/PA</button>
-                    <button class="eval-btn" onclick="applyToAll(2)" data-level="2" style="width:auto; border-radius:8px; padding:0 10px;">EP/A</button>
+                    <button class="eval-btn" onclick="applyToAll(2)" data-level="2" style="width:auto; border-radius:8px; padding:0 10px;">EP/AD</button>
                     <button class="eval-btn" onclick="applyToAll(3)" data-level="3" style="width:auto; border-radius:8px; padding:0 10px;">CO/MA</button>
                 `;
             } else {
@@ -408,9 +417,10 @@
             grid.innerHTML = studentsData.map(s => {
                 let buttons = '';
                 if (etapaId == "1") {
+                    const usePama = true;
                     buttons = `
                         <button class="eval-btn ${s.nivel == 1 ? 'active' : ''}" data-level="1" onclick="setNivel(${s.id}, 1)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">NI/PA</button>
-                        <button class="eval-btn ${s.nivel == 2 ? 'active' : ''}" data-level="2" onclick="setNivel(${s.id}, 2)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">EP/A</button>
+                        <button class="eval-btn ${s.nivel == 2 ? 'active' : ''}" data-level="2" onclick="setNivel(${s.id}, 2)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">EP/AD</button>
                         <button class="eval-btn ${s.nivel == 3 ? 'active' : ''}" data-level="3" onclick="setNivel(${s.id}, 3)" style="width:auto; border-radius:8px; padding:0 8px; font-size:0.75rem;">CO/MA</button>
                     `;
                 } else {
@@ -428,13 +438,21 @@
         }
         function setNivel(alumnoId, nivel) {
             const student = studentsData.find(s => s.id === alumnoId);
+            if (!student) return;
             if (student.nivel === nivel) student.nivel = null;
             else student.nivel = nivel;
             renderStudents();
         }
         function applyToAll(nivel) {
             if (studentsData.length === 0) return;
-            if (confirm(`¿Aplicar nivel ${nivel} a todos los alumnos?`)) {
+            const etapaId = document.getElementById('etapa-select').value;
+            let label = nivel;
+            if (etapaId == "1") {
+                if (nivel === 1) label = "NI/PA (No Inic. / Poco Adeq.)";
+                else if (nivel === 2) label = "EP/AD (En Proc. / Adecuado)";
+                else if (nivel === 3) label = "CO/MA (Cons. / Muy Adeq.)";
+            }
+            if (confirm(`¿Aplicar nivel "${label}" a todos los alumnos?`)) {
                 studentsData.forEach(s => s.nivel = nivel);
                 renderStudents();
             }

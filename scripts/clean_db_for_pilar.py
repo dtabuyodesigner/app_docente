@@ -3,12 +3,21 @@ import os
 import shutil
 from werkzeug.security import generate_password_hash
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "app_evaluar.db")
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from utils.db import get_db_path
+
+DB_PATH = get_db_path()
 CLEAN_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "app_evaluar_pilar.db")
 
 def create_clean_db():
+    print(f"Sourcing database from: {DB_PATH}")
     print(f"Creating a clean database for Pilar at: {CLEAN_DB_PATH}")
     
+    if os.path.abspath(DB_PATH) == os.path.abspath(CLEAN_DB_PATH):
+        print("Error: Source and Destination databases are the same file! Clean aborted.")
+        return
+
     if not os.path.exists(DB_PATH):
         print(f"Error: Original database {DB_PATH} not found.")
         return

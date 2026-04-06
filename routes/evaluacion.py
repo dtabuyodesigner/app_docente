@@ -9,7 +9,7 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
-evaluacion_bp = Blueprint('evaluacion', __name__)
+evaluacion_bp = Blueprint('evaluacion_curricular', __name__)
 
 @evaluacion_bp.route("/areas")
 def listar_areas():
@@ -325,11 +325,23 @@ def obtener_cuaderno():
             ORDER BY c.codigo
         """, (periodo, area_id, grupo_id)).fetchall()
 
+    # Fetch evaluation data from all sources (SDA, Direct)
+    # Use MAX(nivel) or AVG(nivel)? User says "it has to go hand in hand".
+    # We will fetch all and group by student/criterion.
     evaluaciones = cur.execute("""
-        SELECT alumno_id, criterio_id, nivel
-        FROM evaluaciones
-        WHERE area_id = ? AND trimestre = ? AND sda_id IS NULL
-    """, (area_id, trimestre)).fetchall()
+        SELECT alumno_id, criterio_id, MAX(nivel) as nivel
+        FROM (
+            SELECT alumno_id, criterio_id, nivel 
+            FROM evaluaciones 
+            WHERE area_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT ec.alumno_id, ec.criterio_id, ec.nivel
+            FROM evaluacion_criterios ec
+            JOIN criterios c ON ec.criterio_id = c.id
+            WHERE c.area_id = ? AND ec.periodo = ?
+        )
+        GROUP BY alumno_id, criterio_id
+    """, (area_id, trimestre, area_id, periodo)).fetchall()
 
     eval_map = {}
     for ev in evaluaciones:
@@ -429,6 +441,47 @@ def save_directa():
         db.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@evaluacion_bp.route("/area/<int:area_id>/criterios_completos")
+def get_criterios_completos_area(area_id):
+    db = get_db()
+    cur = db.cursor()
+    rows = cur.execute("SELECT id, codigo, descripcion FROM criterios WHERE area_id = ? AND activo = 1", (area_id,)).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@evaluacion_bp.route("/criterio_extra", methods=["POST"])
+def post_criterio_extra():
+    """Vincular un criterio extra al grupo y trimestre actual."""
+    data = request.json
+    area_id = data.get("area_id")
+    trimestre = data.get("trimestre")
+    criterio_id = data.get("criterio_id")
+    grupo_id = session.get('active_group_id')
+    periodo = f"T{trimestre}"
+    
+    if not (area_id and trimestre and criterio_id and grupo_id):
+        return jsonify({"ok": False, "error": "Faltan parámetros o grupo no activo"}), 400
+        
+    db = get_db()
+    cur = db.cursor()
+    try:
+        # Lógica compatible con todas las versiones de SQLite (evitamos ON CONFLICT)
+        cur.execute("SELECT id FROM criterios_periodo WHERE criterio_id=? AND grupo_id=? AND periodo=?", (criterio_id, grupo_id, periodo))
+        exists = cur.fetchone()
+        
+        if exists:
+            cur.execute("UPDATE criterios_periodo SET activo = 1 WHERE id = ?", (exists["id"],))
+        else:
+            cur.execute("""
+                INSERT INTO criterios_periodo (criterio_id, grupo_id, periodo, activo)
+                VALUES (?, ?, ?, 1)
+            """, (criterio_id, grupo_id, periodo))
+            
+        db.commit()
+        return jsonify({"ok": True, "sda_id": "directo"})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @evaluacion_bp.route("/sda/resumen_areas")
 def resumen_areas_sda_alumno():
     # Placeholder for the endpoint requested by frontend (line 1051)
@@ -436,7 +489,7 @@ def resumen_areas_sda_alumno():
     return resumen_areas_alumno() # Reuse existing logic
 
 
-@evaluacion_bp.route("/api/evaluacion/clase_hoy")
+@evaluacion_bp.route("/clase_hoy")
 def clase_hoy():
     fecha_hoy = date.today().isoformat()
     grupo_id = session.get('active_group_id')
@@ -447,20 +500,26 @@ def clase_hoy():
     
     # 1. Obtener todas las sesiones del día para el grupo activo
     cur.execute("""
-        SELECT pd.id, pd.descripcion as actividad, pd.criterio_id, pd.sda_id, 
+        SELECT pd.id, pd.descripcion as actividad, pd.criterio_id, pd.sda_id,
+               pd.actividad_id,
                c.codigo as criterio_codigo, c.descripcion as criterio_desc,
-               c.area_id, a.nombre as area_nombre
+               COALESCE(c.area_id, s.area_id) as area_id,
+               COALESCE(ac.nombre, '') as act_nombre,
+               COALESCE(a_crit.nombre, a_sda.nombre, '') as area_nombre,
+               COALESCE(a_crit.modo_evaluacion, a_sda.modo_evaluacion, 'POR_SA') as modo_evaluacion
         FROM programacion_diaria pd
         LEFT JOIN criterios c ON pd.criterio_id = c.id
         LEFT JOIN sda s ON pd.sda_id = s.id
-        LEFT JOIN areas a ON c.area_id = a.id
+        LEFT JOIN actividades_sda ac ON pd.actividad_id = ac.id
+        LEFT JOIN areas a_crit ON c.area_id = a_crit.id
+        LEFT JOIN areas a_sda ON s.area_id = a_sda.id
         WHERE pd.fecha = ? AND (s.grupo_id = ? OR s.grupo_id IS NULL OR pd.actividad_id IS NULL)
-        ORDER BY 
+        ORDER BY
             (CASE WHEN s.grupo_id = ? THEN 0 ELSE 1 END) ASC,
-            (CASE WHEN pd.criterio_id IS NOT NULL THEN 0 ELSE 1 END) ASC,
+            (CASE WHEN pd.actividad_id IS NOT NULL OR pd.criterio_id IS NOT NULL THEN 0 ELSE 1 END) ASC,
             pd.id ASC
     """, (fecha_hoy, grupo_id, grupo_id))
-    
+
     sesiones = [dict(r) for r in cur.fetchall()]
     
     if session_id:
@@ -491,7 +550,17 @@ def clase_hoy():
     elif 1 <= mes <= 3: trimestre = 2
     else: trimestre = 3
     
-    if sesion and sesion["criterio_id"]:
+    if sesion and sesion.get("actividad_id") and sesion.get("modo_evaluacion") == "POR_ACTIVIDADES":
+        # Modo actividades: cargar evaluaciones desde evaluaciones_actividad
+        cur.execute("""
+            SELECT alumno_id, nivel
+            FROM evaluaciones_actividad
+            WHERE actividad_id = ? AND trimestre = ?
+        """, (sesion["actividad_id"], trimestre))
+        evals = {r["alumno_id"]: r["nivel"] for r in cur.fetchall()}
+        for a in alumnos:
+            a["nivel"] = evals.get(a["id"])
+    elif sesion and sesion["criterio_id"]:
         sda_id = sesion["sda_id"]
         if sda_id:
             cur.execute("""
@@ -505,9 +574,9 @@ def clase_hoy():
                 FROM evaluaciones
                 WHERE criterio_id = ? AND trimestre = ? AND sda_id IS NULL
             """, (sesion["criterio_id"], trimestre))
-        
+
         evals = {r["alumno_id"]: r["nivel"] for r in cur.fetchall()}
-        
+
         for a in alumnos:
             a["nivel"] = evals.get(a["id"])
             
@@ -587,9 +656,17 @@ def get_cuaderno_data(cur, area_id, periodo):
     
     trimestre = periodo.replace('T', '')
     cur.execute("""
-        SELECT alumno_id, criterio_id, nivel FROM evaluaciones WHERE area_id = ? AND trimestre = ? AND sda_id IS NULL
-        UNION ALL
-        SELECT alumno_id, criterio_id, nivel FROM evaluacion_criterios WHERE periodo = ?
+        SELECT alumno_id, criterio_id, MAX(nivel) as nivel
+        FROM (
+            SELECT alumno_id, criterio_id, nivel 
+            FROM evaluaciones 
+            WHERE area_id = ? AND trimestre = ?
+            UNION ALL
+            SELECT alumno_id, criterio_id, nivel 
+            FROM evaluacion_criterios 
+            WHERE periodo = ?
+        )
+        GROUP BY alumno_id, criterio_id
     """, (area_id, trimestre, periodo))
     rows = cur.fetchall()
     evaluaciones = {f"{r['alumno_id']}_{r['criterio_id']}": r['nivel'] for r in rows}

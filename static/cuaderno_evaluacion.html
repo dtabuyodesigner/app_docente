@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,11 +14,13 @@
             margin: 0;
             padding: 0;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -26,18 +29,21 @@
             background: white;
             padding: 20px 30px;
             border-radius: 15px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
+
         .filters {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 20px;
             background: white;
-            padding: 15px;
+            padding: 15px 20px;
             border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             align-items: center;
+            flex-wrap: wrap;
         }
+
         select {
             padding: 8px 15px;
             border-radius: 8px;
@@ -45,22 +51,27 @@
             outline: none;
             font-family: inherit;
         }
+
         .table-container {
             background: white;
             border-radius: 15px;
             overflow: auto;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             max-height: 70vh;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
         }
-        th, td {
-            padding: 12px 15px;
+
+        th,
+        td {
+            padding: 10px 14px;
             border-bottom: 1px solid #f1f5f9;
         }
+
         th {
             background: #f8fafc;
             position: sticky;
@@ -70,18 +81,21 @@
             color: #64748b;
             white-space: nowrap;
         }
+
         .sticky-col {
             position: sticky;
             left: 0;
             background: white;
             z-index: 5;
             min-width: 200px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
         }
+
         th.sticky-col {
             z-index: 15;
             background: #f8fafc;
         }
+
         .level-cell {
             text-align: center;
             cursor: pointer;
@@ -89,22 +103,59 @@
             font-weight: bold;
             transition: all 0.2s;
         }
+
         .level-cell:hover {
             background: #f1f5f9;
         }
-        .l-1 { color: #ef4444; background: #fee2e2; }
-        .l-2 { color: #f59e0b; background: #fef3c7; }
-        .l-3 { color: #10b981; background: #dcfce7; }
-        .l-4 { color: #6366f1; background: #e0e7ff; }
+
+        .l-1 {
+            color: #ef4444;
+            background: #fee2e2;
+        }
+
+        .l-2 {
+            color: #f59e0b;
+            background: #fef3c7;
+        }
+
+        .l-3 {
+            color: #10b981;
+            background: #dcfce7;
+        }
+
+        .l-4 {
+            color: #6366f1;
+            background: #e0e7ff;
+        }
+
+        /* Checkbox pequeño y consistente */
+        input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        td input[type="checkbox"] {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
             z-index: 100;
             align-items: center;
             justify-content: center;
         }
+
         .modal-content {
             background: white;
             padding: 30px;
@@ -112,12 +163,14 @@
             width: 350px;
             text-align: center;
         }
+
         .eval-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin-top: 20px;
         }
+
         .btn-l {
             padding: 15px;
             border-radius: 12px;
@@ -125,33 +178,15 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: white;
-            color: var(--primary);
-            padding: 10px 18px;
-            border-radius: 12px;
-            border: 2px solid var(--primary);
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-decoration: none;
-            transition: all 0.2s;
-            margin-bottom: 20px;
-        }
-        .btn-back:hover {
-            background: var(--primary);
-            color: white;
-        }
     </style>
 
     <script src="/static/js/api.js?v=1.4"></script>
     <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
+
 <body>
-<!-- Unified Navigation injected by navigation.js -->
+    <!-- Unified Navigation injected by navigation.js -->
     <div class="container">
         <!-- Tabs de Sección Evaluación -->
         <div class="section-tabs">
@@ -161,11 +196,12 @@
             <a href="/static/progreso_clase.html" class="section-tab-btn">📈 Progreso</a>
             <a href="/informes" class="section-tab-btn">📑 Informes</a>
         </div>
-        
+
         <div class="header">
-            <h1>Cuaderno de Evaluación</h1>
+            <h1>📔 Cuaderno de Evaluación</h1>
             <div id="group-name" style="font-weight: 600; color: var(--primary);">---</div>
         </div>
+
         <div class="filters">
             <select id="etapa-select" onchange="loadAreasByEtapa()">
                 <option value="">Selecciona Etapa</option>
@@ -175,15 +211,27 @@
             </select>
             <select id="periodo-select" onchange="loadCuaderno()">
                 <option value="T1">Trimestre 1</option>
-                <option value="T2" selected>Trimestre 2</option>
+                <option value="T2">Trimestre 2</option>
                 <option value="T3">Trimestre 3</option>
             </select>
-            <button id="btn-masivo" class="btn-success" style="display:none; padding: 8px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white;" onclick="openMasivo()">Evaluación Masiva</button>
-            <div id="export-actions" style="display:none; gap:10px;">
-                <button onclick="exportarCSV()" style="padding: 8px 15px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font-weight: bold;">📊 CSV</button>
-                <button onclick="exportarPDF()" style="padding: 8px 15px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font-weight: bold;">📄 PDF</button>
+            <div style="flex:1;"></div>
+            <!-- Botones de exportación — estilo harmonizado con la app -->
+            <div id="export-actions" style="display:none; gap:8px; align-items:center;">
+                <a id="btn-evaluar-todo" href="/static/evaluar_todo.html"
+                    style="display:inline-flex; align-items:center; gap:6px; background:var(--primary); color:white; padding:8px 14px; border-radius:8px; font-weight:600; font-size:0.875rem; text-decoration:none;">
+                    📝 Evaluar Todo
+                </a>
+                <button onclick="exportarCSV()"
+                    style="display:inline-flex; align-items:center; gap:6px; background:#1D6F42; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:600; font-size:0.850rem; cursor:pointer; box-shadow:0 2px 4px rgba(29,111,66,0.2);">
+                    <span style="font-size:1rem;">📊</span> CSV
+                </button>
+                <button onclick="exportarPDF()"
+                    style="display:inline-flex; align-items:center; gap:6px; background:#28a745; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:600; font-size:0.850rem; cursor:pointer; box-shadow:0 2px 4px rgba(40,167,69,0.2);">
+                    <span style="font-size:1rem;">📄</span> PDF
+                </button>
             </div>
         </div>
+
         <div class="table-container">
             <table id="cuaderno-table">
                 <thead>
@@ -197,6 +245,8 @@
             </table>
         </div>
     </div>
+
+    <!-- Modal evaluación individual -->
     <div id="eval-modal" class="modal">
         <div class="modal-content">
             <h3 id="modal-title">Evaluar</h3>
@@ -206,20 +256,20 @@
                 <button class="btn-l l-3" id="btn-l-3" onclick="submitEval(3)">3</button>
                 <button class="btn-l l-4" id="btn-l-4" onclick="submitEval(4)">4</button>
             </div>
-            <button style="margin-top: 20px; background: none; border: none; color: #64748b; cursor: pointer;" onclick="closeModal()">Cancelar</button>
+            <button style="margin-top: 20px; background: none; border: none; color: #64748b; cursor: pointer;"
+                onclick="closeModal()">Cancelar</button>
         </div>
     </div>
+
     <script>
         let currentCell = null;
-        let data_global_cuaderno = null;
 
         async function init() {
             try {
                 const groupRes = await fetch('/api/grupo_activo');
                 const groupData = await groupRes.json();
-                if (groupData.nombre) {
-                    document.getElementById('group-name').innerText = groupData.nombre;
-                }
+                if (groupData.nombre) document.getElementById('group-name').innerText = groupData.nombre;
+
                 const etapaRes = await fetch('/api/etapas');
                 const etapas = await etapaRes.json();
                 const etapaSelect = document.getElementById('etapa-select');
@@ -230,10 +280,16 @@
                     etapaSelect.appendChild(opt);
                 });
                 if (groupData.etapa_id) {
-                    etapaSelect.value = groupData.etapa_id;
-                    etapaSelect.disabled = true;
+                    etapaSelect.value = String(groupData.etapa_id); // cast int→string
+                    etapaSelect.style.display = 'none';
                     await loadAreasByEtapa();
                 }
+                // Auto-seleccionar trimestre por mes
+                const mes = new Date().getMonth() + 1;
+                const periodoSelect = document.getElementById('periodo-select');
+                if (mes >= 9) periodoSelect.value = 'T1';
+                else if (mes <= 3) periodoSelect.value = 'T2';
+                else periodoSelect.value = 'T3';
             } catch (e) {
                 console.error("Error en init:", e);
             }
@@ -253,7 +309,11 @@
                     opt.textContent = a.nombre;
                     areaSelect.appendChild(opt);
                 });
-                document.getElementById('table-body').innerHTML = '';
+                // Auto-seleccionar primera área
+                if (areas.length > 0) {
+                    areaSelect.selectedIndex = 1;
+                    await loadCuaderno();
+                }
             } catch (e) {
                 console.error("Error cargando áreas:", e);
             }
@@ -263,22 +323,40 @@
             const areaId = document.getElementById('area-select').value;
             const periodo = document.getElementById('periodo-select').value;
             if (!areaId) return;
+
+            // Obtener grupo activo
+            let grupo_id = null;
             try {
-                const res = await fetch(`/api/evaluacion/cuaderno?area_id=${areaId}&periodo=${periodo}`);
-                data_global_cuaderno = await res.json();
-                renderTable(data_global_cuaderno);
-            } catch (e) {}
+                const gr = await fetch('/api/grupo_activo');
+                const gdata = await gr.json();
+                grupo_id = gdata.id;
+            } catch (e) { console.error('Error obteniendo grupo activo:', e); }
+
+            let url = `/api/evaluacion/cuaderno?area_id=${areaId}&trimestre=${periodo.replace('T', '')}`;
+            if (grupo_id) url += `&grupo_id=${grupo_id}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.error) {
+                    console.error("Error del servidor:", data.error);
+                    document.getElementById('table-body').innerHTML = `<tr><td colspan="99" style="text-align:center;color:#e53e3e;padding:20px;">Error: ${data.error}</td></tr>`;
+                    return;
+                }
+                renderTable(data);
+            } catch (e) { console.error("Error cargando cuaderno:", e); }
         }
 
         function renderTable(data) {
             const headerRow = document.getElementById('table-header');
             const body = document.getElementById('table-body');
-            const btnMasivo = document.getElementById('btn-masivo');
-            
-            headerRow.innerHTML = '<th style="width:40px"><input type="checkbox" onclick="toggleAllAlumnos(this)"></th><th class="sticky-col">Alumno</th>';
+            const etapaId = document.getElementById('etapa-select').value;
+
+            headerRow.innerHTML = '<th style="width:32px"><input type="checkbox" onclick="toggleAllAlumnos(this)"></th><th class="sticky-col">Alumno</th>';
             data.criterios.forEach(c => {
                 headerRow.innerHTML += `<th title="${c.descripcion || c.codigo}" data-crit-id="${c.id}">${c.codigo}</th>`;
             });
+
             body.innerHTML = '';
             data.alumnos.forEach(a => {
                 let row = `<tr>
@@ -287,11 +365,10 @@
                 data.criterios.forEach(c => {
                     const level = data.evaluaciones[`${a.id}_${c.id}`];
                     let label = level || '-';
-                    const etapaId = document.getElementById('etapa-select').value;
                     if (etapaId == "1" && level) {
                         if (level == 1) label = "NI/PA";
-                        if (level == 2) label = "EP/A";
-                        if (level == 3) label = "CO/MA";
+                        else if (level == 2) label = "EP/AD";
+                        else if (level == 3) label = "CO/MA";
                     }
                     const classLevel = level ? `l-${level}` : '';
                     row += `<td class="level-cell ${classLevel}" onclick="openEval(${a.id}, ${c.id}, '${a.nombre.replace(/'/g, "\\'")}', '${c.codigo}', '${escapeHtml(c.descripcion || '')}')">${label}</td>`;
@@ -299,7 +376,11 @@
                 row += '</tr>';
                 body.innerHTML += row;
             });
-            btnMasivo.style.display = data.alumnos.length > 0 ? 'inline-block' : 'none';
+
+            // Actualizar link de Evaluar Todo con area y período actuales
+            const areaId = document.getElementById('area-select').value;
+            const periodo = document.getElementById('periodo-select').value;
+            document.getElementById('btn-evaluar-todo').href = `/static/evaluar_todo.html?area_id=${areaId}&periodo=${periodo}`;
             document.getElementById('export-actions').style.display = data.alumnos.length > 0 ? 'flex' : 'none';
         }
 
@@ -307,35 +388,23 @@
             document.querySelectorAll('.alumno-check').forEach(cb => cb.checked = master.checked);
         }
 
-        function openMasivo() {
-            const checkedCheckboxes = document.querySelectorAll('.alumno-check:checked');
-            if (checkedCheckboxes.length === 0) return alert("Selecciona alumnos primero");
-            const headerThs = document.querySelectorAll('#table-header th');
-            if (headerThs.length < 3) return alert("No hay criterios cargados");
-            // Usamos el primer criterio de la tabla
-            const firstCritLabel = headerThs[2].innerText;
-            const firstCritTitle = headerThs[2].title || firstCritLabel;
-            const firstCritIdString = headerThs[2].getAttribute('data-crit-id');
-            openEval('MASIVO', firstCritIdString, 'Evaluación Masiva', firstCritLabel, firstCritTitle);
-        }
-
-        function escapeHtml(text) { return text.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+        function escapeHtml(text) { return (text || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
         function openEval(alumnoId, criterioId, alumnoNombre, critCodigo, critDesc) {
             currentCell = { alumnoId, criterioId };
             const etapaId = document.getElementById('etapa-select').value;
             const b4 = document.getElementById('btn-l-4');
             if (etapaId == "1") {
-                document.getElementById('btn-l-1').innerText = "NI - Poco adecuado";
-                document.getElementById('btn-l-2').innerText = "EP - Adecuado";
-                document.getElementById('btn-l-3').innerText = "CO - Muy adecuado";
+                document.getElementById('btn-l-1').innerText = "NI/PA - No Inic./Poco Adeq.";
+                document.getElementById('btn-l-2').innerText = "EP/AD - En Proc./Adecuado";
+                document.getElementById('btn-l-3').innerText = "CO/MA - Cons./Muy Adeq.";
                 b4.style.display = "none";
-                document.querySelectorAll('.btn-l').forEach(b => b.style.fontSize = "0.7rem");
+                document.querySelectorAll('.btn-l').forEach(b => b.style.fontSize = "0.75rem");
             } else {
-                [1,2,3,4].forEach(n => {
-                   const b = document.getElementById(`btn-l-${n}`);
-                   b.innerText = n;
-                   b.style.fontSize = "1rem";
+                [1, 2, 3, 4].forEach(n => {
+                    const b = document.getElementById(`btn-l-${n}`);
+                    b.innerText = n;
+                    b.style.fontSize = "1rem";
                 });
                 b4.style.display = "block";
             }
@@ -349,14 +418,7 @@
         async function submitEval(nivel) {
             if (!currentCell) return;
             const periodo = document.getElementById('periodo-select').value;
-            let evals = [];
-            if (currentCell.alumnoId === 'MASIVO') {
-                evals = Array.from(document.querySelectorAll('.alumno-check:checked')).map(cb => ({
-                    alumno_id: cb.value, criterio_id: currentCell.criterioId, nivel: nivel
-                }));
-            } else {
-                evals.push({ alumno_id: currentCell.alumnoId, criterio_id: currentCell.criterioId, nivel: nivel });
-            }
+            const evals = [{ alumno_id: currentCell.alumnoId, criterio_id: currentCell.criterioId, nivel }];
             try {
                 const res = await fetch('/api/evaluacion/guardar_masivo', {
                     method: 'POST',
@@ -381,7 +443,7 @@
                 const r = await fetch(`/api/evaluacion/resumen_areas?alumno_id=${alumnoId}&trimestre=${trimestre}`);
                 const datos = await r.json();
                 const content = document.getElementById('resumen-content');
-                if (datos.length === 0) { content.innerHTML = `<p style="color:#64748b;">No hay evaluaciones registradas para este trimestre.</p>`; return; }
+                if (!datos.length) { content.innerHTML = `<p style="color:#64748b;">No hay evaluaciones registradas para este trimestre.</p>`; return; }
                 content.innerHTML = datos.map(a => `
                     <div style="margin-bottom:20px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -411,14 +473,10 @@
         }
 
         function closeModal() { document.getElementById('eval-modal').style.display = 'none'; }
-        window.addEventListener('keydown', (e) => { 
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                closeModal(); 
-            }
-        });
+        window.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); closeModal(); } });
 
         init();
     </script>
 </body>
+
 </html>

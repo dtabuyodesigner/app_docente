@@ -4,7 +4,7 @@ class AreaSchema(Schema):
     nombre = fields.String(required=True, validate=validate.Length(min=1, error="El nombre no puede estar vacío"))
     etapa_id = fields.Integer(required=True, error_messages={"required": "La etapa_id es obligatoria", "invalid": "etapa_id debe ser un entero válido"})
     modo_evaluacion = fields.String(validate=validate.OneOf(["POR_SA", "POR_CRITERIOS", "GLOBAL"]), load_default="POR_SA")
-    tipo_escala = fields.String(validate=validate.OneOf(["NUMERICA_1_4", "INFANTIL_NI_EP_C", "NUMERICA_1_10"]), load_default="NUMERICA_1_4")
+    tipo_escala = fields.String(validate=validate.OneOf(["NUMERICA_1_4", "INFANTIL_NI_EP_C", "INFANTIL_PA_A_MA", "NUMERICA_1_10"]), load_default="NUMERICA_1_4")
     activa = fields.Integer(validate=validate.OneOf([0, 1]), load_default=1)
 
 class CriterioSchema(Schema):

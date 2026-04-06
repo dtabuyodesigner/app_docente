@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>📚 Biblioteca - Cuaderno del Tutor</title>
@@ -15,9 +16,11 @@
             --info: #17a2b8;
             --light: #f8f9fa;
         }
+
         * {
             box-sizing: border-box;
         }
+
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: #f0f2f5;
@@ -25,16 +28,19 @@
             padding: 20px;
             color: #343a40;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
         .premium-card {
             background: white;
             padding: 30px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
         }
+
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -43,11 +49,13 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+
         .page-header h1 {
             margin: 0;
             color: var(--primary);
             font-size: 1.8rem;
         }
+
         .back-link {
             text-decoration: none;
             color: var(--primary);
@@ -57,15 +65,18 @@
             border-radius: 8px;
             border: 1px solid #ddd;
         }
+
         .back-link:hover {
             background: #e9ecef;
         }
+
         .stats-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
+
         .stat-card {
             background: var(--light);
             border-radius: 12px;
@@ -73,18 +84,21 @@
             text-align: center;
             border: 1px solid #eef2f7;
         }
+
         .stat-card p {
             margin: 0;
             font-size: 1.8rem;
             font-weight: 800;
             color: var(--primary);
         }
+
         .stat-card small {
             color: #666;
             font-size: .75rem;
             text-transform: uppercase;
             letter-spacing: .5px;
         }
+
         .tabs {
             display: flex;
             gap: 5px;
@@ -92,6 +106,7 @@
             margin-bottom: 25px;
             flex-wrap: wrap;
         }
+
         .tab-btn {
             padding: 10px 18px;
             border: none;
@@ -104,18 +119,22 @@
             font-size: .9rem;
             transition: all .2s;
         }
+
         .tab-btn.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
         }
+
         .tab-panel,
         .cat-panel {
             display: none;
         }
+
         .tab-panel.active,
         .cat-panel.active {
             display: block;
         }
+
         .toolbar {
             display: flex;
             gap: 10px;
@@ -123,6 +142,7 @@
             flex-wrap: wrap;
             align-items: center;
         }
+
         .search-input {
             flex: 1;
             min-width: 200px;
@@ -131,10 +151,12 @@
             border-radius: 8px;
             font-size: .95rem;
         }
+
         .search-input:focus {
             outline: none;
             border-color: var(--primary);
         }
+
         .btn {
             padding: 10px 18px;
             border: none;
@@ -144,51 +166,63 @@
             font-size: .9rem;
             transition: all .2s;
         }
+
         .btn-primary {
             background: var(--primary);
             color: white;
         }
+
         .btn-primary:hover {
             background: #002244;
         }
+
         .btn-success {
             background: var(--success);
             color: white;
         }
+
         .btn-success:hover {
             background: #218838;
         }
+
         .btn-danger {
             background: var(--danger);
             color: white;
         }
+
         .btn-danger:hover {
             background: #b02a37;
         }
+
         .btn-outline {
             background: white;
             border: 2px solid #ddd;
             color: #555;
         }
+
         .btn-outline:hover {
             border-color: var(--primary);
             color: var(--primary);
         }
+
         .btn-sm {
             padding: 6px 12px;
             font-size: .82rem;
         }
+
         .books-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
         }
+
         /* LIST VIEW */
         .books-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
+
         .books-list .book-card {
             display: flex;
             align-items: center;
@@ -196,6 +230,7 @@
             padding: 10px 14px 10px 45px;
             border-radius: 10px;
         }
+
         .books-list .book-cover {
             width: 46px;
             height: 60px;
@@ -204,10 +239,12 @@
             border-radius: 6px;
             font-size: 1.4rem;
         }
+
         .books-list .book-info {
             flex: 1;
             min-width: 0;
         }
+
         .books-list .book-title {
             -webkit-line-clamp: 1;
             line-clamp: 1;
@@ -217,17 +254,21 @@
             display: block;
             margin-bottom: 2px;
         }
+
         .books-list .book-meta {
             margin-bottom: 0;
         }
+
         .books-list .book-actions {
             margin-top: 0;
             flex-shrink: 0;
         }
+
         .view-toggles {
             display: flex;
             gap: 4px;
         }
+
         .view-btn {
             padding: 8px 10px;
             border: 2px solid #ddd;
@@ -238,11 +279,13 @@
             line-height: 1;
             transition: all .2s;
         }
+
         .view-btn.active {
             border-color: var(--primary);
             background: var(--primary);
             color: white;
         }
+
         .book-card {
             border: 1px solid #eef2f7;
             border-radius: 12px;
@@ -253,18 +296,22 @@
             flex-direction: column;
             height: 100%;
         }
+
         .book-card:hover {
             box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
         }
+
         .book-card-agotado {
             border-color: #f44336 !important;
             background: #fff5f5 !important;
             box-shadow: 0 2px 8px rgba(244, 67, 54, .15);
             opacity: 0.9;
         }
+
         .book-card-agotado .book-title {
             color: #c62828;
         }
+
         .book-cover {
             width: 100%;
             height: 130px;
@@ -277,11 +324,13 @@
             font-size: 3rem;
             overflow: hidden;
         }
+
         .book-cover img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         .book-title {
             font-weight: 700;
             font-size: .9rem;
@@ -293,16 +342,19 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
         .book-author {
             font-size: .8rem;
             color: #666;
             margin-bottom: 5px;
         }
+
         .book-meta {
             font-size: .75rem;
             color: #888;
             margin-bottom: 8px;
         }
+
         .avail-badge {
             display: inline-block;
             padding: 2px 8px;
@@ -310,23 +362,28 @@
             font-size: .75rem;
             font-weight: 700;
         }
+
         .avail-ok {
             background: #e8f5e9;
             color: #2e7d32;
         }
+
         .avail-low {
             background: #fff3e0;
             color: #e65100;
         }
+
         .avail-none {
             background: #ffebee;
             color: #c62828;
         }
+
         .book-actions {
             display: flex;
             gap: 6px;
             margin-top: 10px;
         }
+
         .pst-tab-pill {
             padding: 8px 18px;
             border: 2px solid #e0e6ef;
@@ -339,20 +396,24 @@
             transition: all .2s;
             font-family: inherit;
         }
+
         .pst-tab-pill:hover {
             border-color: var(--primary);
             color: var(--primary);
         }
+
         .pst-tab-pill.active {
             background: var(--primary);
             border-color: var(--primary);
             color: white;
             box-shadow: 0 3px 10px rgba(0, 51, 102, .25);
         }
+
         .hub-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 30px rgba(0, 0, 0, .2) !important;
         }
+
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -366,6 +427,7 @@
             z-index: 1000;
             padding: 20px;
         }
+
         .modal {
             background: white;
             border-radius: 16px;
@@ -376,10 +438,12 @@
             overflow-y: auto;
             box-shadow: 0 20px 50px rgba(0, 0, 0, .2);
         }
+
         .modal h2 {
             margin: 0 0 20px;
             color: var(--primary);
         }
+
         .modal-close-btn {
             float: right;
             background: none;
@@ -389,24 +453,29 @@
             color: #888;
             margin-top: -5px;
         }
+
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
+
         .form-group.full {
             grid-column: 1/-1;
         }
+
         .form-group label {
             font-size: .8rem;
             font-weight: 700;
             color: #555;
         }
+
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -416,47 +485,56 @@
             font-size: .9rem;
             font-family: inherit;
         }
+
         .form-group textarea {
             resize: vertical;
             min-height: 70px;
         }
+
         .form-actions {
             display: flex;
             gap: 10px;
             margin-top: 15px;
         }
+
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
             font-size: .9rem;
             margin-bottom: 12px;
         }
+
         .alert-success {
             background: #e8f5e9;
             color: #2e7d32;
             border-left: 4px solid var(--success);
         }
+
         .alert-danger {
             background: #ffebee;
             color: #c62828;
             border-left: 4px solid var(--danger);
         }
+
         .alert-info {
             background: #e3f2fd;
             color: #1565c0;
             border-left: 4px solid var(--info);
         }
+
         .table {
             width: 100%;
             border-collapse: collapse;
             font-size: .9rem;
         }
+
         .table th,
         .table td {
             text-align: left;
             padding: 10px 12px;
             border-bottom: 1px solid #f0f0f0;
         }
+
         .table th {
             background: var(--light, #f8f9fa);
             font-weight: 700;
@@ -465,9 +543,11 @@
             text-transform: uppercase;
             letter-spacing: .4px;
         }
+
         .table tr:hover {
             background: #fafafa;
         }
+
         .drop-zone {
             display: block;
             width: 100%;
@@ -479,10 +559,12 @@
             cursor: pointer;
             box-sizing: border-box;
         }
+
         .drop-zone:hover,
         .drop-zone.dragover {
             border-color: var(--primary);
         }
+
         .code-block {
             background: #f8f9fa;
             padding: 12px;
@@ -494,12 +576,14 @@
             border: 1px solid #e9ecef;
             margin-bottom: 12px;
         }
+
         .google-results {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
             gap: 12px;
             margin-top: 20px;
         }
+
         .google-card {
             border: 1px solid #eee;
             border-radius: 10px;
@@ -507,10 +591,12 @@
             cursor: pointer;
             transition: all .2s;
         }
+
         .google-card:hover {
             border-color: var(--primary);
             box-shadow: 0 4px 12px rgba(0, 51, 102, .1);
         }
+
         .google-card img {
             width: 100%;
             height: 110px;
@@ -518,6 +604,7 @@
             border-radius: 6px;
             margin-bottom: 8px;
         }
+
         .google-card .g-no-img {
             width: 100%;
             height: 110px;
@@ -529,6 +616,7 @@
             font-size: 2.5rem;
             margin-bottom: 8px;
         }
+
         .google-card .g-title {
             font-size: .82rem;
             font-weight: 700;
@@ -540,20 +628,24 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
         .google-card .g-author {
             font-size: .72rem;
             color: #666;
             margin-top: 3px;
         }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #999;
         }
+
         .empty-state .icon {
             font-size: 3.5rem;
             margin-bottom: 10px;
         }
+
         /* SELECTION STYLES */
         .book-checkbox {
             position: absolute;
@@ -564,13 +656,19 @@
             cursor: pointer;
             z-index: 5;
         }
+
         .books-list .book-checkbox {
             left: 14px;
             right: auto;
             top: 50%;
             transform: translateY(-50%);
         }
-        .book-card { position: relative; } /* Ensure checkbox is positioned correctly */
+
+        .book-card {
+            position: relative;
+        }
+
+        /* Ensure checkbox is positioned correctly */
         .selection-bar {
             position: sticky;
             top: 70px;
@@ -583,37 +681,45 @@
             justify-content: space-between;
             align-items: center;
             z-index: 100;
-            box-shadow: 0 4px 15px rgba(0,0,0,.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .2);
         }
+
         .hub-cards-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
+
         @media (max-width:900px) {
             .books-grid {
                 grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             }
         }
+
         @media (max-width:600px) {
             .form-grid {
                 grid-template-columns: 1fr;
             }
+
             .books-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+
             .hub-cards-grid {
                 grid-template-columns: 1fr;
             }
+
             /* Toolbar: buscador ocupa fila completa, selects en dos columnas */
             .toolbar {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 8px;
             }
+
             .toolbar .search-input {
                 grid-column: 1 / -1;
             }
+
             .toolbar .view-toggles {
                 grid-column: 1 / -1;
                 justify-content: flex-end;
@@ -627,7 +733,7 @@
 </head>
 <div class="container">
     <!-- Unified Navigation will be injected here automatically by navigation.js -->
-    
+
     <!-- Tabs de Sección Recursos -->
     <div class="section-tabs">
         <a href="/biblioteca" class="section-tab-btn active">📚 Biblioteca</a>
@@ -678,15 +784,20 @@
                 </div>
             </div>
             <!-- Added "Recordar grupo y alumno" checkbox near loans -->
-            <div id="loan-context-options" style="margin-top:20px; display:none; align-items:center; gap:8px; background:#f0f7ff; padding:10px 15px; border-radius:10px; border:1px solid #d0e1f9;">
+            <div id="loan-context-options"
+                style="margin-top:20px; display:none; align-items:center; gap:8px; background:#f0f7ff; padding:10px 15px; border-radius:10px; border:1px solid #d0e1f9;">
                 <input type="checkbox" id="keep-student" style="width:16px; height:16px;">
-                <label for="keep-student" style="font-size:.85rem; font-weight:600; color:#003366; cursor:pointer;">Recordar grupo y alumno tras el préstamo</label>
+                <label for="keep-student"
+                    style="font-size:.85rem; font-weight:600; color:#003366; cursor:pointer;">Recordar grupo y alumno
+                    tras el préstamo</label>
             </div>
             <!-- Stats Content: Chart -->
             <div style="display:grid;grid-template-columns:1fr;gap:20px;margin-top:30px;">
                 <!-- Diploma alerts -->
-                <div id="diplomaAlertas" style="display:none; background:#fffbea; border:2px solid #f6c90e; border-radius:14px; padding:18px 22px;">
-                    <h4 style="margin:0 0 12px 0; color:#856404; display:flex; align-items:center; gap:8px;">🎓 ¡Diplomas pendientes de entregar!</h4>
+                <div id="diplomaAlertas"
+                    style="display:none; background:#fffbea; border:2px solid #f6c90e; border-radius:14px; padding:18px 22px;">
+                    <h4 style="margin:0 0 12px 0; color:#856404; display:flex; align-items:center; gap:8px;">🎓
+                        ¡Diplomas pendientes de entregar!</h4>
                     <div id="diplomaLista" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
                 </div>
                 <!-- Vertical Bar Chart -->
@@ -695,13 +806,15 @@
                     <h3
                         style="margin-top:0;color:var(--primary);font-size:1.1rem;display:flex;align-items:center;gap:8px;">
                         📊 Lectómetro — Libros devueltos por alumno</h3>
-                    <p style="font-size:0.85rem; color:#666; margin-top:-8px; margin-bottom:12px;">Cada 5 libros devueltos se genera un diploma 🎓</p>
+                    <p style="font-size:0.85rem; color:#666; margin-top:-8px; margin-bottom:12px;">Cada 5 libros
+                        devueltos se genera un diploma 🎓</p>
                     <div style="height:350px;position:relative;">
                         <canvas id="rankingChart"></canvas>
                     </div>
                 </div>
                 <!-- Tabla detalle -->
-                <div style="background:white;padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
+                <div
+                    style="background:white;padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
                     <h3 style="margin-top:0;color:var(--primary);font-size:1.1rem;">📋 Detalle por alumno</h3>
                     <div id="rankingTabla" style="overflow-x:auto;"></div>
                 </div>
@@ -758,10 +871,13 @@
             <div id="cat-libros" class="cat-panel active">
                 <div class="selection-bar" id="selectionBar">
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)" style="width:18px; height:18px;">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)"
+                            style="width:18px; height:18px;">
                         <span id="selectionCount">0 seleccionados</span>
                     </div>
-                    <button class="btn btn-danger btn-sm" onclick="deleteSelectedBooks()" style="background:#fff; color:var(--danger); border:none; padding: 6px 12px; font-size: .85rem;">🗑️ Eliminar seleccionados</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteSelectedBooks()"
+                        style="background:#fff; color:var(--danger); border:none; padding: 6px 12px; font-size: .85rem;">🗑️
+                        Eliminar seleccionados</button>
                 </div>
                 <div class="toolbar">
                     <input id="searchInput" class="search-input" placeholder="🔍 Buscar por título o autor..."
@@ -871,8 +987,8 @@
                 </div>
                 <div id="csvAlert" style="margin-top:12px;"></div>
                 <div style="display:flex; gap:10px; margin-top:12px;">
-                    <button class="btn btn-success" onclick="importCSV()" id="csvBtn"
-                        style="display:none;">📤 Importar Libros</button>
+                    <button class="btn btn-success" onclick="importCSV()" id="csvBtn" style="display:none;">📤 Importar
+                        Libros</button>
                     <button class="btn btn-outline" onclick="cleanupDuplicates()" id="cleanupBtn"
                         title="Elimina libros con mismo título y autor">🧹 Limpiar Duplicados</button>
                 </div>
@@ -1161,27 +1277,41 @@
         </div>
     </div><!-- /container -->
     <!-- NEW: Loan confirmation modal to show success without reload -->
-    <div id="successToast" style="display:none; position:fixed; bottom:20px; right:20px; z-index:2000; background:#28a745; color:white; padding:12px 24px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.15); align-items:center; gap:10px; animation: slideUp 0.3s ease-out;">
+    <div id="successToast"
+        style="display:none; position:fixed; bottom:20px; right:20px; z-index:2000; background:#28a745; color:white; padding:12px 24px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.15); align-items:center; gap:10px; animation: slideUp 0.3s ease-out;">
         <span style="font-size:1.2rem;">✅</span>
         <span id="successToastMsg">Operación completada</span>
         <style>
-            @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            @keyframes slideUp {
+                from {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
         </style>
     </div>
     <!-- Devolucion Modal -->
     <div class="modal-overlay" id="devModal" onclick="if(event.target===this)closeDevModal()" style="display:none;">
-        <div class="modal">
+        <div class="modal" tabindex="-1"
+            onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmarDevolucion();}">
             <h2>📥 Registrar Devolución</h2>
             <input type="hidden" id="dev-id">
             <div id="dev-info"
                 style="background:#f0f4f8;padding:12px;border-radius:8px;margin-bottom:14px;font-size:.9rem;"></div>
             <div class="form-group" style="margin-bottom:12px;">
                 <label>Fecha de Devolución</label>
-                <input type="date" id="dev-fecha">
+                <input type="date" id="dev-fecha"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmarDevolucion();}">
             </div>
             <div class="form-group" style="margin-bottom:18px;">
                 <label>Observaciones (opcional)</label>
-                <input type="text" id="dev-obs" placeholder="Ej: Libro en buen estado">
+                <input type="text" id="dev-obs" placeholder="Ej: Libro en buen estado"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmarDevolucion();}">
             </div>
             <div style="display:flex;gap:10px;">
                 <button class="btn btn-success" style="flex:1" onclick="confirmarDevolucion()">✅ Confirmar</button>
@@ -1325,7 +1455,7 @@
                                 label: 'Libros devueltos',
                                 data: values,
                                 backgroundColor: bgColors,
-                                borderColor: bgColors.map(c => c.replace('0.7','1').replace('0.75','1')),
+                                borderColor: bgColors.map(c => c.replace('0.7', '1').replace('0.75', '1')),
                                 borderWidth: 1,
                                 borderRadius: 6
                             }]
@@ -1360,7 +1490,7 @@
                                         ${pendCount > 1 ? `<div style="font-size:0.75rem; color:#999;">${pendCount} diplomas pendientes</div>` : ''}
                                     </div>
                                     <div style="display:flex; gap:6px;">
-                                        <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${hito}, ${i.diplomas_entregados + 1})"
+                                        <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g, "\\'")}', ${hito}, ${i.diplomas_entregados + 1})"
                                             style="padding:8px 12px; background:#003366; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:700;">🖨️ Imprimir</button>
                                         <button onclick="marcarEntregado(${i.alumno_id})"
                                             style="padding:8px 12px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:700;">✅ Entregado</button>
@@ -1404,10 +1534,10 @@
                             </td>
                             <td style="text-align:center; display:flex; gap:6px; justify-content:center;">
                                 ${i.diplomas_ganados > i.diplomas_entregados ? `
-                                    <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${(i.diplomas_entregados+1)*5}, ${i.diplomas_entregados+1})" style="padding:6px 10px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer;" title="Imprimir diploma">🖨️</button>
+                                    <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g, "\\'")}', ${(i.diplomas_entregados + 1) * 5}, ${i.diplomas_entregados + 1})" style="padding:6px 10px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer;" title="Imprimir diploma">🖨️</button>
                                     <button onclick="marcarEntregado(${i.alumno_id})" style="padding:6px 10px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer;" title="Marcar como entregado">✅</button>
                                 ` : i.diplomas_entregados > 0 ? `
-                                    <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g,"\\'")}', ${i.diplomas_entregados*5}, ${i.diplomas_entregados})" style="padding:6px 10px; background:#6c757d; color:white; border:none; border-radius:6px; cursor:pointer;" title="Re-imprimir último diploma">🖨️</button>
+                                    <button onclick="imprimirDiploma(${i.alumno_id}, '${i.nombre.replace(/'/g, "\\'")}', ${i.diplomas_entregados * 5}, ${i.diplomas_entregados})" style="padding:6px 10px; background:#6c757d; color:white; border:none; border-radius:6px; cursor:pointer;" title="Re-imprimir último diploma">🖨️</button>
                                 ` : ''}
                             </td>
                         </tr>`;
@@ -1477,7 +1607,7 @@
     <div class="footer">
         <div class="sign-box">Firma del Tutor/a</div>
         <div class="seal">⭐</div>
-        <div class="sign-box">${new Date().toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'})}</div>
+        <div class="sign-box">${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
     </div>
   </div>
 </div>
@@ -1660,7 +1790,7 @@
                 body: JSON.stringify(body)
             })).json();
             const el = document.getElementById('formAlert');
-            if (d.ok) { el.innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`; document.getElementById('bookForm').reset(); document.getElementById('f-cantidad').value = 1; loadBooks(); loadStats(); setTimeout(() => el.innerHTML = '', 3000); }
+            if (d.ok) { el.innerHTML = `<div class="alert alert-success">${d.mensaje}</div>`; document.getElementById('bookForm').reset(); document.getElementById('f-cantidad').value = 1; loadBooks(); loadStats(); setTimeout(() => el.innerHTML = '', 3000); }
             else el.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
         }
         function openEdit(id) {
@@ -1707,7 +1837,7 @@
             const btn = document.getElementById('csvBtn'); btn.textContent = '⏳ Importando...'; btn.disabled = true;
             try {
                 const d = await (await fetch('/api/libros/importar/csv', { method: 'POST', headers: { 'X-CSRFToken': await getCsrf() }, body: fd })).json();
-                let html = d.ok ? `<div class="alert alert-success">✅ ${d.mensaje} (${d.libros_importados}/${d.total_filas})</div>` : `<div class="alert alert-danger">❌ ${d.error}</div>`;
+                let html = d.ok ? `<div class="alert alert-success">${d.mensaje} (${d.libros_importados}/${d.total_filas})</div>` : `<div class="alert alert-danger">❌ ${d.error}</div>`;
                 if (d.ok && d.errores) html += `<div class="alert" style="background:#fff8e1;border-left:4px solid orange;color:#7a5c00;">⚠️ Errores: ${d.errores.join('<br>')}</div>`;
                 document.getElementById('csvAlert').innerHTML = html;
                 if (d.ok) { csvSelectedFile = null; document.getElementById('fileInfo').style.display = 'none'; document.getElementById('csvFile').value = ''; document.getElementById('csvBtn').style.display = 'none'; loadBooks(); loadStats(); }
@@ -1767,7 +1897,7 @@
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
             })).json();
-            if (d.ok) { closeModal('gbImportModal'); document.getElementById('gbAlert').innerHTML = `<div class="alert alert-success">✅ ${d.mensaje}</div>`; loadBooks(); loadStats(); }
+            if (d.ok) { closeModal('gbImportModal'); document.getElementById('gbAlert').innerHTML = `<div class="alert alert-success">${d.mensaje}</div>`; loadBooks(); loadStats(); }
             else alert(`Error: ${d.error}`);
         }
         // ── PRÉSTAMOS TAB ──────────────────────────────────────────
@@ -1801,7 +1931,7 @@
                 const prevVal = selG.value; // Guardar valor previo
                 selG.innerHTML = '<option value="" style="color:#333;background:white;">-- Selecciona un grupo --</option>' +
                     grupos.map(g => `<option value="${g.id}" style="color:#333;background:white;">${g.nombre}</option>`).join('');
-                
+
                 // Restaurar valor previo si existe y es válido
                 if (prevVal && grupos.some(g => g.id == prevVal)) {
                     selG.value = prevVal;
@@ -2277,6 +2407,19 @@
                 initPrestamos();
             });
         }
+        async function verificarPrestamoPrevio(alumnoId, libroId) {
+            if (!alumnoId || !libroId) return false;
+            try {
+                const r = await fetch(`/api/alumnos/${alumnoId}/prestamos`);
+                const prestamos = await r.json();
+                // Buscamos si el libro_id coincide en algún préstamo previo (independientemente del estado)
+                return prestamos.some(p => String(p.libro_id) === String(libroId));
+            } catch (e) {
+                console.error("Error verificando préstamo previo:", e);
+                return false;
+            }
+        }
+
         async function registrarPrestamo() {
             const alumno_id = document.getElementById('p-alumno').value;
             const libro_id = document.getElementById('p-libro').value;
@@ -2288,14 +2431,21 @@
                 alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Selecciona un alumno y un libro</div>';
                 return;
             }
+
+            // Verificar si el alumno ya leyó este libro antes
+            const yaLeido = await verificarPrestamoPrevio(alumno_id, libro_id);
+            if (yaLeido) {
+                const proceed = confirm("⚠️ Este alumno ya ha cogido este libro anteriormente. ¿Quieres prestarlo de nuevo?");
+                if (!proceed) return;
+            }
             const d = await (await fetch('/api/prestamos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
             })).json();
             if (d.ok) {
-                showToast(`✅ ${d.mensaje}`);
-                
+                showToast(`${d.mensaje}`);
+
                 // Partial refresh logic
                 if (!keepStudent) {
                     document.getElementById('p-alumno').value = '';
@@ -2311,11 +2461,11 @@
                     }
                 }
                 limpiarSeleccionLibro();
-                
+
                 // Reload data in background
                 _prestamosLoaded = false;
-                initPrestamos(); 
-                loadBooks(); 
+                initPrestamos();
+                loadBooks();
                 loadStats();
                 loadRankingChart();
             } else {
@@ -2337,6 +2487,11 @@
             document.getElementById('dev-obs').value = '';
             document.getElementById('dev-info').innerHTML = `<strong>${alumno}</strong><br>📖 <em>${libro}</em><br><small>Prestado: ${fechaPrestamo}</small>`;
             document.getElementById('devModal').style.display = 'flex';
+            // Dar foco al modal para que Enter funcione inmediatamente
+            setTimeout(() => {
+                const modal = document.querySelector('#devModal .modal');
+                if (modal) modal.focus();
+            }, 100);
         }
         async function confirmarDevolucion() {
             const id = document.getElementById('dev-id').value;
@@ -2347,8 +2502,8 @@
             const d = await r.json();
             if (d.ok) {
                 closeDevModal();
-                showToast("✅ Devolución registrada correctamente");
-                
+                showToast("Devolución registrada correctamente");
+
                 if (d.hito_alcanzado) {
                     loadRankingChart();
                     setTimeout(() => {
@@ -2364,7 +2519,7 @@
                 initPrestamos();
                 loadBooks();
                 loadStats();
-                
+
                 const hSel = document.getElementById('h-alumno');
                 if (hSel && hSel.value) showHistorialAlumno();
             }
@@ -2427,6 +2582,13 @@
                 alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Por favor, selecciona un alumno.</div>';
                 return;
             }
+
+            // Verificar si el alumno ya leyó este libro antes
+            const yaLeido = await verificarPrestamoPrevio(alumno_id, libro_id);
+            if (yaLeido) {
+                const proceed = confirm("⚠️ Este alumno ya ha cogido este libro anteriormente. ¿Quieres prestarlo de nuevo?");
+                if (!proceed) return;
+            }
             try {
                 const d = await (await fetch('/api/prestamos', {
                     method: 'POST',
@@ -2434,13 +2596,13 @@
                     body: JSON.stringify({ alumno_id: parseInt(alumno_id), libro_id: parseInt(libro_id), fecha_prestamo })
                 })).json();
                 if (d.ok) {
-                    showToast(`✅ ${d.mensaje}`);
-                    
+                    showToast(`${d.mensaje}`);
+
                     // Refresh main data in background
                     loadBooks();
                     loadStats();
                     _prestamosLoaded = false;
-                    
+
                     // Close modal and refresh loans tab if active
                     setTimeout(() => {
                         closeModal('prestamoRapidoModal');
@@ -2476,4 +2638,5 @@
 </div>
 </div>
 </body>
+
 </html>

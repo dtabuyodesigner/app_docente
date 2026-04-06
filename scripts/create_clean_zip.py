@@ -5,7 +5,7 @@ import shutil
 from datetime import datetime
 
 # Directorio base de la app
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_NAME = f"APP_EVALUAR_Limpio_{datetime.now().strftime('%Y%m%d')}.zip"
 OUTPUT_PATH = os.path.join(BASE_DIR, OUTPUT_NAME)
 

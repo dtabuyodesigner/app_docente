@@ -20,8 +20,14 @@ def _validar_telefono(tel):
 
 def _validar_fecha(fecha):
     if not fecha: return True
+    fecha = fecha.strip()
     try:
-        datetime.strptime(fecha.strip(), "%Y-%m-%d")
+        datetime.strptime(fecha, "%Y-%m-%d")
+        return True
+    except ValueError:
+        pass
+    try:
+        datetime.strptime(fecha, "%d/%m/%Y")
         return True
     except ValueError:
         return False
@@ -227,8 +233,15 @@ def borrar_alumno(alumno_id):
 
     return jsonify({"ok": True, "mensaje": "Alumno archivado correctamente."})
 
-@alumnos_bp.route("/api/alumnos/<int:alumno_id>/foto", methods=["POST"])
-def subir_foto_alumno(alumno_id):
+@alumnos_bp.route("/api/alumnos/<int:alumno_id>/foto", methods=["POST", "DELETE"])
+def gestionar_foto_alumno(alumno_id):
+    if request.method == "DELETE":
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("UPDATE alumnos SET foto = NULL WHERE id = ?", (alumno_id,))
+        conn.commit()
+        return jsonify({"ok": True})
+
     if 'foto' not in request.files:
         return jsonify({"ok": False, "error": "No file part"}), 400
     
@@ -442,8 +455,8 @@ def exportar_alumnos_csv():
 def descargar_plantilla_alumnos():
     si = io.StringIO()
     cw = csv.writer(si, delimiter=';')
-    cw.writerow(["Nombre", "No Comedor (0/1)", "Días Comedor (0,1,2,3,4)", "Fecha Nacimiento (YYYY-MM-DD)", "Dirección", "Madre", "Tel Madre", "Email Madre", "Padre", "Tel Padre", "Email Padre", "Observaciones"])
-    cw.writerow(["Juan Pérez", "0", "0,2,4", "2015-05-20", "Calle Falsa 123", "Maria", "600111222", "m@example.com", "Pepe", "600333444", "p@example.com", "Alérgico al polen"])
+    cw.writerow(["Nombre", "No Comedor (0/1)", "Días Comedor (0,1,2,3,4)", "Fecha Nacimiento (YYYY-MM-DD)", "Dirección", "Madre", "Tel Madre", "Email Madre", "Padre", "Tel Padre", "Email Padre", "Personas Autorizadas", "Observaciones"])
+    cw.writerow(["Juan Pérez", "0", "0,2,4", "2015-05-20", "Calle Falsa 123", "Maria", "600111222", "m@example.com", "Pepe", "600333444", "p@example.com", "Tía abuela", "Alérgico al polen"])
     
     output = io.BytesIO()
     output.write(si.getvalue().encode('utf-8-sig'))
@@ -519,13 +532,23 @@ def importar_alumnos_csv():
                 p_nom = sanitize_input(col(8))
                 p_tel = sanitize_input(col(9))
                 p_email = sanitize_input(col(10))
-                obs = sanitize_input(col(11))
+                autorizados = sanitize_input(col(11))
+                obs = sanitize_input(col(12))
 
                 err_val = _check_validaciones(f_nac, m_tel, m_email, p_tel, p_email)
                 if err_val:
                     omitidos += 1
                     errores.append(f"Fila {i} ({nombre}): {err_val}")
                     continue
+
+                if f_nac:
+                    try:
+                        f_nac = datetime.strptime(f_nac, "%Y-%m-%d").strftime("%Y-%m-%d")
+                    except ValueError:
+                        try:
+                            f_nac = datetime.strptime(f_nac, "%d/%m/%Y").strftime("%Y-%m-%d")
+                        except ValueError:
+                            pass
 
                 cur = conn.cursor()
                 cur.execute("BEGIN")
@@ -540,7 +563,7 @@ def importar_alumnos_csv():
                         madre_telefono, madre_email, padre_nombre, padre_telefono, padre_email,
                         observaciones_generales, personas_autorizadas
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (alumno_id, f_nac, direccion, m_nom, m_tel, m_email, p_nom, p_tel, p_email, obs, ''))
+                """, (alumno_id, f_nac, direccion, m_nom, m_tel, m_email, p_nom, p_tel, p_email, obs, autorizados))
                 conn.commit()
                 importados += 1
 
@@ -558,3 +581,22 @@ def importar_alumnos_csv():
 
     except Exception as e:
         return jsonify({"ok": False, "error": f"Error procesando el archivo: {str(e)}"}), 500
+@alumnos_bp.route("/api/alumnos/cumpleanos")
+def obtener_cumpleanos():
+    conn = get_db()
+    cur = conn.cursor()
+    grupo_id = session.get('active_group_id')
+    
+    if not grupo_id:
+        return jsonify([])
+
+    cur.execute("""
+        SELECT a.id, a.nombre, f.fecha_nacimiento
+        FROM alumnos a
+        JOIN ficha_alumno f ON a.id = f.alumno_id
+        WHERE a.grupo_id = ? AND a.deleted_at IS NULL AND f.fecha_nacimiento IS NOT NULL AND f.fecha_nacimiento != ''
+        ORDER BY strftime('%m', f.fecha_nacimiento), strftime('%d', f.fecha_nacimiento)
+    """, (grupo_id,))
+    
+    rows = cur.fetchall()
+    return jsonify([dict(r) for r in rows])

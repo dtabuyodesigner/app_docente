@@ -70,6 +70,7 @@ def run_migrations():
         # --- programacion_diaria ---
         ("ALTER TABLE programacion_diaria ADD COLUMN completado INTEGER DEFAULT 0", "programacion_diaria.completado"),
         ("ALTER TABLE programacion_diaria ADD COLUMN criterio_id INTEGER REFERENCES criterios(id)", "programacion_diaria.criterio_id"),
+        ("ALTER TABLE programacion_diaria ADD COLUMN guia_sesion TEXT", "programacion_diaria.guia_sesion"),
         # --- etapas ---
         ("ALTER TABLE etapas ADD COLUMN activa INTEGER DEFAULT 1", "etapas.activa"),
         # --- informe_grupo ---
@@ -109,6 +110,8 @@ def run_migrations():
         # --- usuarios ---
         ("ALTER TABLE usuarios ADD COLUMN pregunta_seguridad TEXT", "usuarios.pregunta_seguridad"),
         ("ALTER TABLE usuarios ADD COLUMN respuesta_seguridad_hash TEXT", "usuarios.respuesta_seguridad_hash"),
+        # --- encargados ---
+        ("ALTER TABLE encargados ADD COLUMN estado TEXT DEFAULT 'realizado'", "encargados.estado"),
         # --- Tablas nuevas ---
         ("""CREATE TABLE IF NOT EXISTS diplomas_entregados (
             alumno_id INTEGER PRIMARY KEY,
@@ -151,6 +154,109 @@ def run_migrations():
             padre_email TEXT,
             FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
         )""", "tabla ficha_alumno"),
+        ("""CREATE TABLE IF NOT EXISTS encargados (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha DATE NOT NULL UNIQUE,
+            alumno_id INTEGER NOT NULL,
+            estado TEXT DEFAULT 'realizado',
+            FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )""", "tabla encargados"),
+        ("""CREATE TABLE IF NOT EXISTS libros (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            titulo TEXT NOT NULL,
+            autor TEXT NOT NULL,
+            isbn TEXT,
+            editorial TEXT,
+            año_publicacion INTEGER,
+            nivel_lectura TEXT,
+            genero TEXT,
+            cantidad_disponible INTEGER DEFAULT 1,
+            cantidad_total INTEGER DEFAULT 1,
+            descripcion TEXT,
+            portada TEXT,
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            activo INTEGER DEFAULT 1
+        )""", "tabla libros"),
+        ("""CREATE TABLE IF NOT EXISTS prestamos_libros (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alumno_id INTEGER NOT NULL,
+            libro_id INTEGER NOT NULL,
+            fecha_prestamo DATE NOT NULL,
+            fecha_devolucion DATE,
+            estado TEXT DEFAULT 'activo',
+            observaciones TEXT,
+            dias_retraso INTEGER DEFAULT 0,
+            FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+            FOREIGN KEY (libro_id) REFERENCES libros(id) ON DELETE CASCADE
+        )""", "tabla prestamos_libros"),
+        ("""CREATE TABLE IF NOT EXISTS generos_lectura (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL UNIQUE
+        )""", "tabla generos_lectura"),
+        ("""CREATE TABLE IF NOT EXISTS niveles_lectura (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL UNIQUE,
+            descripcion TEXT
+        )""", "tabla niveles_lectura"),
+        ("""CREATE TABLE IF NOT EXISTS material_alumnado (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            grupo_id INTEGER NOT NULL,
+            categoria TEXT NOT NULL,
+            unidades INTEGER DEFAULT 1,
+            material TEXT NOT NULL,
+            FOREIGN KEY(grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
+        )""", "tabla material_alumnado"),
+        ("""CREATE TABLE IF NOT EXISTS material_info (
+            grupo_id INTEGER PRIMARY KEY,
+            centro TEXT,
+            curso_escolar TEXT,
+            nivel_curso TEXT,
+            observaciones TEXT,
+            FOREIGN KEY(grupo_id) REFERENCES grupos(id) ON DELETE CASCADE
+        )""", "tabla material_info"),
+        ("""CREATE TABLE IF NOT EXISTS material_entregado (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alumno_id INTEGER NOT NULL,
+            material_id INTEGER NOT NULL,
+            entregado INTEGER DEFAULT 0,
+            fecha_entrega DATETIME,
+            FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+            FOREIGN KEY(material_id) REFERENCES material_alumnado(id) ON DELETE CASCADE,
+            UNIQUE(alumno_id, material_id)
+        )""", "tabla material_entregado"),
+        ("""CREATE TABLE IF NOT EXISTS competencias_especificas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL,
+            descripcion TEXT NOT NULL,
+            area_id INTEGER NOT NULL,
+            FOREIGN KEY (area_id) REFERENCES areas(id)
+        )""", "tabla competencias_especificas"),
+        ("""CREATE TABLE IF NOT EXISTS sda_competencias (
+            sda_id INTEGER NOT NULL,
+            competencia_id INTEGER NOT NULL,
+            PRIMARY KEY (sda_id, competencia_id),
+            FOREIGN KEY (sda_id) REFERENCES sda(id) ON DELETE CASCADE,
+            FOREIGN KEY (competencia_id) REFERENCES competencias_especificas(id) ON DELETE CASCADE
+        )""", "tabla sda_competencias"),
+        ("""CREATE TABLE IF NOT EXISTS evaluaciones_actividad (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alumno_id INTEGER NOT NULL,
+            actividad_id INTEGER NOT NULL,
+            nivel INTEGER NOT NULL,
+            nota REAL NOT NULL,
+            trimestre INTEGER NOT NULL,
+            fecha DATE DEFAULT CURRENT_DATE,
+            UNIQUE(alumno_id, actividad_id, trimestre),
+            FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+            FOREIGN KEY(actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE
+        )""", "tabla evaluaciones_actividad"),
+        ("""CREATE TABLE IF NOT EXISTS actividad_criterio (
+            actividad_id INTEGER NOT NULL,
+            criterio_id INTEGER NOT NULL,
+            PRIMARY KEY (actividad_id, criterio_id),
+            FOREIGN KEY (actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE,
+            FOREIGN KEY (criterio_id) REFERENCES criterios(id) ON DELETE CASCADE
+        )""", "tabla actividad_criterio"),
     ]
 
     for sql, name in migrations:
@@ -177,12 +283,9 @@ def run_migrations():
         count = cur.fetchone()[0]
         if count == 0:
             areas_infantil = [
-                ("Conocimiento de sí mismo y autonomía personal", 1, "INFANTIL_NI_EP_C"),
-                ("Conocimiento del entorno", 1, "INFANTIL_NI_EP_C"),
-                ("Educación emocional", 1, "INFANTIL_NI_EP_C"),
-                ("Lenguajes: Comunicación y representación", 1, "INFANTIL_NI_EP_C"),
-                ("Música", 1, "INFANTIL_NI_EP_C"),
-                ("Segunda Lengua Extranjera", 1, "INFANTIL_NI_EP_C"),
+                ("Crecimiento en armonía", 1, "INFANTIL_NI_EP_C"),
+                ("Descubrimiento y exploración del entorno", 1, "INFANTIL_NI_EP_C"),
+                ("Comunicación y representación de la realidad", 1, "INFANTIL_NI_EP_C"),
             ]
             areas_primaria = [
                 # --- ÁREAS COMUNES LOMLOE (todas las CCAA) ---
@@ -265,22 +368,29 @@ def close_db(e=None):
 def nivel_a_nota(nivel, escala=None):
     """Convierte un nivel en una nota numérica.
     
+    Escala INFANTIL_...: 1→1, 2→2, 3→3
     Escala NUMERICA_1_4: 1→2.5, 2→5.0, 3→7.5, 4→10.0
-    Escala INFANTIL_NI_EP_C: 1(NI)→1, 2(EP)→2, 3(C)→3
     """
-    if escala == "INFANTIL_NI_EP_C":
-        # Nivel 1=NI, 2=EP, 3=C — se guarda internamente como 1,2,3
+    if escala and escala.startswith("INFANTIL_"):
+        # Nivel 1=NI/PA, 2=EP/A, 3=C/MA
         mapping = {1: 1, 2: 2, 3: 3}
     else:
         # Escala numérica 1-4 estándar
         mapping = {1: 2.5, 2: 5.0, 3: 7.5, 4: 10.0}
     return mapping.get(nivel, 0.0)
 
-def infantil_nivel_a_texto(nivel):
-    """Devuelve el texto legible para una evaluación Infantil (Combinado)."""
-    mapping = {
-        1: "NI - Poco adecuado", 
-        2: "EP - Adecuado", 
-        3: "CO - Muy adecuado"
-    }
+def infantil_nivel_a_texto(nivel, escala="INFANTIL_NI_EP_C"):
+    """Devuelve el texto legible para una evaluación Infantil."""
+    if escala == "INFANTIL_PA_A_MA":
+        mapping = {
+            1: "NI/PA - No Iniciado / Poco Adecuado",
+            2: "EP/AD - En Proceso / Adecuado",
+            3: "CO/MA - Conseguido / Muy Adecuado"
+        }
+    else:
+        mapping = {
+            1: "NI/PA - No Iniciado / Poco Adecuado", 
+            2: "EP/AD - En Proceso / Adecuado", 
+            3: "CO/MA - Conseguido / Muy Adecuado"
+        }
     return mapping.get(nivel, "—")

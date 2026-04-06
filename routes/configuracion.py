@@ -44,16 +44,51 @@ def upload_logo():
     return jsonify({"ok": True, "filename": f"logos/{filename}"})
 
 
+@configuracion_bp.route("/api/configuracion/firma", methods=["POST"])
+def upload_firma():
+    """Sube la firma del tutor a AppData/uploads/logos/"""
+    from utils.db import get_app_data_dir
+    
+    if 'firma' not in request.files:
+        return jsonify({"ok": False, "error": "No se recibió archivo"}), 400
+    
+    file = request.files['firma']
+    if not file.filename:
+        return jsonify({"ok": False, "error": "Archivo vacío"}), 400
+
+    ext = file.filename.rsplit('.', 1)[-1].lower()
+    if ext not in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
+        return jsonify({"ok": False, "error": "Formato no permitido"}), 400
+
+    logos_dir = os.path.join(get_app_data_dir(), "uploads", "logos")
+    os.makedirs(logos_dir, exist_ok=True)
+
+    filename = f"tutor_firma.{ext}"
+    filepath = os.path.join(logos_dir, filename)
+    file.save(filepath)
+
+    # Guardar en config
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO config (clave, valor) VALUES (?, ?)
+        ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor
+    """, ("tutor_firma_filename", f"logos/{filename}"))
+    conn.commit()
+
+    return jsonify({"ok": True, "filename": f"logos/{filename}"})
+
+
 @configuracion_bp.route("/api/configuracion/logos", methods=["GET"])
 def get_logos():
     """Devuelve los filenames de los logos guardados."""
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%'")
+    cur.execute("SELECT clave, valor FROM config WHERE clave IN ('logo_izda_filename', 'logo_dcha_filename', 'tutor_firma_filename', 'logo_izda_posicion', 'logo_dcha_posicion')")
     rows = {r["clave"]: r["valor"] for r in cur.fetchall()}
     return jsonify({
         "izda": rows.get("logo_izda_filename"),
         "dcha": rows.get("logo_dcha_filename"),
+        "firma": rows.get("tutor_firma_filename"),
         "izda_posicion": rows.get("logo_izda_posicion", "left"),
         "dcha_posicion": rows.get("logo_dcha_posicion", "right"),
     })
@@ -165,3 +200,54 @@ def save_config():
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@configuracion_bp.route("/api/configuracion/logo/<lado>", methods=["DELETE"])
+def delete_logo(lado):
+    """Borra un logo (izda o dcha) físicamente y de la BD."""
+    from utils.db import get_app_data_dir
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # 1. Obtener filename
+    cur.execute("SELECT valor FROM config WHERE clave = ?", (f"logo_{lado}_filename",))
+    row = cur.fetchone()
+    if row and row["valor"]:
+        # 2. Borrar archivo físico
+        try:
+            full_path = os.path.join(get_app_data_dir(), "uploads", row["valor"])
+            if os.path.exists(full_path):
+                os.remove(full_path)
+        except Exception as e:
+            print(f"Error borrando archivo: {e}")
+
+    # 3. Limpiar DB
+    cur.execute("DELETE FROM config WHERE clave IN (?, ?)", (f"logo_{lado}_filename", f"logo_{lado}_posicion"))
+    conn.commit()
+    return jsonify({"ok": True})
+
+
+@configuracion_bp.route("/api/configuracion/firma", methods=["DELETE"])
+def delete_firma():
+    """Borra la firma del tutor físicamente y de la BD."""
+    from utils.db import get_app_data_dir
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # 1. Obtener filename
+    cur.execute("SELECT valor FROM config WHERE clave = 'tutor_firma_filename'")
+    row = cur.fetchone()
+    if row and row["valor"]:
+        # 2. Borrar archivo físico
+        try:
+            full_path = os.path.join(get_app_data_dir(), "uploads", row["valor"])
+            if os.path.exists(full_path):
+                os.remove(full_path)
+        except Exception as e:
+            print(f"Error borrando firma: {e}")
+
+    # 3. Limpiar DB
+    cur.execute("DELETE FROM config WHERE clave = 'tutor_firma_filename'")
+    conn.commit()
+    return jsonify({"ok": True})
+

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,11 +15,13 @@
             margin: 0;
             padding: 0;
         }
+
         .container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
+
         .session-card {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
             color: white;
@@ -27,18 +30,30 @@
             margin-bottom: 30px;
             box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
         }
+
         .session-card.no-session {
             background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .session-card h1 { margin: 0; font-size: 1.8rem; }
-        .session-card p { opacity: 0.9; margin: 10px 0 0 0; font-size: 1.1rem; }
+
+        .session-card h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .session-card p {
+            opacity: 0.9;
+            margin: 10px 0 0 0;
+            font-size: 1.1rem;
+        }
+
         .list-card {
             background: white;
             border-radius: 25px;
             padding: 25px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
+
         .student-item {
             display: flex;
             align-items: center;
@@ -46,16 +61,33 @@
             padding: 15px 0;
             border-bottom: 1px solid #f1f5f9;
         }
-        .student-info { display: flex; align-items: center; gap: 15px; }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .status-dot {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             background: #e2e8f0;
         }
-        .status-presente { background: #10b981; }
-        .status-falta { background: #ef4444; }
-        .eval-dots { display: flex; gap: 8px; }
+
+        .status-presente {
+            background: #10b981;
+        }
+
+        .status-falta {
+            background: #ef4444;
+        }
+
+        .eval-dots {
+            display: flex;
+            gap: 8px;
+        }
+
         .dot {
             width: 24px;
             height: 24px;
@@ -70,10 +102,31 @@
             font-weight: bold;
             color: #94a3b8;
         }
-        .dot.active[data-n="1"] { background: #fee2e2; border-color: #ef4444; color: #ef4444; }
-        .dot.active[data-n="2"] { background: #fef3c7; border-color: #f59e0b; color: #f59e0b; }
-        .dot.active[data-n="3"] { background: #dcfce7; border-color: #10b981; color: #10b981; }
-        .dot.active[data-n="4"] { background: #e0e7ff; border-color: #6366f1; color: #6366f1; }
+
+        .dot.active[data-n="1"] {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .dot.active[data-n="2"] {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .dot.active[data-n="3"] {
+            background: #dcfce7;
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .dot.active[data-n="4"] {
+            background: #e0e7ff;
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+
         .attendance-toggle {
             cursor: pointer;
             padding: 5px 12px;
@@ -81,8 +134,17 @@
             font-size: 0.8rem;
             font-weight: 600;
         }
-        .presente { color: #10b981; background: #dcfce7; }
-        .falta { color: #ef4444; background: #fee2e2; }
+
+        .presente {
+            color: #10b981;
+            background: #dcfce7;
+        }
+
+        .falta {
+            color: #ef4444;
+            background: #fee2e2;
+        }
+
         .session-selector {
             display: flex;
             gap: 10px;
@@ -91,6 +153,7 @@
             padding-bottom: 10px;
             scrollbar-width: thin;
         }
+
         .session-pill {
             padding: 8px 18px;
             background: white;
@@ -103,14 +166,16 @@
             transition: all 0.2s;
             font-weight: 600;
         }
+
         .session-pill.active {
             background: #6366f1;
             color: white;
             border-color: #6366f1;
             box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
         }
+
         .session-nav-btn {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
             padding: 5px 10px;
@@ -119,8 +184,9 @@
             font-size: 1rem;
             transition: all 0.2s;
         }
+
         .session-nav-btn:hover {
-            background: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.4);
         }
     </style>
 
@@ -128,8 +194,9 @@
     <script src="/static/js/navigation.js?v=1.5"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
+
 <body>
-<!-- Unified Navigation injected by navigation.js -->
+    <!-- Unified Navigation injected by navigation.js -->
     <div class="container">
         <!-- Tabs de Sección Docencia -->
         <div class="section-tabs">
@@ -139,17 +206,20 @@
             <a href="/rubricas" class="section-tab-btn">📊 Rúbricas</a>
             <a href="/tareas" class="section-tab-btn">📝 Tareas</a>
         </div>
-        
+
         <div id="session-selector" class="session-selector"></div>
-        
+
         <div class="session-card" id="session-info">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <div>
                     <h1>Clase de Hoy</h1>
-                    <div id="area-tag" style="margin-top:5px; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: rgba(255,255,255,0.8);">---</div>
+                    <div id="area-tag"
+                        style="margin-top:5px; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: rgba(255,255,255,0.8);">
+                        ---</div>
                 </div>
                 <div style="text-align: right;">
-                    <span id="clase-fecha" style="font-weight:600; background:rgba(255,255,255,0.2); padding:5px 12px; border-radius:10px; display: block; margin-bottom: 10px;">--/--/----</span>
+                    <span id="clase-fecha"
+                        style="font-weight:600; background:rgba(255,255,255,0.2); padding:5px 12px; border-radius:10px; display: block; margin-bottom: 10px;">--/--/----</span>
                     <div id="nav-btns" style="display: none; gap: 8px;">
                         <button onclick="changeSession(-1)" class="session-nav-btn">◀</button>
                         <button onclick="changeSession(1)" class="session-nav-btn">▶</button>
@@ -157,46 +227,64 @@
                 </div>
             </div>
             <p id="actividad-nombre">Investigando sesiones...</p>
-            <div id="criterio-tag" style="display:inline-block; margin-top:15px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 10px; font-size: 0.9rem; max-width: 100%;">
+            <div id="criterio-tag"
+                style="display:inline-block; margin-top:15px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 10px; font-size: 0.9rem; max-width: 100%;">
                 Criterio: ---
             </div>
         </div>
 
         <!-- Mensaje de ayuda cuando no hay sesión -->
-        <div id="no-session-help" style="display:none; margin-bottom: 30px; padding: 40px; background: white; border-radius: 25px; text-align: center; border: 2px dashed #cbd5e1; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
+        <div id="no-session-help"
+            style="display:none; margin-bottom: 30px; padding: 40px; background: white; border-radius: 25px; text-align: center; border: 2px dashed #cbd5e1; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
             <div style="font-size: 3rem; margin-bottom: 20px;">📅</div>
             <h2 style="color: #475569; margin-top: 0;">No hay sesión programada para hoy</h2>
             <p style="color: #64748b; max-width: 500px; margin: 0 auto 20px;">
-                Esta pantalla te permite evaluar rápidamente el criterio asignado a la clase de hoy. Para que aparezca información, sigue estos pasos:
+                Esta pantalla te permite evaluar rápidamente el criterio asignado a la clase de hoy. Para que aparezca
+                información, sigue estos pasos:
             </p>
-            <div style="text-align: left; max-width: 450px; margin: 0 auto 30px; background: #f8fafc; padding: 25px; border-radius: 15px; border: 1px solid #e2e8f0;">
+            <div
+                style="text-align: left; max-width: 450px; margin: 0 auto 30px; background: #f8fafc; padding: 25px; border-radius: 15px; border: 1px solid #e2e8f0;">
                 <ol style="margin: 0; padding-left: 20px; color: #475569; line-height: 2;">
                     <li>Clica en la pestaña superior <strong>Programación</strong>.</li>
                     <li>Asegúrate de tener al menos una <strong>SDA</strong> creada (Gestión de SDAs).</li>
                     <li>Crea o edita una sesión de actividad con la fecha de <strong>HOY</strong>.</li>
                     <li>Asigna un <strong>Criterio</strong> de evaluación a esa sesión.</li>
                 </ol>
-                <div style="margin-top:15px; padding:10px; background:#fffbeb; border:1px solid #fef3c7; border-radius:8px; font-size:0.85rem; color:#92400e;">
-                    <strong>💡 Consejo:</strong> Si tu lista de criterios aparece vacía, suele ser porque aún no has creado ni importado ninguna <b>Situación de Aprendizaje (SDA)</b> para esta etapa.
+                <div
+                    style="margin-top:15px; padding:10px; background:#fffbeb; border:1px solid #fef3c7; border-radius:8px; font-size:0.85rem; color:#92400e;">
+                    <strong>💡 Consejo:</strong> Si tu lista de criterios aparece vacía, suele ser porque aún no has
+                    creado ni importado ninguna <b>Situación de Aprendizaje (SDA)</b> para esta etapa.
                 </div>
             </div>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <a href="/programacion" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                <a href="/programacion" class="btn btn-primary"
+                    style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                     <span>📅</span> Ir a Programación
                 </a>
-                <button onclick="loadToday()" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; background: #cbd5e1; color: #475569; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer;">
+                <button onclick="loadToday()" class="btn btn-secondary"
+                    style="display: inline-flex; align-items: center; gap: 8px; background: #cbd5e1; color: #475569; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer;">
                     <span>🔄</span> Reintentar
                 </button>
             </div>
         </div>
 
         <!-- Guía de evaluación (solo se muestra si hay sesión) -->
-        <div id="eval-guide" style="display:none; margin-bottom: 25px; background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div id="eval-guide"
+            style="display:none; margin-bottom: 25px; background: #fffbeb; border: 1px solid #fef3c7; padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <div style="font-size: 1.5rem;">💡</div>
-            <div style="font-size: 0.9rem; color: #92400e;">
-                <strong>Guía rápida:</strong> Haz clic en los círculos para evaluar. 
-                <span id="guide-labels">1: Insuficiente, 2: Suficiente, 3: Notable, 4: Sobresaliente.</span> 
+            <div style="font-size: 0.9rem; color: #92400e; flex: 1;">
+                <strong>Guía rápida:</strong> Haz clic en los círculos para evaluar.
+                <span id="guide-labels">1: Insuficiente, 2: Suficiente, 3: Notable, 4: Sobresaliente.</span>
                 Haz clic de nuevo para desmarcar.
+            </div>
+            <!-- Botones de rellenado masivo para Infantil -->
+            <div id="rellenoMasivoInfantil" style="display:none; gap: 8px;">
+                <button onclick="rellenarMasivoInfantil(2)"
+                    style="background:#f59e0b; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;"
+                    title="Rellenar todos con nivel 2 (EP/ADdecuado)">⚡ EP/AD</button>
+                <button onclick="rellenarMasivoInfantil(3)"
+                    style="background:#10b981; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;"
+                    title="Rellenar todos con nivel 3 (CO/Muy adecuado)">⚡ CO/MA</button>
             </div>
         </div>
 
@@ -216,7 +304,7 @@
                 const res = await fetch(url);
                 const data = await res.json();
                 currentData = data;
-                
+
                 const sessionInfo = document.getElementById('session-info');
                 const noSessionHelp = document.getElementById('no-session-help');
                 const evalGuide = document.getElementById('eval-guide');
@@ -230,11 +318,21 @@
                 if (data.sesion) {
                     document.getElementById('area-tag').innerText = data.sesion.area_nombre || 'General';
                     document.getElementById('actividad-nombre').innerText = data.sesion.actividad;
-                    let critText = `<strong>${data.sesion.criterio_codigo || 'N/A'}</strong>`;
-                    if (data.sesion.criterio_desc) {
-                        critText += `: ${data.sesion.criterio_desc}`;
+                    const esModoActividad = data.sesion.modo_evaluacion === 'POR_ACTIVIDADES' && data.sesion.actividad_id;
+                    const criterioTag = document.getElementById('criterio-tag');
+                    if (esModoActividad) {
+                        const actNombre = data.sesion.act_nombre || data.sesion.actividad;
+                        criterioTag.innerHTML = `🏃 Evaluando actividad: <strong>${actNombre}</strong>`;
+                        criterioTag.style.background = 'rgba(16,185,129,0.25)';
+                    } else if (data.sesion.criterio_codigo) {
+                        let critText = `<strong>${data.sesion.criterio_codigo}</strong>`;
+                        if (data.sesion.criterio_desc) critText += `: ${data.sesion.criterio_desc}`;
+                        criterioTag.innerHTML = `Criterio: ${critText}`;
+                        criterioTag.style.background = 'rgba(255,255,255,0.2)';
+                    } else {
+                        criterioTag.innerHTML = 'Sin criterio asignado';
+                        criterioTag.style.background = 'rgba(255,255,255,0.1)';
                     }
-                    document.getElementById('criterio-tag').innerHTML = `Criterio: ${critText}`;
                     sessionInfo.classList.remove('no-session');
                     sessionInfo.style.display = 'block';
                     noSessionHelp.style.display = 'none';
@@ -248,7 +346,7 @@
                     noSessionHelp.style.display = 'block';
                     evalGuide.style.display = 'none';
                 }
-                
+
                 // Render session selector
                 const selector = document.getElementById('session-selector');
                 const navBtns = document.getElementById('nav-btns');
@@ -265,13 +363,20 @@
                     selector.style.display = 'none';
                     navBtns.style.display = 'none';
                 }
-                
-                // Actualizar labels de la guía según etapa
+
+                // Actualizar labels de la guía según etapa y modo
                 const guideLabels = document.getElementById('guide-labels');
-                if (data.etapa_id == 1) { // Infantil
-                    guideLabels.innerText = "NI/PA: Poco adecuado, EP/A: Adecuado, CO/MA: Muy adecuado.";
+                const rellenoBtns = document.getElementById('rellenoMasivoInfantil');
+                const esModoActiv = data.sesion && data.sesion.modo_evaluacion === 'POR_ACTIVIDADES' && data.sesion.actividad_id;
+                if (data.etapa_id == 1) {
+                    guideLabels.innerText = "NI/PA: Poco adecuado, EP/AD: Adecuado, CO/MA: Muy adecuado.";
+                    rellenoBtns.style.display = 'flex'; // Mostrar botones en Infantil
+                } else if (esModoActiv) {
+                    guideLabels.innerText = "Evalúas la actividad. La nota del criterio se calculará automáticamente. 1: Insuficiente, 2: Suficiente, 3: Notable, 4: Sobresaliente.";
+                    rellenoBtns.style.display = 'none';
                 } else {
                     guideLabels.innerText = "1: Insuficiente, 2: Suficiente, 3: Notable, 4: Sobresaliente.";
+                    rellenoBtns.style.display = 'none';
                 }
 
                 renderList();
@@ -293,19 +398,19 @@
                         </span>
                     </div>
                     <div class="eval-dots" style="${!currentData.sesion ? 'opacity:0.3; pointer-events:none;' : ''}">
-                        ${[1,2,3,4].map(n => {
-                            if (currentData.etapa_id == 1 && n == 4) return ''; // Solo 3 niveles en Infantil
-                            let label = n;
-                            if (currentData.etapa_id == 1) {
-                                if (n == 1) label = 'NI/PA';
-                                if (n == 2) label = 'EP/A';
-                                if (n == 3) label = 'CO/MA';
-                            }
-                            return `<div class="dot ${s.nivel == n ? 'active' : ''}" 
+                        ${[1, 2, 3, 4].map(n => {
+                if (currentData.etapa_id == 1 && n == 4) return ''; // Solo 3 niveles en Infantil
+                let label = n;
+                if (currentData.etapa_id == 1) {
+                    if (n == 1) label = 'NI/PA';
+                    if (n == 2) label = 'EP/AD';
+                    if (n == 3) label = 'CO/MA';
+                }
+                return `<div class="dot ${s.nivel == n ? 'active' : ''}" 
                                          data-n="${n}" 
                                          onclick="quickEval(${s.id}, ${n})"
                                          style="${currentData.etapa_id == 1 ? 'width: 32px; border-radius: 6px;' : ''}">${label}</div>`;
-                        }).join('')}
+            }).join('')}
                     </div>
                 </div>
             `).join('');
@@ -327,38 +432,120 @@
                     student.asistencia = nuevoEstado;
                     renderList();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
         async function quickEval(alumnoId, nivel) {
             const student = currentData.alumnos.find(a => a.id === alumnoId);
             const finalNivel = student.nivel === nivel ? null : nivel;
+            const esModoActividad = currentData.sesion.modo_evaluacion === 'POR_ACTIVIDADES'
+                && currentData.sesion.actividad_id;
             try {
-                console.log("[DEBUG] Enviando evaluación:", { alumnoId, nivel, finalNivel, criterio_id: currentData.sesion.criterio_id });
-                const res = await fetch('/api/evaluacion/guardar_masivo', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        periodo: `T${currentData.trimestre}`,
-                        evaluaciones: [{
+                let res;
+                if (esModoActividad) {
+                    res = await fetch('/api/evaluacion/actividades/guardar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
                             alumno_id: alumnoId,
-                            criterio_id: currentData.sesion.criterio_id,
-                            nivel: finalNivel
-                        }]
-                    })
-                });
-                if (res.ok) {
+                            actividad_id: currentData.sesion.actividad_id,
+                            nivel: finalNivel,
+                            trimestre: currentData.trimestre
+                        })
+                    });
+                } else {
+                    res = await fetch('/api/evaluacion/guardar_masivo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            periodo: `T${currentData.trimestre}`,
+                            evaluaciones: [{
+                                alumno_id: alumnoId,
+                                criterio_id: currentData.sesion.criterio_id,
+                                nivel: finalNivel
+                            }]
+                        })
+                    });
+                }
+                const data = await res.json();
+                if (data.ok !== false && res.ok) {
                     student.nivel = finalNivel;
                     renderList();
                 } else {
-                    const errorData = await res.json();
-                    console.error("[ERROR] Fallo al guardar evaluación:", errorData);
-                    alert("Error al guardar: " + (errorData.error || "Desconocido"));
+                    alert("Error al guardar: " + (data.error || "Desconocido"));
                 }
             } catch (e) {
-                console.error("[ERROR] Excepción en quickEval:", e);
                 alert("Error de conexión al guardar evaluación.");
             }
         }
+
+        // Función de rellenado masivo para Infantil
+        async function rellenarMasivoInfantil(nivel) {
+            if (!currentData || !currentData.alumnos) return;
+
+            const nivelLabel = nivel === 2 ? 'EP/AD' : 'CO/MA';
+            if (!confirm(`¿Estás seguro de rellenar TODOS los alumnos con nivel ${nivel} (${nivelLabel})?`)) return;
+
+            const esModoActividad = currentData.sesion.modo_evaluacion === 'POR_ACTIVIDADES'
+                && currentData.sesion.actividad_id;
+
+            let evaluaciones = [];
+            currentData.alumnos.forEach(student => {
+                evaluaciones.push({
+                    alumno_id: student.id,
+                    nivel: nivel
+                });
+            });
+
+            try {
+                let res;
+                if (esModoActividad) {
+                    // Enviar evaluaciones de actividad masiva
+                    res = await fetch('/api/evaluacion/actividades/guardar_masivo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            actividad_id: currentData.sesion.actividad_id,
+                            trimestre: currentData.trimestre,
+                            evaluaciones: evaluaciones.map(e => ({
+                                alumno_id: e.alumno_id,
+                                nivel: e.nivel
+                            }))
+                        })
+                    });
+                } else {
+                    // Enviar evaluaciones de criterio masivo
+                    res = await fetch('/api/evaluacion/guardar_masivo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            periodo: `T${currentData.trimestre}`,
+                            evaluaciones: evaluaciones.map(e => ({
+                                alumno_id: e.alumno_id,
+                                criterio_id: currentData.sesion.criterio_id,
+                                nivel: e.nivel
+                            }))
+                        })
+                    });
+                }
+
+                const data = await res.json();
+                if (data.ok !== false && res.ok) {
+                    // Actualizar estado local
+                    evaluaciones.forEach(e => {
+                        const student = currentData.alumnos.find(a => a.id === e.alumno_id);
+                        if (student) student.nivel = e.nivel;
+                    });
+                    renderList();
+                    alert(`✓ Evaluación masiva completada con ${nivelLabel}`);
+                } else {
+                    alert("Error al guardar: " + (data.error || "Desconocido"));
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error de conexión al guardar evaluación masiva.");
+            }
+        }
+
         function changeSession(delta) {
             if (!currentData || !currentData.sesiones || currentData.sesiones.length <= 1) return;
             const currentIndex = currentData.sesiones.findIndex(s => s.id === currentData.sesion.id);
@@ -370,4 +557,5 @@
         loadToday();
     </script>
 </body>
+
 </html>

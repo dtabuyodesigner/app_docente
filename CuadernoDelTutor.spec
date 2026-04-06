@@ -61,7 +61,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,           # Desactivado: UPX provoca falsos positivos en antivirus
-    console=True,        # console=True para la fase de pruebas — cambiar a False para versión Pilar
+    console=False,       # console=False para versión de producción (sin ventana de comandos)
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

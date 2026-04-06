@@ -367,7 +367,7 @@ def get_prestamos_alumno(alumno_id):
     cur = conn.cursor()
     cur.execute("""
         SELECT
-            pl.id, l.titulo as libro_titulo, l.autor as libro_autor,
+            pl.id, pl.libro_id, l.titulo as libro_titulo, l.autor as libro_autor,
             pl.fecha_prestamo, pl.fecha_devolucion, pl.estado, pl.observaciones,
             CAST((julianday(COALESCE(pl.fecha_devolucion, date('now'))) -
                   julianday(pl.fecha_prestamo)) AS INTEGER) as dias_lectura

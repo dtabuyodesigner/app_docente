@@ -82,7 +82,7 @@
 [data-theme="dark"] textarea {
     background: var(--gray-100);
     border-color: var(--gray-300);
-    color: var(--dark);
+    color: #e8e8f0;
 }
 
 [data-theme="dark"] input:focus,
@@ -94,7 +94,23 @@
 
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder {
-    color: var(--gray-500);
+    color: var(--gray-400);
+}
+
+/* --- Labels de formulario (legibilidad) --- */
+[data-theme="dark"] label,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] legend {
+    color: #d0d0e0;
+    font-weight: 600;
+}
+
+/* --- Textos secundarios / descripciones --- */
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] small,
+[data-theme="dark"] .help-text,
+[data-theme="dark"] p:not(.card p):not(.modal p) {
+    color: #b0b0c8;
 }
 
 /* --- Tablas --- */

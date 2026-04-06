@@ -22,7 +22,11 @@
       "Bash(then)",
       "Bash(sed *)",
       "Bash(fi)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(mv *)",
+      "Bash(chmod *)",
+      "Bash(kill *)",
+      "Bash(/home/danito73/documentos/app_evaluar/venv/bin/python *)"
     ]
   },
   "$version": 3

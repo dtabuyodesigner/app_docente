@@ -147,6 +147,17 @@ csrf.exempt("routes.main.exit_app")
 def get_csrf_token():
     return {"ok": True, "csrf_token": generate_csrf()}
 
+@app.route('/api/version', methods=['GET'])
+def get_version():
+    """Devuelve la versión actual de la aplicación desde el fichero VERSION."""
+    version_path = os.path.join(app.root_path, 'VERSION')
+    try:
+        with open(version_path, 'r') as f:
+            version = f.read().strip()
+    except FileNotFoundError:
+        version = "desconocida"
+    return jsonify({"version": version})
+
 @app.route('/service-worker.js')
 def serve_sw():
     """Sirve el Service Worker desde la raíz para que su scope sea '/'."""

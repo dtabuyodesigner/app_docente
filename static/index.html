@@ -401,8 +401,14 @@
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
-        <div style="margin-bottom: 30px;">
+        <div style="margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <h1 style="margin: 0;">📘 Panel de Control</h1>
+            <span id="app-version-badge" title="Versión de la aplicación"
+                  style="font-size: 0.72rem; font-weight: 600; color: #6b7280; background: #f3f4f6;
+                         border: 1px solid #e5e7eb; border-radius: 999px; padding: 3px 10px;
+                         letter-spacing: 0.03em; cursor: default;">
+                v…
+            </span>
         </div>
         <div id="birthdayAlert" class="birthday-card">
             <div>
@@ -1336,6 +1342,11 @@
         document.addEventListener('DOMContentLoaded', async () => {
             loadDashboard();
             await checkIntegrity();
+            // Mostrar versión de la app
+            fetch('/api/version').then(r => r.json()).then(d => {
+                const badge = document.getElementById('app-version-badge');
+                if (badge && d.version) badge.textContent = 'v' + d.version;
+            }).catch(() => {});
         });
         // --- HISTORY MODAL LOGIC ---
         const historyModal = document.getElementById("historyModal");

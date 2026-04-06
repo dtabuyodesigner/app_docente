@@ -1297,19 +1297,21 @@
     </div>
     <!-- Devolucion Modal -->
     <div class="modal-overlay" id="devModal" onclick="if(event.target===this)closeDevModal()" style="display:none;">
-        <div class="modal" onkeydown="if(event.key==='Enter')confirmarDevolucion()">
+        <div class="modal" tabindex="-1"
+            onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmarDevolucion();}">
             <h2>📥 Registrar Devolución</h2>
             <input type="hidden" id="dev-id">
             <div id="dev-info"
                 style="background:#f0f4f8;padding:12px;border-radius:8px;margin-bottom:14px;font-size:.9rem;"></div>
             <div class="form-group" style="margin-bottom:12px;">
                 <label>Fecha de Devolución</label>
-                <input type="date" id="dev-fecha">
+                <input type="date" id="dev-fecha"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmarDevolucion();}">
             </div>
             <div class="form-group" style="margin-bottom:18px;">
                 <label>Observaciones (opcional)</label>
                 <input type="text" id="dev-obs" placeholder="Ej: Libro en buen estado"
-                    onkeydown="if(event.key==='Enter')confirmarDevolucion()">
+                    onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmarDevolucion();}">
             </div>
             <div style="display:flex;gap:10px;">
                 <button class="btn btn-success" style="flex:1" onclick="confirmarDevolucion()">✅ Confirmar</button>
@@ -2485,6 +2487,11 @@
             document.getElementById('dev-obs').value = '';
             document.getElementById('dev-info').innerHTML = `<strong>${alumno}</strong><br>📖 <em>${libro}</em><br><small>Prestado: ${fechaPrestamo}</small>`;
             document.getElementById('devModal').style.display = 'flex';
+            // Dar foco al modal para que Enter funcione inmediatamente
+            setTimeout(() => {
+                const modal = document.querySelector('#devModal .modal');
+                if (modal) modal.focus();
+            }, 100);
         }
         async function confirmarDevolucion() {
             const id = document.getElementById('dev-id').value;
@@ -2495,7 +2502,7 @@
             const d = await r.json();
             if (d.ok) {
                 closeDevModal();
-                showToast("✅ Devolución registrada correctamente");
+                showToast("Devolución registrada correctamente");
 
                 if (d.hito_alcanzado) {
                     loadRankingChart();

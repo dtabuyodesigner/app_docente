@@ -1,7 +1,7 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
 **Fecha:** 6 de Abril 2026
-**Último Commit:** `v1.1.24` (Mejora mensaje de error al borrar criterios)
+**Último Commit:** `v1.1.25` (Bugs biblioteca: Enter en devolución y doble tick verde)
 **Rama:** `feature/refactor-evaluacion-curricular`
 
 ---
@@ -21,6 +21,8 @@ Implementado sistema híbrido adaptativo completo:
 | Archivo | Descripción | Líneas |
 |---------|-------------|--------|
 | `routes/evaluacion_cuaderno.py` | Endpoint unificado `/api/evaluacion/cuaderno` | 791 |
+| `VERSION` | Fuente de verdad de la versión actual (v1.1.24) | 1 |
+| `release.sh` | Script interactivo de release (bump version, commit, push) | 150 |
 | `criterios y sda.md` | Vinculación detallada de criterios y SDAs Infantil | 41 |
 | `SISTEMA_DUAL_EVALUACION.md` | Documentación técnica completa | 304 |
 | `EVALUACION_INFANTIL.md` | Guía específica para Infantil | 249 |
@@ -30,7 +32,9 @@ Implementado sistema híbrido adaptativo completo:
 
 | Archivo | Cambios | Propósito |
 |---------|---------|-----------|
-| `app.py` | +3 líneas | Registro del nuevo blueprint |
+| `app.py` | +20 líneas | Registro blueprint y endpoint `/api/version` |
+| `static/index.html` | +15 líneas | Badge de versión y lógica de carga |
+| `static/biblioteca.html` | +20 líneas | Fix Enter en devolución y doble feedback visual |
 | `static/evaluacion.html` | +800+ líneas | UI adaptativa y Rellenador Rejilla |
 | `static/ayuda.html` | +537 líneas | Documentación integrada |
 
@@ -78,6 +82,15 @@ Actividades → Criterios → Nota del Área
 - Botón "📊 Ver Resumen Actividades"
 - Modal con árbol actividades → criterios → medias
 - Nota final del área calculada automáticamente
+
+### 6. Sistema de Versiones y Release
+- **Archivo `VERSION`**: Control central de versión.
+- **Script `release.sh`**:
+  - Muestra cambios pendientes antes del release.
+  - Bump automático (patch/minor/major).
+  - Pide descripción para el commit.
+  - Realiza `git add -A`, `commit` y `push` automáticamente.
+- **Badge Dinámico**: El Panel de Control muestra la versión actual cargada vía API.
 
 ---
 
@@ -239,7 +252,7 @@ git push
 ## 📞 CONTACTO / NOTAS
 
 **Implementado por:** Asistente de Código IA  
-**Última actualización:** 4 Abril 2026 (v21)  
+**Última actualización:** 6 Abril 2026 (v1.1.25)  
 **Estado:** ✅ Completado y validado en Git  
 **Siguiente paso:** Monitorizar feedback de usuario sobre el empaquetado final
 

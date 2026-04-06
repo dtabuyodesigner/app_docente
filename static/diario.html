@@ -866,7 +866,7 @@
                             </div>
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <span style="font-size:0.8rem; color:#888; background:#f8f9fa; padding:4px 8px; border-radius:4px;">${fechaFmt}</span>
-                                <button onclick="crearActaDesdeObservacion('${d.alumno_id}', '${d.alumno_nombre.replace(/'/g, "\\'")}', '${d.fecha}', \`${d.texto.replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`)" 
+                                <button onclick="crearActaDesdeObservacion(${d.alumno_id})"
                                     style="padding:4px 10px; background:#e7f1ff; color:#0056b3; border:1px solid #b8daff; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600;">
                                     📝 Convertir a Acta
                                 </button>
@@ -878,19 +878,25 @@
             }).join('');
         }
 
-        async function crearActaDesdeObservacion(alumnoId, alumnoNombre, fecha, texto) {
+        function crearActaDesdeObservacion(alumnoId) {
+            // Buscar la observación en el historial cargado
+            const obs = historialData.find(d => d.alumno_id == alumnoId);
+            if (!obs) {
+                alert('No se encontró la observación.');
+                return;
+            }
+
             // Cerrar modal de historial
             closeHistorial();
 
             // Abrir modal de acta y rellenar datos
-            document.getElementById('actaAlumnoNombre').innerText = alumnoNombre;
-            document.getElementById('actaFecha').value = fecha;
-            document.getElementById('actaDescripcion').value = texto;
+            currentActaAlumnoId = alumnoId;
+            document.getElementById('actaAlumnoNombre').innerText = obs.alumno_nombre;
+            document.getElementById('actaFecha').value = obs.fecha;
+            document.getElementById('actaDescripcion').value = obs.texto;
 
             // Mostrar modal de acta
             document.getElementById('actaModal').style.display = 'flex';
-            // Guardar ID temporalmente
-            currentActaAlumnoId = alumnoId;
         }
     </script>
     <!-- Modal Historial -->
@@ -954,7 +960,7 @@
                     </div>
                     <div class="form-group">
                         <label>Descripción de los hechos:</label>
-                        <textarea id="actaDescripcion" rows="5" required
+                        <textarea id="actaDescripcion" rows="10" required
                             placeholder="Describe lo sucedido con detalle..."
                             style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;"></textarea>
                     </div>

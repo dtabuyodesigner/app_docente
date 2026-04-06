@@ -344,6 +344,9 @@
                 <div>
                     <input type="date" id="datePicker">
                 </div>
+                <button onclick="openHistorial()"
+                    style="padding: 8px 16px; background: var(--secondary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">📋
+                    Historial</button>
             </div>
         </div>
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
@@ -753,7 +756,122 @@
                 alert("❌ Error de conexión.");
             }
         }
+
+        // --- LÓGICA DE HISTORIAL ---
+        let historialData = [];
+        let listaAlumnos = new Set();
+        let listaAreas = new Set();
+
+        async function openHistorial() {
+            document.getElementById('historialModal').style.display = 'flex';
+            document.getElementById('histDesde').value = '';
+            document.getElementById('histHasta').value = '';
+            document.getElementById('histBuscar').value = '';
+            try {
+                const res = await fetch('/api/observaciones/historial');
+                const data = await res.json();
+                historialData = data;
+                listaAlumnos = new Set(data.map(d => `${d.alumno_id}|${d.alumno_nombre}`));
+                listaAreas = new Set(data.filter(d => d.area_nombre).map(d => `${d.area_id}|${d.area_nombre}`));
+                cargarFiltrosHistorial();
+                filtrarHistorial();
+            } catch (e) {
+                document.getElementById('historialResultados').innerHTML = '<p style="text-align:center; color:red;">Error al cargar historial.</p>';
+            }
+        }
+        function closeHistorial() {
+            document.getElementById('historialModal').style.display = 'none';
+        }
+        function cargarFiltrosHistorial() {
+            const selAlumno = document.getElementById('histAlumno');
+            selAlumno.innerHTML = '<option value="">-- Todos los alumnos --</option>';
+            Array.from(listaAlumnos).sort().forEach(item => {
+                const [id, nombre] = item.split('|');
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = nombre;
+                selAlumno.appendChild(opt);
+            });
+            const selArea = document.getElementById('histArea');
+            selArea.innerHTML = '<option value="">-- Todas las áreas --</option>';
+            Array.from(listaAreas).sort().forEach(item => {
+                const [id, nombre] = item.split('|');
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = nombre;
+                selArea.appendChild(opt);
+            });
+        }
+        function filtrarHistorial() {
+            const buscar = document.getElementById('histBuscar').value.toLowerCase();
+            const desde = document.getElementById('histDesde').value;
+            const hasta = document.getElementById('histHasta').value;
+            const alumnoId = document.getElementById('histAlumno').value;
+            const areaId = document.getElementById('histArea').value;
+
+            let filtrado = historialData.filter(d => {
+                if (desde && d.fecha < desde) return false;
+                if (hasta && d.fecha > hasta) return false;
+                if (alumnoId && d.alumno_id != alumnoId) return false;
+                if (areaId && d.area_id != areaId) return false;
+                if (buscar && !d.texto.toLowerCase().includes(buscar)) return false;
+                return true;
+            });
+
+            const contenedor = document.getElementById('historialResultados');
+            if (filtrado.length === 0) {
+                contenedor.innerHTML = '<p style="text-align:center; color:#666; padding:40px;">No se encontraron resultados.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = filtrado.map(d => {
+                const [y, m, dd] = d.fecha.split('-');
+                const fechaFmt = `${dd}/${m}/${y}`;
+                return `
+                    <div style="padding:12px 15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:start; gap:10px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:600; color:var(--primary);">${d.alumno_nombre} <span style="font-weight:400; color:#666; font-size:0.85rem;">(${d.area_nombre || 'General'})</span></div>
+                            <div style="font-size:0.8rem; color:#888;">${fechaFmt}</div>
+                            <div style="margin-top:4px; font-size:0.9rem;">${d.texto}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
     </script>
+    <!-- Modal Historial -->
+    <div id="historialModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="close" onclick="closeHistorial()">&times;</span>
+            <div style="padding: 20px;">
+                <h2 style="color: var(--primary); margin-top:0;">📋 Historial de Observaciones</h2>
+                <!-- Filtros -->
+                <div
+                    style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; padding:15px; background:#f8f9fa; border-radius:8px;">
+                    <input type="text" id="histBuscar" placeholder="🔍 Buscar texto..."
+                        style="flex:1; min-width:150px; padding:8px; border:1px solid #ccc; border-radius:6px;"
+                        oninput="filtrarHistorial()">
+                    <input type="date" id="histDesde" style="padding:8px; border:1px solid #ccc; border-radius:6px;"
+                        onchange="filtrarHistorial()">
+                    <input type="date" id="histHasta" style="padding:8px; border:1px solid #ccc; border-radius:6px;"
+                        onchange="filtrarHistorial()">
+                    <select id="histAlumno" style="padding:8px; border:1px solid #ccc; border-radius:6px;"
+                        onchange="filtrarHistorial()">
+                        <option value="">-- Todos los alumnos --</option>
+                    </select>
+                    <select id="histArea" style="padding:8px; border:1px solid #ccc; border-radius:6px;"
+                        onchange="filtrarHistorial()">
+                        <option value="">-- Todas las áreas --</option>
+                    </select>
+                </div>
+                <!-- Resultados -->
+                <div id="historialResultados"
+                    style="max-height:500px; overflow-y:auto; border:1px solid #eee; border-radius:8px;">
+                    <p style="text-align:center; color:#666; padding:40px;">Cargando historial...</p>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Modal Crear Acta -->
     <div id="actaModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">

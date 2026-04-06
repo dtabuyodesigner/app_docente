@@ -152,3 +152,42 @@ def borrar_observacion(obs_id):
     except Exception as e:
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@observaciones_bp.route("/api/observaciones/historial")
+def historial_observaciones():
+    """Historial de observaciones con filtros opcionales."""
+    alumno_id = request.args.get("alumno_id")
+    fecha_desde = request.args.get("fecha_desde")
+    fecha_hasta = request.args.get("fecha_hasta")
+    area_id = request.args.get("area_id")
+    
+    conn = get_db()
+    cur = conn.cursor()
+    
+    query = """
+        SELECT o.id, o.fecha, o.texto, a.nombre as alumno_nombre, ar.nombre as area_nombre
+        FROM observaciones o
+        INNER JOIN alumnos a ON o.alumno_id = a.id
+        LEFT JOIN areas ar ON o.area_id = ar.id
+        WHERE 1=1
+    """
+    params = []
+    
+    if alumno_id:
+        query += " AND o.alumno_id = ?"
+        params.append(alumno_id)
+    if fecha_desde:
+        query += " AND o.fecha >= ?"
+        params.append(fecha_desde)
+    if fecha_hasta:
+        query += " AND o.fecha <= ?"
+        params.append(fecha_hasta)
+    if area_id:
+        query += " AND o.area_id = ?"
+        params.append(area_id)
+        
+    query += " ORDER BY o.fecha DESC, o.id DESC LIMIT 200"
+    
+    cur.execute(query, params)
+    data = cur.fetchall()
+    return jsonify([dict(r) for r in data])

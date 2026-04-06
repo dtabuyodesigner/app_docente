@@ -1,9 +1,19 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 6 de Abril 2026  
-**Versión:** `v1.1.25`  
-**Último Commit:** `82916b6` — Merge feature/refactor-evaluacion-curricular → master  
+**Fecha:** 6 de Abril 2026
+**Versión:** `v1.1.26`
+**Último Commit:** `e955206` — UX/UI: Modo oscuro, responsive móvil y atajos de teclado
 **Rama activa:** `master` (sincronizado con origin/master ✅)
+
+---
+
+## ✅ LO COMPLETADO EN v1.1.26
+
+### Mejora UX/UI (7)
+- **Modo Oscuro:** Toggle 🌙/☀️ en navbar, persistencia localStorage, detección automática de preferencia del sistema
+- **Responsive Móvil:** Media queries para tablet (1024px), móvil (768px) y móvil pequeño (480px), botones táctiles 44px mínimo
+- **Atajos de Teclado:** Ctrl+S (guardar), Ctrl+F (buscar), Esc (cerrar modal), Ctrl+N (nuevo)
+- **Archivos nuevos:** `static/css/dark-mode.css`, `static/js/dark-mode.js`, `static/js/shortcuts.js`
 
 ---
 

@@ -785,41 +785,74 @@
 
         // --- LÓGICA DE ACTAS ---
         let currentActaAlumnoId = null;
-        let listaDocentes = [];
+        let equipoDocente = [];
+        let tutorNombre = "";
 
-        // Cargar docentes al cargar la página
-        fetch('/api/usuarios')
-            .then(r => r.json())
-            .then(users => {
-                listaDocentes = users || [];
-                const selProf = document.getElementById('actaProfesor');
-                const selFirm = document.getElementById('actaFirmante');
-                const opts = '<option value="">-- Seleccionar --</option>' +
-                    listaDocentes.map(u => `<option value="${u.nombre}">${u.nombre}</option>`).join('');
-                selProf.innerHTML = opts;
-                selFirm.innerHTML = '<option value="">-- Usar firma del tutor --</option>' +
-                    listaDocentes.map(u => `<option value="${u.nombre}">${u.nombre}</option>`).join('');
-            })
-            .catch(() => { });
+        // Cargar equipo docente del grupo activo
+        function cargarEquipoDocente() {
+            fetch('/api/actas/equipo_docente')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        equipoDocente = data.equipo_docente || [];
+                        tutorNombre = data.tutor || "";
+                        renderCheckboxProfesores();
+
+                        // Auto-seleccionar tutor como firmante
+                        document.getElementById('actaFirmante').value = tutorNombre;
+                    }
+                })
+                .catch(() => { console.log('No se pudo cargar equipo docente'); });
+        }
+
+        // Renderizar checkboxes de profesores
+        function renderCheckboxProfesores() {
+            const container = document.getElementById('actaProfesorCheckboxes');
+            if (!container) return;
+
+            container.innerHTML = equipoDocente.map((nombre, idx) => `
+                <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; ${idx === 0 ? 'background:#e7f1ff; font-weight:600;' : ''}">
+                    <input type="checkbox" name="actaProfesorCheck" value="${nombre}" ${idx === 0 ? 'checked' : ''} onchange="actualizarProfesoresSeleccionados()">
+                    <span>${nombre} ${idx === 0 ? '🎓 (Tutor)' : ''}</span>
+                </label>
+            `).join('');
+        }
+
+        // Obtener profesores seleccionados como texto
+        function actualizarProfesoresSeleccionados() {
+            const checks = document.querySelectorAll('input[name="actaProfesorCheck"]:checked');
+            const manual = document.getElementById('actaProfesorOtro').value.trim();
+            const seleccionados = Array.from(checks).map(c => c.value);
+            if (manual) seleccionados.push(manual);
+
+            // Guardar en hidden field para el submit
+            document.getElementById('actaProfesorValor').value = seleccionados.join(', ');
+        }
 
         function openActaModal(alumnoId, alumnoNombre) {
             currentActaAlumnoId = alumnoId;
             document.getElementById('actaAlumnoNombre').innerText = alumnoNombre;
             document.getElementById('actaFecha').valueAsDate = new Date();
-            document.getElementById('actaProfesor').value = '';
+            document.getElementById('actaProfesorOtro').value = '';
+            document.getElementById('actaProfesorValor').value = '';
             document.getElementById('actaFirmante').value = '';
             document.getElementById('actaModal').style.display = 'flex';
+
+            // Cargar equipo docente al abrir el modal
+            cargarEquipoDocente();
+            actualizarProfesoresSeleccionados();
         }
         function closeActaModal() {
             document.getElementById('actaModal').style.display = 'none';
             document.getElementById('actaForm').reset();
         }
         async function guardarActa() {
+            actualizarProfesoresSeleccionados();
             const data = {
                 alumno_id: currentActaAlumnoId,
                 fecha_hecho: document.getElementById('actaFecha').value,
                 lugar: document.getElementById('actaLugar').value,
-                profesor: document.getElementById('actaProfesor').value,
+                profesor: document.getElementById('actaProfesorValor').value,
                 descripcion: document.getElementById('actaDescripcion').value,
                 firmante: document.getElementById('actaFirmante').value
             };
@@ -1016,10 +1049,14 @@
                     </div>
                     <div class="form-group">
                         <label>Profesor/a implicado/a:</label>
-                        <select id="actaProfesor"
-                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
-                            <option value="">-- Seleccionar docente --</option>
-                        </select>
+                        <div id="actaProfesorCheckboxes"
+                            style="max-height:150px; overflow-y:auto; border:1px solid #eee; border-radius:6px; padding:8px; margin-bottom:8px;">
+                            <p style="color:#888; font-size:0.85rem; margin:0;">Cargando equipo docente...</p>
+                        </div>
+                        <input type="text" id="actaProfesorOtro" placeholder="O añadir nombre manualmente..."
+                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; font-size:0.9rem;"
+                            oninput="actualizarProfesoresSeleccionados()">
+                        <input type="hidden" id="actaProfesorValor">
                     </div>
                     <div class="form-group">
                         <label>Descripción de los hechos:</label>
@@ -1029,10 +1066,8 @@
                     </div>
                     <div class="form-group">
                         <label>Firma (Nombre del firmante):</label>
-                        <select id="actaFirmante"
+                        <input type="text" id="actaFirmante" placeholder="Se cargará automáticamente el tutor del grupo"
                             style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
-                            <option value="">-- Usar firma del tutor --</option>
-                        </select>
                     </div>
                 </form>
             </div>

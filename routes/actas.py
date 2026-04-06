@@ -71,6 +71,30 @@ def borrar_acta(acta_id):
         conn.rollback()
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@actas_bp.route("/api/actas/equipo_docente", methods=["GET"])
+def get_equipo_docente():
+    """Devuelve el equipo docente del grupo activo y el tutor."""
+    grupo_id = session.get('active_group_id')
+    if not grupo_id:
+        return jsonify({"ok": False, "error": "No hay grupo activo"}), 400
+    
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT equipo_docente FROM grupos WHERE id = ?", (grupo_id,))
+    row = cur.fetchone()
+    
+    equipo_docente = []
+    tutor = ""
+    if row and row["equipo_docente"]:
+        equipo_docente = [line.strip() for line in row["equipo_docente"].replace('\r', '').split('\n') if line.strip()]
+        tutor = equipo_docente[0] if equipo_docente else ""
+    
+    return jsonify({
+        "ok": True,
+        "equipo_docente": equipo_docente,
+        "tutor": tutor
+    })
+
 @actas_bp.route("/api/actas/<int:acta_id>/pdf")
 def generar_pdf_acta(acta_id):
     conn = get_db()

@@ -236,6 +236,15 @@
             position: relative;
         }
 
+        /* Historial Modal - z-index más alto para asegurar visibilidad */
+        #historialModal {
+            z-index: 9999 !important;
+        }
+
+        #historialModal .modal-content {
+            max-width: 900px !important;
+        }
+
         .close {
             position: absolute;
             right: 20px;
@@ -831,8 +840,8 @@
                     <div style="padding:12px 15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:start; gap:10px;">
                         <div style="flex:1;">
                             <div style="font-weight:600; color:var(--primary);">${d.alumno_nombre} <span style="font-weight:400; color:#666; font-size:0.85rem;">(${d.area_nombre || 'General'})</span></div>
-                            <div style="font-size:0.8rem; color:#888;">${fechaFmt}</div>
-                            <div style="margin-top:4px; font-size:0.9rem;">${d.texto}</div>
+                            <div style="font-size:0.8rem; color:#888; margin-bottom:4px;">${fechaFmt}</div>
+                            <div style="margin-top:4px; font-size:0.9rem; white-space: pre-wrap; word-wrap: break-word; line-height:1.5;">${d.texto}</div>
                         </div>
                     </div>
                 `;
@@ -841,7 +850,7 @@
     </script>
     <!-- Modal Historial -->
     <div id="historialModal" class="modal">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content">
             <span class="close" onclick="closeHistorial()">&times;</span>
             <div style="padding: 20px;">
                 <h2 style="color: var(--primary); margin-top:0;">📋 Historial de Observaciones</h2>

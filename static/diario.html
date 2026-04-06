@@ -837,26 +837,51 @@
                 const [y, m, dd] = d.fecha.split('-');
                 const fechaFmt = `${dd}/${m}/${y}`;
                 return `
-                    <div style="padding:12px 15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:start; gap:10px;">
-                        <div style="flex:1;">
-                            <div style="font-weight:600; color:var(--primary);">${d.alumno_nombre} <span style="font-weight:400; color:#666; font-size:0.85rem;">(${d.area_nombre || 'General'})</span></div>
-                            <div style="font-size:0.8rem; color:#888; margin-bottom:4px;">${fechaFmt}</div>
-                            <div style="margin-top:4px; font-size:0.9rem; white-space: pre-wrap; word-wrap: break-word; line-height:1.5;">${d.texto}</div>
+                    <div style="padding:15px 20px; border-bottom:1px solid #eee; display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-weight:600; color:var(--primary); font-size:1rem;">
+                                ${d.alumno_nombre} <span style="font-weight:400; color:#666; font-size:0.85rem;">(${d.area_nombre || 'General'})</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:0.8rem; color:#888; background:#f8f9fa; padding:4px 8px; border-radius:4px;">${fechaFmt}</span>
+                                <button onclick="crearActaDesdeObservacion('${d.alumno_id}', '${d.alumno_nombre.replace(/'/g, "\\'")}', '${d.fecha}', \`${d.texto.replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`)" 
+                                    style="padding:4px 10px; background:#e7f1ff; color:#0056b3; border:1px solid #b8daff; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600;">
+                                    📝 Convertir a Acta
+                                </button>
+                            </div>
                         </div>
+                        <div style="font-size:0.9rem; white-space: pre-wrap; word-wrap: break-word; line-height:1.5; color:#333; padding-left:5px; border-left:3px solid #eee;">${d.texto}</div>
                     </div>
                 `;
             }).join('');
+        }
+
+        async function crearActaDesdeObservacion(alumnoId, alumnoNombre, fecha, texto) {
+            // Cerrar modal de historial
+            closeHistorial();
+
+            // Abrir modal de acta y rellenar datos
+            document.getElementById('actaAlumnoNombre').innerText = alumnoNombre;
+            document.getElementById('actaFecha').value = fecha;
+            document.getElementById('actaDescripcion').value = texto;
+
+            // Mostrar modal de acta
+            document.getElementById('actaModal').style.display = 'flex';
+            // Guardar ID temporalmente
+            currentActaAlumnoId = alumnoId;
         }
     </script>
     <!-- Modal Historial -->
     <div id="historialModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeHistorial()">&times;</span>
-            <div style="padding: 20px;">
-                <h2 style="color: var(--primary); margin-top:0;">📋 Historial de Observaciones</h2>
-                <!-- Filtros -->
-                <div
-                    style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; padding:15px; background:#f8f9fa; border-radius:8px;">
+            <!-- Header fijo -->
+            <div class="modal-header">
+                <span class="close" onclick="closeHistorial()" style="top: 10px;">&times;</span>
+                <h2 style="color: var(--primary); margin:0;">📋 Historial de Observaciones</h2>
+            </div>
+            <!-- Filtros fijos -->
+            <div class="modal-filters">
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <input type="text" id="histBuscar" placeholder="🔍 Buscar texto..."
                         style="flex:1; min-width:150px; padding:8px; border:1px solid #ccc; border-radius:6px;"
                         oninput="filtrarHistorial()">
@@ -873,9 +898,10 @@
                         <option value="">-- Todas las áreas --</option>
                     </select>
                 </div>
-                <!-- Resultados -->
-                <div id="historialResultados"
-                    style="max-height:500px; overflow-y:auto; border:1px solid #eee; border-radius:8px;">
+            </div>
+            <!-- Resultados con scroll -->
+            <div class="modal-body">
+                <div id="historialResultados" style="padding: 0;">
                     <p style="text-align:center; color:#666; padding:40px;">Cargando historial...</p>
                 </div>
             </div>

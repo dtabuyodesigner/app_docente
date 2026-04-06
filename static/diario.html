@@ -236,13 +236,35 @@
             position: relative;
         }
 
-        /* Historial Modal - z-index más alto para asegurar visibilidad */
-        #historialModal {
-            z-index: 9999 !important;
-        }
-
+        /* Historial Modal - Layout Flexbox para fijar cabecera y scroll en cuerpo */
         #historialModal .modal-content {
             max-width: 900px !important;
+            height: 85vh !important;
+            display: flex !important;
+            flex-direction: column;
+            padding: 0 !important;
+            overflow: hidden;
+            margin: 2vh auto;
+        }
+
+        #historialModal .modal-header {
+            padding: 20px;
+            border-bottom: 2px solid #f0f2f5;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        #historialModal .modal-filters {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        #historialModal .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
         }
 
         .close {

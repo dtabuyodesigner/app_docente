@@ -792,14 +792,13 @@
             .then(r => r.json())
             .then(users => {
                 listaDocentes = users || [];
-                const sel = document.getElementById('actaProfesor');
-                sel.innerHTML = '<option value="">-- Seleccionar docente --</option>';
-                listaDocentes.forEach(u => {
-                    const opt = document.createElement('option');
-                    opt.value = u.nombre;
-                    opt.textContent = u.nombre;
-                    sel.appendChild(opt);
-                });
+                const selProf = document.getElementById('actaProfesor');
+                const selFirm = document.getElementById('actaFirmante');
+                const opts = '<option value="">-- Seleccionar --</option>' +
+                    listaDocentes.map(u => `<option value="${u.nombre}">${u.nombre}</option>`).join('');
+                selProf.innerHTML = opts;
+                selFirm.innerHTML = '<option value="">-- Usar firma del tutor --</option>' +
+                    listaDocentes.map(u => `<option value="${u.nombre}">${u.nombre}</option>`).join('');
             })
             .catch(() => { });
 

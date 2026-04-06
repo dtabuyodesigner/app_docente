@@ -1,9 +1,17 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
 **Fecha:** 6 de Abril 2026
-**Versión:** `v1.1.26`
+**Versión:** `v1.1.27` (pendiente release)
 **Último Commit:** `8a1a35c` — Fix dropdown legible en modo oscuro
-**Rama activa:** `master` (sincronizado con origin/master ✅)
+**Rama activa:** `master`
+
+---
+
+## ✅ LO COMPLETADO EN v1.1.27
+
+### Fix banner de actualizaciones (1)
+- **Omitir versión persistente:** botón "Omitir" ahora usa `localStorage` en lugar de `sessionStorage`, guarda la versión omitida y no vuelve a mostrar el banner hasta que haya una versión nueva
+- **Archivo modificado:** `static/js/navigation.js`
 
 ---
 

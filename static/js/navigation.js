@@ -116,14 +116,18 @@ function initNavigation() {
 }
 
 async function checkAppUpdates() {
-    if (sessionStorage.getItem('update-omitted')) return;
-
     try {
         const res = await fetch('/api/admin/check_updates?t=' + Date.now());
         if (!res.ok) return; // No es admin o sin conexión — ignorar silenciosamente
         const data = await res.json();
         if (data.ok && data.update_available) {
-            showUpdateBanner(data.latest_version || "Nueva");
+            const latestVersion = data.latest_version || "Nueva";
+            const omittedVersion = localStorage.getItem('update-omitted-version');
+
+            // Si el usuario omitió esta versión exacta, no mostrar banner
+            if (omittedVersion === latestVersion) return;
+
+            showUpdateBanner(latestVersion);
             addUpdateBadgeToConfig();
         }
     } catch (e) {
@@ -218,8 +222,12 @@ async function startDirectUpdate(btn) {
 }
 
 function omitUpdate() {
-    sessionStorage.setItem('update-omitted', 'true');
+    // Guardar la versión omitida en localStorage (persiste entre sesiones)
     const banner = document.getElementById('update-banner');
+    const versionSpan = banner?.querySelector('#banner-text span');
+    if (versionSpan) {
+        localStorage.setItem('update-omitted-version', versionSpan.textContent.trim());
+    }
     if (banner) banner.remove();
 }
 

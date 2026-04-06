@@ -9,9 +9,10 @@
 
 ## ✅ LO COMPLETADO EN v1.1.27
 
-### Fix banner de actualizaciones (1)
+### Fix banner de actualizaciones (2)
 - **Omitir versión persistente:** botón "Omitir" ahora usa `localStorage` en lugar de `sessionStorage`, guarda la versión omitida y no vuelve a mostrar el banner hasta que haya una versión nueva
-- **Archivo modificado:** `static/js/navigation.js`
+- **Comparar contra rama correcta:** cambiado `feature/refactor-evaluacion-curricular` → `master` para comparar versiones, el banner ya no muestra `v1.1.20` incorrectamente
+- **Archivos modificados:** `static/js/navigation.js`, `routes/admin.py`
 
 ---
 

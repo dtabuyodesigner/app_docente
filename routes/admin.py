@@ -177,7 +177,7 @@ def check_updates():
         if not local_sha:
             latest_version = APP_VERSION
             try:
-                branch_fallback = "feature/refactor-evaluacion-curricular"
+                branch_fallback = "master"
                 version_url = f"https://raw.githubusercontent.com/{github_repo}/{branch_fallback}/version.py"
                 rv = requests.get(version_url, timeout=4)
                 if rv.status_code == 200:
@@ -199,8 +199,8 @@ def check_updates():
                 "reason": "git_not_available"
             })
 
-        # Siempre comparar versión desde la rama de desarrollo (fuente de verdad)
-        dev_branch = "feature/refactor-evaluacion-curricular"
+        # Siempre comparar versión desde la rama principal (master)
+        dev_branch = "master"
         latest_version = APP_VERSION
         try:
             import re as _re

@@ -51,16 +51,29 @@
 }
 
 [data-theme="dark"] .nav-dropdown {
-    background: var(--gray-100);
+    background: #2a2a3d;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    border-color: #44445a;
 }
 
-[data-theme="dark"] .nav-dropdown a {
-    color: var(--dark);
+[data-theme="dark"] .dropdown-link {
+    color: #e0e0e0;
 }
 
-[data-theme="dark"] .nav-dropdown a:hover {
-    background: var(--gray-200);
+[data-theme="dark"] .dropdown-link:hover {
+    background: #33334d;
+    color: #5dade2;
+}
+
+[data-theme="dark"] .nav-dropdown a,
+[data-theme="dark"] .nav-dropdown .dropdown-link {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .nav-dropdown a:hover,
+[data-theme="dark"] .nav-dropdown .dropdown-link:hover {
+    background: #33334d;
+    color: #5dade2;
 }
 
 /* --- Inputs y formularios --- */
@@ -165,7 +178,9 @@
 }
 
 /* --- Transiciones suaves --- */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 

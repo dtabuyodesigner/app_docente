@@ -1,7 +1,7 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 5 de Abril 2026  
-**Último Commit:** `v1.1.22` (Medias rejilla, cross-mode, editar criterio, selección masiva)  
+**Fecha:** 6 de Abril 2026
+**Último Commit:** `v1.1.24` (Mejora mensaje de error al borrar criterios)
 **Rama:** `feature/refactor-evaluacion-curricular`
 
 ---
@@ -88,6 +88,7 @@ Actividades → Criterios → Nota del Área
 | Bug | Descripción | Prioridad | Estado |
 |-----|-------------|-----------|--------|
 | **Gestión de Criterios** | No borra criterios en Evaluación → Gestión de Criterios | Alta | ✅ CORREGIDO |
+| **Mensaje de error al borrar criterios** | No indicaba dónde estaban las evaluaciones bloqueantes | Media | ✅ MEJORADO (v1.1.24) |
 | **Cuaderno de Evaluación** | Evaluación → Cuaderno → Cuaderno de evaluación no muestra nada | Alta | ✅ CORREGIDO |
 | **Informe de Acta - Firmas** | Cuadro de firmas no muestra automáticamente la firma del tutor desde Logos | Media | ✅ CORREGIDO |
 | **Rejilla EP/CO para POR_CRITERIOS_DIRECTOS** | El rellenador masivo en rejilla no funcionaba para áreas Infantil sin SDAs (escribía en tabla errónea, deseleccionar píldora activa crasheaba) | Alta | ✅ CORREGIDO |
@@ -108,6 +109,20 @@ Actividades → Criterios → Nota del Área
 **Bug 3 — Firma del tutor no aparece en Acta**
 - **Causa:** La query SQL en `routes/informes.py` solo buscaba claves `LIKE 'logo_%'`, pero la firma se guarda con clave `tutor_firma_filename` → nunca se cargaba en `logo_config`.
 - **Fix:** `routes/informes.py` → query ampliada: `OR clave = 'tutor_firma_filename'`.
+
+**Bug 4 — Evaluaciones huérfanas bloquean borrado de criterios**
+- **Causa:** Evaluaciones guardadas en tabla `evaluaciones` con `sda_id=NULL` (de rellenador masivo o sesiones anteriores) no eran visibles en la UI pero bloqueaban el borrado de criterios.
+- **Fix:** 
+  - Limpieza manual de evaluaciones huérfanas con SQL
+  - Mejora en `routes/criterios_api.py`: ahora el mensaje de error muestra **detalle completo** de dónde están las evaluaciones (tabla, alumnos, trimestres, SDAs)
+  - Instrucciones claras de cómo resolverlo
+
+### Corrección Aplicada (6 Abril 2026 - v1.1.24)
+
+**Mejora — Mensaje de error detallado al borrar criterios**
+- **Antes:** "Este criterio ya tiene evaluaciones registradas. Solo puede desactivarse."
+- **Ahora:** Muestra tabla exacta, número de registros, alumnos evaluados, trimestres y SDAs involucradas.
+- **Archivos modificados:** `routes/criterios_api.py`, `static/evaluacion.html`
 
 ### Features Pendientes
 

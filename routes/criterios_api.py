@@ -369,17 +369,74 @@ def eliminar_criterio(criterio_id):
 
     conn = get_db(); cur = conn.cursor()
 
-    # Comprobar evaluaciones en todas las tablas
-    queries = [
-        ("SELECT COUNT(*) as count FROM evaluaciones WHERE criterio_id = ?", (criterio_id,)),
-        ("SELECT COUNT(*) as count FROM evaluaciones_log WHERE criterio_id = ?", (criterio_id,)),
-        ("SELECT COUNT(*) as count FROM evaluacion_criterios WHERE criterio_id = ?", (criterio_id,))
-    ]
+    # Comprobar evaluaciones en todas las tablas con detalle
+    # Obtener código del criterio para el mensaje
+    criterio = cur.execute("SELECT codigo FROM criterios WHERE id = ?", (criterio_id,)).fetchone()
+    codigo_criterio = criterio["codigo"] if criterio else f"ID {criterio_id}"
 
-    for sql, params in queries:
-        cur.execute(sql, params)
-        if cur.fetchone()["count"] > 0:
-            return jsonify({"ok": False, "error": "Este criterio ya tiene evaluaciones registradas. Solo puede desactivarse."}), 400
+    evaluaciones_encontradas = []
+
+    # 1. Tabla evaluaciones (modo POR_SA / POR_ACTIVIDADES)
+    evals = cur.execute("""
+        SELECT COUNT(*) as count, 
+               GROUP_CONCAT(DISTINCT alumno_id) as alumnos,
+               GROUP_CONCAT(DISTINCT trimestre) as trimestres,
+               GROUP_CONCAT(DISTINCT sda_id) as sdas
+        FROM evaluaciones 
+        WHERE criterio_id = ?
+    """, (criterio_id,)).fetchone()
+
+    if evals["count"] > 0:
+        detalle = f"Tabla 'evaluaciones': {evals['count']} registro(s)"
+        if evals["alumnos"]:
+            detalle += f" | Alumnos: {evals['alumnos']}"
+        if evals["trimestres"]:
+            detalle += f" | Trimestres: {evals['trimestres']}"
+        if evals["sdas"]:
+            detalle += f" | SDAs: {evals['sdas']}"
+        else:
+            detalle += " | Sin SDA asignada"
+        evaluaciones_encontradas.append(detalle)
+
+    # 2. Tabla evaluaciones_log (histórico)
+    evals_log = cur.execute("""
+        SELECT COUNT(*) as count,
+               GROUP_CONCAT(DISTINCT alumno_id) as alumnos,
+               GROUP_CONCAT(DISTINCT trimestre) as trimestres
+        FROM evaluaciones_log 
+        WHERE criterio_id = ?
+    """, (criterio_id,)).fetchone()
+
+    if evals_log["count"] > 0:
+        detalle = f"Tabla 'evaluaciones_log' (histórico): {evals_log['count']} registro(s)"
+        if evals_log["alumnos"]:
+            detalle += f" | Alumnos: {evals_log['alumnos']}"
+        evaluaciones_encontradas.append(detalle)
+
+    # 3. Tabla evaluacion_criterios (modo POR_CRITERIOS_DIRECTOS)
+    evals_directas = cur.execute("""
+        SELECT COUNT(*) as count,
+               GROUP_CONCAT(DISTINCT alumno_id) as alumnos,
+               GROUP_CONCAT(DISTINCT periodo) as periodos
+        FROM evaluacion_criterios 
+        WHERE criterio_id = ?
+    """, (criterio_id,)).fetchone()
+
+    if evals_directas["count"] > 0:
+        detalle = f"Tabla 'evaluacion_criterios': {evals_directas['count']} registro(s)"
+        if evals_directas["alumnos"]:
+            detalle += f" | Alumnos: {evals_directas['alumnos']}"
+        if evals_directas["periodos"]:
+            detalle += f" | Periodos: {evals_directas['periodos']}"
+        evaluaciones_encontradas.append(detalle)
+
+    # Si hay evaluaciones en alguna tabla, mostrar detalle completo
+    if evaluaciones_encontradas:
+        error_detalle = f"El criterio {codigo_criterio} tiene evaluaciones registradas y no puede eliminarse.\n\n"
+        error_detalle += "Detalle de evaluaciones:\n"
+        error_detalle += "\n".join([f"• {e}" for e in evaluaciones_encontradas])
+        error_detalle += "\n\nSolución: Ve a Evaluación → Cuaderno de Evaluación, selecciona el trimestre y el alumno, y borra las evaluaciones de este criterio antes de eliminarlo."
+        return jsonify({"ok": False, "error": error_detalle}), 400
 
     try:
         cur.execute("BEGIN")

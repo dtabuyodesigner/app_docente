@@ -11,7 +11,13 @@
       "Bash(ls *)",
       "Bash(timeout *)",
       "Bash(true)",
-      "Bash(pip3 install *)"
+      "Bash(pip3 install *)",
+      "Bash(sqlite3 *)",
+      "Bash(tr *)",
+      "Bash(find *)",
+      "Bash(./release.sh)",
+      "Bash(mejora *)",
+      "Bash(eof)"
     ]
   },
   "$version": 3

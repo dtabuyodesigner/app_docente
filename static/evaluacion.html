@@ -608,12 +608,14 @@
                         </div>
                         <div class="form-group" style="flex:1;">
                             <label>Área / Materia</label>
-                            <select id="critArea" required onchange="cargarSdasCritModal(this.value, document.getElementById('critId').value || null)"></select>
+                            <select id="critArea" required
+                                onchange="cargarSdasCritModal(this.value, document.getElementById('critId').value || null)"></select>
                         </div>
                     </div>
                     <div id="sdaVinculacionWrap" class="form-group" style="display:none;">
                         <label>Situaciones de Aprendizaje vinculadas</label>
-                        <div id="critSdaList" style="max-height:150px; overflow-y:auto; border:1px solid #ddd; border-radius:6px; padding:8px 10px; background:#fafafa; font-size:0.9rem;">
+                        <div id="critSdaList"
+                            style="max-height:150px; overflow-y:auto; border:1px solid #ddd; border-radius:6px; padding:8px 10px; background:#fafafa; font-size:0.9rem;">
                             <small style="color:#999;">Selecciona un área para ver las SA disponibles.</small>
                         </div>
                     </div>
@@ -877,7 +879,7 @@
                     critArea.innerHTML = '';
                     areas.forEach(a => { critArea.innerHTML += `<option value="${a.id}">${a.nombre}</option>`; });
                     await cargarSdasCritModal(critArea.value, null);
-                } catch(e) { console.error('Error cargando áreas del modal:', e); }
+                } catch (e) { console.error('Error cargando áreas del modal:', e); }
             }
             async function cargarSdasCritModal(area_id, criterio_id) {
                 const wrap = document.getElementById('sdaVinculacionWrap');
@@ -898,7 +900,7 @@
                             <span>${s.nombre}</span>
                         </label>
                     `).join('');
-                } catch(e) { wrap.style.display = 'none'; console.error('Error cargando SA del modal:', e); }
+                } catch (e) { wrap.style.display = 'none'; console.error('Error cargando SA del modal:', e); }
             }
             window.cambiarEtapa = function (etapa_id) {
                 // Al cambiar la etapa, recargar las áreas filtradas
@@ -1125,7 +1127,10 @@
                 }
 
                 let msg = `✅ Borrados: ${borrados}`;
-                if (errores.length) msg += `\n\n⚠️ No borrados (${errores.length}):\n` + errores.join('\n');
+                if (errores.length) {
+                    msg += `\n\n⚠️ No borrados (${errores.length}):\n`;
+                    msg += errores.join('\n\n'); // Separar errores con doble salto para legibilidad
+                }
                 alert(msg);
                 cargarListaCriterios();
                 if (areaSelect.value) areaSelect.dispatchEvent(new Event('change'));
@@ -2509,7 +2514,7 @@
                 if (evaluaciones) {
                     console.log('[renderVistaSDA] Claves de evaluaciones:', Object.keys(evaluaciones));
                 }
-                
+
                 const conf = getAreaConfig() || {};
 
                 // Determinar si es Infantil según la escala
@@ -2550,12 +2555,12 @@
                 }
 
                 const sdaSeleccionada = document.getElementById("sda")?.value;
-                const sdasARenderizar = (sdaSeleccionada && sdaSeleccionada !== 'null') 
+                const sdasARenderizar = (sdaSeleccionada && sdaSeleccionada !== 'null')
                     ? sdas.filter(s => s.id.toString() === sdaSeleccionada)
                     : sdas;
 
                 if (sdasARenderizar.length === 0) {
-                     tbody.innerHTML = `<tr><td colspan="3" style="padding:20px; color:#666; text-align:center;">
+                    tbody.innerHTML = `<tr><td colspan="3" style="padding:20px; color:#666; text-align:center;">
                         No se encontró la SDA seleccionada.
                     </td></tr>`;
                     return;

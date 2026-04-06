@@ -785,10 +785,30 @@
 
         // --- LÓGICA DE ACTAS ---
         let currentActaAlumnoId = null;
+        let listaDocentes = [];
+
+        // Cargar docentes al cargar la página
+        fetch('/api/usuarios')
+            .then(r => r.json())
+            .then(users => {
+                listaDocentes = users || [];
+                const sel = document.getElementById('actaProfesor');
+                sel.innerHTML = '<option value="">-- Seleccionar docente --</option>';
+                listaDocentes.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.nombre;
+                    opt.textContent = u.nombre;
+                    sel.appendChild(opt);
+                });
+            })
+            .catch(() => { });
+
         function openActaModal(alumnoId, alumnoNombre) {
             currentActaAlumnoId = alumnoId;
             document.getElementById('actaAlumnoNombre').innerText = alumnoNombre;
             document.getElementById('actaFecha').valueAsDate = new Date();
+            document.getElementById('actaProfesor').value = '';
+            document.getElementById('actaFirmante').value = '';
             document.getElementById('actaModal').style.display = 'flex';
         }
         function closeActaModal() {
@@ -997,8 +1017,10 @@
                     </div>
                     <div class="form-group">
                         <label>Profesor/a implicado/a:</label>
-                        <input type="text" id="actaProfesor" placeholder="Nombre del docente que redacta o interviene"
+                        <select id="actaProfesor"
                             style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                            <option value="">-- Seleccionar docente --</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Descripción de los hechos:</label>
@@ -1008,9 +1030,10 @@
                     </div>
                     <div class="form-group">
                         <label>Firma (Nombre del firmante):</label>
-                        <input type="text" id="actaFirmante"
-                            placeholder="Dejar en blanco para firma automática del tutor"
+                        <select id="actaFirmante"
                             style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                            <option value="">-- Usar firma del tutor --</option>
+                        </select>
                     </div>
                 </form>
             </div>

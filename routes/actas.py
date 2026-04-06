@@ -3,7 +3,7 @@ from utils.db import get_db
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage, HRFlowable
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 import os
@@ -76,7 +76,7 @@ def generar_pdf_acta(acta_id):
     conn = get_db()
     cur = conn.cursor()
     cur.execute("""
-        SELECT a.*, al.nombre as alumno_nombre 
+        SELECT a.*, al.nombre as alumno_nombre
         FROM actas_incidencias a
         LEFT JOIN alumnos al ON a.alumno_id = al.id
         WHERE a.id = ?
@@ -84,29 +84,95 @@ def generar_pdf_acta(acta_id):
     acta = cur.fetchone()
     if not acta:
         return "Acta no encontrada", 404
-        
+
     # Configuración de logos y firmas
     cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%' OR clave = 'tutor_firma_filename' OR clave = 'nombre_centro'")
     config = {r["clave"]: r["valor"] for r in cur.fetchall()}
-    
+
     from utils.db import get_app_data_dir
     uploads_dir = os.path.join(get_app_data_dir(), "uploads")
-    
+
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, 
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
                            leftMargin=2*cm, rightMargin=2*cm,
                            topMargin=2*cm, bottomMargin=2*cm)
     elements = []
     styles = getSampleStyleSheet()
-    
-    # Estilo título
-    style_title = ParagraphStyle('ActaTitle', parent=styles['Normal'],
-                                fontSize=14, fontName='Helvetica-Bold',
-                                alignment=1, spaceAfter=12)
-    
-    # Cabecera
-    elements.append(Paragraph("ACTA DE INCIDENCIA", style_title))
-    
+
+    # Función auxiliar para cargar logos
+    def get_logo_path(lado):
+        fn = config.get(f"logo_{lado}_filename")
+        if fn:
+            p = os.path.join(uploads_dir, fn)
+            if os.path.exists(p):
+                return p
+        return None
+
+    logo_izda = get_logo_path("izda")
+    logo_dcha = get_logo_path("dcha")
+    pos_izda = config.get("logo_izda_posicion", "left")
+    pos_dcha = config.get("logo_dcha_posicion", "right")
+
+    # Cabecera con logos
+    header_data = []
+    header_styles = []
+
+    if logo_izda and logo_dcha:
+        # Dos logos
+        try:
+            img_izda = RLImage(logo_izda, width=3*cm, height=2*cm, kind='proportional')
+            img_dcha = RLImage(logo_dcha, width=3*cm, height=2*cm, kind='proportional')
+        except:
+            img_izda = Paragraph("Logo", styles['Normal'])
+            img_dcha = Paragraph("Logo", styles['Normal'])
+            
+        header_data = [[img_izda, Paragraph("ACTA DE INCIDENCIA", ParagraphStyle('HeaderTitle', parent=styles['Normal'],
+                                fontSize=16, fontName='Helvetica-Bold', alignment=1)), img_dcha]]
+        header_styles = [('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                        ('ALIGN', (0, 0), (0, 0), pos_izda.upper()),
+                        ('ALIGN', (2, 0), (2, 0), pos_dcha.upper())]
+    elif logo_izda:
+        try:
+            img_izda = RLImage(logo_izda, width=3*cm, height=2*cm, kind='proportional')
+        except:
+            img_izda = Paragraph("Logo", styles['Normal'])
+        header_data = [[img_izda, Paragraph("ACTA DE INCIDENCIA", ParagraphStyle('HeaderTitle', parent=styles['Normal'],
+                                fontSize=16, fontName='Helvetica-Bold', alignment=1))]]
+        header_styles = [('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                        ('ALIGN', (0, 0), (0, 0), pos_izda.upper())]
+    elif logo_dcha:
+        try:
+            img_dcha = RLImage(logo_dcha, width=3*cm, height=2*cm, kind='proportional')
+        except:
+            img_dcha = Paragraph("Logo", styles['Normal'])
+        header_data = [[Paragraph("ACTA DE INCIDENCIA", ParagraphStyle('HeaderTitle', parent=styles['Normal'],
+                                fontSize=16, fontName='Helvetica-Bold', alignment=1)), img_dcha]]
+        header_styles = [('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+                        ('ALIGN', (1, 0), (1, 0), pos_dcha.upper())]
+    else:
+        header_data = [[Paragraph("ACTA DE INCIDENCIA", ParagraphStyle('HeaderTitle', parent=styles['Normal'],
+                                fontSize=16, fontName='Helvetica-Bold', alignment=1))]]
+
+    if header_data:
+        if logo_izda and logo_dcha:
+            col_widths = [3*cm, None, 3*cm]
+        elif logo_izda:
+            col_widths = [3*cm, None]
+        elif logo_dcha:
+            col_widths = [None, 3*cm]
+        else:
+            col_widths = [None]
+        t_header = Table(header_data, colWidths=col_widths)
+        t_header.setStyle(TableStyle(header_styles + [
+            ('LEFTPADDING', (0, 0), (-1, 0), 0),
+            ('RIGHTPADDING', (0, 0), (-1, 0), 0),
+        ]))
+        elements.append(t_header)
+        elements.append(Spacer(1, 10))
+
+    # Línea separadora
+    elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#003366'), spaceAfter=15))
+
     # Datos básicos
     datos = [
         ["Fecha del hecho:", acta["fecha_hecho"]],
@@ -115,7 +181,9 @@ def generar_pdf_acta(acta_id):
     ]
     if acta["alumno_nombre"]:
         datos.append(["Alumno/a afectado/a:", acta["alumno_nombre"]])
-        
+    if acta["firmante"]:
+        datos.append(["Firmante:", acta["firmante"]])
+
     t = Table(datos, colWidths=[5*cm, 10*cm])
     t.setStyle(TableStyle([
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -125,21 +193,21 @@ def generar_pdf_acta(acta_id):
     ]))
     elements.append(t)
     elements.append(Spacer(1, 12))
-    
+
     # Descripción
     elements.append(Paragraph("<b>Descripción de los hechos:</b>", styles['Normal']))
     elements.append(Spacer(1, 6))
     elements.append(Paragraph(acta["descripcion"] or "Sin descripción.", styles['Normal']))
-    elements.append(Spacer(1, 20))
-    
+    elements.append(Spacer(1, 30))
+
     # Firmas
     elements.append(Spacer(1, 20))
     firmas_data = [["", ""]]
-    
+
     # Firma del firmante
     firmante_nombre = acta["firmante"] or "El/La Tutor/a"
     firmas_data[0][0] = Paragraph(f"<b>{firmante_nombre}</b>", styles['Normal'])
-    
+
     # Si hay firma escaneada, incluirla
     firma_fn = acta["firma_filename"]
     if firma_fn:
@@ -150,15 +218,15 @@ def generar_pdf_acta(acta_id):
                 firmas_data[0][0] = Table([[firmas_data[0][0]], [img]])
             except:
                 pass
-                
+
     t_firmas = Table(firmas_data, colWidths=[8*cm, 8*cm])
     t_firmas.setStyle(TableStyle([
         ('ALIGN', (0, 0), (0, 0), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
     ]))
     elements.append(t_firmas)
-    
+
     doc.build(elements)
     buffer.seek(0)
-    
+
     return send_file(buffer, download_name=f"Acta_{acta_id}.pdf", as_attachment=True)

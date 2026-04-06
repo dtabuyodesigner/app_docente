@@ -61,6 +61,52 @@
             margin-bottom: 40px;
         }
 
+        /* Update Banner */
+        .update-banner {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            animation: slideIn 0.5s ease-out;
+            cursor: pointer;
+        }
+
+        .update-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+        }
+
+        .update-banner h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .update-banner p {
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .update-banner button {
+            background: white;
+            color: #28a745;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .update-banner button:hover {
+            background: #f8f9fa;
+        }
+
         /* Birthday Banner */
         .birthday-card {
             grid-column: 1 / -1;
@@ -475,6 +521,14 @@
                          letter-spacing: 0.03em; cursor: default;">
                 v…
             </span>
+        </div>
+        <!-- Update Banner -->
+        <div id="updateAlert" class="update-banner" onclick="applyUpdateFromBanner()">
+            <div>
+                <h3>🔄 Actualización disponible</h3>
+                <p id="updateMessage">Hay una nueva versión del sistema lista para instalar.</p>
+            </div>
+            <button onclick="event.stopPropagation(); applyUpdateFromBanner()">Actualizar ahora</button>
         </div>
         <div id="birthdayAlert" class="birthday-card">
             <div>
@@ -1409,6 +1463,72 @@
                 }
             });
         }
+        // Comprobar actualizaciones al cargar la página
+        async function checkUpdatesOnLoad() {
+            try {
+                const res = await fetch('/api/admin/check_updates');
+                const data = await res.json();
+                if (data.ok && data.update_available) {
+                    const banner = document.getElementById('updateAlert');
+                    if (banner) {
+                        banner.style.display = 'flex';
+                        if (data.latest_version) {
+                            document.getElementById('updateMessage').textContent =
+                                `Nueva versión ${data.latest_version} disponible. Haz clic para actualizar.`;
+                        }
+                    }
+                }
+            } catch (e) {
+                // Silencioso - no mostrar error si no hay conexión
+                console.log('No se pudo comprobar actualizaciones:', e);
+            }
+        }
+        // Aplicar actualización directamente desde el banner
+        async function applyUpdateFromBanner() {
+            if (!confirm('🔄 ¿Instalar la actualización ahora? El proceso es automático y la app se reiniciará.')) return;
+            const banner = document.getElementById('updateAlert');
+            if (!banner) return;
+            banner.innerHTML = `
+                <div style="text-align:center; width:100%;">
+                    <div style="font-size:1.1rem; font-weight:700;">⏳ Aplicando actualización...</div>
+                    <p style="font-size:0.85rem; opacity:0.8; margin-top:5px;">No cierres la aplicación</p>
+                </div>
+            `;
+            try {
+                const res = await fetch('/api/admin/apply_update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ skip: [] })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    banner.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    banner.innerHTML = `
+                        <div style="text-align:center; width:100%;">
+                            <div style="font-size:1.1rem; font-weight:700;">✅ Actualización completada</div>
+                            <p style="font-size:0.85rem; margin-top:5px;">Reiniciando aplicación...</p>
+                        </div>
+                    `;
+                    setTimeout(() => window.location.reload(), 3000);
+                } else {
+                    banner.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                    banner.innerHTML = `
+                        <div style="text-align:center; width:100%;">
+                            <div style="font-size:1.1rem; font-weight:700;">❌ Error al actualizar</div>
+                            <p style="font-size:0.85rem; margin-top:5px;">${data.error || 'Error desconocido'}</p>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                banner.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                banner.innerHTML = `
+                    <div style="text-align:center; width:100%;">
+                        <div style="font-size:1.1rem; font-weight:700;">❌ Error de red</div>
+                        <p style="font-size:0.85rem; margin-top:5px;">No se pudo conectar con el servidor</p>
+                    </div>
+                `;
+            }
+        }
         document.addEventListener('DOMContentLoaded', async () => {
             loadDashboard();
             await checkIntegrity();
@@ -1417,6 +1537,8 @@
                 const badge = document.getElementById('app-version-badge');
                 if (badge && d.version) badge.textContent = 'v' + d.version;
             }).catch(() => { });
+            // Comprobar actualizaciones al cargar la página
+            checkUpdatesOnLoad();
         });
         // --- HISTORY MODAL LOGIC ---
         const historyModal = document.getElementById("historyModal");

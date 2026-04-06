@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Configuración Centralizada</title>
@@ -19,6 +20,7 @@
             --bg: #f0f2f5;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -26,10 +28,12 @@
             padding: 20px;
             color: var(--dark);
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
         .card {
             background: white;
             padding: 25px;
@@ -37,6 +41,7 @@
             box-shadow: var(--shadow);
             margin-bottom: 20px;
         }
+
         h2 {
             margin-top: 0;
             color: var(--primary);
@@ -44,15 +49,18 @@
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             font-weight: 600;
             margin-bottom: 5px;
             color: #555;
         }
+
         input:not([type="checkbox"]):not([type="radio"]),
         select,
         textarea {
@@ -64,12 +72,14 @@
             box-sizing: border-box;
             font-family: inherit;
         }
+
         input:focus,
         select:focus {
             outline: none;
             border-color: var(--secondary);
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
+
         .btn-save {
             background: var(--success);
             color: white;
@@ -83,11 +93,13 @@
             transition: all 0.2s;
             margin-top: 10px;
         }
+
         .btn-save:hover {
             background: #218838;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         }
+
         .status-msg {
             text-align: center;
             padding: 10px;
@@ -95,11 +107,13 @@
             margin-top: 15px;
             display: none;
         }
+
         .status-success {
             background: #d4edda;
             color: #155724;
             display: block;
         }
+
         .section-title {
             font-size: 0.9rem;
             text-transform: uppercase;
@@ -109,6 +123,7 @@
             margin-top: 25px;
             font-weight: 800;
         }
+
         /* Modal Styles */
         .modal-overlay {
             display: none;
@@ -123,6 +138,7 @@
             align-items: center;
             backdrop-filter: blur(3px);
         }
+
         .modal {
             background: white;
             padding: 25px;
@@ -134,6 +150,7 @@
             position: relative;
             box-shadow: var(--shadow);
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -142,6 +159,7 @@
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
+
         .modal-close {
             background: none;
             border: none;
@@ -152,12 +170,14 @@
             padding: 0;
             line-height: 1;
         }
+
         .modal-close:hover {
             background: rgba(0, 0, 0, 0.1);
         }
+
         .cfg-card {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             padding: 15px 10px;
             border-radius: 10px;
             color: white;
@@ -173,10 +193,12 @@
             text-align: center;
             user-select: none;
         }
+
         .cfg-card:hover {
-            background: rgba(255,255,255,0.28);
+            background: rgba(255, 255, 255, 0.28);
             transform: translateY(-2px);
         }
+
         .cfg-card-label {
             font-size: 0.8rem;
             color: white;
@@ -189,26 +211,39 @@
     <script src="/static/js/navigation.js?v=1.6"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
+
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
         <div class="card"
             style="background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
-            <h2 style="color: white; margin: 0 0 12px; text-align: center; font-size: 1rem; opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">⚙️ CONFIGURACIÓN</h2>
+            <h2
+                style="color: white; margin: 0 0 12px; text-align: center; font-size: 1rem; opacity: 0.85; font-weight: 600; letter-spacing: 0.5px;">
+                ⚙️ CONFIGURACIÓN</h2>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
                 <div style="display:flex; justify-content:center; gap:12px;">
-                    <div onclick="mostrarSeccion('centro')" class="cfg-card"><span style="font-size:1.8rem;">🏫</span><span class="cfg-card-label">Centro</span></div>
-                    <div onclick="mostrarSeccion('grupos')" class="cfg-card"><span style="font-size:1.8rem;">👥</span><span class="cfg-card-label">Grupos</span></div>
-                    <div onclick="mostrarSeccion('logos')" class="cfg-card"><span style="font-size:1.8rem;">🖼️</span><span class="cfg-card-label">Logos</span></div>
-                    <div onclick="mostrarSeccion('actualizaciones')" class="cfg-card"><span style="font-size:1.8rem;">🔄</span><span class="cfg-card-label">Actualizaciones</span></div>
-                    <div onclick="mostrarSeccion('mantenimiento')" class="cfg-card"><span style="font-size:1.8rem;">🗄️</span><span class="cfg-card-label">Mantenimiento</span></div>
+                    <div onclick="mostrarSeccion('centro')" class="cfg-card"><span
+                            style="font-size:1.8rem;">🏫</span><span class="cfg-card-label">Centro</span></div>
+                    <div onclick="mostrarSeccion('grupos')" class="cfg-card"><span
+                            style="font-size:1.8rem;">👥</span><span class="cfg-card-label">Grupos</span></div>
+                    <div onclick="mostrarSeccion('logos')" class="cfg-card"><span
+                            style="font-size:1.8rem;">🖼️</span><span class="cfg-card-label">Logos</span></div>
+                    <div onclick="mostrarSeccion('actualizaciones')" class="cfg-card"><span
+                            style="font-size:1.8rem;">🔄</span><span class="cfg-card-label">Actualizaciones</span></div>
+                    <div onclick="mostrarSeccion('mantenimiento')" class="cfg-card"><span
+                            style="font-size:1.8rem;">🗄️</span><span class="cfg-card-label">Mantenimiento</span></div>
                 </div>
                 <div style="display:flex; justify-content:center; gap:12px;">
-                    <div onclick="window.location='/usuarios'" class="cfg-card"><span style="font-size:1.8rem;">👤</span><span class="cfg-card-label">Usuarios</span></div>
-                    <div onclick="window.location='/areas'" class="cfg-card"><span style="font-size:1.8rem;">🏗️</span><span class="cfg-card-label">Áreas</span></div>
-                    <div onclick="window.location='/evaluacion#crit-pane'" class="cfg-card"><span style="font-size:1.8rem;">📌</span><span class="cfg-card-label">Criterios</span></div>
-                    <div onclick="abrirMiCuenta()" class="cfg-card"><span style="font-size:1.8rem;">🔐</span><span class="cfg-card-label">Mi Cuenta</span></div>
-                    <div onclick="openBackups()" class="cfg-card"><span style="font-size:1.8rem;">💾</span><span class="cfg-card-label">Backups</span></div>
+                    <div onclick="window.location='/usuarios'" class="cfg-card"><span
+                            style="font-size:1.8rem;">👤</span><span class="cfg-card-label">Usuarios</span></div>
+                    <div onclick="window.location='/areas'" class="cfg-card"><span
+                            style="font-size:1.8rem;">🏗️</span><span class="cfg-card-label">Áreas</span></div>
+                    <div onclick="window.location='/evaluacion#crit-pane'" class="cfg-card"><span
+                            style="font-size:1.8rem;">📌</span><span class="cfg-card-label">Criterios</span></div>
+                    <div onclick="abrirMiCuenta()" class="cfg-card"><span style="font-size:1.8rem;">🔐</span><span
+                            class="cfg-card-label">Mi Cuenta</span></div>
+                    <div onclick="openBackups()" class="cfg-card"><span style="font-size:1.8rem;">💾</span><span
+                            class="cfg-card-label">Backups</span></div>
                 </div>
             </div>
         </div>
@@ -262,7 +297,7 @@
                     <input type="date" id="fecha_fin_t3">
                 </div>
             </div>
-            <p style="font-size:0.8rem; color:#64748b; margin-top:-10px;">Estas fechas se usan para delimitar los informes trimestrales.</p>
+            <p class="config-help-text">Estas fechas se usan para delimitar los informes trimestrales.</p>
             <button class="btn-save" onclick="saveConfig()">💾 Guardar Configuración</button>
             <div id="status" class="status-msg"></div>
         </div>
@@ -272,16 +307,20 @@
     <div id="logosConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: none;">
         <h2 style="color: var(--primary);">🖼️ Logos para Documentos e Informes</h2>
         <div style="margin-top: 15px;">
-            <p style="color:#555; font-size:0.9rem;">Estos logos aparecerán en las cabeceras de los PDFs e informes generados.</p>
+            <p class="config-description">Estos logos aparecerán en las cabeceras de los PDFs e informes
+                generados.</p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                 <div>
                     <label style="font-weight:600; display:block; margin-bottom:6px;">Logo izquierda:</label>
-                    <div id="logo-izda-preview" style="height:80px; position:relative; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white; overflow:hidden;">
-                        <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
+                    <div id="logo-izda-preview"
+                        style="height:80px; position:relative; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white; overflow:hidden;">
+                        <span class="config-placeholder-text">Sin logo</span>
                     </div>
-                    <input type="file" id="logo-izda-file" accept="image/*" onchange="previewLogo('izda')" style="width:100%; font-size:0.85rem;">
+                    <input type="file" id="logo-izda-file" accept="image/*" onchange="previewLogo('izda')"
+                        style="width:100%; font-size:0.85rem;">
                     <label style="font-size:0.85rem; margin-top:6px; display:block;">Posición:
-                        <select id="logo-izda-pos" style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
+                        <select id="logo-izda-pos"
+                            style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
                             <option value="left">Izquierda</option>
                             <option value="center">Centro</option>
                             <option value="right">Derecha</option>
@@ -290,12 +329,15 @@
                 </div>
                 <div>
                     <label style="font-weight:600; display:block; margin-bottom:6px;">Logo derecha:</label>
-                    <div id="logo-dcha-preview" style="height:80px; position:relative; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white; overflow:hidden;">
-                        <span style="color:#aaa; font-size:0.8rem;">Sin logo</span>
+                    <div id="logo-dcha-preview"
+                        style="height:80px; position:relative; display:flex; align-items:center; justify-content:center; border:2px dashed #cbd5e1; border-radius:6px; margin-bottom:8px; background:white; overflow:hidden;">
+                        <span class="config-placeholder-text">Sin logo</span>
                     </div>
-                    <input type="file" id="logo-dcha-file" accept="image/*" onchange="previewLogo('dcha')" style="width:100%; font-size:0.85rem;">
+                    <input type="file" id="logo-dcha-file" accept="image/*" onchange="previewLogo('dcha')"
+                        style="width:100%; font-size:0.85rem;">
                     <label style="font-size:0.85rem; margin-top:6px; display:block;">Posición:
-                        <select id="logo-dcha-pos" style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
+                        <select id="logo-dcha-pos"
+                            style="margin-left:6px; padding:3px 8px; border-radius:4px; border:1px solid #ccc;">
                             <option value="right" selected>Derecha</option>
                             <option value="center">Centro</option>
                             <option value="left">Izquierda</option>
@@ -303,19 +345,27 @@
                     </label>
                 </div>
             </div>
-            <button onclick="subirLogos()" style="margin-top:14px; padding:10px 20px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">📤 Guardar Logos</button>
-            <span id="logos-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardado</span>
+            <button onclick="subirLogos()"
+                style="margin-top:14px; padding:10px 20px; background:#003366; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">📤
+                Guardar Logos</button>
+            <span id="logos-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓
+                Guardado</span>
 
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">🖋️ Firma Escaneada del Tutor/a</h3>
-                <p style="color:#666; font-size:0.85rem; margin-bottom:15px;">Sube tu firma escaneada (fondo blanco o transparente) para que aparezca automáticamente en las actas e informes.</p>
+                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">🖋️ Firma Escaneada del
+                    Tutor/a</h3>
+                <p class="config-description">Sube tu firma escaneada (fondo blanco o
+                    transparente) para que aparezca automáticamente en las actas e informes.</p>
                 <div style="display: flex; gap: 20px; align-items: flex-start;">
-                    <div id="firma-preview" style="width: 200px; height: 100px; position:relative; display: flex; align-items: center; justify-content: center; border: 2px dashed #cbd5e1; border-radius: 6px; background: white; overflow: hidden;">
-                        <span style="color:#aaa; font-size:0.8rem;">Sin firma</span>
+                    <div id="firma-preview"
+                        style="width: 200px; height: 100px; position:relative; display: flex; align-items: center; justify-content: center; border: 2px dashed #cbd5e1; border-radius: 6px; background: white; overflow: hidden;">
+                        <span class="config-placeholder-text">Sin firma</span>
                     </div>
                     <div style="flex: 1;">
-                        <input type="file" id="firma-file" accept="image/*" onchange="subirFirmaAutomativa()" style="width:100%; font-size:0.85rem; margin-bottom: 10px;">
-                        <span id="firma-status" style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardada</span>
+                        <input type="file" id="firma-file" accept="image/*" onchange="subirFirmaAutomativa()"
+                            style="width:100%; font-size:0.85rem; margin-bottom: 10px;">
+                        <span id="firma-status"
+                            style="margin-left:10px; color:#28a745; font-weight:bold; display:none;">✓ Guardada</span>
                     </div>
                 </div>
             </div>
@@ -323,22 +373,32 @@
     </div>
 
     <!-- ACTUALIZACIONES -->
-    <div id="actualizacionesConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: none;">
+    <div id="actualizacionesConfigSection" class="card config-section"
+        style="max-width: 800px; margin: 0 auto; display: none;">
         <h2 style="color: var(--primary);">🔄 Actualizaciones de Software</h2>
         <div style="margin-top: 15px;">
-            <p style="color: #555;">La versión actual del sistema es: <strong id="currentAppVersion">Desconocida</strong></p>
-            <button onclick="checkUpdates()" style="padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🔄 Buscar Actualizaciones</button>
-            <div id="updateStatus" style="margin-top: 15px; display: none; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center;"></div>
+            <p class="config-description">La versión actual del sistema es: <strong
+                    id="currentAppVersion">Desconocida</strong></p>
+            <button onclick="checkUpdates()"
+                style="padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🔄
+                Buscar Actualizaciones</button>
+            <div id="updateStatus"
+                style="margin-top: 15px; display: none; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center;">
+            </div>
         </div>
     </div>
 
     <!-- MANTENIMIENTO -->
-    <div id="mantenimientoConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: none;">
+    <div id="mantenimientoConfigSection" class="card config-section"
+        style="max-width: 800px; margin: 0 auto; display: none;">
         <h2 style="color: var(--primary);">🗄️ Mantenimiento</h2>
         <div style="margin-top: 15px;">
             <div style="background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 8px;">
-                <p style="margin-top: 0; color: #856404;"><b>Limpieza:</b> Elimina de forma definitiva a los alumnos que han sido archivados (borrados). Esta acción no se puede deshacer.</p>
-                <button onclick="limpiarAlumnosBorrados(this)" style="padding: 10px 15px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🗑️ Limpiar Alumnos Borrados</button>
+                <p style="margin-top: 0; color: #856404;"><b>Limpieza:</b> Elimina de forma definitiva a los alumnos que
+                    han sido archivados (borrados). Esta acción no se puede deshacer.</p>
+                <button onclick="limpiarAlumnosBorrados(this)"
+                    style="padding: 10px 15px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">🗑️
+                    Limpiar Alumnos Borrados</button>
             </div>
         </div>
     </div>
@@ -393,7 +453,9 @@
                 </div>
                 <div style="margin-bottom: 25px;">
                     <label style="display:block; font-weight:600; margin-bottom:5px;">Equipo Docente (Opcional):</label>
-                    <textarea id="newGroupEquipoDocente" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;" placeholder="Escribe un nombre por línea...&#10;Juan (Mates)&#10;Ana (Inglés)"></textarea>
+                    <textarea id="newGroupEquipoDocente" rows="4"
+                        style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;"
+                        placeholder="Escribe un nombre por línea...&#10;Juan (Mates)&#10;Ana (Inglés)"></textarea>
                 </div>
                 <button onclick="createNewGroup()"
                     style="width:100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">
@@ -475,7 +537,7 @@
                     statusDiv.style.background = '#f8f9fa'; statusDiv.style.color = '#666'; statusDiv.style.border = '1px solid #ddd';
                     statusDiv.innerHTML = `✅ Tu sistema está actualizado.`;
                 }
-            } catch(e) {
+            } catch (e) {
                 statusDiv.style.display = 'block'; statusDiv.style.background = '#f8d7da';
                 statusDiv.innerHTML = '❌ Sin conexión para buscar actualizaciones.';
             } finally {
@@ -488,7 +550,7 @@
                 const res = await fetch('/api/admin/version');
                 const data = await res.json();
                 if (data.ok) {
-                    document.getElementById('currentAppVersion').innerText = 
+                    document.getElementById('currentAppVersion').innerText =
                         `${data.version} (${data.sha})`;
                 }
             } catch (e) {
@@ -529,32 +591,32 @@
                 } else {
                     container.innerHTML = `<div style="color:var(--danger); padding:10px;">❌ Fallo al aplicar: ${data.error}</div>`;
                 }
-            } catch(e) {
+            } catch (e) {
                 container.innerHTML = `<div style="color:var(--danger); padding:10px;">❌ Error de red</div>`;
             }
         }
 
         async function limpiarAlumnosBorrados(btn) {
             if (!confirm('⚠️ ATENCIÓN: Esta acción eliminará DEFINITIVAMENTE a todos los alumnos que estén marcados como borrados (archivados). No se puede deshacer. ¿Deseas continuar?')) return;
-            
+
             try {
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '⏳ Limpiando...';
                 btn.disabled = true;
 
                 const csrfToken = await getCsrfTokenManual();
-                const res = await fetch('/api/admin/limpiar_alumnos_borrados', { 
+                const res = await fetch('/api/admin/limpiar_alumnos_borrados', {
                     method: 'POST',
                     headers: { 'X-CSRFToken': csrfToken }
                 });
                 const data = await res.json();
-                
+
                 if (res.ok && data.ok) {
                     alert('✅ Éxito: ' + data.message);
                 } else {
                     alert('❌ Error al intentar limpiar: ' + (data.error || 'Error desconocido'));
                 }
-                
+
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             } catch (e) {
@@ -597,7 +659,7 @@
             const stage = document.getElementById('newGroupStage').value;
             const line = document.getElementById('newGroupLine').value;
             const eqDoc = document.getElementById('newGroupEquipoDocente').value;
-            
+
             if (!stage) {
                 alert("Por favor, selecciona una etapa.");
                 return;
@@ -607,12 +669,12 @@
                 const csrf = await getCsrfTokenManual();
                 const res = await fetch('/api/grupos', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': csrf 
+                        'X-CSRFToken': csrf
                     },
-                    body: JSON.stringify({ 
-                        etapa_curso: stage, 
+                    body: JSON.stringify({
+                        etapa_curso: stage,
                         linea: line,
                         equipo_docente: eqDoc
                     })
@@ -632,14 +694,14 @@
         }
         async function borrarGrupo(id, nombre) {
             const msgConfirm = `⚠️ ATENCIÓN: Al borrar el grupo "${nombre}" se eliminarán TODOS sus alumnos, asistencias y evaluaciones.\n\n` +
-                               `NOTA: Si el grupo tiene alumnos activos, el sistema no permitirá borrarlo: primero deberás transferirlos a otro grupo o eliminarlos uno a uno.\n\n` +
-                               `¿Estás absolutamente SEGURO?`;
-                               
+                `NOTA: Si el grupo tiene alumnos activos, el sistema no permitirá borrarlo: primero deberás transferirlos a otro grupo o eliminarlos uno a uno.\n\n` +
+                `¿Estás absolutamente SEGURO?`;
+
             if (!confirm(msgConfirm)) return;
             try {
                 const res = await fetch(`/api/grupos/${id}`, { method: 'DELETE' });
                 const data = await res.json();
-                
+
                 if (res.ok && data.ok) {
                     loadGruposAjustes();
                     if (typeof loadGroupSelectorData === 'function') loadGroupSelectorData();
@@ -694,7 +756,7 @@
                         <span style="font-size:0.9rem;">${a.nombre}</span>
                     </label>
                 `).join('');
-            } catch(e) {
+            } catch (e) {
                 listDiv.innerHTML = '<p style="color:red; margin:0;">Error cargando áreas.</p>';
             }
         }
@@ -707,7 +769,7 @@
             document.getElementById('renameGroupId').value = id;
             document.getElementById('renombrarGrupoModal').style.display = 'flex';
             const g = gruposCacheConfig.find(x => x.id === id);
-            if(g) {
+            if (g) {
                 document.getElementById('renameGroupEquipoDocente').value = g.equipo_docente || "";
                 if (g.curso) document.getElementById('renameGroupStage').value = g.curso;
                 const lineas = ["A", "B", "C", "D"];
@@ -753,9 +815,9 @@
             const eqDoc = document.getElementById('renameGroupEquipoDocente').value;
             const rol = document.querySelector('input[name="rolGrupo"]:checked')?.value || 'tutor';
             const areasChecked = Array.from(document.querySelectorAll('.area-imparte-cb:checked')).map(cb => cb.value);
-            
+
             if (!confirm(`¿Confirmas el cambio de nombre/etapa para este grupo?`)) return;
-            
+
             try {
                 const csrf = await getCsrfTokenManual();
                 const res = await fetch(`/api/grupos/${id}`, {
@@ -785,7 +847,7 @@
             loadConfig();
             loadGruposAjustes();
             loadAppVersion();
-            
+
             // Manage deep linking via hash
             const hash = window.location.hash.substring(1);
             if (hash) {
@@ -808,6 +870,14 @@
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             if (seccionId === 'logos') cargarLogosPreviews();
+            if (seccionId === 'actualizaciones') {
+                loadAppVersion();
+                // Mostrar automáticamente el banner de actualizaciones
+                const btnBuscar = document.querySelector('#actualizacionesConfigSection button[onclick="checkUpdates()"]');
+                if (btnBuscar) {
+                    btnBuscar.click();
+                }
+            }
         }
 
         async function subirLogos() {
@@ -832,7 +902,7 @@
 
             if (izda || posIzda) await upload('izda', izda, posIzda);
             if (dcha || posDcha) await upload('dcha', dcha, posDcha);
-            
+
             const status = document.getElementById('logos-status');
             status.style.display = 'inline';
             setTimeout(() => status.style.display = 'none', 3000);
@@ -904,7 +974,7 @@
             try {
                 const res = await fetch('/api/configuracion/logos');
                 const data = await res.json();
-                
+
                 const renderPreview = (id, filename, side) => {
                     const el = document.getElementById(id);
                     if (filename) {
@@ -920,7 +990,7 @@
                 renderPreview('logo-izda-preview', data.izda, 'izda');
                 renderPreview('logo-dcha-preview', data.dcha, 'dcha');
                 renderPreview('firma-preview', data.firma, null);
-                
+
                 if (data.izda_posicion) document.getElementById('logo-izda-pos').value = data.izda_posicion;
                 if (data.dcha_posicion) document.getElementById('logo-dcha-pos').value = data.dcha_posicion;
             } catch (e) {
@@ -966,35 +1036,53 @@
         <div class="modal" style="max-width: 800px;">
             <div class="modal-header">
                 <h3 style="color: var(--primary); margin: 0;">💾 Gestión de Backups e Integridad</h3>
-                <button class="modal-close" onclick="document.getElementById('backupsModal').style.display='none'">&times;</button>
+                <button class="modal-close"
+                    onclick="document.getElementById('backupsModal').style.display='none'">&times;</button>
             </div>
             <div style="margin-top: 20px; text-align: left;">
-                <div id="integrityStatus" style="padding: 10px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid #ddd;">Verificando integridad...</div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap;">
+                <div id="integrityStatus"
+                    style="padding: 10px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid #ddd;">
+                    Verificando integridad...</div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap;">
                     <h4 style="margin: 0;">Listado de Copias de Seguridad</h4>
                     <div style="display: flex; gap: 10px;">
-                        <input type="file" id="externalBackupFile" style="display:none" accept=".db" onchange="uploadExternalBackup()">
-                        <button onclick="document.getElementById('externalBackupFile').click()" style="padding: 8px 16px; background: var(--secondary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">📁 Restaurar Backup Externo</button>
-                        <button onclick="createManualBackup()" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">➕ Crear Backup Ahora</button>
+                        <input type="file" id="externalBackupFile" style="display:none" accept=".db"
+                            onchange="uploadExternalBackup()">
+                        <button onclick="document.getElementById('externalBackupFile').click()"
+                            style="padding: 8px 16px; background: var(--secondary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">📁
+                            Restaurar Backup Externo</button>
+                        <button onclick="createManualBackup()"
+                            style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">➕
+                            Crear Backup Ahora</button>
                     </div>
                 </div>
                 <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                         <thead style="background: #f8f9fa; position: sticky; top: 0;">
                             <tr>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Archivo</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Fecha</th>
-                                <th style="padding: 12px; text-align: right; border-bottom: 2px solid #dee2e6;">Tamaño</th>
-                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Acciones</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Archivo
+                                </th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Fecha
+                                </th>
+                                <th style="padding: 12px; text-align: right; border-bottom: 2px solid #dee2e6;">Tamaño
+                                </th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">
+                                    Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="backupsListTable">
-                            <tr><td colspan="4" style="padding: 20px; text-align: center; color: #666;">Cargando lista...</td></tr>
+                            <tr>
+                                <td colspan="4" style="padding: 20px; text-align: center; color: #666;">Cargando
+                                    lista...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-                <p style="font-size: 0.8rem; color: #666; margin-top: 15px; background: #fffde7; padding: 10px; border-radius: 4px; border: 1px solid #fff9c4;">
-                    ⚠️ <strong>Atención:</strong> Restaurar un backup reemplazará todos los datos actuales. La aplicación se reiniciará automáticamente después de la restauración exitosa.
+                <p
+                    style="font-size: 0.8rem; color: #666; margin-top: 15px; background: #fffde7; padding: 10px; border-radius: 4px; border: 1px solid #fff9c4;">
+                    ⚠️ <strong>Atención:</strong> Restaurar un backup reemplazará todos los datos actuales. La
+                    aplicación se reiniciará automáticamente después de la restauración exitosa.
                 </p>
             </div>
         </div>
@@ -1005,25 +1093,34 @@
         <div class="modal" style="max-width: 500px;">
             <div class="modal-header">
                 <h3 style="color: var(--primary); margin: 0;">🔐 Mi Cuenta</h3>
-                <button class="modal-close" onclick="document.getElementById('miCuentaModal').style.display='none'">&times;</button>
+                <button class="modal-close"
+                    onclick="document.getElementById('miCuentaModal').style.display='none'">&times;</button>
             </div>
             <div style="margin-top: 20px; text-align: left;">
                 <form id="miCuentaForm" onsubmit="guardarMiCuenta(event)">
                     <div style="margin-bottom: 15px;">
-                        <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Contraseña (Opcional):</label>
-                        <input type="password" id="miCuentaPwd" placeholder="Dejar en blanco para no cambiar..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Nueva Contraseña
+                            (Opcional):</label>
+                        <input type="password" id="miCuentaPwd" placeholder="Dejar en blanco para no cambiar..."
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
                     </div>
                     <div style="margin-bottom: 15px;">
                         <label style="display:block; font-weight:600; margin-bottom:5px;">Pregunta de Seguridad:</label>
-                        <input type="text" id="miCuentaPregunta" placeholder="Ej: Nombre de mi primera mascota" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                        <input type="text" id="miCuentaPregunta" placeholder="Ej: Nombre de mi primera mascota"
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
                         <small style="color: #666;">Te servirá para recuperar la contraseña si la olvidas.</small>
                     </div>
                     <div style="margin-bottom: 25px;">
-                        <label style="display:block; font-weight:600; margin-bottom:5px;">Respuesta de Seguridad:</label>
-                        <input type="text" id="miCuentaRespuesta" placeholder="Ej: Toby" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
-                        <small style="color: #666;">(Si dejas la respuesta en blanco, no se modificará la actual)</small>
+                        <label style="display:block; font-weight:600; margin-bottom:5px;">Respuesta de
+                            Seguridad:</label>
+                        <input type="text" id="miCuentaRespuesta" placeholder="Ej: Toby"
+                            style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+                        <small style="color: #666;">(Si dejas la respuesta en blanco, no se modificará la
+                            actual)</small>
                     </div>
-                    <button type="submit" style="width:100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">Actualizar Datos</button>
+                    <button type="submit"
+                        style="width:100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">Actualizar
+                        Datos</button>
                 </form>
             </div>
         </div>
@@ -1049,7 +1146,7 @@
                 const div = document.getElementById('integrityStatus');
                 if (di.ok) { div.style.background = '#d4edda'; div.style.color = '#155724'; div.style.borderColor = '#c3e6cb'; div.innerText = '✅ ' + di.message; }
                 else { div.style.background = '#f8d7da'; div.style.color = '#721c24'; div.style.borderColor = '#f5c6cb'; div.innerText = '⚠️ ERROR DE INTEGRIDAD DETECTADO. Se recomienda restaurar un backup.'; }
-            } catch(e) { document.getElementById('integrityStatus').innerText = 'No se pudo verificar la integridad.'; }
+            } catch (e) { document.getElementById('integrityStatus').innerText = 'No se pudo verificar la integridad.'; }
             await loadBackups();
         }
         async function loadBackups() {
@@ -1067,7 +1164,7 @@
                         <button onclick="restoreBackup('${b.name}')" style="padding:4px 10px; background:#fff; color:#d32f2f; border:1px solid #ffcdd2; border-radius:4px; cursor:pointer; font-size:0.8rem;">Restaurar</button>
                     </td>
                 </tr>`).join('');
-            } catch(e) { tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:red;">Error al cargar backups.</td></tr>'; }
+            } catch (e) { tbody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:red;">Error al cargar backups.</td></tr>'; }
         }
         async function createManualBackup() {
             if (!confirm('¿Crear una copia de seguridad manual ahora?')) return;
@@ -1077,7 +1174,7 @@
                 const d = await r.json();
                 if (d.ok) { alert('Backup manual creado con éxito.'); await loadBackups(); localStorage.setItem('ultimo_backup_ts', Date.now()); }
                 else alert('Error al crear backup: ' + (d.error || 'Desconocido'));
-            } catch(e) { alert('Error de conexión.'); }
+            } catch (e) { alert('Error de conexión.'); }
         }
         async function restoreBackup(filename) {
             if (!confirm(`¿Restaurar el backup "${filename}"? Se perderán los cambios posteriores.`)) return;
@@ -1088,26 +1185,26 @@
                 const d = await r.json();
                 if (d.ok) { alert('Backup restaurado. La aplicación se reiniciará.'); window.location.href = '/'; }
                 else alert('Error al restaurar: ' + (d.error || 'Desconocido'));
-            } catch(e) { alert('Error de conexión.'); }
+            } catch (e) { alert('Error de conexión.'); }
         }
         async function uploadExternalBackup() {
             const fileInput = document.getElementById('externalBackupFile');
             if (!fileInput.files.length) return;
-            
+
             const file = fileInput.files[0];
             if (!confirm(`¿Restaurar el archivo externo "${file.name}"? Se perderán todos los datos actuales y se reemplazarán por los del archivo.`)) {
                 fileInput.value = '';
                 return;
             }
-            
+
             if (!confirm('CONFIRMACIÓN FINAL: ¿Estás seguro de que quieres sobreescribir tu base de datos con este archivo?')) {
                 fileInput.value = '';
                 return;
             }
-            
+
             const formData = new FormData();
             formData.append('file', file);
-            
+
             try {
                 const csrf = await getCsrfTokenManual();
                 const r = await fetch('/api/admin/backup/restore/external', {
@@ -1122,7 +1219,7 @@
                 } else {
                     alert('Error al restaurar: ' + (d.error || 'Desconocido'));
                 }
-            } catch(e) {
+            } catch (e) {
                 alert('Error de conexión al subir el archivo.');
             } finally {
                 fileInput.value = '';
@@ -1139,7 +1236,7 @@
                     document.getElementById('miCuentaModal').style.display = 'flex';
                     document.body.style.overflow = 'hidden';
                 }
-            } catch(e) { alert("Error de conexión al cargar 'Mi Cuenta'."); }
+            } catch (e) { alert("Error de conexión al cargar 'Mi Cuenta'."); }
         }
         async function guardarMiCuenta(e) {
             e.preventDefault();
@@ -1157,7 +1254,7 @@
                 const data = await res.json();
                 if (data.ok) { alert('Datos actualizados correctamente.'); document.getElementById('miCuentaModal').style.display = 'none'; document.body.style.overflow = ''; }
                 else alert('Error: ' + (data.error || 'Desconocido'));
-            } catch(e) { alert('Error de conexión.'); }
+            } catch (e) { alert('Error de conexión.'); }
         }
         // Cerrar modales al hacer clic fuera
         ['backupsModal', 'miCuentaModal'].forEach(id => {
@@ -1213,24 +1310,33 @@
                 </div>
                 <div style="margin-bottom: 25px;">
                     <label style="display:block; font-weight:600; margin-bottom:5px;">Equipo Docente (Opcional):</label>
-                    <textarea id="renameGroupEquipoDocente" rows="4" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;" placeholder="Escribe un nombre por línea..."></textarea>
+                    <textarea id="renameGroupEquipoDocente" rows="4"
+                        style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:1rem;"
+                        placeholder="Escribe un nombre por línea..."></textarea>
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label style="display:block; font-weight:600; margin-bottom:8px;">Tu Rol en este Grupo:</label>
                     <div style="display:flex; gap:10px;">
-                        <label style="flex:1; display:flex; align-items:center; gap:8px; padding:10px; border:2px solid #ddd; border-radius:8px; cursor:pointer; background:white;" id="rolTutorLabel">
-                            <input type="radio" name="rolGrupo" value="tutor" id="rolTutor" onchange="toggleRolAreas()"> 
+                        <label
+                            style="flex:1; display:flex; align-items:center; gap:8px; padding:10px; border:2px solid #ddd; border-radius:8px; cursor:pointer; background:white;"
+                            id="rolTutorLabel">
+                            <input type="radio" name="rolGrupo" value="tutor" id="rolTutor" onchange="toggleRolAreas()">
                             <span>🎓 Tutor/a</span>
                         </label>
-                        <label style="flex:1; display:flex; align-items:center; gap:8px; padding:10px; border:2px solid #ddd; border-radius:8px; cursor:pointer; background:white;" id="rolEspecialistaLabel">
-                            <input type="radio" name="rolGrupo" value="especialista" id="rolEspecialista" onchange="toggleRolAreas()">
+                        <label
+                            style="flex:1; display:flex; align-items:center; gap:8px; padding:10px; border:2px solid #ddd; border-radius:8px; cursor:pointer; background:white;"
+                            id="rolEspecialistaLabel">
+                            <input type="radio" name="rolGrupo" value="especialista" id="rolEspecialista"
+                                onchange="toggleRolAreas()">
                             <span>📚 Especialista</span>
                         </label>
                     </div>
                 </div>
                 <div id="areasImparteContainer" style="margin-bottom:20px;">
-                    <label style="display:block; font-weight:600; margin-bottom:8px;">Áreas que impartes en este grupo:</label>
-                    <div id="areasImparteList" style="border:1px solid #ddd; border-radius:8px; padding:10px; max-height:180px; overflow-y:auto; background:#fafafa;">
+                    <label style="display:block; font-weight:600; margin-bottom:8px;">Áreas que impartes en este
+                        grupo:</label>
+                    <div id="areasImparteList"
+                        style="border:1px solid #ddd; border-radius:8px; padding:10px; max-height:180px; overflow-y:auto; background:#fafafa;">
                         <p style="color:#888; font-style:italic; margin:0;">Cargando áreas...</p>
                     </div>
                 </div>
@@ -1242,4 +1348,5 @@
         </div>
     </div>
 </body>
+
 </html>

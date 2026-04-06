@@ -1,0 +1,188 @@
+/* ============================================================
+   DARK MODE — APP_EVALUAR
+   Se activa con <html data-theme="dark">
+   ============================================================ */
+
+[data-theme="dark"] {
+    /* --- Colores base invertidos --- */
+    --primary: #5dade2;
+    --primary-light: #1a2a3a;
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --danger: #e74c3c;
+    --info: #48c9b0;
+    --light: #1e1e2f;
+    --dark: #e0e0e0;
+    --white: #1a1a2e;
+    --gray-100: #2a2a3d;
+    --gray-200: #33334d;
+    --gray-300: #44445a;
+    --gray-400: #55556b;
+    --gray-500: #8888a0;
+    --gray-600: #aaaabe;
+
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] body {
+    background-color: #121220;
+    color: var(--dark);
+}
+
+[data-theme="dark"] .container,
+[data-theme="dark"] .card {
+    background: var(--white);
+    border-color: var(--gray-300);
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4 {
+    color: var(--primary);
+}
+
+/* --- Navbar en modo oscuro --- */
+[data-theme="dark"] .nav-wrapper {
+    background: rgba(10, 10, 30, 0.92);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .nav-dropdown {
+    background: var(--gray-100);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .nav-dropdown a {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .nav-dropdown a:hover {
+    background: var(--gray-200);
+}
+
+/* --- Inputs y formularios --- */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background: var(--gray-100);
+    border-color: var(--gray-300);
+    color: var(--dark);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.25);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--gray-500);
+}
+
+/* --- Tablas --- */
+[data-theme="dark"] table {
+    background: var(--white);
+    color: var(--dark);
+}
+
+[data-theme="dark"] th {
+    background: var(--gray-200);
+    color: var(--primary);
+}
+
+[data-theme="dark"] td {
+    border-color: var(--gray-300);
+}
+
+[data-theme="dark"] tr:hover {
+    background: var(--gray-100);
+}
+
+/* --- Modales --- */
+[data-theme="dark"] .modal {
+    background: var(--white);
+    border-color: var(--gray-300);
+}
+
+[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* --- Botones --- */
+[data-theme="dark"] .btn-outline {
+    border-color: var(--gray-400);
+    color: var(--dark);
+}
+
+[data-theme="dark"] .btn-outline:hover {
+    background: var(--gray-200);
+}
+
+/* --- Toasts y alertas --- */
+[data-theme="dark"] .alert-success {
+    background: #1a3a2a;
+    border-left-color: var(--success);
+    color: #a8e6cf;
+}
+
+[data-theme="dark"] .alert-danger {
+    background: #3a1a1a;
+    border-left-color: var(--danger);
+    color: #ffaaaa;
+}
+
+[data-theme="dark"] .alert-warning {
+    background: #3a3a1a;
+    border-left-color: var(--warning);
+    color: #ffe0a0;
+}
+
+/* --- Toggle de modo oscuro --- */
+.dark-mode-toggle {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+}
+
+.dark-mode-toggle:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+}
+
+/* --- Transiciones suaves --- */
+*, *::before, *::after {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* --- Scrollbar personalizado en modo oscuro --- */
+[data-theme="dark"] ::-webkit-scrollbar {
+    width: 10px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--gray-100);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 5px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}

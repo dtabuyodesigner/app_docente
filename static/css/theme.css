@@ -175,7 +175,7 @@ h4 {
     background: white;
     min-width: 220px;
     border-radius: 0 0 12px 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
@@ -232,7 +232,8 @@ h4 {
 
 @media (max-width: 768px) {
     .nav-menu {
-        display: none; /* Logic will handle this if implemented later */
+        display: none;
+        /* Logic will handle this if implemented later */
     }
 }
 
@@ -331,14 +332,17 @@ input[type="radio"] {
     vertical-align: middle;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
     outline: none;
     border-color: var(--secondary);
     box-shadow: 0 4px 12px hsla(var(--secondary-h), var(--secondary-s), var(--secondary-l), 0.15);
     background: white;
 }
 
-input[type="time"], input[type="date"] {
+input[type="time"],
+input[type="date"] {
     cursor: pointer;
     font-weight: 600;
     color: var(--primary);
@@ -346,7 +350,8 @@ input[type="time"], input[type="date"] {
     min-height: 42px;
 }
 
-input[type="time"]:hover, input[type="date"]:hover {
+input[type="time"]:hover,
+input[type="date"]:hover {
     background: var(--primary-light);
     border-color: var(--primary);
 }
@@ -417,7 +422,8 @@ input[type="time"]:hover, input[type="date"]:hover {
 }
 
 .section-tab-btn:hover {
-    color: #003366; /* var(--primary) but using hardcoded to be safe if not in scope */
+    color: #003366;
+    /* var(--primary) but using hardcoded to be safe if not in scope */
     background-color: rgba(0, 51, 102, 0.05);
 }
 
@@ -425,4 +431,207 @@ input[type="time"]:hover, input[type="date"]:hover {
     color: #003366;
     border-bottom-color: #003366;
     background-color: transparent;
+}
+
+/* ============================================================
+   RESPONSIVE — Móvil y Tablet
+   ============================================================ */
+
+/* Tablet (max 1024px) */
+@media (max-width: 1024px) {
+    .nav-container {
+        padding: 0 10px;
+    }
+
+    .nav-link {
+        padding: 0 10px;
+        font-size: 0.85rem;
+    }
+
+    .container {
+        padding: var(--space-md);
+    }
+
+    .dashboard-grid,
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Móvil grande (max 768px) */
+@media (max-width: 768px) {
+
+    /* Navbar compacta */
+    .nav-container {
+        height: 50px;
+        padding: 0 8px;
+    }
+
+    .nav-logo {
+        font-size: 1rem;
+    }
+
+    .nav-logo span {
+        display: none;
+        /* Ocultar emoji en móvil */
+    }
+
+    .nav-menu {
+        gap: 2px;
+    }
+
+    .nav-link {
+        padding: 0 8px;
+        font-size: 0.8rem;
+    }
+
+    .nav-dropdown {
+        min-width: 180px;
+    }
+
+    /* Grupo selector compacto */
+    .group-selector-select {
+        max-width: 120px;
+        font-size: 0.8rem;
+    }
+
+    .group-selector-container span {
+        display: none;
+    }
+
+    /* Contenedor principal */
+    .container {
+        padding: var(--space-sm);
+        margin-top: 10px;
+        border-radius: var(--radius-sm);
+    }
+
+    /* Cards más compactas */
+    .card {
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+    }
+
+    /* Grid a 1 columna */
+    .dashboard-grid,
+    .menu-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    /* Tablas scroll horizontal */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Botones táctiles mínimo 44px */
+    .btn,
+    button,
+    input[type="button"],
+    input[type="submit"] {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 10px 16px;
+    }
+
+    /* Inputs más grandes para táctil */
+    input,
+    select,
+    textarea {
+        font-size: 16px;
+        /* Evita zoom en iOS */
+        min-height: 44px;
+        padding: 10px 12px;
+    }
+
+    /* Modales a pantalla completa en móvil */
+    .modal {
+        width: 95%;
+        max-width: 95%;
+        max-height: 90vh;
+        padding: var(--space-md);
+    }
+
+    /* Títulos más pequeños */
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+
+    /* Toasts más compactos */
+    #successToast {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+    }
+}
+
+/* Móvil pequeño (max 480px) */
+@media (max-width: 480px) {
+    .nav-container {
+        height: 48px;
+    }
+
+    .nav-logo {
+        font-size: 0.9rem;
+    }
+
+    .nav-link {
+        padding: 0 6px;
+        font-size: 0.75rem;
+    }
+
+    .nav-item:nth-child(n+3) .nav-link span {
+        display: none;
+        /* Ocultar texto de categorías en móvil pequeño */
+    }
+
+    .dark-mode-toggle {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .container {
+        padding: var(--space-xs);
+    }
+
+    .card {
+        padding: var(--space-sm);
+        border-radius: var(--radius-sm);
+    }
+
+    /* Stats en columna */
+    .stat-card {
+        padding: var(--space-md);
+    }
+
+    .stat-card p {
+        font-size: 1.5rem;
+    }
+}
+
+/* Landscape en móvil */
+@media (max-height: 500px) and (orientation: landscape) {
+    .nav-container {
+        height: 40px;
+    }
+
+    .nav-link {
+        height: 32px;
+    }
+
+    .modal {
+        max-height: 85vh;
+    }
 }

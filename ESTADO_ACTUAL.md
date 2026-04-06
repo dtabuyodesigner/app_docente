@@ -84,9 +84,48 @@ La rama `feature/refactor-evaluacion-curricular` ha sido integrada en `master` y
 | Test 13 | Seleccionar todo en lista criterios → Borrar → borra solo los sin evaluaciones | ⬜ Pendiente |
 
 ### Backlog de mejoras
+
+#### 🔄 En desarrollo
 - Ver [Mejoras Pendientes — Backlog](memory/project_mejoras_pendientes.md)
 - Plan Reuniones (Claustro, CCP, Comisiones): schema, CRUDs y auto-populate pendiente
 - Enviar CSVs T3 a Pilar: `pilar_t3_DEE/CRR/CA.csv` listos, falta compartir
+
+#### 💡 Ideas para próximas versiones
+
+**Módulo de Reuniones**
+- CRUD completo para reuniones (Claustro, CCP, Comisiones)
+- Actas y resúmenes automáticos
+- Auto-populate con datos del grupo/área
+
+**Exportación/Importación masiva**
+- Exportar evaluaciones a Excel/CSV por trimestre
+- Backup automático de la base de datos
+- Migración entre cursos académicos
+
+**Estadísticas y gráficas**
+- Panel de estadísticas por alumno/grupo
+- Gráficas de progreso trimestral
+- Detección automática de alumnos en riesgo
+
+**Comunicación con familias**
+- Generación automática de informes para padres
+- Envío de notificaciones (email/SMS)
+- Portal de familias (solo lectura)
+
+**Mejoras en Biblioteca**
+- Código de barras/QR para préstamos rápidos
+- Reserva de libros online
+- Historial de lectura por alumno con gráficas
+
+**Automatizaciones**
+- Rellenado automático de evaluaciones pendientes
+- Sugerencias de criterios basadas en actividades
+- Recordatorios de plazos de evaluación
+
+**UX/UI**
+- Modo oscuro
+- App móvil responsive
+- Atajos de teclado
 
 ---
 

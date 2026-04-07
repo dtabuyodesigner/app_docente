@@ -73,12 +73,6 @@
             justify-content: space-between;
             box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
             animation: slideIn 0.5s ease-out;
-            cursor: pointer;
-        }
-
-        .update-banner:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
         }
 
         .update-banner h3 {
@@ -523,12 +517,15 @@
             </span>
         </div>
         <!-- Update Banner -->
-        <div id="updateAlert" class="update-banner" onclick="applyUpdateFromBanner()">
+        <div id="updateAlert" class="update-banner">
             <div>
                 <h3>🔄 Actualización disponible</h3>
                 <p id="updateMessage">Hay una nueva versión del sistema lista para instalar.</p>
             </div>
-            <button onclick="event.stopPropagation(); applyUpdateFromBanner()">Actualizar ahora</button>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button onclick="applyUpdateFromBanner()" style="background:white; color:#28a745; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer;">Actualizar ahora</button>
+                <button onclick="document.getElementById('updateAlert').style.display='none'" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.5); padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer;">Omitir</button>
+            </div>
         </div>
         <div id="birthdayAlert" class="birthday-card">
             <div>

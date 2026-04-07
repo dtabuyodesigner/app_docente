@@ -121,13 +121,7 @@ async function checkAppUpdates() {
         if (!res.ok) return; // No es admin o sin conexión — ignorar silenciosamente
         const data = await res.json();
         if (data.ok && data.update_available) {
-            const latestVersion = data.latest_version || "Nueva";
-            const omittedVersion = localStorage.getItem('update-omitted-version');
-
-            // Si el usuario omitió esta versión exacta, no mostrar banner
-            if (omittedVersion === latestVersion) return;
-
-            showUpdateBanner(latestVersion);
+            // Solo mostrar badge en Ajustes; el banner verde del panel ya informa
             addUpdateBadgeToConfig();
         }
     } catch (e) {

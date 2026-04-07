@@ -1,9 +1,27 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 6 de Abril 2026
-**Versión:** `v1.1.28`
-**Último Commit:** `d7e69c8` — Fix selector firmante
+**Fecha:** 7 de Abril 2026
+**Versión:** `v1.1.29`
+**Último Commit:** `68b33b3` — bump version number
 **Rama activa:** `master`
+
+---
+
+## ✅ LO COMPLETADO EN v1.1.29
+
+### Actas de Incidencia — Mejoras completas
+
+- **PDF: celda separada por docente** — cada profesor marcado tiene su propia celda de firma en el PDF
+- **PDF: firma del tutor** — imagen de firma del tutor aparece en su celda (fix: `nombre_tutor` no se cargaba en config → fuzzy match siempre fallaba)
+- **PDF: nombres en formato natural** — "Apellidos, Nombre" → "Nombre Apellidos" en las celdas de firma
+- **PDF: firma del alumno/a opcional** — checkbox en el formulario; solo aparece en el PDF si se marca
+- **PDF: separador `\n` entre firmantes** — evita colisión con la coma dentro de "Apellidos, Nombre"
+- **PDF: fecha de generación** — "Documento generado el DD/MM/YYYY" al pie, estilo reuniones
+- **Formulario: textarea más grande** — `rows=18`, `min-height: 220px`, fuente más legible
+- **Historial: texto más legible** — `.hist-texto` de 0.88rem → 0.93rem con más interlineado
+- **Banner de actualización: solo verde** — eliminado el banner rojo fijo de la barra de navegación; solo queda el banner verde del panel de control
+- **Banner verde: botón Omitir** — nuevo botón para cerrar el banner sin actualizar
+- **Archivos:** `routes/actas.py`, `static/diario.html`, `static/index.html`, `static/js/navigation.js`, `version.py`
 
 ---
 
@@ -227,5 +245,5 @@ git push origin --delete feature/refactor-evaluacion-curricular
 
 ---
 
-**Última actualización:** 6 Abril 2026 — tras merge a master y push a origin  
+**Última actualización:** 7 Abril 2026 — v1.1.29 merge a master y push a origin  
 **Estado:** ✅ Master actualizado y en producción

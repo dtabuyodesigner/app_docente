@@ -84,19 +84,22 @@ def get_equipo_docente():
     row = cur.fetchone()
 
     equipo_docente = []
-    tutor = ""
     if row and row["equipo_docente"]:
         equipo_docente = [
             line.strip()
             for line in row["equipo_docente"].replace('\r', '').split('\n')
             if line.strip()
         ]
-        tutor = equipo_docente[0] if equipo_docente else ""
+
+    # El tutor real viene de la config global (Ajustes → Datos del Tutor/a)
+    cur.execute("SELECT valor FROM config WHERE clave = 'nombre_tutor'")
+    cfg_row = cur.fetchone()
+    nombre_tutor = cfg_row["valor"] if cfg_row and cfg_row["valor"] else ""
 
     return jsonify({
         "ok": True,
         "equipo_docente": equipo_docente,
-        "tutor": tutor
+        "nombre_tutor": nombre_tutor
     })
 
 @actas_bp.route("/api/actas/<int:acta_id>/pdf")

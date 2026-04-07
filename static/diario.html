@@ -375,6 +375,86 @@
             flex-shrink: 0;
         }
 
+        /* Checkboxes equipo docente */
+        #actaProfesorCheckboxes {
+            max-height: 160px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 6px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+        }
+        .acta-prof-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #333;
+            transition: background 0.1s;
+        }
+        .acta-prof-label:hover { background: #e9ecef; }
+        .acta-prof-tutor {
+            background: #e7f1ff;
+            font-weight: 600;
+            color: #0056b3;
+        }
+        .acta-tutor-badge {
+            display: inline-block;
+            background: #0056b3;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 1px 7px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        .acta-prof-vacio {
+            color: #888;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        /* Dark mode modal y checkboxes */
+        [data-theme="dark"] #actaModal .modal-header,
+        [data-theme="dark"] #actaModal .modal-footer,
+        [data-theme="dark"] #historialModal .modal-header {
+            background: #1a1a2e;
+            border-color: #33334d;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] #actaModal .modal-body,
+        [data-theme="dark"] #historialModal .modal-body {
+            background: #1e1e2f;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] #actaProfesorCheckboxes {
+            background: #2a2a3d;
+            border-color: #44445a;
+        }
+        [data-theme="dark"] .acta-prof-label {
+            color: #d0d0e0;
+        }
+        [data-theme="dark"] .acta-prof-label:hover { background: #33334d; }
+        [data-theme="dark"] .acta-prof-tutor {
+            background: #1a2a4a;
+            color: #7abfff;
+        }
+        [data-theme="dark"] .hist-group-header {
+            background: #2a2a3d;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .hist-group-header:hover { background: #33334d; }
+        [data-theme="dark"] .hist-item { border-color: #33334d; }
+        [data-theme="dark"] .hist-texto { border-color: #44445a; color: #c0c0d8; }
+        [data-theme="dark"] #historialModal .modal-filters { background: #2a2a3d; border-color: #33334d; }
+        [data-theme="dark"] .controls { background: #1e1e2f; }
+        [data-theme="dark"] .student-card { background: #1e1e2f; border-color: #33334d; }
+
         .close {
             position: absolute;
             right: 20px;
@@ -861,6 +941,16 @@
         let equipoDocente = [];
         let tutorNombre = "";
 
+        // Comprueba si nombre (apellidos, nombre) coincide con el tutor (nombre apellidos)
+        function esTutor(nombre, tutor) {
+            if (!tutor || !nombre) return false;
+            const palabras = s => s.toLowerCase().replace(/[,\.]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+            const pNombre = palabras(nombre);
+            const pTutor = palabras(tutor);
+            const coincidencias = pTutor.filter(w => pNombre.includes(w));
+            return coincidencias.length >= 2;
+        }
+
         // Cargar equipo docente del grupo activo
         function cargarEquipoDocente() {
             fetch('/api/actas/equipo_docente')
@@ -868,16 +958,14 @@
                 .then(data => {
                     if (data.ok) {
                         equipoDocente = data.equipo_docente || [];
-                        tutorNombre = data.tutor || "";
+                        tutorNombre = data.nombre_tutor || "";
 
                         if (equipoDocente.length === 0) {
-                            console.warn('No se encontró equipo docente para este grupo. Configúralo en Ajustes > Grupos.');
                             renderCheckboxProfesoresVacio();
                         } else {
                             renderCheckboxProfesores();
                         }
 
-                        // Auto-seleccionar tutor como firmante
                         if (tutorNombre) {
                             document.getElementById('actaFirmante').value = tutorNombre;
                         }
@@ -897,7 +985,7 @@
             const container = document.getElementById('actaProfesorCheckboxes');
             if (!container) return;
             container.innerHTML = `
-                <p style="color:#888; font-size:0.85rem; margin:0 0 8px 0;">
+                <p class="acta-prof-vacio">
                     No hay profesores configurados para este grupo.<br>
                     <small>Configúralo en <strong>Ajustes > Grupos > Equipo Docente</strong></small>
                 </p>
@@ -910,16 +998,19 @@
             if (!container) return;
 
             if (equipoDocente.length === 0) {
-                container.innerHTML = '<p style="color:#888; font-size:0.85rem; margin:0;">No hay profesores en el equipo docente.</p>';
+                container.innerHTML = '<p class="acta-prof-vacio">No hay profesores en el equipo docente.</p>';
                 return;
             }
 
-            container.innerHTML = equipoDocente.map((nombre, idx) => `
-                <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; ${idx === 0 ? 'background:#e7f1ff; font-weight:600;' : ''}">
-                    <input type="checkbox" name="actaProfesorCheck" value="${nombre}" ${idx === 0 ? 'checked' : ''} onchange="actualizarProfesoresSeleccionados()">
-                    <span>${nombre} ${idx === 0 ? '🎓 (Tutor)' : ''}</span>
-                </label>
-            `).join('');
+            container.innerHTML = equipoDocente.map(nombre => {
+                const esTutorActual = esTutor(nombre, tutorNombre);
+                return `
+                <label class="acta-prof-label ${esTutorActual ? 'acta-prof-tutor' : ''}">
+                    <input type="checkbox" name="actaProfesorCheck" value="${nombre}"
+                        ${esTutorActual ? 'checked' : ''} onchange="actualizarProfesoresSeleccionados()">
+                    <span>${nombre}${esTutorActual ? ' <span class="acta-tutor-badge">Tutor/a</span>' : ''}</span>
+                </label>`;
+            }).join('');
         }
 
         // Obtener profesores seleccionados como texto

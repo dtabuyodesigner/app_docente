@@ -14,9 +14,12 @@
 - **La versión se lee dinámicamente del servidor al cargar la página** — no hay que tocar el HTML para actualizarla
 - Archivos: `static/index.html`
 
-### Menú comedor — lightbox a pantalla grande
-- Modal rediseñado como lightbox de 92vw × 92vh con imagen a tamaño completo (`object-fit: contain`)
-- Cabecera compacta con selector de mes y botón de subida
+### Menú comedor — lightbox con zoom interactivo
+- Modal rediseñado como lightbox de 92vw × 92vh
+- **Zoom con rueda del ratón** directamente sobre la imagen
+- **Botones +/−** y **↺ Reset** en la cabecera con indicador de porcentaje
+- **Arrastrar** con el ratón para mover la imagen cuando está ampliada
+- **Pellizco táctil** (móvil) para zoom
 - Se cierra con ✕ o haciendo clic fuera del panel
 - Archivos: `static/asistencia.html`
 
@@ -260,5 +263,5 @@ git push origin --delete feature/refactor-evaluacion-curricular
 
 ---
 
-**Última actualización:** 7 Abril 2026 — fixes post v1.1.29 pusheados a origin  
+**Última actualización:** 7 Abril 2026 — zoom menú comedor + fixes post v1.1.29  
 **Estado:** ✅ Master actualizado y en producción

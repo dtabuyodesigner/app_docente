@@ -165,7 +165,8 @@ def historial_observaciones():
     cur = conn.cursor()
     
     query = """
-        SELECT o.id, o.fecha, o.texto, a.nombre as alumno_nombre, ar.nombre as area_nombre
+        SELECT o.id, o.alumno_id, o.area_id, o.fecha, o.texto,
+               a.nombre as alumno_nombre, ar.nombre as area_nombre
         FROM observaciones o
         INNER JOIN alumnos a ON o.alumno_id = a.id
         LEFT JOIN areas ar ON o.area_id = ar.id

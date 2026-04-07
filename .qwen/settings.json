@@ -31,7 +31,13 @@
       "Bash(nohup *)",
       "Bash(lsof *)",
       "Bash(ss *)",
-      "Bash(cat *)"
+      "Bash(cat *)",
+      "Bash(bash *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(update-desktop-database *)",
+      "Bash(pgrep *)",
+      "Bash(venv/bin/python *)"
     ]
   },
   "$version": 3

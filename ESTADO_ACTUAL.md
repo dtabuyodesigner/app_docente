@@ -13,6 +13,10 @@
 - **Creación rápida desde Diario:** botón 📝 en cada ficha de alumno
 - **Campos:** Fecha del hecho, Lugar, Profesor implicado, Descripción, Firmante
 - **PDF automático:** genera acta formal con logos del centro (izq/dcha) y firma del tutor
+- **Mejoras de formato PDF (⚡):**
+  - Soporte para **negritas** (`<b>`) en todas las celdas de la tabla de datos.
+  - Firma del tutor/docente movida a la **izquierda** (con su nombre) y espacio para firma del alumno a la derecha.
+  - Eliminación de **numeración automática** en la descripción (respeta el formato original).
 - **Cabecera PDF:** logos del centro configurados en Ajustes > Logos
 - **Selector de docentes:** campos Profesor y Firmante cargan lista de usuarios del centro
 - **Firma automática:** si no se especifica firmante, usa la firma del tutor configurada

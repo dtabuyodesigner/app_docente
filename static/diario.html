@@ -267,6 +267,79 @@
             padding: 0;
         }
 
+        /* Acordeón historial */
+        .hist-group { border-bottom: 1px solid #e9ecef; }
+        .hist-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #f8f9fa;
+            user-select: none;
+            transition: background 0.15s;
+        }
+        .hist-group-header:hover { background: #e9f0fb; }
+        .hist-group-name { font-weight: 600; color: var(--primary); font-size: 0.95rem; }
+        .hist-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 1px 7px;
+            margin-left: 8px;
+        }
+        .hist-chevron { color: #888; font-size: 0.8rem; transition: transform 0.2s; }
+        .hist-item {
+            padding: 12px 20px 12px 28px;
+            border-top: 1px solid #f0f2f5;
+        }
+        .hist-item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .hist-area-tag {
+            background: #e7f1ff;
+            color: #0056b3;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 8px;
+        }
+        .hist-fecha {
+            font-size: 0.78rem;
+            color: #888;
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 2px 7px;
+        }
+        .hist-acta-btn {
+            margin-left: auto;
+            padding: 3px 10px;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .hist-acta-btn:hover { background: #ffc107; color: #333; }
+        .hist-texto {
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-left: 3px solid #dee2e6;
+            padding-left: 10px;
+        }
+
         /* Acta Modal - Layout Flexbox */
         #actaModal .modal-content {
             max-width: 700px !important;
@@ -796,19 +869,50 @@
                     if (data.ok) {
                         equipoDocente = data.equipo_docente || [];
                         tutorNombre = data.tutor || "";
-                        renderCheckboxProfesores();
+
+                        if (equipoDocente.length === 0) {
+                            console.warn('No se encontró equipo docente para este grupo. Configúralo en Ajustes > Grupos.');
+                            renderCheckboxProfesoresVacio();
+                        } else {
+                            renderCheckboxProfesores();
+                        }
 
                         // Auto-seleccionar tutor como firmante
-                        document.getElementById('actaFirmante').value = tutorNombre;
+                        if (tutorNombre) {
+                            document.getElementById('actaFirmante').value = tutorNombre;
+                        }
+                    } else {
+                        console.error('Error al cargar equipo docente:', data.error);
+                        renderCheckboxProfesoresVacio();
                     }
                 })
-                .catch(() => { console.log('No se pudo cargar equipo docente'); });
+                .catch(err => {
+                    console.error('Error de conexión al cargar equipo docente:', err);
+                    renderCheckboxProfesoresVacio();
+                });
+        }
+
+        // Renderizar checkboxes cuando no hay equipo docente
+        function renderCheckboxProfesoresVacio() {
+            const container = document.getElementById('actaProfesorCheckboxes');
+            if (!container) return;
+            container.innerHTML = `
+                <p style="color:#888; font-size:0.85rem; margin:0 0 8px 0;">
+                    No hay profesores configurados para este grupo.<br>
+                    <small>Configúralo en <strong>Ajustes > Grupos > Equipo Docente</strong></small>
+                </p>
+            `;
         }
 
         // Renderizar checkboxes de profesores
         function renderCheckboxProfesores() {
             const container = document.getElementById('actaProfesorCheckboxes');
             if (!container) return;
+
+            if (equipoDocente.length === 0) {
+                container.innerHTML = '<p style="color:#888; font-size:0.85rem; margin:0;">No hay profesores en el equipo docente.</p>';
+                return;
+            }
 
             container.innerHTML = equipoDocente.map((nombre, idx) => `
                 <label style="display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; ${idx === 0 ? 'background:#e7f1ff; font-weight:600;' : ''}">
@@ -942,48 +1046,67 @@
                 return;
             }
 
-            contenedor.innerHTML = filtrado.map(d => {
-                const [y, m, dd] = d.fecha.split('-');
-                const fechaFmt = `${dd}/${m}/${y}`;
-                return `
-                    <div style="padding:15px 20px; border-bottom:1px solid #eee; display:flex; flex-direction:column; gap:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="font-weight:600; color:var(--primary); font-size:1rem;">
-                                ${d.alumno_nombre} <span style="font-weight:400; color:#666; font-size:0.85rem;">(${d.area_nombre || 'General'})</span>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:0.8rem; color:#888; background:#f8f9fa; padding:4px 8px; border-radius:4px;">${fechaFmt}</span>
-                                <button onclick="crearActaDesdeObservacion(${d.alumno_id})"
-                                    style="padding:4px 10px; background:#e7f1ff; color:#0056b3; border:1px solid #b8daff; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:600;">
-                                    📝 Convertir a Acta
-                                </button>
-                            </div>
-                        </div>
-                        <div style="font-size:0.9rem; white-space: pre-wrap; word-wrap: break-word; line-height:1.5; color:#333; padding-left:5px; border-left:3px solid #eee;">${d.texto}</div>
+            // Agrupar por alumno
+            const grupos = {};
+            filtrado.forEach(d => {
+                if (!grupos[d.alumno_nombre]) {
+                    grupos[d.alumno_nombre] = { alumno_id: d.alumno_id, alumno_nombre: d.alumno_nombre, items: [] };
+                }
+                grupos[d.alumno_nombre].items.push(d);
+            });
+
+            const autoExpand = Object.keys(grupos).length === 1;
+            let html = '';
+            Object.values(grupos).forEach((g, gi) => {
+                const open = autoExpand;
+                html += `
+                <div class="hist-group">
+                    <div class="hist-group-header" onclick="toggleHistGroup(${gi})">
+                        <span>
+                            <span class="hist-group-name">${g.alumno_nombre}</span>
+                            <span class="hist-badge">${g.items.length}</span>
+                        </span>
+                        <span class="hist-chevron" id="hist-chevron-${gi}">${open ? '▼' : '▶'}</span>
                     </div>
-                `;
-            }).join('');
+                    <div class="hist-group-body" id="hist-group-${gi}" style="display:${open ? 'block' : 'none'};">
+                        ${g.items.map(d => {
+                            const [y, m, dd] = d.fecha.split('-');
+                            const fechaFmt = `${dd}/${m}/${y}`;
+                            const textoEsc = d.texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                            return `
+                            <div class="hist-item">
+                                <div class="hist-item-header">
+                                    <span class="hist-area-tag">${d.area_nombre || 'General'}</span>
+                                    <span class="hist-fecha">${fechaFmt}</span>
+                                    <button class="hist-acta-btn" onclick="crearActaDesdeObservacion(${d.id})">📝 Crear Acta</button>
+                                </div>
+                                <div class="hist-texto">${textoEsc}</div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            });
+            contenedor.innerHTML = html;
         }
 
-        function crearActaDesdeObservacion(alumnoId) {
-            // Buscar la observación en el historial cargado
-            const obs = historialData.find(d => d.alumno_id == alumnoId);
-            if (!obs) {
-                alert('No se encontró la observación.');
-                return;
-            }
+        function toggleHistGroup(gi) {
+            const body = document.getElementById(`hist-group-${gi}`);
+            const chevron = document.getElementById(`hist-chevron-${gi}`);
+            const isOpen = body.style.display !== 'none';
+            body.style.display = isOpen ? 'none' : 'block';
+            chevron.textContent = isOpen ? '▶' : '▼';
+        }
 
-            // Cerrar modal de historial
+        function crearActaDesdeObservacion(obsId) {
+            const obs = historialData.find(d => d.id == obsId);
+            if (!obs) { alert('No se encontró la observación.'); return; }
             closeHistorial();
-
-            // Abrir modal de acta y rellenar datos
-            currentActaAlumnoId = alumnoId;
+            currentActaAlumnoId = obs.alumno_id;
             document.getElementById('actaAlumnoNombre').innerText = obs.alumno_nombre;
             document.getElementById('actaFecha').value = obs.fecha;
             document.getElementById('actaDescripcion').value = obs.texto;
-
-            // Mostrar modal de acta
             document.getElementById('actaModal').style.display = 'flex';
+            cargarEquipoDocente();
         }
     </script>
     <!-- Modal Historial -->

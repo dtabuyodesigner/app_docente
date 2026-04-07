@@ -6,4 +6,4 @@ PROJECT_DIR="$HOME/Documentos/APP_EVALUAR"
 VENV="$PROJECT_DIR/venv/bin/python"
 
 cd "$PROJECT_DIR"
-"$VENV" desktop.py
+exec "$VENV" desktop.py

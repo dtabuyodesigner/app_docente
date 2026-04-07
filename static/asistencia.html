@@ -597,26 +597,38 @@
                 </div>
             </div>
         </div>
-        <div class="modal-overlay" id="menuModal">
-            <div class="modal" style="max-width: 600px;">
-                <div class="modal-header">
-                    <h3>🍽️ Menú del Comedor</h3>
-                    <button class="modal-close" onclick="closeMenuModal()">&times;</button>
+        <div class="modal-overlay" id="menuModal" onclick="if(event.target===this)closeMenuModal()" style="align-items:center; justify-content:center;">
+            <div style="background:white; border-radius:14px; box-shadow:0 8px 40px rgba(0,0,0,0.3);
+                        width:92vw; max-width:1000px; height:92vh; display:flex; flex-direction:column;
+                        overflow:hidden; position:relative;">
+                <!-- Cabecera -->
+                <div style="display:flex; align-items:center; justify-content:space-between;
+                            padding:14px 20px; border-bottom:1px solid #eee; flex-shrink:0;">
+                    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                        <h3 style="margin:0; font-size:1.2rem;">🍽️ Menú del Comedor</h3>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <label for="mesMenu" style="font-weight:600; font-size:0.9rem;">Mes:</label>
+                            <input type="month" id="mesMenu"
+                                style="padding:6px 10px; border-radius:6px; border:1px solid #ccc; font-size:0.95rem;">
+                        </div>
+                        <div>
+                            <input type="file" id="menuFile" accept="image/*" style="display:none;" onchange="uploadMenu()">
+                            <button onclick="document.getElementById('menuFile').click()"
+                                style="padding:6px 14px; background:var(--primary); color:white; border:none;
+                                       border-radius:7px; cursor:pointer; font-size:0.85rem; font-weight:600;">
+                                📤 Subir menú
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="closeMenuModal()"
+                        style="background:none; border:none; font-size:1.6rem; cursor:pointer;
+                               color:#666; line-height:1; padding:0 4px;">&times;</button>
                 </div>
-                <div style="margin-bottom: 20px; text-align: center;">
-                    <label for="mesMenu" style="font-weight: bold; margin-right: 10px;">Seleccionar Mes:</label>
-                    <input type="month" id="mesMenu"
-                        style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem;">
-                </div>
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <input type="file" id="menuFile" accept="image/*" style="display:none;" onchange="uploadMenu()">
-                    <button class="btn-status" onclick="document.getElementById('menuFile').click()"
-                        style="background: var(--primary); color: white; border: none;">
-                        📤 Subir/Actualizar Menú
-                    </button>
-                </div>
-                <div id="imageContainer" style="text-align: center; max-height: 400px; overflow-y: auto;">
-                    <p>Cargando menú...</p>
+                <!-- Imagen a pantalla completa -->
+                <div id="imageContainer"
+                    style="flex:1; overflow:auto; display:flex; align-items:center; justify-content:center;
+                           padding:16px; background:#f8f9fa;">
+                    <p style="color:#888;">Cargando menú...</p>
                 </div>
             </div>
         </div>
@@ -1307,7 +1319,7 @@
                 .then(data => {
                     const container = document.getElementById('imageContainer');
                     if (data.imagen) {
-                        container.innerHTML = `<img src="/uploads/${data.imagen}" alt="Menú Comedor" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">`;
+                        container.innerHTML = `<img src="/uploads/${data.imagen}" alt="Menú Comedor" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.15);">`;
                     } else {
                         container.innerHTML = `<p style="color: #888;">No hay menú subido para ${mes}.</p>`;
                     }

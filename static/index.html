@@ -1530,9 +1530,9 @@
             loadDashboard();
             await checkIntegrity();
             // Mostrar versión de la app
-            fetch('/api/version').then(r => r.json()).then(d => {
+            fetch('/api/admin/version').then(r => r.json()).then(d => {
                 const badge = document.getElementById('app-version-badge');
-                if (badge && d.version) badge.textContent = 'v' + d.version;
+                if (badge && d.version) badge.textContent = d.version; // APP_VERSION ya incluye la 'v'
             }).catch(() => { });
             // Comprobar actualizaciones al cargar la página
             checkUpdatesOnLoad();

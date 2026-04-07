@@ -1,9 +1,18 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
 **Fecha:** 7 de Abril 2026
-**Versión:** `v1.1.29`
-**Último Commit:** `68b33b3` — bump version number
+**Versión:** `v1.1.30`
 **Rama activa:** `master`
+
+---
+
+## ✅ LO COMPLETADO EN v1.1.30
+
+### Fixes de UX y visualización
+
+- **Fix versión en Panel de Control:** el badge llamaba a `/api/version` (inexistente) en lugar de `/api/admin/version`, y además añadía una `v` extra → ahora muestra correctamente `v1.1.30`
+- **Menú comedor a pantalla grande:** modal del menú de comedor en asistencia rediseñado como lightbox de 92vw × 92vh; imagen se adapta al espacio disponible; se cierra también haciendo clic fuera
+- **Archivos:** `static/index.html`, `static/asistencia.html`, `version.py`
 
 ---
 
@@ -245,5 +254,5 @@ git push origin --delete feature/refactor-evaluacion-curricular
 
 ---
 
-**Última actualización:** 7 Abril 2026 — v1.1.29 merge a master y push a origin  
+**Última actualización:** 7 Abril 2026 — v1.1.30 push a origin  
 **Estado:** ✅ Master actualizado y en producción

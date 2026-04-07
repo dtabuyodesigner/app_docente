@@ -37,7 +37,9 @@
       "Bash(cp *)",
       "Bash(update-desktop-database *)",
       "Bash(pgrep *)",
-      "Bash(venv/bin/python *)"
+      "Bash(venv/bin/python *)",
+      "Bash(cd *)",
+      "Bash(echo *)"
     ]
   },
   "$version": 3

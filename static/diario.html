@@ -331,13 +331,14 @@
         }
         .hist-acta-btn:hover { background: #ffc107; color: #333; }
         .hist-texto {
-            font-size: 0.88rem;
-            line-height: 1.55;
+            font-size: 0.93rem;
+            line-height: 1.6;
             color: #333;
             white-space: pre-wrap;
             word-wrap: break-word;
             border-left: 3px solid #dee2e6;
             padding-left: 10px;
+            margin-top: 6px;
         }
 
         /* Acta Modal - Layout Flexbox */
@@ -967,9 +968,8 @@
                             renderCheckboxProfesores();
                         }
 
-                        if (tutorNombre) {
-                            document.getElementById('actaFirmante').value = tutorNombre;
-                        }
+                        // Los firmantes se determinan por los checkboxes marcados
+                        actualizarProfesoresSeleccionados();
                     } else {
                         console.error('Error al cargar equipo docente:', data.error);
                         renderCheckboxProfesoresVacio();
@@ -1021,8 +1021,8 @@
             const seleccionados = Array.from(checks).map(c => c.value);
             if (manual) seleccionados.push(manual);
 
-            // Guardar en hidden field para el submit
-            document.getElementById('actaProfesorValor').value = seleccionados.join(', ');
+            // Guardar en hidden field para el submit (separamos por \n para no colisionar con la coma de "Apellidos, Nombre")
+            document.getElementById('actaProfesorValor').value = seleccionados.join('\n');
         }
 
         function openActaModal(alumnoId, alumnoNombre) {
@@ -1031,7 +1031,6 @@
             document.getElementById('actaFecha').valueAsDate = new Date();
             document.getElementById('actaProfesorOtro').value = '';
             document.getElementById('actaProfesorValor').value = '';
-            document.getElementById('actaFirmante').value = '';
             document.getElementById('actaModal').style.display = 'flex';
 
             // Cargar equipo docente al abrir el modal
@@ -1044,13 +1043,14 @@
         }
         async function guardarActa() {
             actualizarProfesoresSeleccionados();
+            const profesoresValor = document.getElementById('actaProfesorValor').value;
             const data = {
                 alumno_id: currentActaAlumnoId,
                 fecha_hecho: document.getElementById('actaFecha').value,
                 lugar: document.getElementById('actaLugar').value,
-                profesor: document.getElementById('actaProfesorValor').value,
+                profesor: profesoresValor,
                 descripcion: document.getElementById('actaDescripcion').value,
-                firmante: document.getElementById('actaFirmante').value
+                firmante: profesoresValor  // Los firmantes son los mismos que los marcados
             };
             try {
                 const res = await fetch('/api/actas', {
@@ -1061,8 +1061,9 @@
                 const r = await res.json();
                 if (r.ok) {
                     alert("✅ Acta creada correctamente.");
+                    const firmaAlumno = document.getElementById('actaFirmaAlumno').checked ? '1' : '0';
                     closeActaModal();
-                    window.open(`/api/actas/${r.id}/pdf`, '_blank');
+                    window.open(`/api/actas/${r.id}/pdf?firma_alumno=${firmaAlumno}`, '_blank');
                 } else {
                     alert("❌ Error: " + r.error);
                 }
@@ -1275,15 +1276,18 @@
                     </div>
                     <div class="form-group">
                         <label>Descripción de los hechos:</label>
-                        <textarea id="actaDescripcion" rows="12" required
+                        <textarea id="actaDescripcion" rows="18" required
                             placeholder="Describe lo sucedido con detalle..."
-                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; resize: vertical;"></textarea>
+                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; resize: vertical; min-height: 220px; font-size: 0.95rem; line-height: 1.5;"></textarea>
                     </div>
-                    <div class="form-group">
-                        <label>Firma (Nombre del firmante):</label>
-                        <input type="text" id="actaFirmante" placeholder="Se cargará automáticamente el tutor del grupo"
-                            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;">
+                    <div class="form-group" style="margin-top:4px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
+                            <input type="checkbox" id="actaFirmaAlumno" style="width:16px; height:16px; accent-color:var(--primary);">
+                            Incluir espacio para firma del alumno/a en el acta
+                        </label>
                     </div>
+                    <!-- actaFirmante: campo oculto - se auto-rellena con los profesores marcados -->
+                    <input type="hidden" id="actaFirmante">
                 </form>
             </div>
 

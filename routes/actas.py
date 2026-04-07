@@ -118,7 +118,7 @@ def generar_pdf_acta(acta_id):
         return "Acta no encontrada", 404
 
     # Configuración de logos y firmas
-    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%' OR clave LIKE 'tutor_%' OR clave = 'nombre_centro' OR clave = 'curso_escolar'")
+    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%' OR clave LIKE 'tutor_%' OR clave IN ('nombre_centro', 'curso_escolar', 'nombre_tutor')")
     config = {r["clave"]: r["valor"] for r in cur.fetchall()}
 
     from utils.db import get_app_data_dir
@@ -167,9 +167,6 @@ def generar_pdf_acta(acta_id):
 
     # Obtener nombre del tutor desde config
     tutor_nombre_config = config.get("nombre_tutor", "")
-    
-    # Determinar firmante
-    firmante_nombre = acta["firmante"] or tutor_nombre_config or "El/La Tutor/a"
 
     # Obtener nombre del centro
     nombre_centro = config.get("nombre_centro", "CEIP")
@@ -254,53 +251,105 @@ def generar_pdf_acta(acta_id):
     elements.append(Spacer(1, 6))
 
     descripcion_raw = acta["descripcion"] or "Sin descripción."
-    
+
     # Procesar la descripción conservando los saltos de línea (sin añadir numeración auto)
     lineas = [l.strip() for l in descripcion_raw.replace('\r\n', '\n').replace('\r', '\n').split('\n') if l.strip()]
-    
+
     for linea in lineas:
         elements.append(Paragraph(linea, style_desc))
-    
+
+    # Fecha de generación (estilo reuniones)
+    elements.append(Spacer(1, 8))
+    from datetime import date as today_date
+    style_small = ParagraphStyle('SmallGrey', parent=styles['Normal'],
+                                 fontSize=9, textColor=rl_colors.grey)
+    elements.append(Paragraph(
+        f"Documento generado el {today_date.today().strftime('%d/%m/%Y')}",
+        style_small
+    ))
     elements.append(Spacer(1, 20))
 
-    # Sección de firmas
-    elements.append(Spacer(1, 15))
-    elements.append(Paragraph("<b>FIRMAS</b>", style_label))
-    elements.append(Spacer(1, 10))
+    # --- FIRMAS (celda separada por docente) ---
+    # Determinar firmantes: lista de todos los docentes marcados
+    # Los nombres se guardan separados por \n para no colisionar con la coma de "Apellidos, Nombre"
+    firmantes_raw = acta["firmante"] or acta["profesor"] or ""
+    firmantes = [f.strip() for f in firmantes_raw.replace('\r\n', '\n').replace('\r', '\n').split('\n') if f.strip()]
+    # Fallback: si venía separado por coma (datos antiguos) y solo hay uno con coma → tratar como uno
+    if not firmantes:
+        firmantes = [tutor_nombre_config or "El/La Tutor/a"]
 
-    # Construir tabla de firmas (Firma a la izquierda con el nombre)
-    sig_data = [["Firma del/la Tutor/a o Docente", "Firma del/la Alumno/a"]]
-    
+    # Convertir "Apellidos, Nombre" → "Nombre Apellidos" para mostrar en firma
+    def _nombre_natural(nombre):
+        if ',' in nombre:
+            partes = nombre.split(',', 1)
+            return f"{partes[1].strip()} {partes[0].strip()}"
+        return nombre
+
+    # Incluir espacio para firma del alumno (query param ?firma_alumno=1)
+    include_alumno = request.args.get('firma_alumno', '0') == '1'
+
+    # Fuzzy match para detectar si un nombre coincide con el tutor
+    import re as _re
+    def _es_tutor_fuzzy(nombre, tutor):
+        if not tutor or not nombre:
+            return False
+        def _palabras(s):
+            return [w for w in _re.split(r'[\s,\.]+', s.lower()) if len(w) > 2]
+        pn = _palabras(nombre)
+        pt = _palabras(tutor)
+        return sum(1 for w in pt if w in pn) >= 2
+
+    elements.append(Paragraph("<b>FIRMAS</b>", style_label))
+    elements.append(Spacer(1, 8))
+
     style_firma_nombre = ParagraphStyle('firmaNombre', parent=styles['Normal'],
                                         fontSize=9, alignment=1, textColor=rl_colors.grey)
-    
-    # Celda izquierda: Imagen de firma + Nombre
-    celda_firma_izda_content = []
-    if firma_path:
-        try:
-            img_f = RLImage(firma_path, width=4.5*cm, height=1.5*cm, kind='proportional')
-            img_f.hAlign = 'CENTER'
-            celda_firma_izda_content.append(img_f)
-        except Exception as e:
-            print(f"[ERROR] No se pudo cargar la firma: {e}")
-    celda_firma_izda_content.append(Paragraph(f"<b>{firmante_nombre}</b>", style_firma_nombre))
 
-    # Celda derecha: Espacio para firma del alumno
-    celda_firma_dcha_content = [Spacer(1, 1*cm), Paragraph("(Firma del alumno/a)", style_firma_nombre)]
+    # Calcular ancho de celda: 17cm total repartido entre N docentes + opcional alumno
+    TOTAL_W = 17 * cm
+    n_celdas = len(firmantes) + (1 if include_alumno else 0)
+    if n_celdas == 0:
+        n_celdas = 1
+    cell_w = TOTAL_W / n_celdas
+    img_w = min(4 * cm, cell_w * 0.75)
 
-    sig_data.append([celda_firma_izda_content, celda_firma_dcha_content])
+    # Una celda por docente
+    sig_row = []
+    for f in firmantes:
+        es_tutor = _es_tutor_fuzzy(f, tutor_nombre_config)
+        nombre_display = _nombre_natural(f)
+        col = [Paragraph(f"<b>{nombre_display}</b>", style_firma_nombre), Spacer(1, 6)]
+        if es_tutor and firma_path:
+            try:
+                img_f = RLImage(firma_path, width=img_w, height=1.5*cm, kind='proportional')
+                img_f.hAlign = 'CENTER'
+                col.append(img_f)
+            except Exception as e:
+                print(f"[ERROR] firma imagen: {e}")
+                col.append(Spacer(1, 1.2*cm))
+        else:
+            col.append(Spacer(1, 1.2*cm))
+        col.append(Paragraph("<i>Fdo: .................................</i>", style_firma_nombre))
+        sig_row.append(col)
 
-    t_sig = RLTable(sig_data, colWidths=[8*cm, 8*cm],
-                    rowHeights=[0.7*cm, 2.5*cm])
-    t_sig.setStyle(RLTableStyle([
-        ('GRID', (0, 0), (-1,-1), 0.5, rl_colors.black),
-        ('BACKGROUND', (0,0), (-1,0), rl_colors.lightgrey),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    # Celda opcional del alumno/a
+    if include_alumno:
+        col_alumno = [
+            Paragraph("<b>El/La Alumno/a</b>", style_firma_nombre),
+            Spacer(1, 1.2*cm),
+            Paragraph("<i>Fdo: .................................</i>", style_firma_nombre)
+        ]
+        sig_row.append(col_alumno)
+
+    sig_tbl = RLTable([sig_row], colWidths=[cell_w] * n_celdas)
+    sig_tbl.setStyle(RLTableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, rl_colors.black),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('TOPPADDING', (0, 1), (-1, 1), 5),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
     ]))
-    elements.append(t_sig)
+    elements.append(sig_tbl)
 
     doc.build(elements)
     buffer.seek(0)

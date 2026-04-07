@@ -603,31 +603,42 @@
                         overflow:hidden; position:relative;">
                 <!-- Cabecera -->
                 <div style="display:flex; align-items:center; justify-content:space-between;
-                            padding:14px 20px; border-bottom:1px solid #eee; flex-shrink:0;">
-                    <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-                        <h3 style="margin:0; font-size:1.2rem;">🍽️ Menú del Comedor</h3>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <label for="mesMenu" style="font-weight:600; font-size:0.9rem;">Mes:</label>
+                            padding:12px 16px; border-bottom:1px solid #eee; flex-shrink:0; gap:10px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <h3 style="margin:0; font-size:1.1rem;">🍽️ Menú del Comedor</h3>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <label for="mesMenu" style="font-weight:600; font-size:0.85rem;">Mes:</label>
                             <input type="month" id="mesMenu"
-                                style="padding:6px 10px; border-radius:6px; border:1px solid #ccc; font-size:0.95rem;">
+                                style="padding:5px 8px; border-radius:6px; border:1px solid #ccc; font-size:0.9rem;">
                         </div>
-                        <div>
-                            <input type="file" id="menuFile" accept="image/*" style="display:none;" onchange="uploadMenu()">
-                            <button onclick="document.getElementById('menuFile').click()"
-                                style="padding:6px 14px; background:var(--primary); color:white; border:none;
-                                       border-radius:7px; cursor:pointer; font-size:0.85rem; font-weight:600;">
-                                📤 Subir menú
-                            </button>
-                        </div>
+                        <input type="file" id="menuFile" accept="image/*" style="display:none;" onchange="uploadMenu()">
+                        <button onclick="document.getElementById('menuFile').click()"
+                            style="padding:5px 12px; background:var(--primary); color:white; border:none;
+                                   border-radius:7px; cursor:pointer; font-size:0.82rem; font-weight:600;">
+                            📤 Subir
+                        </button>
                     </div>
-                    <button onclick="closeMenuModal()"
-                        style="background:none; border:none; font-size:1.6rem; cursor:pointer;
-                               color:#666; line-height:1; padding:0 4px;">&times;</button>
+                    <!-- Controles de zoom -->
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button onclick="menuZoom(-0.25)" title="Alejar"
+                            style="width:32px; height:32px; border:1px solid #ddd; border-radius:6px;
+                                   background:white; font-size:1.1rem; cursor:pointer; line-height:1;">−</button>
+                        <span id="menuZoomLabel" style="font-size:0.8rem; color:#666; min-width:36px; text-align:center;">100%</span>
+                        <button onclick="menuZoom(+0.25)" title="Acercar"
+                            style="width:32px; height:32px; border:1px solid #ddd; border-radius:6px;
+                                   background:white; font-size:1.1rem; cursor:pointer; line-height:1;">+</button>
+                        <button onclick="menuZoomReset()" title="Restablecer"
+                            style="padding:0 10px; height:32px; border:1px solid #ddd; border-radius:6px;
+                                   background:white; font-size:0.75rem; cursor:pointer; color:#555;">↺ Reset</button>
+                        <button onclick="closeMenuModal()"
+                            style="background:none; border:none; font-size:1.6rem; cursor:pointer;
+                                   color:#666; line-height:1; padding:0 4px; margin-left:4px;">&times;</button>
+                    </div>
                 </div>
-                <!-- Imagen a pantalla completa -->
+                <!-- Área de imagen con zoom -->
                 <div id="imageContainer"
-                    style="flex:1; overflow:auto; display:flex; align-items:stretch; justify-content:center;
-                           padding:12px; background:#f8f9fa; min-height:0;">
+                    style="flex:1; overflow:hidden; display:flex; align-items:center; justify-content:center;
+                           background:#f8f9fa; min-height:0; cursor:grab; position:relative; user-select:none;">
                     <p style="color:#888;">Cargando menú...</p>
                 </div>
             </div>
@@ -1296,32 +1307,94 @@
         // Canteen Menu Logic
         const menuModal = document.getElementById("menuModal");
         const mesInput = document.getElementById('mesMenu');
+
+        // --- Zoom & Pan state ---
+        let _mScale = 1, _mTx = 0, _mTy = 0;
+        let _mDragging = false, _mDragStartX = 0, _mDragStartY = 0, _mDragTx = 0, _mDragTy = 0;
+
+        function _menuImg() { return document.getElementById('menuZoomImg'); }
+        function _applyTransform() {
+            const img = _menuImg(); if (!img) return;
+            img.style.transform = `translate(${_mTx}px, ${_mTy}px) scale(${_mScale})`;
+            document.getElementById('menuZoomLabel').textContent = Math.round(_mScale * 100) + '%';
+        }
+        function menuZoom(delta) {
+            _mScale = Math.min(5, Math.max(0.5, _mScale + delta));
+            _applyTransform();
+        }
+        function menuZoomReset() {
+            _mScale = 1; _mTx = 0; _mTy = 0; _applyTransform();
+        }
+
+        function _initZoomEvents() {
+            const container = document.getElementById('imageContainer');
+            // Rueda del ratón
+            container.onwheel = e => {
+                e.preventDefault();
+                menuZoom(e.deltaY < 0 ? 0.15 : -0.15);
+            };
+            // Arrastrar
+            container.onmousedown = e => {
+                if (!_menuImg()) return;
+                _mDragging = true; _mDragStartX = e.clientX; _mDragStartY = e.clientY;
+                _mDragTx = _mTx; _mDragTy = _mTy;
+                container.style.cursor = 'grabbing';
+                e.preventDefault();
+            };
+            window.addEventListener('mousemove', e => {
+                if (!_mDragging) return;
+                _mTx = _mDragTx + (e.clientX - _mDragStartX);
+                _mTy = _mDragTy + (e.clientY - _mDragStartY);
+                _applyTransform();
+            });
+            window.addEventListener('mouseup', () => {
+                _mDragging = false;
+                const c = document.getElementById('imageContainer');
+                if (c) c.style.cursor = 'grab';
+            });
+            // Touch (móvil): pellizco para zoom
+            let _lastDist = null;
+            container.addEventListener('touchstart', e => { if (e.touches.length === 2) _lastDist = null; }, {passive:true});
+            container.addEventListener('touchmove', e => {
+                if (e.touches.length === 2) {
+                    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                    if (_lastDist) menuZoom((d - _lastDist) * 0.01);
+                    _lastDist = d;
+                    e.preventDefault();
+                }
+            }, {passive:false});
+        }
+
         function openMenuModal() {
             const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            mesInput.value = `${yyyy}-${mm}`;
+            mesInput.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
             menuModal.style.display = "flex";
             document.body.style.overflow = "hidden";
+            _mScale = 1; _mTx = 0; _mTy = 0;
             loadMenu();
+            _initZoomEvents();
         }
         function closeMenuModal() {
             menuModal.style.display = "none";
             document.body.style.overflow = "";
         }
-        mesInput.addEventListener('change', loadMenu);
+        mesInput.addEventListener('change', () => { _mScale=1; _mTx=0; _mTy=0; loadMenu(); });
         function loadMenu() {
             const mes = mesInput.value;
             if (!mes) return;
-            document.getElementById('imageContainer').innerHTML = "<p>Cargando...</p>";
+            document.getElementById('imageContainer').innerHTML = "<p style='color:#888;'>Cargando...</p>";
             fetch(`/api/comedor/menu?mes=${mes}`)
                 .then(r => r.json())
                 .then(data => {
                     const container = document.getElementById('imageContainer');
                     if (data.imagen) {
-                        container.innerHTML = `<img src="/uploads/${data.imagen}" alt="Menú Comedor" style="width:100%; height:100%; object-fit:contain; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.15);">`;
+                        container.innerHTML = `<img id="menuZoomImg" src="/uploads/${data.imagen}" alt="Menú Comedor"
+                            style="max-width:90%; max-height:90%; object-fit:contain; border-radius:8px;
+                                   box-shadow:0 4px 16px rgba(0,0,0,0.15); transform-origin:center center;
+                                   transition:transform 0.1s; pointer-events:none; display:block;">`;
+                        _applyTransform();
                     } else {
-                        container.innerHTML = `<p style="color: #888;">No hay menú subido para ${mes}.</p>`;
+                        container.innerHTML = `<p style="color:#888;">No hay menú subido para ${mes}.</p>`;
                     }
                 });
         }

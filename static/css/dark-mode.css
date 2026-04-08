@@ -229,9 +229,26 @@
     color: var(--dark);
 }
 
-[data-theme="dark"] .fc-toolbar-title,
+[data-theme="dark"] .fc-toolbar-title {
+    color: var(--primary);
+    font-weight: bold;
+}
+
 [data-theme="dark"] .fc-col-header-cell-cushion {
     color: var(--primary);
+    font-weight: bold;
+}
+
+[data-theme="dark"] .fc-daygrid-day-number {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .fc-daygrid-day-frame {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .fc-day-today {
+    background: var(--gray-200) !important;
 }
 
 [data-theme="dark"] .fc-button {
@@ -243,6 +260,12 @@
 [data-theme="dark"] .fc-button:hover {
     background: var(--gray-300) !important;
 }
+
+[data-theme="dark"] .fc-button-active {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
 
 /* --- Cards and containers with inline styles --- */
 [data-theme="dark"] div[style*="background: white"],

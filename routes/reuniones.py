@@ -412,11 +412,15 @@ def reunion_pdf(rid):
 
     # Obtener curso del grupo si es reunión de ciclo
     grupo_curso = ""
-    if reunion["tipo"] == "CICLO" and reunion.get("ciclo_id"):
-        cur.execute("SELECT g.curso FROM grupos g WHERE g.id = ?", (reunion["ciclo_id"],))
-        row_curso = cur.fetchone()
-        if row_curso and row_curso["curso"]:
-            grupo_curso = row_curso["curso"]
+    try:
+        if reunion["tipo"] == "CICLO" and reunion.get("ciclo_id"):
+            cur.execute("SELECT g.curso FROM grupos g WHERE g.id = ?", (reunion["ciclo_id"],))
+            row_curso = cur.fetchone()
+            if row_curso and row_curso["curso"]:
+                grupo_curso = row_curso["curso"]
+    except Exception as e:
+        print(f"[WARNING] Error obteniendo curso del grupo para firma del tutor: {e}")
+        grupo_curso = ""
 
     # Construir etiqueta del tutor con curso si está disponible
     tutor_label = f"Tutor/a {grupo_curso}" if grupo_curso else "Tutor/a"

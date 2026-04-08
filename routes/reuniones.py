@@ -51,9 +51,10 @@ def api_reuniones():
         
         if rid:
             cur.execute("""
-                SELECT r.*, a.nombre as alumno_nombre
+                SELECT r.*, a.nombre as alumno_nombre, c.nombre as ciclo_nombre
                 FROM reuniones r
                 LEFT JOIN alumnos a ON r.alumno_id = a.id
+                LEFT JOIN config_ciclo c ON r.ciclo_id = c.id
                 WHERE r.id = ?
             """, (rid,))
             r = cur.fetchone()
@@ -338,7 +339,19 @@ def reunion_pdf(rid):
     except Exception:
         fecha_fmt = fecha_raw
 
-    asistentes_raw = (reunion["asistentes"] or "").replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    asistentes_raw = (reunion["asistentes"] or "")
+    
+    # Parsear asistentes si viene en formato JSON
+    import json
+    if asistentes_raw.strip().startswith('['):
+        try:
+            asistentes_lista = json.loads(asistentes_raw)
+            if isinstance(asistentes_lista, list):
+                asistentes_raw = ', '.join([str(a).strip() for a in asistentes_lista if str(a).strip()])
+        except json.JSONDecodeError:
+            pass  # Si falla, usar original
+    
+    asistentes_raw = asistentes_raw.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
     datos = [
         ["<b>Fecha:</b>", fecha_fmt],
@@ -390,6 +403,43 @@ def reunion_pdf(rid):
     elements.append(Spacer(1, 20))
 
     # --- FIRMAS ---
+    # Obtener nombre del ciclo si es reunión de ciclo
+    grupo_curso = ""
+    coordinador_ciclo = ""
+    try:
+        ciclo_id_val = reunion["ciclo_id"] if "ciclo_id" in reunion.keys() else None
+        if reunion["tipo"] == "CICLO" and ciclo_id_val:
+            cur.execute("SELECT nombre FROM config_ciclo WHERE id = ?", (ciclo_id_val,))
+            row_ciclo = cur.fetchone()
+            if row_ciclo and row_ciclo["nombre"]:
+                ciclo_nombre = row_ciclo["nombre"]
+                import re
+                match = re.match(r'(\d+[ºª])\s+', ciclo_nombre)
+                if match:
+                    grupo_curso = match.group(1)
+                else:
+                    grupo_curso = ciclo_nombre
+        if not grupo_curso:
+            grupo_id = session.get('active_group_id')
+            if grupo_id:
+                cur.execute("SELECT nombre, coordinador_ciclo FROM grupos WHERE id = ?", (grupo_id,))
+                row_g = cur.fetchone()
+                if row_g and row_g["nombre"]:
+                    grupo_curso = row_g["nombre"]
+                coordinador_ciclo = row_g["coordinador_ciclo"] if row_g and row_g["coordinador_ciclo"] else ""
+        else:
+            grupo_id = session.get('active_group_id')
+            if grupo_id:
+                cur.execute("SELECT coordinador_ciclo FROM grupos WHERE id = ?", (grupo_id,))
+                row_g2 = cur.fetchone()
+                coordinador_ciclo = row_g2["coordinador_ciclo"] if row_g2 and row_g2["coordinador_ciclo"] else ""
+    except Exception as e:
+        print(f"[WARNING] Error obteniendo curso del ciclo para firma del tutor: {e}")
+        grupo_curso = ""
+        coordinador_ciclo = ""
+
+    tutor_label = f"Tutor/a {grupo_curso}" if grupo_curso else "Tutor/a"
+
     firma_fn = cfg.get("tutor_firma_filename")
     tutor_nombre = cfg.get("nombre_tutor", "El/La Tutor/a")
     firma_path_val = None
@@ -401,7 +451,7 @@ def reunion_pdf(rid):
     elements.append(Paragraph("<b>FIRMAS</b>", style_label))
     elements.append(Spacer(1, 8))
 
-    col_tutor = [Paragraph("<b>Tutor/a:</b>", style_label), Spacer(1, 8)]
+    col_tutor = [Paragraph(f"<b>{tutor_label}:</b>", style_label), Spacer(1, 8)]
     if firma_path_val:
         try:
             img_f = RLImage(firma_path_val, width=4.5*cm, height=1.5*cm, kind='proportional')
@@ -414,11 +464,11 @@ def reunion_pdf(rid):
     col_tutor.append(Paragraph(f"<i>{tutor_nombre}</i>", style_small))
 
     if reunion["tipo"] == "CICLO":
-        col_otro = [
-            Paragraph("<b>El/La Coordinador/a:</b>", style_label),
-            Spacer(1, 36),
-            Paragraph("<i>Fdo: .............................................</i>", style_small)
-        ]
+        col_otro = [Paragraph("<b>El/La Coordinador/a:</b>", style_label), Spacer(1, 36)]
+        if coordinador_ciclo:
+            col_otro.append(Paragraph(f"<i>{coordinador_ciclo}</i>", style_small))
+        else:
+            col_otro.append(Paragraph("<i>Fdo: .............................................</i>", style_small))
     else:
         col_otro = [
             Paragraph("<b>El/La Padre/Madre/Tutor Legal:</b>", style_label),
@@ -588,3 +638,307 @@ def exportar_reuniones_ical():
         as_attachment=True,
         download_name=f"calendario_reuniones_{date.today()}.ics",
     )
+
+
+# ==============================================================================
+# PLANTILLAS DE REUNIÓN
+# ==============================================================================
+
+@reuniones_bp.route("/api/plantillas_reunion", methods=["GET", "POST"])
+def api_plantillas_reunion():
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "POST":
+        d = request.json
+        nombre = d.get("nombre", "").strip()
+        tipo = d.get("tipo", "").strip()
+        descripcion = d.get("descripcion", "")
+        orden_del_dia = d.get("orden_del_dia", "")
+        miembros = d.get("miembros", [])  # lista de {nombre, rol}
+
+        if not nombre or not tipo:
+            return jsonify({"ok": False, "error": "Nombre y tipo son obligatorios"}), 400
+
+        try:
+            cur.execute(
+                "INSERT INTO plantillas_reunion (nombre, tipo, descripcion, orden_del_dia) VALUES (?, ?, ?, ?)",
+                (nombre, tipo, descripcion, orden_del_dia)
+            )
+            pid = cur.lastrowid
+            for i, m in enumerate(miembros):
+                cur.execute(
+                    "INSERT INTO plantillas_reunion_miembros (plantilla_id, nombre, rol, orden) VALUES (?, ?, ?, ?)",
+                    (pid, m.get("nombre", ""), m.get("rol", ""), i)
+                )
+            conn.commit()
+            return jsonify({"ok": True, "id": pid})
+        except Exception as e:
+            conn.rollback()
+            print("Error en api_plantillas_reunion (POST):", e)
+            return jsonify({"ok": False, "error": "Error interno"}), 500
+    else:
+        tipo = request.args.get("tipo")
+        sql = "SELECT * FROM plantillas_reunion"
+        params = []
+        if tipo:
+            sql += " WHERE tipo = ?"
+            params.append(tipo)
+        sql += " ORDER BY tipo, nombre"
+        cur.execute(sql, params)
+        plantillas = [dict(r) for r in cur.fetchall()]
+        # Añadir miembros a cada plantilla
+        for p in plantillas:
+            cur.execute(
+                "SELECT * FROM plantillas_reunion_miembros WHERE plantilla_id = ? ORDER BY orden",
+                (p["id"],)
+            )
+            p["miembros"] = [dict(m) for m in cur.fetchall()]
+        return jsonify(plantillas)
+
+
+@reuniones_bp.route("/api/plantillas_reunion/<int:pid>", methods=["GET", "PUT", "DELETE"])
+def api_plantilla_reunion(pid):
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "GET":
+        cur.execute("SELECT * FROM plantillas_reunion WHERE id = ?", (pid,))
+        p = cur.fetchone()
+        if not p:
+            return jsonify({"ok": False, "error": "No encontrada"}), 404
+        result = dict(p)
+        cur.execute(
+            "SELECT * FROM plantillas_reunion_miembros WHERE plantilla_id = ? ORDER BY orden",
+            (pid,)
+        )
+        result["miembros"] = [dict(m) for m in cur.fetchall()]
+        return jsonify(result)
+
+    elif request.method == "PUT":
+        d = request.json
+        nombre = d.get("nombre", "").strip()
+        tipo = d.get("tipo", "").strip()
+        descripcion = d.get("descripcion", "")
+        orden_del_dia = d.get("orden_del_dia", "")
+        miembros = d.get("miembros", [])
+
+        if not nombre or not tipo:
+            return jsonify({"ok": False, "error": "Nombre y tipo son obligatorios"}), 400
+
+        try:
+            cur.execute(
+                "UPDATE plantillas_reunion SET nombre=?, tipo=?, descripcion=?, orden_del_dia=? WHERE id=?",
+                (nombre, tipo, descripcion, orden_del_dia, pid)
+            )
+            # Reemplazar miembros
+            cur.execute("DELETE FROM plantillas_reunion_miembros WHERE plantilla_id = ?", (pid,))
+            for i, m in enumerate(miembros):
+                cur.execute(
+                    "INSERT INTO plantillas_reunion_miembros (plantilla_id, nombre, rol, orden) VALUES (?, ?, ?, ?)",
+                    (pid, m.get("nombre", ""), m.get("rol", ""), i)
+                )
+            conn.commit()
+            return jsonify({"ok": True})
+        except Exception as e:
+            conn.rollback()
+            print("Error en api_plantilla_reunion (PUT):", e)
+            return jsonify({"ok": False, "error": "Error interno"}), 500
+
+    else:  # DELETE
+        try:
+            cur.execute("DELETE FROM plantillas_reunion WHERE id = ?", (pid,))
+            conn.commit()
+            return jsonify({"ok": True})
+        except Exception as e:
+            conn.rollback()
+            print("Error en api_plantilla_reunion (DELETE):", e)
+            return jsonify({"ok": False, "error": "Error interno"}), 500
+
+
+@reuniones_bp.route("/api/plantillas_reunion/<int:pid>/auto_miembros")
+def auto_miembros_plantilla(pid):
+    """Sugiere miembros automáticamente según el grupo activo y tipo de reunión."""
+    import json
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM plantillas_reunion WHERE id = ?", (pid,))
+    plantilla = cur.fetchone()
+    if not plantilla:
+        return jsonify({"ok": False, "error": "Plantilla no encontrada"}), 404
+
+    grupo_id = session.get("active_group_id")
+    miembros = []
+
+    if grupo_id:
+        cur.execute("SELECT nombre, equipo_docente, coordinador_ciclo FROM grupos WHERE id = ?", (grupo_id,))
+        grupo = cur.fetchone()
+        if grupo and grupo["equipo_docente"]:
+            try:
+                equipo = json.loads(grupo["equipo_docente"])
+                for prof in equipo:
+                    miembros.append({"nombre": prof, "rol": "Docente"})
+            except Exception:
+                pass
+        if grupo and grupo["coordinador_ciclo"]:
+            # Poner coordinador primero si es reunión de ciclo/CCP
+            if plantilla["tipo"] in ("CICLO", "CCP"):
+                miembros.insert(0, {"nombre": grupo["coordinador_ciclo"], "rol": "Coordinador/a"})
+
+    return jsonify({"ok": True, "miembros": miembros})
+
+
+# Ruta adicional para listar reuniones de todos los tipos (para el panel unificado)
+@reuniones_bp.route("/api/reuniones/todas")
+def api_reuniones_todas():
+    """Lista todas las reuniones con información enriquecida para el panel unificado."""
+    conn = get_db()
+    cur = conn.cursor()
+
+    sql = """
+        SELECT DISTINCT r.id, r.fecha, r.tipo, r.asistentes, r.temas, r.acuerdos,
+               r.dificultades, r.propuestas_mejora, r.lugar,
+               r.alumno_id, r.ciclo_id, r.grupo_id, r.plantilla_id,
+               a.nombre as alumno_nombre,
+               p.nombre as plantilla_nombre
+        FROM reuniones r
+        LEFT JOIN alumnos a ON r.alumno_id = a.id
+        LEFT JOIN plantillas_reunion p ON r.plantilla_id = p.id
+        WHERE 1=1
+    """
+    params = []
+
+    tipo_filter = request.args.get("tipo")
+    if tipo_filter:
+        if tipo_filter in ("PADRES", "FAMILIAS"):
+            sql += " AND r.tipo IN ('PADRES', 'FAMILIAS')"
+        else:
+            sql += " AND r.tipo = ?"
+            params.append(tipo_filter)
+
+    sql += " ORDER BY r.fecha DESC"
+    cur.execute(sql, params)
+    rows = cur.fetchall()
+    return jsonify([dict(r) for r in rows])
+
+
+# ==============================================================================
+# CLAUSTRO — almacén central de docentes del centro
+# ==============================================================================
+
+@reuniones_bp.route("/api/claustro", methods=["GET", "POST"])
+def api_claustro():
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "POST":
+        d = request.json
+        nombre = (d.get("nombre") or "").strip()
+        rol = d.get("rol", "Docente")
+        if not nombre:
+            return jsonify({"ok": False, "error": "Nombre obligatorio"}), 400
+        cur.execute("SELECT MAX(orden) FROM claustro")
+        row = cur.fetchone()
+        orden = (row[0] or 0) + 1
+        cur.execute("INSERT INTO claustro (nombre, rol, activo, orden) VALUES (?, ?, 1, ?)", (nombre, rol, orden))
+        conn.commit()
+        return jsonify({"ok": True, "id": cur.lastrowid})
+    else:
+        cur.execute("SELECT * FROM claustro ORDER BY orden, nombre")
+        return jsonify([dict(r) for r in cur.fetchall()])
+
+
+@reuniones_bp.route("/api/claustro/<int:cid>", methods=["PUT", "DELETE"])
+def api_claustro_item(cid):
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "PUT":
+        d = request.json
+        nombre = (d.get("nombre") or "").strip()
+        rol = d.get("rol", "Docente")
+        activo = 1 if d.get("activo", True) else 0
+        if not nombre:
+            return jsonify({"ok": False, "error": "Nombre obligatorio"}), 400
+        cur.execute("UPDATE claustro SET nombre=?, rol=?, activo=? WHERE id=?", (nombre, rol, activo, cid))
+        conn.commit()
+        return jsonify({"ok": True})
+    else:
+        cur.execute("DELETE FROM claustro WHERE id=?", (cid,))
+        conn.commit()
+        return jsonify({"ok": True})
+
+
+# ==============================================================================
+# ASISTENTES POR TIPO DE REUNIÓN
+# ==============================================================================
+
+@reuniones_bp.route("/api/reunion_asistentes/<tipo>", methods=["GET", "POST"])
+def api_reunion_asistentes(tipo):
+    """GET: lista claustro_ids asignados a este tipo. POST: guarda la selección completa."""
+    conn = get_db()
+    cur = conn.cursor()
+
+    if request.method == "POST":
+        d = request.json
+        ids = d.get("ids", [])
+        cur.execute("DELETE FROM reunion_tipo_asistentes WHERE tipo=?", (tipo,))
+        for cid in ids:
+            try:
+                cur.execute("INSERT OR IGNORE INTO reunion_tipo_asistentes (tipo, claustro_id) VALUES (?, ?)", (tipo, cid))
+            except Exception:
+                pass
+        conn.commit()
+        return jsonify({"ok": True})
+    else:
+        cur.execute("""
+            SELECT c.id, c.nombre, c.rol
+            FROM claustro c
+            JOIN reunion_tipo_asistentes rta ON rta.claustro_id = c.id
+            WHERE rta.tipo = ?
+            ORDER BY c.orden, c.nombre
+        """, (tipo,))
+        return jsonify([dict(r) for r in cur.fetchall()])
+
+
+@reuniones_bp.route("/api/reunion_asistentes/<tipo>/sugeridos")
+def api_asistentes_sugeridos(tipo):
+    """Devuelve los asistentes configurados para este tipo, o fallback al claustro completo."""
+    import json as json_mod
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Primero buscar configuración específica del tipo
+    cur.execute("""
+        SELECT c.nombre, c.rol FROM claustro c
+        JOIN reunion_tipo_asistentes rta ON rta.claustro_id = c.id
+        WHERE rta.tipo = ? AND c.activo = 1
+        ORDER BY c.orden, c.nombre
+    """, (tipo,))
+    rows = cur.fetchall()
+    if rows:
+        return jsonify([{"nombre": r["nombre"], "rol": r["rol"]} for r in rows])
+
+    # Fallback: todo el claustro activo
+    cur.execute("SELECT nombre, rol FROM claustro WHERE activo=1 ORDER BY orden, nombre")
+    rows = cur.fetchall()
+    if rows:
+        return jsonify([{"nombre": r["nombre"], "rol": r["rol"]} for r in rows])
+
+    # Último fallback: equipo docente del grupo activo
+    grupo_id = session.get("active_group_id")
+    if grupo_id:
+        cur.execute("SELECT equipo_docente, coordinador_ciclo FROM grupos WHERE id=?", (grupo_id,))
+        g = cur.fetchone()
+        if g and g["equipo_docente"]:
+            try:
+                equipo = json_mod.loads(g["equipo_docente"])
+                miembros = [{"nombre": p, "rol": "Docente"} for p in equipo]
+                if g["coordinador_ciclo"] and tipo in ("CICLO", "CCP"):
+                    miembros.insert(0, {"nombre": g["coordinador_ciclo"], "rol": "Coordinador/a"})
+                return jsonify(miembros)
+            except Exception:
+                pass
+
+    return jsonify([])

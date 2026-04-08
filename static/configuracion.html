@@ -228,6 +228,8 @@
                             style="font-size:1.8rem;">👥</span><span class="cfg-card-label">Grupos</span></div>
                     <div onclick="mostrarSeccion('logos')" class="cfg-card"><span
                             style="font-size:1.8rem;">🖼️</span><span class="cfg-card-label">Logos</span></div>
+                    <div onclick="mostrarSeccion('reuniones')" class="cfg-card"><span
+                            style="font-size:1.8rem;">🤝</span><span class="cfg-card-label">Reuniones</span></div>
                     <div onclick="mostrarSeccion('actualizaciones')" class="cfg-card"><span
                             style="font-size:1.8rem;">🔄</span><span class="cfg-card-label">Actualizaciones</span></div>
                     <div onclick="mostrarSeccion('mantenimiento')" class="cfg-card"><span
@@ -402,6 +404,92 @@
             </div>
         </div>
     </div>
+    <!-- Reuniones Configuration UI -->
+    <div id="reunionesConfigSection" class="card config-section" style="max-width: 800px; margin: 0 auto; display: none;">
+        <h2 style="color: var(--primary); text-align: center; margin-bottom: 8px;">🤝 Configuración de Reuniones</h2>
+        <p style="text-align:center; color:#666; margin-bottom:25px; font-size:0.9rem;">
+            Define el claustro y quién asiste a cada tipo de reunión
+        </p>
+
+        <!-- CLAUSTRO -->
+        <div style="margin-bottom: 30px;">
+            <h4 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top:0; color:var(--primary);">
+                👥 Claustro del Centro
+            </h4>
+            <p style="font-size:0.85rem; color:#666; margin-bottom:12px;">
+                Añade todos los docentes del centro. Luego asígnalos a cada tipo de reunión.
+            </p>
+            <div id="claustro-lista" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                <p style="color:#aaa; font-style:italic; font-size:0.9rem;">Cargando...</p>
+            </div>
+
+            <!-- Importar CSV -->
+            <div style="background:#f0f7ff; border:1px dashed #99c; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <span style="font-size:0.85rem; font-weight:700; color:#003366;">📥 Importar desde CSV</span>
+                    <input type="file" id="claustro-csv-file" accept=".csv"
+                        style="flex:1; min-width:160px; font-size:0.82rem; border:none; background:none; padding:0;">
+                    <button onclick="importarClaustroCSV()"
+                        style="background:#003366; color:white; border:none; padding:7px 14px; border-radius:7px; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap;">
+                        Importar
+                    </button>
+                    <button onclick="descargarPlantillaCSV()"
+                        style="background:none; border:1px solid #99c; color:#003366; padding:7px 12px; border-radius:7px; font-size:0.82rem; cursor:pointer; white-space:nowrap;">
+                        📄 Plantilla
+                    </button>
+                </div>
+                <p style="margin:6px 0 0; font-size:0.78rem; color:#556; font-style:italic;">
+                    CSV con columnas: <strong>nombre</strong>, <strong>rol</strong> (opcional). Una fila por docente.
+                </p>
+            </div>
+
+            <!-- Añadir manualmente -->
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+                <div style="flex:1; min-width:180px;">
+                    <label style="font-size:0.82rem; font-weight:600; color:#555; display:block; margin-bottom:4px;">Nombre</label>
+                    <input type="text" id="claustro-nuevo-nombre" placeholder="Nombre del docente"
+                        style="width:100%; padding:8px 10px; border:1px solid #cdd; border-radius:8px; font-size:0.9rem; box-sizing:border-box;">
+                </div>
+                <div style="width:160px;">
+                    <label style="font-size:0.82rem; font-weight:600; color:#555; display:block; margin-bottom:4px;">Rol</label>
+                    <select id="claustro-nuevo-rol"
+                        style="width:100%; padding:8px; border:1px solid #cdd; border-radius:8px; font-size:0.85rem;">
+                        <option>Docente</option>
+                        <option>Coordinador/a</option>
+                        <option>Director/a</option>
+                        <option>Jefe/a de Estudios</option>
+                        <option>Orientador/a</option>
+                        <option>PT</option>
+                        <option>AL</option>
+                        <option>Otro</option>
+                    </select>
+                </div>
+                <button onclick="añadirAlClaustro()"
+                    style="background:var(--success); color:white; border:none; padding:9px 16px; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">
+                    ➕ Añadir
+                </button>
+            </div>
+        </div>
+
+        <!-- ASISTENTES POR TIPO -->
+        <div>
+            <h4 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top:0; color:var(--primary);">
+                📋 Asistentes por tipo de reunión
+            </h4>
+            <p style="font-size:0.85rem; color:#666; margin-bottom:16px;">
+                Selecciona quién asiste habitualmente a cada tipo. Si no configuras un tipo, se usará el claustro completo.
+            </p>
+            <div id="tipos-asistentes">
+                <!-- generado por JS -->
+            </div>
+            <button onclick="guardarAsistentes()"
+                style="margin-top:16px; width:100%; padding:11px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer;">
+                💾 Guardar configuración de asistentes
+            </button>
+            <div id="asistentes-status" style="margin-top:8px; text-align:center; font-size:0.85rem; color:var(--success); display:none;"></div>
+        </div>
+    </div>
+
     <!-- The Groups Configuration UI -->
     <div id="gruposConfigSection" class="card config-section" style="max-width: 600px; margin: 0 auto; display: none;">
         <h2 style="color: var(--primary); text-align: center; margin-bottom: 25px;">⚙️ Ajustes de Grupos</h2>
@@ -870,6 +958,7 @@
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             if (seccionId === 'logos') cargarLogosPreviews();
+            if (seccionId === 'reuniones') cargarSeccionReuniones();
             if (seccionId === 'actualizaciones') {
                 loadAppVersion();
                 // Mostrar automáticamente el banner de actualizaciones
@@ -1029,6 +1118,249 @@
                 }
             } catch (e) { console.error(e); }
         }
+    </script>
+
+    <!-- ============================================================
+         SCRIPT: Configuración de Reuniones (Claustro y Asistentes)
+         ============================================================ -->
+    <script>
+    const TIPOS_REUNION = [
+        { id: 'CICLO', label: '🔄 Ciclo' },
+        { id: 'NIVEL', label: '📚 Nivel' },
+        { id: 'CCP', label: '🏛 CCP' },
+        { id: 'CLAUSTRO', label: '🏫 Claustro' },
+        { id: 'COMISIONES', label: '🗂 Comisiones' },
+        { id: 'FAMILIAS', label: '👨‍👩‍👧 Familias' },
+    ];
+
+    let _claustro = [];
+    let _asistentesConfig = {};  // { CICLO: [ids], NIVEL: [ids], ... }
+
+    async function cargarSeccionReuniones() {
+        await cargarClaustro();
+        await cargarAsistentesConfig();
+        renderClaustro();
+        renderTiposAsistentes();
+    }
+
+    async function cargarClaustro() {
+        const r = await fetch('/api/claustro');
+        _claustro = await r.json();
+    }
+
+    async function cargarAsistentesConfig() {
+        _asistentesConfig = {};
+        for (const t of TIPOS_REUNION) {
+            const r = await fetch(`/api/reunion_asistentes/${t.id}`);
+            const lista = await r.json();
+            _asistentesConfig[t.id] = lista.map(x => x.id);
+        }
+    }
+
+    function renderClaustro() {
+        const lista = document.getElementById('claustro-lista');
+        if (_claustro.length === 0) {
+            lista.innerHTML = '<p style="color:#bbb; font-style:italic; font-size:0.85rem;">Sin docentes. Añade el claustro del centro.</p>';
+            return;
+        }
+        const thead = `<div style="display:grid; grid-template-columns:2fr 1fr 1.5fr 80px 50px; gap:12px; padding:10px 16px; background:#edf2f7; border-radius:8px 8px 0 0; font-weight:600; font-size:0.8rem; color:#4a5568; text-align:center;">
+            <span style="text-align:left;">Nombre</span><span>Rol</span><span>Cambiar rol</span><span>Activo</span><span></span>
+        </div>`;
+        lista.innerHTML = thead + _claustro.map(d => `
+            <div style="display:grid; grid-template-columns:2fr 1fr 1.5fr 80px 50px; gap:12px; align-items:center; padding:12px 16px; background:#fff; border:1px solid #e2e8f0; border-top:none; font-size:0.85rem; text-align:center;">
+                <span style="font-weight:600; color:#2d3748; text-align:left;">${d.nombre}</span>
+                <span style="color:#4a5568; background:#e2e8f0; padding:4px 10px; border-radius:12px; font-size:0.75rem;">${d.rol}</span>
+                <select id="claustro-rol-${d.id}" onchange="cambiarRolClaustro(${d.id}, this.value)"
+                    style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e0; background:#fff; color:#2d3748; cursor:pointer; font-size:0.8rem;">
+                    <option value="Docente" ${d.rol === 'Docente' ? 'selected' : ''}>Docente</option>
+                    <option value="Coordinador/a" ${d.rol === 'Coordinador/a' ? 'selected' : ''}>Coordinador/a</option>
+                    <option value="Director/a" ${d.rol === 'Director/a' ? 'selected' : ''}>Director/a</option>
+                    <option value="Jefe de Estudios" ${d.rol === 'Jefe de Estudios' ? 'selected' : ''}>Jefe de Estudios</option>
+                    <option value="Secretario/a" ${d.rol === 'Secretario/a' ? 'selected' : ''}>Secretario/a</option>
+                    <option value="Orientador/a" ${d.rol === 'Orientador/a' ? 'selected' : ''}>Orientador/a</option>
+                    <option value="AL" ${d.rol === 'AL' ? 'selected' : ''}>AL</option>
+                    <option value="PT" ${d.rol === 'PT' ? 'selected' : ''}>PT</option>
+                    <option value="Infantil" ${d.rol === 'Infantil' ? 'selected' : ''}>Infantil</option>
+                </select>
+                <label style="display:flex; justify-content:center; cursor:pointer;">
+                    <input type="checkbox" ${d.activo ? 'checked' : ''} onchange="toggleActivoClaustro(${d.id}, this.checked)"
+                        style="width:20px; height:20px; accent-color:#3182ce;">
+                </label>
+                <button onclick="borrarDelClaustro(${d.id})" title="Eliminar" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-size:1rem;">✕</button>
+            </div>
+        `).join('');
+    }
+
+    function renderTiposAsistentes() {
+        const container = document.getElementById('tipos-asistentes');
+        container.innerHTML = TIPOS_REUNION.map(t => {
+            const seleccionados = _asistentesConfig[t.id] || [];
+            const checks = _claustro.map(d => `
+                <label style="display:flex; align-items:center; gap:8px; padding:5px 0; cursor:pointer;">
+                    <input type="checkbox" class="asistente-check" data-tipo="${t.id}" data-id="${d.id}"
+                        ${seleccionados.includes(d.id) ? 'checked' : ''}
+                        style="width:16px; height:16px;">
+                    <span style="font-size:0.88rem;">${d.nombre}</span>
+                    <span style="font-size:0.75rem; color:#aaa;">(${d.rol})</span>
+                </label>
+            `).join('');
+
+            const nsel = seleccionados.length;
+            return `
+                <div style="border:1px solid #e8ecf0; border-radius:10px; margin-bottom:12px; overflow:hidden;">
+                    <div style="background:#f0f4f8; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;"
+                         onclick="toggleTipoAsistentes('tipo-${t.id}')">
+                        <span style="font-weight:700; font-size:0.95rem;">${t.label}</span>
+                        <span style="font-size:0.8rem; color:#666;">${nsel > 0 ? nsel + ' seleccionados' : 'Todos (por defecto)'} ▾</span>
+                    </div>
+                    <div id="tipo-${t.id}" style="display:none; padding:10px 14px; display:none;">
+                        ${_claustro.length > 0 ? checks : '<p style="color:#bbb; font-size:0.85rem;">Añade docentes al claustro primero</p>'}
+                        <button onclick="seleccionarTodos('${t.id}')" style="margin-top:6px; font-size:0.78rem; background:none; border:none; cursor:pointer; color:#0066cc; padding:0;">✔ Seleccionar todos</button>
+                        &nbsp;
+                        <button onclick="deseleccionarTodos('${t.id}')" style="font-size:0.78rem; background:none; border:none; cursor:pointer; color:#cc0022; padding:0;">✗ Ninguno</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleTipoAsistentes(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function seleccionarTodos(tipo) {
+        document.querySelectorAll(`.asistente-check[data-tipo="${tipo}"]`).forEach(cb => cb.checked = true);
+    }
+    function deseleccionarTodos(tipo) {
+        document.querySelectorAll(`.asistente-check[data-tipo="${tipo}"]`).forEach(cb => cb.checked = false);
+    }
+
+    async function añadirAlClaustro() {
+        const nombre = document.getElementById('claustro-nuevo-nombre').value.trim();
+        const rol = document.getElementById('claustro-nuevo-rol').value;
+        if (!nombre) { alert('Escribe el nombre del docente'); return; }
+        const r = await fetch('/api/claustro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, rol })
+        });
+        const res = await r.json();
+        if (res.ok) {
+            document.getElementById('claustro-nuevo-nombre').value = '';
+            await cargarClaustro();
+            renderClaustro();
+            renderTiposAsistentes();
+        }
+    }
+
+    function descargarPlantillaCSV() {
+        const csv = 'nombre,rol\nMaría García,Docente\nJuan López,Coordinador/a\nAna Martínez,PT\nLuis Sánchez,AL\n';
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'plantilla_claustro.csv';
+        a.click();
+    }
+
+    async function importarClaustroCSV() {
+        const file = document.getElementById('claustro-csv-file').files[0];
+        if (!file) { alert('Selecciona un archivo CSV'); return; }
+
+        const text = await file.text();
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length === 0) { alert('El archivo está vacío'); return; }
+
+        // Detectar si la primera fila es cabecera (contiene "nombre")
+        let startIdx = 0;
+        const firstLine = lines[0].toLowerCase();
+        if (firstLine.includes('nombre') || firstLine.includes('name')) startIdx = 1;
+
+        const docentes = [];
+        for (let i = startIdx; i < lines.length; i++) {
+            const cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+            const nombre = cols[0];
+            const rol = cols[1] || 'Docente';
+            if (nombre) docentes.push({ nombre, rol });
+        }
+
+        if (docentes.length === 0) { alert('No se encontraron docentes en el archivo'); return; }
+
+        let añadidos = 0, errores = 0;
+        for (const d of docentes) {
+            const r = await fetch('/api/claustro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(d)
+            });
+            const res = await r.json();
+            if (res.ok) añadidos++;
+            else errores++;
+        }
+
+        document.getElementById('claustro-csv-file').value = '';
+        alert(`✅ Importación completada: ${añadidos} docentes añadidos${errores > 0 ? `, ${errores} errores` : ''}`);
+        await cargarClaustro();
+        renderClaustro();
+        renderTiposAsistentes();
+    }
+
+    async function toggleActivoClaustro(id, activo) {
+        const d = _claustro.find(x => x.id === id);
+        if (!d) return;
+        await fetch(`/api/claustro/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: d.nombre, rol: d.rol, activo })
+        });
+        await cargarClaustro();
+        renderClaustro();
+    }
+
+    async function cambiarRolClaustro(id, nuevoRol) {
+        const d = _claustro.find(x => x.id === id);
+        if (!d) return;
+        await fetch(`/api/claustro/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: d.nombre, rol: nuevoRol, activo: d.activo })
+        });
+        await cargarClaustro();
+        renderClaustro();
+    }
+
+    async function borrarDelClaustro(id) {
+        if (!confirm('¿Eliminar este docente del claustro?')) return;
+        await fetch(`/api/claustro/${id}`, { method: 'DELETE' });
+        await cargarClaustro();
+        renderClaustro();
+        renderTiposAsistentes();
+    }
+
+    async function guardarAsistentes() {
+        for (const t of TIPOS_REUNION) {
+            const ids = [];
+            document.querySelectorAll(`.asistente-check[data-tipo="${t.id}"]:checked`).forEach(cb => {
+                ids.push(parseInt(cb.dataset.id));
+            });
+            await fetch(`/api/reunion_asistentes/${t.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids })
+            });
+        }
+        const st = document.getElementById('asistentes-status');
+        st.textContent = '✅ Configuración guardada';
+        st.style.display = 'block';
+        setTimeout(() => { st.style.display = 'none'; }, 3000);
+    }
+
+    // Permitir añadir con Enter en el campo nombre
+    document.addEventListener('DOMContentLoaded', () => {
+        const inp = document.getElementById('claustro-nuevo-nombre');
+        if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') añadirAlClaustro(); });
+    });
     </script>
 
     <!-- Gestión de Backups Modal -->

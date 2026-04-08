@@ -412,23 +412,40 @@ def reunion_pdf(rid):
 
     # Obtener nombre del ciclo si es reunión de ciclo
     grupo_curso = ""
+    coordinador_ciclo = ""
     try:
-        if reunion["tipo"] == "CICLO" and reunion.get("ciclo_id"):
-            cur.execute("SELECT nombre FROM config_ciclo WHERE id = ?", (reunion["ciclo_id"],))
+        ciclo_id_val = reunion["ciclo_id"] if "ciclo_id" in reunion.keys() else None
+        if reunion["tipo"] == "CICLO" and ciclo_id_val:
+            cur.execute("SELECT nombre FROM config_ciclo WHERE id = ?", (ciclo_id_val,))
             row_ciclo = cur.fetchone()
             if row_ciclo and row_ciclo["nombre"]:
                 # Extraer el curso del nombre del ciclo (ej: "1º Primaria" → "1º")
                 ciclo_nombre = row_ciclo["nombre"]
-                # Si el nombre contiene un grado (1º, 2º, etc.), extraerlo
                 import re
                 match = re.match(r'(\d+[ºª])\s+', ciclo_nombre)
                 if match:
                     grupo_curso = match.group(1)
                 else:
                     grupo_curso = ciclo_nombre
+        # Fallback: usar nombre del grupo activo en sesión
+        if not grupo_curso:
+            grupo_id = session.get('active_group_id')
+            if grupo_id:
+                cur.execute("SELECT nombre, coordinador_ciclo FROM grupos WHERE id = ?", (grupo_id,))
+                row_g = cur.fetchone()
+                if row_g and row_g["nombre"]:
+                    grupo_curso = row_g["nombre"]
+                coordinador_ciclo = row_g["coordinador_ciclo"] if row_g and row_g["coordinador_ciclo"] else ""
+        else:
+            grupo_id = session.get('active_group_id')
+            if grupo_id:
+                cur.execute("SELECT coordinador_ciclo FROM grupos WHERE id = ?", (grupo_id,))
+                row_g2 = cur.fetchone()
+                coordinador_ciclo = row_g2["coordinador_ciclo"] if row_g2 and row_g2["coordinador_ciclo"] else ""
     except Exception as e:
         print(f"[WARNING] Error obteniendo curso del ciclo para firma del tutor: {e}")
         grupo_curso = ""
+        coordinador_ciclo = ""
 
     # Construir etiqueta del tutor con curso si está disponible
     tutor_label = f"Tutor/a {grupo_curso}" if grupo_curso else "Tutor/a"
@@ -449,11 +466,11 @@ def reunion_pdf(rid):
     col_tutor.append(Paragraph(f"<i>{tutor_nombre}</i>", style_small))
 
     if reunion["tipo"] == "CICLO":
-        col_otro = [
-            Paragraph("<b>El/La Coordinador/a:</b>", style_label),
-            Spacer(1, 36),
-            Paragraph("<i>Fdo: .............................................</i>", style_small)
-        ]
+        col_otro = [Paragraph("<b>El/La Coordinador/a:</b>", style_label), Spacer(1, 36)]
+        if coordinador_ciclo:
+            col_otro.append(Paragraph(f"<i>{coordinador_ciclo}</i>", style_small))
+        else:
+            col_otro.append(Paragraph("<i>Fdo: .............................................</i>", style_small))
     else:
         col_otro = [
             Paragraph("<b>El/La Padre/Madre/Tutor Legal:</b>", style_label),

@@ -91,6 +91,7 @@ def run_migrations():
         ("ALTER TABLE alumnos ADD COLUMN observaciones_generales TEXT", "alumnos.observaciones_generales"),
         # --- grupos ---
         ("ALTER TABLE grupos ADD COLUMN equipo_docente TEXT", "grupos.equipo_docente"),
+        ("ALTER TABLE grupos ADD COLUMN coordinador_ciclo TEXT", "grupos.coordinador_ciclo"),
         # --- areas ---
         ("ALTER TABLE areas ADD COLUMN es_personalizada BOOLEAN DEFAULT 1", "areas.es_personalizada"),
         # --- criterios ---

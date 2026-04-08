@@ -1,12 +1,41 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 7 de Abril 2026
+**Fecha:** 8 de Abril 2026
 **Versión:** `v1.1.29`
 **Rama activa:** `master`
 
 ---
 
-## ✅ FIXES ADICIONALES (v1.1.29 — post-release)
+## ✅ FIXES Y MEJORAS POST-RELEASE (v1.1.29)
+
+### Acta de Reunión de Ciclo — label tutor con curso
+- La celda "Tutor/a:" en el PDF ahora incluye el nombre del grupo (ej: "Tutor/a 1º Primaria")
+- Fuente: nombre del ciclo en `config_ciclo` (regex `\d+[ºª]`) → fallback al nombre del grupo activo en sesión
+- Fix: `sqlite3.Row` no tiene `.get()` → usar `reunion["ciclo_id"] if "ciclo_id" in reunion.keys() else None`
+- Archivos: `routes/reuniones.py`
+
+### Coordinador/a de Ciclo en grupos
+- Nuevo campo `coordinador_ciclo TEXT` en tabla `grupos` (migración automática en `db.py`)
+- Visible en **Configuración → Nuevo Grupo** y **Editar Grupo**, debajo del Equipo Docente
+- En el PDF de reunión de ciclo: si hay coordinador guardado, aparece su nombre en cursiva bajo "El/La Coordinador/a:"; si no, mantiene la línea punteada para firma
+- Archivos: `routes/db.py`, `routes/main.py`, `routes/reuniones.py`, `static/configuracion.html`
+
+### Dark mode — mejoras masivas
+- Añadidas reglas CSS para cubrir colores hardcodeados en todas las páginas:
+  - Textos oscuros: `#333`, `#444`, `#555`, `#666`, `#777`, `#888`, `#999`, `#000`, `black` y variantes Tailwind (`#1e293b`, `#374151`, etc.)
+  - Fondos claros neutros: `#f8f9fa`, `#f8fafc`, `#f9f9f9`, `#f0f4f8`, `#f1f5f9`, `#fdfdfd` y más de 15 variantes
+  - Fondos semánticos: verdes (`#e8f5e9`, `#d4edda`, `#dcfce7`) → verde oscuro; rojos (`#f8d7da`, `#fee2e2`) → rojo oscuro; azules (`#e7f3fe`, `#e3f2fd`) → azul oscuro; amarillos → warning oscuro
+  - `tr`/`td` con fondos inline en tablas alternadas
+  - `input`/`textarea`/`select` con `background: white` inline
+  - Gradientes con `#003366` → gradiente oscuro
+  - Bordes `#ddd`, `#ccc`, `#e9ecef` → `var(--gray-300)`
+  - Labels de formulario → `#ffffff` (antes `#d0d0e0`, demasiado tenue)
+  - Eventos del calendario FullCalendar → texto blanco (`color: #ffffff !important`)
+- Archivos: `static/css/dark-mode.css`
+
+---
+
+## ✅ FIXES ADICIONALES (v1.1.29 — post-release anteriores)
 
 ### Fix versión en Panel de Control (automático)
 - El badge de versión en el Panel de Control llamaba a `/api/version` (endpoint inexistente) → ahora llama a `/api/admin/version`
@@ -263,9 +292,9 @@ git push origin --delete feature/refactor-evaluacion-curricular
 
 ---
 
-**Última actualización:** 8 Abril 2026 — Fix acta de ciclo + Dark mode completo
-**Estado:** ⚠️ Pendiente de probar en navegador
-**Rama para commit:** `feature/fix-acta-ciclo-y-dark-mode` (POR CREAR)
+**Última actualización:** 8 Abril 2026 — Fix curso tutor en ciclo (COMMITEADO ✅ v4 - commit `944a102`)
+**Estado:** ✅ Commiteado — ⬜ PENDIENTE PROBAR (app corriendo en puerto 5000)
+**Rama:** `feature/fix-acta-ciclo-y-dark-mode` — ✅ Subida a GitHub
 
 ---
 

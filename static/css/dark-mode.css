@@ -101,7 +101,7 @@
 [data-theme="dark"] label,
 [data-theme="dark"] .form-label,
 [data-theme="dark"] legend {
-    color: #d0d0e0;
+    color: #ffffff;
     font-weight: 600;
 }
 
@@ -232,6 +232,13 @@
 [data-theme="dark"] .fc-toolbar-title {
     color: var(--primary);
     font-weight: bold;
+}
+
+[data-theme="dark"] .fc-event,
+[data-theme="dark"] .fc-event-title,
+[data-theme="dark"] .fc-event-time,
+[data-theme="dark"] .fc-daygrid-event-dot {
+    color: #ffffff !important;
 }
 
 [data-theme="dark"] .fc-col-header-cell-cushion {
@@ -400,8 +407,423 @@
 
 /* --- Select elements with inline white backgrounds --- */
 [data-theme="dark"] select[style*="background:white"],
-[data-theme="dark"] select[style*="background:#fff"] {
+[data-theme="dark"] select[style*="background:#fff"],
+[data-theme="dark"] select[style*="background: white"],
+[data-theme="dark"] select[style*="background: #fff"] {
     background: var(--gray-100) !important;
-    color: var(--dark);
-    border-color: var(--gray-300);
+    color: var(--dark) !important;
+    border-color: var(--gray-300) !important;
+}
+
+/* --- Texto con colores oscuros hardcodeados --- */
+[data-theme="dark"] [style*="color:#333"],
+[data-theme="dark"] [style*="color: #333"],
+[data-theme="dark"] [style*="color:#444"],
+[data-theme="dark"] [style*="color: #444"],
+[data-theme="dark"] [style*="color:#555"],
+[data-theme="dark"] [style*="color: #555"] {
+    color: var(--dark) !important;
+}
+
+[data-theme="dark"] [style*="color:#666"],
+[data-theme="dark"] [style*="color: #666"],
+[data-theme="dark"] [style*="color:#777"],
+[data-theme="dark"] [style*="color: #777"],
+[data-theme="dark"] [style*="color:#888"],
+[data-theme="dark"] [style*="color: #888"],
+[data-theme="dark"] [style*="color:#999"],
+[data-theme="dark"] [style*="color: #999"],
+[data-theme="dark"] [style*="color:#aaa"],
+[data-theme="dark"] [style*="color: #aaa"] {
+    color: var(--gray-500) !important;
+}
+
+[data-theme="dark"] [style*="color:#003366"],
+[data-theme="dark"] [style*="color: #003366"],
+[data-theme="dark"] [style*="color:#00509e"],
+[data-theme="dark"] [style*="color: #00509e"] {
+    color: var(--primary) !important;
+}
+
+/* --- Fondos grises claros hardcodeados --- */
+[data-theme="dark"] [style*="background:#fafafa"],
+[data-theme="dark"] [style*="background: #fafafa"],
+[data-theme="dark"] [style*="background:#f5f5f5"],
+[data-theme="dark"] [style*="background: #f5f5f5"],
+[data-theme="dark"] [style*="background:#f0f2f5"],
+[data-theme="dark"] [style*="background: #f0f2f5"],
+[data-theme="dark"] [style*="background:#f2f2f2"],
+[data-theme="dark"] [style*="background: #f2f2f2"],
+[data-theme="dark"] [style*="background:#eef2f7"],
+[data-theme="dark"] [style*="background: #eef2f7"],
+[data-theme="dark"] [style*="background:#e8ecf0"],
+[data-theme="dark"] [style*="background: #e8ecf0"],
+[data-theme="dark"] [style*="background:#e2e8f0"],
+[data-theme="dark"] [style*="background: #e2e8f0"],
+[data-theme="dark"] [style*="background:#eeeeee"],
+[data-theme="dark"] [style*="background: #eeeeee"] {
+    background: var(--gray-100) !important;
+    color: var(--dark) !important;
+}
+
+/* --- Filas de tabla con fondos inline --- */
+[data-theme="dark"] tr[style*="background:white"],
+[data-theme="dark"] tr[style*="background: white"],
+[data-theme="dark"] tr[style*="background:#fff"],
+[data-theme="dark"] tr[style*="background: #fff"],
+[data-theme="dark"] td[style*="background:white"],
+[data-theme="dark"] td[style*="background: white"],
+[data-theme="dark"] td[style*="background:#fff"],
+[data-theme="dark"] td[style*="background: #fff"],
+[data-theme="dark"] tr[style*="background:#fafafa"],
+[data-theme="dark"] tr[style*="background: #fafafa"] {
+    background: var(--white) !important;
+    color: var(--dark) !important;
+}
+
+/* --- Input/textarea con fondo blanco inline --- */
+[data-theme="dark"] input[style*="background:white"],
+[data-theme="dark"] input[style*="background: white"],
+[data-theme="dark"] input[style*="background:#fff"],
+[data-theme="dark"] input[style*="background: #fff"],
+[data-theme="dark"] textarea[style*="background:white"],
+[data-theme="dark"] textarea[style*="background: white"],
+[data-theme="dark"] textarea[style*="background:#fff"],
+[data-theme="dark"] textarea[style*="background: #fff"] {
+    background: var(--gray-100) !important;
+    color: var(--dark) !important;
+    border-color: var(--gray-300) !important;
+}
+
+/* --- Spans y pequeños elementos con color oscuro --- */
+[data-theme="dark"] span[style*="color:#"],
+[data-theme="dark"] small[style*="color:#"] {
+    filter: none;
+}
+
+/* --- div/section con fondos claros no cubiertos --- */
+[data-theme="dark"] div[style*="background:#fffafb"],
+[data-theme="dark"] div[style*="background: #fffafb"],
+[data-theme="dark"] div[style*="background:#fffde7"],
+[data-theme="dark"] div[style*="background: #fffde7"] {
+    background: var(--gray-200) !important;
+    color: var(--dark) !important;
+}
+
+/* --- Gradientes con azul oscuro --- */
+[data-theme="dark"] [style*="background: linear-gradient"][style*="#003366"],
+[data-theme="dark"] [style*="background:linear-gradient"][style*="#003366"] {
+    background: linear-gradient(135deg, #1a2a3a, #1e3a5a) !important;
+}
+
+/* --- Botones con color rojo/acción que mantienen su color --- */
+[data-theme="dark"] button[style*="background:#ccc"],
+[data-theme="dark"] button[style*="background: #ccc"] {
+    background: var(--gray-400) !important;
+    color: var(--dark) !important;
+}
+
+/* --- Badges y chips con fondos claros --- */
+[data-theme="dark"] [style*="background:#fff3cd"],
+[data-theme="dark"] [style*="background: #fff3cd"],
+[data-theme="dark"] [style*="background:#fff3e0"],
+[data-theme="dark"] [style*="background: #fff3e0"],
+[data-theme="dark"] [style*="background:#fffbeb"],
+[data-theme="dark"] [style*="background: #fffbeb"],
+[data-theme="dark"] [style*="background:#fff7ed"],
+[data-theme="dark"] [style*="background: #fff7ed"],
+[data-theme="dark"] [style*="background:#fffdf0"],
+[data-theme="dark"] [style*="background: #fffdf0"],
+[data-theme="dark"] [style*="background:#fef3c7"],
+[data-theme="dark"] [style*="background: #fef3c7"],
+[data-theme="dark"] [style*="background:#fff8e1"],
+[data-theme="dark"] [style*="background: #fff8e1"],
+[data-theme="dark"] [style*="background:#ffeeba"],
+[data-theme="dark"] [style*="background: #ffeeba"],
+[data-theme="dark"] [style*="background:#fff9eb"],
+[data-theme="dark"] [style*="background: #fff9eb"],
+[data-theme="dark"] [style*="background:#fffcf5"],
+[data-theme="dark"] [style*="background: #fffcf5"],
+[data-theme="dark"] [style*="background:#fffaf0"],
+[data-theme="dark"] [style*="background: #fffaf0"],
+[data-theme="dark"] [style*="background:#fef9e7"],
+[data-theme="dark"] [style*="background: #fef9e7"] {
+    background: var(--gray-200) !important;
+    color: var(--warning) !important;
+    border-color: var(--warning) !important;
+}
+
+/* --- Fondos neutros claros adicionales → fondo oscuro --- */
+[data-theme="dark"] [style*="background:#f8f9fa"],
+[data-theme="dark"] [style*="background: #f8f9fa"],
+[data-theme="dark"] [style*="background:#f8fafc"],
+[data-theme="dark"] [style*="background: #f8fafc"],
+[data-theme="dark"] [style*="background:#f8fbff"],
+[data-theme="dark"] [style*="background: #f8fbff"],
+[data-theme="dark"] [style*="background:#f8faff"],
+[data-theme="dark"] [style*="background: #f8faff"],
+[data-theme="dark"] [style*="background:#f8f7ff"],
+[data-theme="dark"] [style*="background: #f8f7ff"],
+[data-theme="dark"] [style*="background:#f9f9f9"],
+[data-theme="dark"] [style*="background: #f9f9f9"],
+[data-theme="dark"] [style*="background:#f9fafb"],
+[data-theme="dark"] [style*="background: #f9fafb"],
+[data-theme="dark"] [style*="background:#f0f4f8"],
+[data-theme="dark"] [style*="background: #f0f4f8"],
+[data-theme="dark"] [style*="background:#f0f8ff"],
+[data-theme="dark"] [style*="background: #f0f8ff"],
+[data-theme="dark"] [style*="background:#f0f7ff"],
+[data-theme="dark"] [style*="background: #f0f7ff"],
+[data-theme="dark"] [style*="background:#f1f5f9"],
+[data-theme="dark"] [style*="background: #f1f5f9"],
+[data-theme="dark"] [style*="background:#f1f3f5"],
+[data-theme="dark"] [style*="background: #f1f3f5"],
+[data-theme="dark"] [style*="background:#f3f4f6"],
+[data-theme="dark"] [style*="background: #f3f4f6"],
+[data-theme="dark"] [style*="background:#fdfdfd"],
+[data-theme="dark"] [style*="background: #fdfdfd"],
+[data-theme="dark"] [style*="background:#fafbfc"],
+[data-theme="dark"] [style*="background: #fafbfc"],
+[data-theme="dark"] [style*="background:#f8fbff"],
+[data-theme="dark"] [style*="background: #f8fbff"] {
+    background: var(--gray-100) !important;
+    color: var(--dark) !important;
+}
+
+/* --- Fondos success (verdes claros) → oscuro verde tenue --- */
+[data-theme="dark"] [style*="background:#e8f5e9"],
+[data-theme="dark"] [style*="background: #e8f5e9"],
+[data-theme="dark"] [style*="background:#d4edda"],
+[data-theme="dark"] [style*="background: #d4edda"],
+[data-theme="dark"] [style*="background:#dcfce7"],
+[data-theme="dark"] [style*="background: #dcfce7"],
+[data-theme="dark"] [style*="background:#f0fdf4"],
+[data-theme="dark"] [style*="background: #f0fdf4"],
+[data-theme="dark"] [style*="background:#f0fff4"],
+[data-theme="dark"] [style*="background: #f0fff4"],
+[data-theme="dark"] [style*="background:#ecfdf5"],
+[data-theme="dark"] [style*="background: #ecfdf5"],
+[data-theme="dark"] [style*="background:#e8f4fd"],
+[data-theme="dark"] [style*="background: #e8f4fd"] {
+    background: #1a3a2a !important;
+    color: #a8e6cf !important;
+}
+
+/* --- Fondos danger (rojos claros) → oscuro rojo tenue --- */
+[data-theme="dark"] [style*="background:#f8d7da"],
+[data-theme="dark"] [style*="background: #f8d7da"],
+[data-theme="dark"] [style*="background:#fee2e2"],
+[data-theme="dark"] [style*="background: #fee2e2"],
+[data-theme="dark"] [style*="background:#ffebee"],
+[data-theme="dark"] [style*="background: #ffebee"],
+[data-theme="dark"] [style*="background:#fff5f5"],
+[data-theme="dark"] [style*="background: #fff5f5"],
+[data-theme="dark"] [style*="background:#fef2f2"],
+[data-theme="dark"] [style*="background: #fef2f2"],
+[data-theme="dark"] [style*="background:#fdf2f2"],
+[data-theme="dark"] [style*="background: #fdf2f2"],
+[data-theme="dark"] [style*="background:#fff9f2"],
+[data-theme="dark"] [style*="background: #fff9f2"] {
+    background: #3a1a1a !important;
+    color: #ffaaaa !important;
+}
+
+/* --- Fondos info (azules claros) → oscuro azul tenue --- */
+[data-theme="dark"] [style*="background:#e7f3fe"],
+[data-theme="dark"] [style*="background: #e7f3fe"],
+[data-theme="dark"] [style*="background:#e3f2fd"],
+[data-theme="dark"] [style*="background: #e3f2fd"],
+[data-theme="dark"] [style*="background:#cfe2ff"],
+[data-theme="dark"] [style*="background: #cfe2ff"],
+[data-theme="dark"] [style*="background:#e0e7ff"],
+[data-theme="dark"] [style*="background: #e0e7ff"],
+[data-theme="dark"] [style*="background:#e0f2fe"],
+[data-theme="dark"] [style*="background: #e0f2fe"],
+[data-theme="dark"] [style*="background:#edf2ff"],
+[data-theme="dark"] [style*="background: #edf2ff"],
+[data-theme="dark"] [style*="background:#eef2ff"],
+[data-theme="dark"] [style*="background: #eef2ff"],
+[data-theme="dark"] [style*="background:#e7f1ff"],
+[data-theme="dark"] [style*="background: #e7f1ff"],
+[data-theme="dark"] [style*="background:#e7f3fe"],
+[data-theme="dark"] [style*="background: #e7f3fe"],
+[data-theme="dark"] [style*="background:#e9f0fb"],
+[data-theme="dark"] [style*="background: #e9f0fb"],
+[data-theme="dark"] [style*="background:#c8d8f0"],
+[data-theme="dark"] [style*="background: #c8d8f0"],
+[data-theme="dark"] [style*="background:#f0f7ff"],
+[data-theme="dark"] [style*="background: #f0f7ff"],
+[data-theme="dark"] [style*="background:#f0fbfc"],
+[data-theme="dark"] [style*="background: #f0fbfc"],
+[data-theme="dark"] [style*="background:#ecfeff"],
+[data-theme="dark"] [style*="background: #ecfeff"],
+[data-theme="dark"] [style*="background:#f0fdfa"],
+[data-theme="dark"] [style*="background: #f0fdfa"] {
+    background: #1a2a3a !important;
+    color: #a8d8f0 !important;
+}
+
+/* --- Fondos púrpura/violeta claros --- */
+[data-theme="dark"] [style*="background:#f5f3ff"],
+[data-theme="dark"] [style*="background: #f5f3ff"],
+[data-theme="dark"] [style*="background:#fdf2f8"],
+[data-theme="dark"] [style*="background: #fdf2f8"],
+[data-theme="dark"] [style*="background:#fdf4ff"],
+[data-theme="dark"] [style*="background: #fdf4ff"],
+[data-theme="dark"] [style*="background:#fcf0ff"],
+[data-theme="dark"] [style*="background: #fcf0ff"],
+[data-theme="dark"] [style*="background:#fce7f3"],
+[data-theme="dark"] [style*="background: #fce7f3"] {
+    background: #2a1a3a !important;
+    color: #d8a8f0 !important;
+}
+
+/* --- Texto medio-oscuro adicional (#4xx, #5xx, #6xx, #7xx) --- */
+[data-theme="dark"] [style*="color:#475569"],
+[data-theme="dark"] [style*="color: #475569"],
+[data-theme="dark"] [style*="color:#4a5568"],
+[data-theme="dark"] [style*="color: #4a5568"],
+[data-theme="dark"] [style*="color:#4b5563"],
+[data-theme="dark"] [style*="color: #4b5563"],
+[data-theme="dark"] [style*="color:#64748b"],
+[data-theme="dark"] [style*="color: #64748b"],
+[data-theme="dark"] [style*="color:#6b7280"],
+[data-theme="dark"] [style*="color: #6b7280"],
+[data-theme="dark"] [style*="color:#718096"],
+[data-theme="dark"] [style*="color: #718096"],
+[data-theme="dark"] [style*="color:#7f8c8d"],
+[data-theme="dark"] [style*="color: #7f8c8d"],
+[data-theme="dark"] [style*="color:#94a3b8"],
+[data-theme="dark"] [style*="color: #94a3b8"],
+[data-theme="dark"] [style*="color:#a0aec0"],
+[data-theme="dark"] [style*="color: #a0aec0"],
+[data-theme="dark"] [style*="color:#6c757d"],
+[data-theme="dark"] [style*="color: #6c757d"],
+[data-theme="dark"] [style*="color:#7a5800"],
+[data-theme="dark"] [style*="color: #7a5800"] {
+    color: var(--gray-500) !important;
+}
+
+[data-theme="dark"] [style*="color:#1e293b"],
+[data-theme="dark"] [style*="color: #1e293b"],
+[data-theme="dark"] [style*="color:#2d3748"],
+[data-theme="dark"] [style*="color: #2d3748"],
+[data-theme="dark"] [style*="color:#374151"],
+[data-theme="dark"] [style*="color: #374151"],
+[data-theme="dark"] [style*="color:#343a40"],
+[data-theme="dark"] [style*="color: #343a40"],
+[data-theme="dark"] [style*="color:black"],
+[data-theme="dark"] [style*="color: black"],
+[data-theme="dark"] [style*="color:#000"],
+[data-theme="dark"] [style*="color: #000"] {
+    color: var(--dark) !important;
+}
+
+/* --- Colores de borde oscuros --- */
+[data-theme="dark"] [style*="border-color:#ddd"],
+[data-theme="dark"] [style*="border-color: #ddd"],
+[data-theme="dark"] [style*="border-color:#ccc"],
+[data-theme="dark"] [style*="border-color: #ccc"],
+[data-theme="dark"] [style*="border-color:#e9ecef"],
+[data-theme="dark"] [style*="border-color: #e9ecef"],
+[data-theme="dark"] [style*="border-color:#e2e8f0"],
+[data-theme="dark"] [style*="border-color: #e2e8f0"],
+[data-theme="dark"] [style*="border-color:#cbd5e1"],
+[data-theme="dark"] [style*="border-color: #cbd5e1"],
+[data-theme="dark"] [style*="border:#ddd"],
+[data-theme="dark"] [style*="border: 1px solid #ddd"],
+[data-theme="dark"] [style*="border:1px solid #ddd"],
+[data-theme="dark"] [style*="border: 1px solid #ccc"],
+[data-theme="dark"] [style*="border:1px solid #ccc"],
+[data-theme="dark"] [style*="border: 1px solid #e9ecef"],
+[data-theme="dark"] [style*="border:1px solid #e9ecef"] {
+    border-color: var(--gray-300) !important;
+}
+
+/* --- Neutrales adicionales para e9ecef y similares --- */
+[data-theme="dark"] [style*="background:#e9ecef"],
+[data-theme="dark"] [style*="background: #e9ecef"],
+[data-theme="dark"] [style*="background:#e8ecf0"],
+[data-theme="dark"] [style*="background: #e8ecf0"],
+[data-theme="dark"] [style*="background:#e0e0e0"],
+[data-theme="dark"] [style*="background: #e0e0e0"],
+[data-theme="dark"] [style*="background:#ddd"],
+[data-theme="dark"] [style*="background: #ddd"],
+[data-theme="dark"] [style*="background:#eee"],
+[data-theme="dark"] [style*="background: #eee"],
+[data-theme="dark"] [style*="background:#d1d9e6"],
+[data-theme="dark"] [style*="background: #d1d9e6"],
+[data-theme="dark"] [style*="background:#cbd5e1"],
+[data-theme="dark"] [style*="background: #cbd5e1"] {
+    background: var(--gray-300) !important;
+    color: var(--dark) !important;
+}
+
+/* --- Fondos oscuros que ya son ok pero necesitan texto claro --- */
+[data-theme="dark"] [style*="background:#1a1a2e"],
+[data-theme="dark"] [style*="background:#1e1e2f"],
+[data-theme="dark"] [style*="background:#1a2a4a"],
+[data-theme="dark"] [style*="background:#2a2a3d"],
+[data-theme="dark"] [style*="background:#33334d"],
+[data-theme="dark"] [style*="background:#1e4265"],
+[data-theme="dark"] [style*="background:#1565c0"],
+[data-theme="dark"] [style*="background:#1a2a3a"] {
+    color: var(--dark) !important;
+}
+
+/* --- Fondos con colores de index.html (pastel muy claro) --- */
+[data-theme="dark"] [style*="background:#ecfdf5"],
+[data-theme="dark"] [style*="background: #ecfdf5"],
+[data-theme="dark"] [style*="background:#ecfeff"],
+[data-theme="dark"] [style*="background: #ecfeff"],
+[data-theme="dark"] [style*="background:#eff6ff"],
+[data-theme="dark"] [style*="background: #eff6ff"],
+[data-theme="dark"] [style*="background:#eef2ff"],
+[data-theme="dark"] [style*="background: #eef2ff"],
+[data-theme="dark"] [style*="background:#f7fee7"],
+[data-theme="dark"] [style*="background: #f7fee7"],
+[data-theme="dark"] [style*="background:#fce7f3"],
+[data-theme="dark"] [style*="background: #fce7f3"],
+[data-theme="dark"] [style*="background:#f0f0f0"],
+[data-theme="dark"] [style*="background: #f0f0f0"] {
+    background: var(--gray-100) !important;
+    color: var(--dark) !important;
+}
+
+/* --- Clases comunes con fondos claros definidas en style tags --- */
+[data-theme="dark"] .fc-list-day-cushion,
+[data-theme="dark"] .fc-list-event:hover td {
+    background: var(--gray-200) !important;
+}
+
+[data-theme="dark"] .badge-success,
+[data-theme="dark"] .badge-warning,
+[data-theme="dark"] .badge-danger,
+[data-theme="dark"] .badge-info {
+    opacity: 0.9;
+}
+
+/* --- Elementos con color de texto derivado de variable claro --- */
+[data-theme="dark"] .text-muted {
+    color: var(--gray-500) !important;
+}
+
+[data-theme="dark"] .text-secondary {
+    color: var(--gray-500) !important;
+}
+
+[data-theme="dark"] .text-dark,
+[data-theme="dark"] .text-body {
+    color: var(--dark) !important;
+}
+
+/* --- backgrounds con ffe y ffff (blancos variantes) --- */
+[data-theme="dark"] [style*="background:#ffe5d0"],
+[data-theme="dark"] [style*="background: #ffe5d0"],
+[data-theme="dark"] [style*="background:#ffebee"],
+[data-theme="dark"] [style*="background: #ffebee"],
+[data-theme="dark"] [style*="background:#fff5f5"],
+[data-theme="dark"] [style*="background: #fff5f5"] {
+    background: #3a1a1a !important;
+    color: #ffaaaa !important;
 }

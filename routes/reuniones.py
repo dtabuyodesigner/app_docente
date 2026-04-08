@@ -338,7 +338,19 @@ def reunion_pdf(rid):
     except Exception:
         fecha_fmt = fecha_raw
 
-    asistentes_raw = (reunion["asistentes"] or "").replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    asistentes_raw = (reunion["asistentes"] or "")
+    
+    # Parsear asistentes si viene en formato JSON
+    import json
+    if asistentes_raw.strip().startswith('['):
+        try:
+            asistentes_lista = json.loads(asistentes_raw)
+            if isinstance(asistentes_lista, list):
+                asistentes_raw = ', '.join([str(a).strip() for a in asistentes_lista if str(a).strip()])
+        except json.JSONDecodeError:
+            pass  # Si falla, usar original
+    
+    asistentes_raw = asistentes_raw.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
     datos = [
         ["<b>Fecha:</b>", fecha_fmt],
@@ -398,10 +410,21 @@ def reunion_pdf(rid):
         if os.path.exists(p):
             firma_path_val = p
 
+    # Obtener curso del grupo si es reunión de ciclo
+    grupo_curso = ""
+    if reunion["tipo"] == "CICLO" and reunion.get("ciclo_id"):
+        cur.execute("SELECT g.curso FROM grupos g WHERE g.id = ?", (reunion["ciclo_id"],))
+        row_curso = cur.fetchone()
+        if row_curso and row_curso["curso"]:
+            grupo_curso = row_curso["curso"]
+
+    # Construir etiqueta del tutor con curso si está disponible
+    tutor_label = f"Tutor/a {grupo_curso}" if grupo_curso else "Tutor/a"
+
     elements.append(Paragraph("<b>FIRMAS</b>", style_label))
     elements.append(Spacer(1, 8))
 
-    col_tutor = [Paragraph("<b>Tutor/a:</b>", style_label), Spacer(1, 8)]
+    col_tutor = [Paragraph(f"<b>{tutor_label}:</b>", style_label), Spacer(1, 8)]
     if firma_path_val:
         try:
             img_f = RLImage(firma_path_val, width=4.5*cm, height=1.5*cm, kind='proportional')

@@ -217,3 +217,168 @@
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
     background: var(--gray-500);
 }
+
+/* --- Calendar and common containers --- */
+[data-theme="dark"] #calendarContainer,
+[data-theme="dark"] .fc,
+[data-theme="dark"] .fc-theme-standard td,
+[data-theme="dark"] .fc-theme-standard th,
+[data-theme="dark"] .fc-toolbar,
+[data-theme="dark"] .fc-daygrid-event {
+    background: var(--white);
+    color: var(--dark);
+}
+
+[data-theme="dark"] .fc-toolbar-title,
+[data-theme="dark"] .fc-col-header-cell-cushion {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .fc-button {
+    background: var(--gray-200) !important;
+    color: var(--dark) !important;
+    border-color: var(--gray-300) !important;
+}
+
+[data-theme="dark"] .fc-button:hover {
+    background: var(--gray-300) !important;
+}
+
+/* --- Cards and containers with inline styles --- */
+[data-theme="dark"] div[style*="background: white"],
+[data-theme="dark"] div[style*="background:#fff"],
+[data-theme="dark"] div[style*="background: #fff"],
+[data-theme="dark"] div[style*="background:#ffffff"],
+[data-theme="dark"] div[style*="background: #ffffff"],
+[data-theme="dark"] section[style*="background: white"],
+[data-theme="dark"] section[style*="background:#fff"],
+[data-theme="dark"] section[style*="background: #fff"] {
+    background: var(--white) !important;
+}
+
+/* Containers with box shadows and white backgrounds */
+[data-theme="dark"] div[style*="box-shadow"][style*="background"],
+[data-theme="dark"] section[style*="box-shadow"][style*="background"] {
+    background: var(--white) !important;
+}
+
+
+/* --- Modals with inline white backgrounds --- */
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] div[style*="background:white"][class*="modal"],
+[data-theme="dark"] div.modal-content[style*="background"] {
+    background: var(--white) !important;
+    color: var(--dark);
+}
+
+[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* Additional modal styling */
+[data-theme="dark"] .modal h2,
+[data-theme="dark"] .modal h3 {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .modal label {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .modal .close {
+    color: var(--gray-500);
+}
+
+[data-theme="dark"] .modal .close:hover {
+    color: var(--dark);
+}
+
+
+/* --- Tabs and section backgrounds --- */
+[data-theme="dark"] .tabs,
+[data-theme="dark"] .section-tabs {
+    border-bottom-color: var(--gray-300);
+}
+
+[data-theme="dark"] .tab {
+    color: var(--gray-500);
+}
+
+[data-theme="dark"] .tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* --- Attendees grid and similar components --- */
+[data-theme="dark"] .attendees-grid {
+    background: var(--gray-100);
+    border-color: var(--gray-300);
+}
+
+[data-theme="dark"] .attendee-item {
+    background: var(--white);
+    border-color: var(--gray-300);
+}
+
+[data-theme="dark"] .attendee-item:hover {
+    background: var(--gray-200);
+    border-color: var(--gray-400);
+}
+
+/* --- Meeting cards --- */
+[data-theme="dark"] .meeting-card {
+    background: var(--white);
+}
+
+[data-theme="dark"] .meeting-text {
+    background: var(--gray-100);
+    border-color: var(--gray-300);
+    color: var(--dark);
+}
+
+/* --- Form elements inside modals --- */
+[data-theme="dark"] .modal .form-group label {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .modal h2 {
+    color: var(--primary);
+}
+
+/* --- Controls section --- */
+[data-theme="dark"] .controls {
+    background: var(--white);
+}
+
+/* --- Highlighted backgrounds (warnings, info boxes) --- */
+[data-theme="dark"] div[style*="background:#fff8e1"],
+[data-theme="dark"] div[style*="background:#fff3e0"],
+[data-theme="dark"] div[style*="background:#fff3cd"],
+[data-theme="dark"] div[style*="background:#fffbeb"] {
+    background: var(--gray-200) !important;
+    color: var(--warning);
+}
+
+/* --- Buttons with inline white backgrounds --- */
+[data-theme="dark"] button[style*="background:white"],
+[data-theme="dark"] button[style*="background:#fff"],
+[data-theme="dark"] button[style*="background: #fff"],
+[data-theme="dark"] a[style*="background:white"],
+[data-theme="dark"] a[style*="background:#fff"] {
+    background: var(--gray-200) !important;
+    color: var(--dark) !important;
+    border-color: var(--gray-400) !important;
+}
+
+[data-theme="dark"] button[style*="background:white"]:hover,
+[data-theme="dark"] a[style*="background:white"]:hover {
+    background: var(--gray-300) !important;
+}
+
+/* --- Select elements with inline white backgrounds --- */
+[data-theme="dark"] select[style*="background:white"],
+[data-theme="dark"] select[style*="background:#fff"] {
+    background: var(--gray-100) !important;
+    color: var(--dark);
+    border-color: var(--gray-300);
+}

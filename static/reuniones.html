@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Reuniones con Padres</title>
@@ -23,6 +24,7 @@
             --bg: #f0f2f5;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
@@ -30,16 +32,19 @@
             padding: 20px;
             color: var(--dark);
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
         /* Tabs */
         .tabs {
             display: flex;
             margin-bottom: 20px;
             border-bottom: 2px solid #ddd;
         }
+
         .tab {
             padding: 10px 20px;
             cursor: pointer;
@@ -48,10 +53,12 @@
             border-bottom: 2px solid transparent;
             margin-bottom: -2px;
         }
+
         .tab.active {
             color: var(--primary);
             border-bottom: 2px solid var(--primary);
         }
+
         /* Controls */
         .controls {
             background: white;
@@ -63,6 +70,7 @@
             align-items: center;
             margin-bottom: 20px;
         }
+
         select {
             padding: 8px;
             border-radius: 5px;
@@ -70,6 +78,7 @@
             font-size: 1rem;
             min-width: 250px;
         }
+
         .btn-new,
         .btn-config {
             background-color: var(--success);
@@ -83,20 +92,25 @@
             align-items: center;
             gap: 5px;
         }
+
         .btn-config {
             background-color: var(--secondary);
         }
+
         .btn-new:hover {
             background-color: #218838;
         }
+
         .btn-config:hover {
             background-color: #0069d9;
         }
+
         /* Meetings List */
         .meeting-list {
             display: grid;
             gap: 15px;
         }
+
         .meeting-card {
             background: white;
             padding: 20px;
@@ -194,6 +208,7 @@
             padding-top: 15px;
             border-top: 1px solid #eee;
         }
+
         .btn-edit {
             background: #ffc107;
             border: none;
@@ -228,7 +243,8 @@
             border: 1px solid #edf2f7;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             font-size: 0.9rem;
-            min-height: 40px; /* Ensures consistent alignment */
+            min-height: 40px;
+            /* Ensures consistent alignment */
         }
 
         .attendee-item:hover {
@@ -240,8 +256,10 @@
 
         .attendee-item span {
             line-height: 1.3;
-            padding-top: 2px; /* Align text with checkbox top */
+            padding-top: 2px;
+            /* Align text with checkbox top */
         }
+
         .attendee-section-title {
             grid-column: 1 / -1;
             font-weight: 800;
@@ -264,14 +282,17 @@
                 grid-template-columns: 1fr !important;
             }
         }
+
         .attendee-section-title:first-child {
             margin-top: 0;
         }
+
         .cycle-member-check {
             width: 18px;
             height: 18px;
             cursor: pointer;
         }
+
         .btn-delete {
             background: #dc3545;
             border: none;
@@ -280,6 +301,7 @@
             cursor: pointer;
             color: white;
         }
+
         .btn-pdf {
             background: #17a2b8;
             border: none;
@@ -288,6 +310,7 @@
             cursor: pointer;
             color: white;
         }
+
         /* Modal */
         .modal {
             display: none;
@@ -300,6 +323,7 @@
             background-color: rgba(0, 0, 0, 0.5);
             overflow-y: auto;
         }
+
         .modal-content {
             background-color: white;
             margin: 5% auto;
@@ -310,6 +334,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             position: relative;
         }
+
         .close {
             position: absolute;
             right: 20px;
@@ -319,18 +344,22 @@
             cursor: pointer;
             color: #aaa;
         }
+
         .close:hover {
             color: black;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
         }
+
         .form-control {
             width: 100%;
             padding: 8px;
@@ -338,10 +367,12 @@
             border-radius: 5px;
             font-family: inherit;
         }
+
         textarea.form-control {
             resize: vertical;
             height: 100px;
         }
+
         .btn-save {
             background: var(--primary);
             color: white;
@@ -353,20 +384,24 @@
             width: 100%;
             margin-top: 10px;
         }
+
         /* Mobile tweaks */
         @media (max-width: 768px) {
             .nav {
                 justify-content: center;
             }
+
             .controls {
                 flex-direction: column;
                 gap: 15px;
                 align-items: stretch;
             }
+
             select {
                 width: 100%;
                 min-width: auto;
             }
+
             .btn-new,
             .btn-config {
                 width: 100%;
@@ -381,10 +416,11 @@
     <script src="/static/js/navigation.js?v=1.6"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
+
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
-        
+
         <!-- Tabs de Sección Gestión -->
         <div class="section-tabs">
             <a href="/alumnos" class="section-tab-btn">👦 Alumnos</a>
@@ -393,7 +429,7 @@
             <a href="/reuniones" class="section-tab-btn active">👨‍👩‍👧‍👦 Reuniones</a>
             <a href="/cumpleanos" class="section-tab-btn">🎂 Cumpleaños</a>
         </div>
-        
+
         <div
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         </div>
@@ -416,14 +452,15 @@
                 </div>
                 <!-- Botones de Acción Globales -->
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <a href="https://calendar.google.com/calendar/render?action=TEMPLATE" target="_blank" class="btn-config" 
-                       style="background: #ea4335 !important; color: white !important; text-decoration: none !important; display: flex !important; align-items: center !important; gap: 5px !important; padding: 6px 12px !important; font-size: 0.85rem !important;">
+                    <a href="https://calendar.google.com/calendar/render?action=TEMPLATE" target="_blank"
+                        class="btn-config"
+                        style="background: #ea4335 !important; color: white !important; text-decoration: none !important; display: flex !important; align-items: center !important; gap: 5px !important; padding: 6px 12px !important; font-size: 0.85rem !important;">
                         📅 G. Calendar
                     </a>
-                    <button class="btn-config" onclick="exportarReunionesCSV()" 
-                            style="background: #28a745; padding: 6px 12px; font-size: 0.85rem;">📥 CSV</button>
-                    <button class="btn-new" onclick="openModal()" 
-                            style="padding: 6px 12px; font-size: 0.85rem;">➕ Nueva</button>
+                    <button class="btn-config" onclick="exportarReunionesCSV()"
+                        style="background: #28a745; padding: 6px 12px; font-size: 0.85rem;">📥 CSV</button>
+                    <button class="btn-new" onclick="openModal()" style="padding: 6px 12px; font-size: 0.85rem;">➕
+                        Nueva</button>
                 </div>
             </div>
             <input type="hidden" id="tutorName">
@@ -431,12 +468,15 @@
         <div id="loading" style="text-align:center; color:#666; display:none;">Cargando...</div>
         <!-- Vista Calendario (Nueva Función) -->
         <div id="calendarContainer"
-            style="background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 20px;">
+            style="padding: 20px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 20px;">
             <div id='calendar'></div>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:30px; border-bottom:2px solid #eee; padding-bottom:10px;">
+        <div
+            style="display:flex; justify-content:space-between; align-items:center; margin-top:30px; border-bottom:2px solid #eee; padding-bottom:10px;">
             <h3 style="margin:0;">📋 Listado Detallado</h3>
-            <button id="btnToggleList" onclick="toggleListado()" style="padding:6px 14px; background:#f0f2f5; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:600; color:#555;">🔼 Colapsar</button>
+            <button id="btnToggleList" onclick="toggleListado()"
+                style="padding:6px 14px; background:#f0f2f5; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:0.85rem; font-weight:600; color:#555;">🔼
+                Colapsar</button>
         </div>
         <div id="meetingList" class="meeting-list"></div>
     </div>
@@ -484,15 +524,14 @@
                 <div id="cycleAttendeesCheckboxes" class="attendees-grid">
                     <!-- Dynamic Checkboxes -->
                 </div>
-                <textarea id="mAsistentesCiclo" class="form-control"
-                    placeholder="Otros asistentes (uno por línea)..."
+                <textarea id="mAsistentesCiclo" class="form-control" placeholder="Otros asistentes (uno por línea)..."
                     style="height: 80px; margin-top: 8px;"></textarea>
             </div>
             <div class="form-group">
                 <label>Punto 1: Temas a tratar</label>
                 <textarea id="mTemas" class="form-control" placeholder="Temas a tratar en la reunión..."></textarea>
             </div>
-            
+
             <div class="form-group">
                 <label id="acuerdosLabel">Punto 2: Acuerdos / Conclusiones</label>
                 <textarea id="mAcuerdos" class="form-control" placeholder="Acuerdos llegados..."></textarea>
@@ -500,7 +539,8 @@
 
             <div id="cycleSignaturesPoint" style="display:none; margin-top:15px;">
                 <label><strong>Punto 3: Miembros del Equipo Docente (Firmas)</strong></label>
-                <div style="font-size:0.8rem; color:#666;">Se incluirán automáticamente en el PDF basándose en los asistentes seleccionados arriba.</div>
+                <div style="font-size:0.8rem; color:#666;">Se incluirán automáticamente en el PDF basándose en los
+                    asistentes seleccionados arriba.</div>
             </div>
 
             <div class="form-group" id="groupDificultades" style="display:none;">
@@ -611,7 +651,7 @@
             // For now, let's keep groups as the primary 'unit' but enrich with cycle data.
             cycleSelect.innerHTML = '<option value="">-- Ver Todos los Grupos --</option>';
             mCycleSelect.innerHTML = '<option value="">-- Seleccionar Grupo --</option>';
-            
+
             groupsData.forEach(g => {
                 const opt = document.createElement('option');
                 opt.value = g.id;
@@ -754,9 +794,9 @@
                         if (attendeesFormatted.startsWith('[')) {
                             try {
                                 attendeesFormatted = JSON.parse(attendeesFormatted).join(", ");
-                            } catch(e) {}
+                            } catch (e) { }
                         }
-                        
+
                         let headerTitle = attendeesFormatted;
                         let rawTitleObj = "Reunión";
                         if (m.tipo === 'PADRES' && m.alumno_nombre) {
@@ -871,7 +911,7 @@
             const cards = document.querySelectorAll('.meeting-card');
             const btn = document.getElementById('btnToggleList');
             const isCollapsed = btn.textContent.includes('Expandir');
-            
+
             cards.forEach(card => {
                 if (isCollapsed) {
                     card.classList.remove('collapsed');
@@ -893,7 +933,7 @@
                 const data = await res.json();
                 if (data.ok) loadMeetings();
                 else alert('Error al borrar: ' + data.error);
-            } catch(e) {
+            } catch (e) {
                 alert('Error de conexión');
             }
         }
@@ -909,11 +949,11 @@
                 let trim = 1;
                 if (month >= 1 && month <= 3) trim = 2;
                 else if (month >= 4 && month <= 6) trim = 3;
-                
+
                 // Usamos el endpoint de grupo_data
                 const r = await fetch(`/api/informe/grupo_data?trimestre=${trim}`);
                 const data = await r.json();
-                
+
                 if (mResultadosAuto) {
                     mResultadosAuto.innerHTML = `
                         <b>Alumnado total:</b> ${data.generales.total_alumnos}<br/>
@@ -921,7 +961,7 @@
                         <b>Tasa éxito:</b> ${data.promocion.todo ? data.promocion.todo.pct : (data.promocion.C ? data.promocion.C.pct : 0)}%
                     `;
                 }
-                
+
                 if (mSuspensosAuto) {
                     if (data.suspensos && data.suspensos.length > 0) {
                         mSuspensosAuto.innerHTML = data.suspensos.map(s => `• ${s.nombre}: ${s.areas}`).join('<br/>');
@@ -945,11 +985,11 @@
                 let trim = 1;
                 if (month >= 1 && month <= 3) trim = 2;
                 else if (month >= 4 && month <= 6) trim = 3;
-                
+
                 // Usamos el endpoint de grupo_data
                 const r = await fetch(`/api/informe/grupo_data?trimestre=${trim}`);
                 const data = await r.json();
-                
+
                 if (mResultadosAuto) {
                     mResultadosAuto.innerHTML = `
                         <b>Alumnado total:</b> ${data.generales.total_alumnos}<br/>
@@ -957,7 +997,7 @@
                         <b>Tasa éxito:</b> ${data.promocion.todo ? data.promocion.todo.pct : (data.promocion.C ? data.promocion.C.pct : 0)}%
                     `;
                 }
-                
+
                 if (mSuspensosAuto) {
                     if (data.suspensos && data.suspensos.length > 0) {
                         mSuspensosAuto.innerHTML = data.suspensos.map(s => `• ${s.nombre}: ${s.areas}`).join('<br/>');
@@ -987,7 +1027,7 @@
             mDificultades.value = "";
             mPropuestas.value = "";
             mAcuerdos.value = "";
-            
+
             if (currentMode === 'PADRES') {
                 modalTitle.textContent = "Nueva Reunión con Familia";
                 groupAsistentes.style.display = 'block';
@@ -1013,7 +1053,7 @@
                 groupStatsCycle.style.display = 'none';
                 document.getElementById('cycleSignaturesPoint').style.display = 'block';
                 acuerdosLabel.textContent = "Punto 2: Acuerdos / Conclusiones";
-                
+
                 mCycleSelect.value = cycleSelect.value;
                 renderCycleAttendees();
                 // if (mCycleSelect.value) fetchCycleStats(mCycleSelect.value); // Removed stats
@@ -1037,7 +1077,7 @@
             const selectedGroupId = parseInt(mCycleSelect.value);
             const container = document.getElementById('cycleAttendeesCheckboxes');
             container.innerHTML = '';
-            
+
             if (!selectedGroupId) return;
 
             const group = groupsData.find(g => g.id === selectedGroupId);
@@ -1049,7 +1089,7 @@
                 try {
                     if (selectedAsistentes.startsWith('[')) selectedList = JSON.parse(selectedAsistentes);
                     else selectedList = selectedAsistentes.split(/\n+/).map(a => a.trim());
-                } catch(e) { selectedList = []; }
+                } catch (e) { selectedList = []; }
             }
 
             // Helper to create header with bulk actions
@@ -1059,29 +1099,29 @@
                 title.style.display = 'flex';
                 title.style.justifyContent = 'space-between';
                 title.style.alignItems = 'center';
-                
+
                 const left = document.createElement('div');
                 left.innerHTML = `<span>${icon}</span> ${text}`;
-                
+
                 const right = document.createElement('div');
                 right.style.fontSize = '0.7rem';
                 right.style.display = 'flex';
                 right.style.gap = '10px';
-                
+
                 const btnAll = document.createElement('a');
                 btnAll.href = '#';
                 btnAll.textContent = 'Todos';
                 btnAll.style.color = 'var(--secondary)';
                 btnAll.style.textDecoration = 'none';
                 btnAll.onclick = (e) => { e.preventDefault(); toggleSectionAttendees(title, true); };
-                
+
                 const btnNone = document.createElement('a');
                 btnNone.href = '#';
                 btnNone.textContent = 'Ninguno';
                 btnNone.style.color = '#888';
                 btnNone.style.textDecoration = 'none';
                 btnNone.onclick = (e) => { e.preventDefault(); toggleSectionAttendees(title, false); };
-                
+
                 right.appendChild(btnAll);
                 right.appendChild(btnNone);
                 title.appendChild(left);
@@ -1104,7 +1144,7 @@
                 cycleNameFound = targetCycle.nombre;
                 const src = targetCycle.asistentes_defecto || "[]";
                 if (src.startsWith("[")) {
-                    try { cycleMembers = JSON.parse(src); } catch(e) { cycleMembers = []; }
+                    try { cycleMembers = JSON.parse(src); } catch (e) { cycleMembers = []; }
                 } else {
                     cycleMembers = src.split(/\n+/).map(m => m.trim()).filter(m => m);
                 }
@@ -1281,4 +1321,5 @@
         }
     </script>
 </body>
+
 </html>

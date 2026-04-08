@@ -263,5 +263,171 @@ git push origin --delete feature/refactor-evaluacion-curricular
 
 ---
 
-**Última actualización:** 7 Abril 2026 — zoom menú comedor + fixes post v1.1.29  
-**Estado:** ✅ Master actualizado y en producción
+**Última actualización:** 8 Abril 2026 — Fix acta de ciclo + Dark mode completo
+**Estado:** ⚠️ Pendiente de probar en navegador
+**Rama para commit:** `feature/fix-acta-ciclo-y-dark-mode` (POR CREAR)
+
+---
+
+## 📋 PENDIENTE DE PROBAR Y HACER (8 Abril 2026)
+
+### 🔥 PRIORITARIO — Para próximo día
+
+#### 1. ACTA DE CICLO — Corchetes en Asistentes y Firma del Tutor
+**Archivos modificados:** `routes/informes.py` (líneas ~1743-1806)
+
+**Problema reportado:**
+- En el PDF del acta de ciclo, los nombres de asistentes aparecen con corchetes: `["Noelia Socas Pimentel","Daniel Tabuyo de las Peñas"]`
+- La firma del tutor pone solo "Tutor/a" en vez de "Tutor/a 1º" o "Tutor/a 1ºA"
+
+**Cambios realizados:**
+- Función `parsear_lista()` que maneja múltiples formatos:
+  - JSON arrays válidos: `["nombre1", "nombre2"]`
+  - Listas entre corchetes sin parsear: `["nombre1","nombre2"]`
+  - Listas separadas por comas con corchetes
+  - Listas separadas por newlines (formato tradicional)
+- **Logging debug añadido** con `[DEBUG]` para ver formato real de los datos
+- Obtenido `grupo_curso` de la tabla grupos para mostrar en firma del tutor
+- Si el firmante es identificado como tutor, ahora muestra "Tutor/a {curso}"
+
+**PASOS PARA PROBAR:**
+1. Abrir app → Evaluación → Informes → Generar acta de ciclo
+2. Revisar logs del servidor (terminal donde se ejecuta `python app.py`)
+3. Buscar líneas que empiecen con `[DEBUG]`
+4. Verificar qué formato tienen los datos y cómo se parsean
+5. Abrir PDF generado y comprobar:
+   - ✅ Nombres de asistentes SIN corchetes
+   - ✅ Firma del tutor muestra "Tutor/a 1º" o "Tutor/a 1ºA"
+6. Si persisten los corchetes, copiar el output `[DEBUG]` y ajustar `parsear_lista()` según formato real
+
+**ARCHIVOS A COMMITTEAR:** `routes/informes.py`
+
+---
+
+#### 2. DARK MODE — Visibilidad completa en modo oscuro
+**Archivos modificados:** `static/reuniones.html` (línea ~434), `static/css/dark-mode.css`
+
+**Problema reportado:**
+- Calendario en reuniones.html no se veía bien en modo oscuro (fondo blanco hardcoded)
+- Múltiples elementos con `background: white` inline en toda la app
+
+**Cambios realizados:**
+- Eliminado `background: white` inline del `#calendarContainer` en reuniones.html
+- Añadidas reglas extensivas a `dark-mode.css` (~100 nuevas líneas):
+  - FullCalendar components (`.fc`, `.fc-toolbar`, `.fc-button`, `.fc-daygrid-event`, etc.)
+  - Divs/sections con `background: white` inline (attribute selectors `[style*="..."]`)
+  - Modales con fondos inline (`.modal-content`, `.modal`)
+  - Tabs, attendees grids, meeting cards
+  - Botones y selects con fondos blancos inline
+  - Cajas de advertencia/info con fondos claros (`#fff8e1`, `#fff3e0`, etc.)
+  - Contenedores con box-shadow y background inline
+
+**PASOS PARA PROBAR:**
+1. Activar modo oscuro (icono 🌙 en navbar)
+2. Navegar a Reuniones → verificar calendario visible y legible
+3. Probar abrir modales (Nueva reunión, Configurar ciclo) → verificar fondos oscuros
+4. Probar otras páginas en modo oscuro:
+   - Informes
+   - Configuración
+   - Alumnos
+   - Programación
+   - Diario
+5. Si algún elemento sigue con fondo blanco o texto ilegible:
+   - Identificar el selector CSS del elemento
+   - Añadir regla específica a `dark-mode.css`
+
+**ARCHIVOS A COMMITTEAR:** `static/reuniones.html`, `static/css/dark-mode.css`
+
+---
+
+#### 3. GIT — Commit pendiente (CREAR RAMA Y SUBIR)
+**TODO:**
+```bash
+cd /home/danito73/Documentos/APP_EVALUAR
+git checkout -b feature/fix-acta-ciclo-y-dark-mode
+git add routes/informes.py static/reuniones.html static/css/dark-mode.css
+git commit -m "Fix: Acta de ciclo sin corchetes + Dark mode completo
+
+- Parseo inteligente de equipo_docente (JSON, comas, newlines)
+- Firma del tutor incluye curso (ej: Tutor/a 1ºA)
+- Dark mode para calendario, modales, cards y elementos inline
+- Logging debug para depuración de formato de datos"
+git push origin feature/fix-acta-ciclo-y-dark-mode
+```
+
+**NO hacer merge a main hasta probar en navegador**
+
+---
+
+### 🐛 BUGS PENDIENTES (sin empezar)
+
+| Bug | Archivos | Prioridad |
+|-----|----------|-----------|
+| Gestión de Criterios no borra | `static/evaluacion.html`, `routes/criterios_api.py` | 🔴 Alta |
+| Cuaderno de Evaluación no muestra nada | `static/cuaderno_evaluacion.html`, `routes/evaluacion_cuaderno.py` | 🔴 Alta |
+| Actas: No aparecen nombres profesores en checkboxes | `static/diario.html`, `routes/actas.py` | 🟡 Media |
+| Actas: Campo firmante no se rellena con nombre del tutor | `static/diario.html`, `routes/actas.py` | 🟡 Media |
+
+---
+
+### 💡 FEATURES PENDIENTES
+
+| Feature | Descripción | Archivos |
+|---------|-------------|----------|
+| Rellenador masivo Infantil | Botones EP/CO o AD/MA en Clase de Hoy | `static/clase_hoy.html` |
+| Plan Reuniones | CRUD para Claustro, CCP, Comisiones | `routes/reuniones.py` |
+| Estadísticas y gráficas | Panel de progreso por alumno/grupo | Nuevo módulo |
+| Exportación masiva | Excel/CSV por trimestre | Nuevo endpoint |
+
+---
+
+### 🧪 TESTS POR CONFIRMAR (Sistema Dual)
+
+| Test | Descripción | Estado |
+|------|-------------|--------|
+| Test 8 | Rejilla POR_CRITERIOS_DIRECTOS → botones EP/CO se iluminan y guardan | ⬜ Pendiente |
+| Test 9 | Rellenar EP en rejilla → medias del área se recalculan | ⬜ Pendiente |
+| Test 10 | Clic en píldora activa → la borra de `evaluacion_criterios` | ⬜ Pendiente |
+| Test 11 | Evaluar en POR_ACTIVIDADES → cambiar a POR_SA → criterios aparecen | ⬜ Pendiente |
+| Test 12 | Editar criterio → Guardar → sin error de validación | ⬜ Pendiente |
+| Test 13 | Seleccionar todo en lista → Borrar → solo borra sin evaluaciones | ⬜ Pendiente |
+
+---
+
+## 🧪 CÓMO ARRANCAR
+
+```bash
+cd /home/danito73/Documentos/APP_EVALUAR
+./cuadernodeltutor.sh
+# o manualmente:
+python app.py
+```
+
+Abrir: `http://localhost:5000` (o el puerto que indique la terminal)
+
+---
+
+## 🔗 COMANDOS ÚTILES
+
+```bash
+# Estado del repo
+git status
+git log --oneline -5
+
+# Crear rama para fix actual
+git checkout -b feature/fix-acta-ciclo-y-dark-mode
+
+# Commit cambios probadas
+git add routes/informes.py static/reuniones.html static/css/dark-mode.css
+git commit -m "Fix: Acta de ciclo sin corchetes + Dark mode completo"
+
+# Merge a main (SOLO después de probar)
+git checkout main
+git merge feature/fix-acta-ciclo-y-dark-mode
+git push origin main
+```
+
+---
+
+**Documentado:** 8 Abril 2026
+**Próximo paso:** Probar acta de ciclo y dark mode → ajustar según logs → commit a rama → merge a main

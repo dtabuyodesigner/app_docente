@@ -1648,6 +1648,7 @@ def acta_oficial():
     if not grupo:
         return "Grupo no encontrado", 404
     grupo_nombre = grupo["nombre"]
+    grupo_curso = grupo["curso"] or ""  # Get the course (e.g., "1º", "2ºA")
     equipo_docente_raw = grupo["equipo_docente"] or ""
 
     cur.execute("SELECT * FROM informe_grupo WHERE grupo_id = ? AND trimestre = ?", (grupo_id, trimestre))
@@ -1743,9 +1744,62 @@ def acta_oficial():
 
     trim_texto = {"1": "PRIMERA", "2": "SEGUNDA", "3": "TERCERA"}.get(str(trimestre), trimestre.upper())
 
-    firmantes = [l.strip() for l in equipo_informe.replace('\r', '').split('\n') if l.strip()]
-    if not firmantes:
-        firmantes = [l.strip() for l in equipo_docente_raw.replace('\r', '').split('\n') if l.strip()]
+    # Parse equipo_informe - puede ser JSON array, lista separada por comas o newlines
+    import json
+    firmantes = []
+    
+    # Debug logging
+    print(f"[DEBUG] equipo_informe tipo: {type(equipo_informe)}")
+    print(f"[DEBUG] equipo_informe valor: {repr(equipo_informe)}")
+    print(f"[DEBUG] equipo_docente_raw tipo: {type(equipo_docente_raw)}")
+    print(f"[DEBUG] equipo_docente_raw valor: {repr(equipo_docente_raw)}")
+    
+    def parsear_lista(texto, fuente="equipo_informe"):
+        """Parsea una lista de nombres que puede estar en varios formatos"""
+        if not texto:
+            return []
+        
+        texto_stripped = texto.strip()
+        print(f"[DEBUG] Parseando {fuente}: {repr(texto_stripped[:100])}")
+        
+        # Intentar parsear como JSON primero
+        if texto_stripped.startswith('['):
+            try:
+                resultado = json.loads(texto_stripped)
+                if isinstance(resultado, list):
+                    resultado = [str(f).strip() for f in resultado if str(f).strip()]
+                    print(f"[DEBUG] {fuente} parseado como JSON: {len(resultado)} elementos")
+                    return resultado
+            except json.JSONDecodeError as e:
+                print(f"[DEBUG] {fuente} falla como JSON: {e}")
+        
+        # Puede ser una lista separada por comas (JSON sin parsear)
+        if ',' in texto_stripped and '[' in texto_stripped:
+            try:
+                # Quitar corchetes y separar por comas
+                limpio = texto_stripped.strip('[]')
+                elementos = [f.strip().strip('"').strip("'") for f in limpio.split(',')]
+                elementos = [f for f in elementos if f]
+                print(f"[DEBUG] {fuente} parseado como lista entre corchetes: {len(elementos)} elementos")
+                return elementos
+            except Exception as e:
+                print(f"[DEBUG] {fuente} falla como lista con corchetes: {e}")
+        
+        # Es una lista separada por newlines
+        elementos = [l.strip() for l in texto.replace('\r', '').split('\n') if l.strip()]
+        print(f"[DEBUG] {fuente} parseado como newlines: {len(elementos)} elementos")
+        return elementos
+    
+    # Primero intentar con equipo_informe
+    if equipo_informe:
+        firmantes = parsear_lista(equipo_informe, "equipo_informe")
+    
+    # Si no hay firmantes del informe, usar el equipo_docente_raw del grupo
+    if not firmantes and equipo_docente_raw:
+        firmantes = parsear_lista(equipo_docente_raw, "equipo_docente_raw")
+    
+    print(f"[DEBUG] Total firmantes finales: {len(firmantes)}")
+    print(f"[DEBUG] Firmantes: {firmantes}")
 
     from reportlab.platypus import Image as RLImage, HRFlowable
     buffer = BytesIO()
@@ -1905,6 +1959,11 @@ def acta_oficial():
                    (len(tutor_palabras) >= 2 and sum(1 for p in tutor_palabras if p in firmante_lower) >= 2) or \
                    ("tutor" in firmante_lower and "tutor" in tutor_nombre.lower()):
                     es_tutor = True
+                    # Modificar la etiqueta del tutor para incluir el curso
+                    if grupo_curso:
+                        row[0] = Paragraph(f"Tutor/a {grupo_curso}", styles['Normal'])
+                    else:
+                        row[0] = Paragraph(f"Tutor/a", styles['Normal'])
             
             if es_tutor:
                 try:

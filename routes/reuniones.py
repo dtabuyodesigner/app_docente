@@ -410,16 +410,24 @@ def reunion_pdf(rid):
         if os.path.exists(p):
             firma_path_val = p
 
-    # Obtener curso del grupo si es reunión de ciclo
+    # Obtener nombre del ciclo si es reunión de ciclo
     grupo_curso = ""
     try:
         if reunion["tipo"] == "CICLO" and reunion.get("ciclo_id"):
-            cur.execute("SELECT g.curso FROM grupos g WHERE g.id = ?", (reunion["ciclo_id"],))
-            row_curso = cur.fetchone()
-            if row_curso and row_curso["curso"]:
-                grupo_curso = row_curso["curso"]
+            cur.execute("SELECT nombre FROM config_ciclo WHERE id = ?", (reunion["ciclo_id"],))
+            row_ciclo = cur.fetchone()
+            if row_ciclo and row_ciclo["nombre"]:
+                # Extraer el curso del nombre del ciclo (ej: "1º Primaria" → "1º")
+                ciclo_nombre = row_ciclo["nombre"]
+                # Si el nombre contiene un grado (1º, 2º, etc.), extraerlo
+                import re
+                match = re.match(r'(\d+[ºª])\s+', ciclo_nombre)
+                if match:
+                    grupo_curso = match.group(1)
+                else:
+                    grupo_curso = ciclo_nombre
     except Exception as e:
-        print(f"[WARNING] Error obteniendo curso del grupo para firma del tutor: {e}")
+        print(f"[WARNING] Error obteniendo curso del ciclo para firma del tutor: {e}")
         grupo_curso = ""
 
     # Construir etiqueta del tutor con curso si está disponible

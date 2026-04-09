@@ -1,8 +1,72 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
 **Fecha:** 9 de Abril 2026
-**Versión:** `v1.1.30`
-**Rama activa:** `master` (merge de `feature/modulo-reuniones-unificado`)
+**Versión:** `v1.1.31`
+**Rama activa:** `master` (merge de `reuniones`)
+
+---
+
+## ✅ MÓDULO REUNIONES — REFACTORING COMPLETO (v1.1.31)
+
+### Wizard de nueva reunión
+- **Título dinámico al seleccionar tipo:** "Nueva Reunión de Ciclo", "Nueva Reunión de CCP", "Nueva Comisión", etc.
+- **Doble clic en tarjeta** avanza automáticamente al paso siguiente
+- **Botones sin flechas:** "Siguiente" y "Atrás"
+- **FAMILIAS/PADRES paso 2:** muestra solo el tutor pre-marcado; el resto del claustro se añade con el dropdown "Añadir asistente"
+- **PADRES paso 2:** selector de alumno/a integrado en el paso de asistentes
+- **COMISIONES paso 2:** selector de comisión con carga automática de miembros pre-marcados
+- **Botones Todos/Ninguno** ocultos para FAMILIAS/PADRES
+- **Añadir asistente:** dropdown con el claustro completo + campo libre de texto
+- **Campo "Familiar asistente"** (solo FAMILIAS/PADRES): nombre del familiar que acude a la reunión
+
+### Selección masiva
+- Checkbox en cada tarjeta de la lista
+- Barra de acción azul con contador al marcar una o más
+- Checkbox "seleccionar todo" con estado indeterminate
+- Botón "Eliminar seleccionadas" con confirmación; borra en serie vía API
+- Click en tarjeta con selección activa activa su checkbox en vez de abrir el detalle
+
+### PDF por tipo de reunión
+- **Cabecera adaptada:** "ACTA DE REUNION - CCP", "ACTA DE REUNION - COMISIÓN", etc.
+- **Título dinámico:** "Reunión de CCP", "Comisión: Carnaval", "Entrevista: Nombre Alumno"
+- **Firma izquierda:** "Tutor/a 1º Primaria" solo en FAMILIAS/PADRES → resto "El/La Maestro/a"
+- **Firma derecha por tipo:**
+  - FAMILIAS/PADRES → "El/La Padre/Madre/Tutor Legal" + nombre del familiar si se indicó
+  - CICLO → "El/La Coordinador/a de Ciclo"
+  - CCP / CLAUSTRO → "El/La Director/a"
+  - COMISIONES → "El/La Coordinador/a de Comisión"
+  - Resto → "El/La Jefe/a de Estudios"
+- **Resto de tipos:** una caja de firma por asistente guardado (grid de 3 columnas)
+- **LEFT JOIN plantillas_reunion** para mostrar nombre de comisión en PDF
+
+### Editar reuniones
+- Botón "✏ Editar" en modal de detalle abre el wizard pre-rellenado con todos los campos
+- Usa PUT `/api/reuniones/<id>` en lugar de POST
+- Salta directo al paso 3 con los datos, conservando asistentes guardados
+- Errores de apertura reportados con `console.error` + alert descriptivo
+
+### Configuración → Reuniones
+- **Roles del claustro actualizados:** Maestro/a, Infantil, Esp. Inglés, Esp. Ed. Física, Esp. Música, Esp. Francés, Esp. Religión, AL, PT, Orientador/a, Director/a, Jefe/a de Estudios, Secretario/a, Otro
+- Quitado "Coordinador/a" como rol del claustro (todos son docentes)
+- **Ciclo Infantil** añadido al dropdown de ciclos en reuniones de ciclo
+
+### DB
+- Nueva columna: `reuniones.familiar_asistente TEXT`
+- Nuevo ciclo: `config_ciclo` → "Infantil"
+- PUT `/api/reuniones/<id>` actualiza todos los campos incluyendo `familiar_asistente`
+
+### Fixes
+- `global_groups.js` añadido a `reuniones.html` (selector de grupo se quedaba en "Cargando")
+- `editarReunion` declarada como `async` (fallaba por `await` sin `async`)
+
+### Archivos modificados
+- `routes/reuniones.py` — PDF completo por tipo, PUT con todos los campos
+- `static/reuniones.html` — wizard, selección masiva, edición, campo familiar
+- `static/configuracion.html` — roles actualizados con Infantil
+- `static/reuniones_plantillas.html` — roles actualizados
+- `utils/db.py` — migración `familiar_asistente`
+
+---
 
 ---
 

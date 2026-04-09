@@ -355,7 +355,7 @@ def reunion_pdf(rid):
         fecha_fmt = fecha_raw
 
     asistentes_raw = (reunion["asistentes"] or "")
-    
+
     # Parsear asistentes si viene en formato JSON
     import json
     if asistentes_raw.strip().startswith('['):
@@ -365,7 +365,10 @@ def reunion_pdf(rid):
                 asistentes_raw = ', '.join([str(a).strip() for a in asistentes_lista if str(a).strip()])
         except json.JSONDecodeError:
             pass  # Si falla, usar original
-    
+
+    # Guardar lista limpia para el grid de firmas (antes de escapar HTML)
+    asistentes_lista_firmas = [a.strip() for a in asistentes_raw.split(',') if a.strip()]
+
     asistentes_raw = asistentes_raw.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
     datos = [
@@ -495,10 +498,7 @@ def reunion_pdf(rid):
         elements.append(sig_tbl)
     else:
         # Para todos los demás tipos: una caja por asistente (grid de 3 columnas)
-        import json as _json
-        asistentes_pdf = asistentes_raw.split(',') if asistentes_raw else []
-        # Limpiar nombres
-        asistentes_pdf = [a.strip() for a in asistentes_pdf if a.strip()]
+        asistentes_pdf = asistentes_lista_firmas  # lista limpia sin escapes HTML
 
         if not asistentes_pdf:
             asistentes_pdf = [tutor_nombre]

@@ -138,6 +138,7 @@ csrf.exempt(alumnos_bp)
 csrf.exempt(criterios_bp)
 csrf.exempt(evaluacion_actividades_bp)
 csrf.exempt(evaluacion_cuaderno_bp)
+csrf.exempt(reuniones_bp)
 csrf.exempt("routes.main.exit_app")
 
 # ==============================================================================

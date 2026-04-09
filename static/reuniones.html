@@ -532,18 +532,31 @@
 
             <!-- PASO 2: Asistentes -->
             <div id="wizard-step-2" style="display:none;">
-                <p style="font-size:0.9rem; color:#555; margin-bottom:10px;">Marca los asistentes a la reunión:</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <p style="font-size:0.9rem; color:#555; margin:0;">Marca los asistentes a la reunión:</p>
+                    <div style="display:flex; gap:6px;">
+                        <button onclick="marcarTodosAsistentes(true)" style="font-size:0.78rem;background:#e8f0fb;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#003366;font-weight:600;">✔ Todos</button>
+                        <button onclick="marcarTodosAsistentes(false)" style="font-size:0.78rem;background:#fde8ea;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#cc0022;font-weight:600;">✗ Ninguno</button>
+                    </div>
+                </div>
                 <div class="miembros-list" id="miembros-list"></div>
                 <button onclick="añadirAsistente()" style="background:none;border:1px dashed #aaa;border-radius:8px;padding:7px 14px;cursor:pointer;color:#666;font-size:0.85rem;width:100%;margin-top:4px;">
                     ➕ Añadir asistente manualmente
                 </button>
-                <div id="asistente-manual" style="display:none; margin-top:8px; display:none;">
+                <div id="asistente-manual" style="display:none; margin-top:8px;">
                     <input type="text" id="nuevo-asistente-nombre" placeholder="Nombre del asistente" style="width:100%;padding:8px;border:1px solid #cdd;border-radius:8px;box-sizing:border-box;font-size:0.9rem;">
                 </div>
             </div>
 
             <!-- PASO 3: Datos de la reunión -->
             <div id="wizard-step-3" style="display:none;">
+                <!-- Comisión (solo para tipo COMISIONES) -->
+                <div class="form-group" id="campo-comision" style="display:none;">
+                    <label>Comisión *</label>
+                    <select id="nueva-comision-id" onchange="onComisionChange()">
+                        <option value="">Selecciona comisión...</option>
+                    </select>
+                </div>
                 <!-- Alumno (solo para PADRES/individual) -->
                 <div class="form-group" id="campo-alumno" style="display:none;">
                     <label>Alumno/a *</label>
@@ -733,7 +746,6 @@ function filtrarLista() {
         container.innerHTML = `<div class="empty-state">
             <div class="icon">📭</div>
             <p>No hay reuniones en esta categoría</p>
-            <button class="btn-new" onclick="abrirNuevaReunion()">➕ Nueva Reunión</button>
         </div>`;
         return;
     }
@@ -986,6 +998,30 @@ async function cargarCiclos() {
     }
 }
 
+let _comisionesWizard = [];
+async function cargarComisionesWizard() {
+    const select = document.getElementById('nueva-comision-id');
+    select.innerHTML = '<option value="">Cargando...</option>';
+    try {
+        const r = await fetch('/api/plantillas_reunion?tipo=COMISIONES');
+        _comisionesWizard = await r.json();
+        if (_comisionesWizard.length > 0) {
+            select.innerHTML = '<option value="">Selecciona comisión...</option>' +
+                _comisionesWizard.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+        } else {
+            select.innerHTML = '<option value="">Sin comisiones — configúralas en Configuración</option>';
+        }
+    } catch(e) {
+        select.innerHTML = '<option value="">Error cargando comisiones</option>';
+    }
+}
+
+async function onComisionChange() {
+    // Al seleccionar una comisión, actualizar los asistentes en el paso 2 (ya pasado)
+    // Solo informativo — los asistentes ya se marcaron en el paso 2
+    // Si el usuario quiere, puede volver atrás y recargar
+}
+
 function mostrarPaso(paso) {
     for (let i = 1; i <= 3; i++) {
         document.getElementById(`wizard-step-${i}`).style.display = i === paso ? 'block' : 'none';
@@ -1028,15 +1064,14 @@ async function wizardSiguiente() {
         document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
 
         // Mostrar/ocultar campos según tipo
+        document.getElementById('campo-comision').style.display = wizardTipo === 'COMISIONES' ? 'block' : 'none';
         document.getElementById('campo-alumno').style.display = wizardTipo === 'PADRES' ? 'block' : 'none';
         document.getElementById('campo-ciclo').style.display = wizardTipo === 'CICLO' ? 'block' : 'none';
-        document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO'].includes(wizardTipo) ? 'block' : 'none';
-        document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO'].includes(wizardTipo) ? 'block' : 'none';
+        document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
+        document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
 
-        // Cargar ciclos si es tipo CICLO
-        if (wizardTipo === 'CICLO') {
-            cargarCiclos();
-        }
+        if (wizardTipo === 'CICLO') cargarCiclos();
+        if (wizardTipo === 'COMISIONES') cargarComisionesWizard();
 
     } else if (wizardPaso === 3) {
         await guardarNuevaReunion();
@@ -1058,9 +1093,10 @@ async function cargarSugerenciasAsistentes() {
     const lista = document.getElementById('miembros-list');
     lista.innerHTML = '<p style="color:#888; font-size:0.85rem;">Cargando asistentes...</p>';
 
+    const esFamilias = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
+
     let miembros = [];
     try {
-        // Usar el endpoint de asistentes sugeridos configurado en Configuración > Reuniones
         const r = await fetch(`/api/reunion_asistentes/${wizardTipo}/sugeridos`);
         miembros = await r.json();
     } catch(e) {}
@@ -1075,15 +1111,35 @@ async function cargarSugerenciasAsistentes() {
         return;
     }
 
-    lista.innerHTML = miembros.map((m, i) => `
-        <div class="miembro-item">
-            <input type="checkbox" id="m${i}" data-nombre="${m.nombre}" checked>
+    // Para FAMILIAS: solo marcar el tutor por defecto, el resto desmarcado
+    let nombreTutor = '';
+    if (esFamilias) {
+        try {
+            const rc = await fetch('/api/configuracion');
+            const cfg = await rc.json();
+            nombreTutor = (cfg.nombre_tutor || '').trim().toLowerCase();
+        } catch(e) {}
+    }
+
+    lista.innerHTML = miembros.map((m, i) => {
+        // En familias: solo marcar si el nombre coincide con el tutor configurado
+        const marcado = esFamilias
+            ? (nombreTutor && m.nombre.toLowerCase().includes(nombreTutor))
+            : true;
+        return `<div class="miembro-item">
+            <input type="checkbox" id="m${i}" data-nombre="${m.nombre}" ${marcado ? 'checked' : ''}>
             <label for="m${i}" style="flex:1; cursor:pointer;">
                 <span class="miembro-nombre">${m.nombre}</span>
                 ${m.rol ? `<span class="miembro-rol">(${m.rol})</span>` : ''}
             </label>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
+}
+
+function marcarTodosAsistentes(marcar) {
+    document.querySelectorAll('#miembros-list input[type=checkbox]').forEach(cb => {
+        cb.checked = marcar;
+    });
 }
 
 function añadirAsistente() {
@@ -1109,6 +1165,9 @@ async function guardarNuevaReunion() {
     const ciclo_id = wizardTipo === 'CICLO'
         ? (document.getElementById('nueva-ciclo-id').value || null)
         : null;
+    const plantilla_id = wizardTipo === 'COMISIONES'
+        ? (document.getElementById('nueva-comision-id').value || null)
+        : null;
 
     const data = {
         tipo: wizardTipo,
@@ -1121,6 +1180,7 @@ async function guardarNuevaReunion() {
         lugar: document.getElementById('nueva-lugar').value,
         alumno_id: alumno_id ? parseInt(alumno_id) : null,
         ciclo_id: ciclo_id ? parseInt(ciclo_id) : null,
+        plantilla_id: plantilla_id ? parseInt(plantilla_id) : null,
     };
 
     try {

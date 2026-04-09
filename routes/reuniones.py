@@ -19,29 +19,33 @@ def api_reuniones():
     
     if request.method == "POST":
         d = request.json
-        alumno_id = d.get("alumno_id") # Puede ser None si tipo=CICLO (pero en db es INTEGER)
+        alumno_id = d.get("alumno_id")
         fecha = d.get("fecha")
         asistentes = d.get("asistentes")
         temas = d.get("temas")
         dificultades = d.get("dificultades")
+        propuestas_mejora = d.get("propuestas_mejora")
         acuerdos = d.get("acuerdos")
         tipo = d.get("tipo", "PADRES")
-        ciclo_id = d.get("ciclo_id")  # Solo para tipo=CICLO
-        
+        ciclo_id = d.get("ciclo_id")
+        grupo_id = d.get("grupo_id")
+        plantilla_id = d.get("plantilla_id")
+        lugar = d.get("lugar")
+
         try:
             cur.execute("""
-                INSERT INTO reuniones (alumno_id, fecha, asistentes, temas, dificultades, acuerdos, tipo, ciclo_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (alumno_id, fecha, asistentes, temas, dificultades, acuerdos, tipo, ciclo_id))
+                INSERT INTO reuniones
+                    (alumno_id, fecha, asistentes, temas, dificultades, propuestas_mejora,
+                     acuerdos, tipo, ciclo_id, grupo_id, plantilla_id, lugar)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (alumno_id, fecha, asistentes, temas, dificultades, propuestas_mejora,
+                  acuerdos, tipo, ciclo_id, grupo_id, plantilla_id, lugar))
             conn.commit()
             return jsonify({"ok": True, "id": cur.lastrowid})
         except Exception as e:
             conn.rollback()
             print("Error en api_reuniones (POST):", str(e))
             return jsonify({"ok": False, "error": "Error interno al guardar la reunión."}), 500
-        finally:
-            pass
-            pass
             
     else:
         # GET

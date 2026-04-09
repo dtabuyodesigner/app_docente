@@ -61,7 +61,8 @@
 
 ### Firma del tutor en grid de asistentes
 - En actas de tipo CICLO, CCP, CLAUSTRO, NIVEL, COMISIONES: si el nombre del tutor configurado coincide con un asistente de la lista, su caja de firma muestra la imagen de firma almacenada en el almacén de logos
-- Comparación fuzzy (contains bidireccional) para tolerar variaciones de nombre
+- Comparación fuzzy (contains bidireccional, case-insensitive) para tolerar variaciones de nombre
+- **Fix:** la lista de nombres para firmas se extrae antes de escapar para HTML, evitando que `&amp;` o `&lt;` rompieran la comparación fuzzy
 
 ### Archivos modificados
 - `routes/reuniones.py` — PDF completo por tipo, PUT con todos los campos, firma tutor en grid

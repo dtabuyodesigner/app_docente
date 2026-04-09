@@ -930,7 +930,7 @@ async function borrarReunion(id) {
     await cargarReuniones();
 }
 
-function editarReunion() {
+async function editarReunion() {
     if (!_detalleReunion) return;
     const r = _detalleReunion;
     wizardModoEdicion = true;

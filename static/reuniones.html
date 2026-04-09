@@ -218,6 +218,41 @@
         }
         .btn-icon:hover { background: #f0f4f8; color: #003366; }
 
+        /* Selección masiva */
+        .bulk-bar {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            background: #003366;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .bulk-bar.visible { display: flex; }
+        .bulk-bar button {
+            background: #cc0022;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .bulk-bar button.sec {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .card-checkbox {
+            width: 18px; height: 18px;
+            cursor: pointer;
+            accent-color: #003366;
+            flex-shrink: 0;
+        }
+
         /* Calendario */
         #calendar-view { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         #calendar { min-height: 500px; }
@@ -457,6 +492,14 @@
                 <option value="tipo">Por tipo</option>
             </select>
         </div>
+    </div>
+
+    <!-- Barra de selección masiva -->
+    <div class="bulk-bar" id="bulk-bar">
+        <input type="checkbox" id="check-all" class="card-checkbox" onchange="toggleSeleccionarTodo(this.checked)" title="Seleccionar todo">
+        <span id="bulk-count">0 seleccionadas</span>
+        <button onclick="borrarSeleccionadas()">🗑 Eliminar seleccionadas</button>
+        <button class="sec" onclick="cancelarSeleccion()">Cancelar</button>
     </div>
 
     <div id="lista-view">
@@ -796,7 +839,10 @@ function tarjetaReunion(r) {
         r.asistentes ? `👥 ${r.asistentes.split(',').length} asistentes` : ''
     ].filter(Boolean).join(' · ');
 
-    return `<div class="reunion-card" onclick="verDetalle(${r.id})">
+    return `<div class="reunion-card" id="card-${r.id}" onclick="handleCardClick(event, ${r.id})">
+        <div onclick="event.stopPropagation()" style="display:flex;align-items:center;padding-right:8px;">
+            <input type="checkbox" class="card-checkbox" data-id="${r.id}" onchange="onCheckCard(this)" title="Seleccionar">
+        </div>
         <div class="reunion-date-box">
             <div class="reunion-date-day">${dia}</div>
             <div class="reunion-date-mon">${mes}</div>
@@ -1434,6 +1480,68 @@ function exportarCSV() {
 // ============================================================
 function cerrarModal(id) {
     document.getElementById(id).classList.remove('open');
+}
+
+// ============================================================
+// SELECCIÓN MASIVA
+// ============================================================
+function handleCardClick(event, id) {
+    // Si hay selección activa, click en card activa el checkbox
+    const bar = document.getElementById('bulk-bar');
+    if (bar.classList.contains('visible')) {
+        const cb = document.querySelector(`.card-checkbox[data-id="${id}"]`);
+        if (cb) { cb.checked = !cb.checked; onCheckCard(cb); }
+    } else {
+        verDetalle(id);
+    }
+}
+
+function onCheckCard(cb) {
+    const seleccionadas = document.querySelectorAll('.card-checkbox[data-id]:checked');
+    const total = document.querySelectorAll('.card-checkbox[data-id]').length;
+    const bar = document.getElementById('bulk-bar');
+    const checkAll = document.getElementById('check-all');
+
+    if (seleccionadas.length > 0) {
+        bar.classList.add('visible');
+        document.getElementById('bulk-count').textContent = `${seleccionadas.length} seleccionada${seleccionadas.length > 1 ? 's' : ''}`;
+        checkAll.checked = seleccionadas.length === total;
+        checkAll.indeterminate = seleccionadas.length > 0 && seleccionadas.length < total;
+    } else {
+        bar.classList.remove('visible');
+        checkAll.checked = false;
+        checkAll.indeterminate = false;
+    }
+}
+
+function toggleSeleccionarTodo(marcar) {
+    document.querySelectorAll('.card-checkbox[data-id]').forEach(cb => { cb.checked = marcar; });
+    onCheckCard(null);
+}
+
+function cancelarSeleccion() {
+    document.querySelectorAll('.card-checkbox[data-id]').forEach(cb => { cb.checked = false; });
+    document.getElementById('bulk-bar').classList.remove('visible');
+    document.getElementById('check-all').checked = false;
+}
+
+async function borrarSeleccionadas() {
+    const seleccionadas = [...document.querySelectorAll('.card-checkbox[data-id]:checked')];
+    if (seleccionadas.length === 0) return;
+    if (!confirm(`¿Eliminar ${seleccionadas.length} reunión${seleccionadas.length > 1 ? 'es' : ''}? Esta acción no se puede deshacer.`)) return;
+
+    const ids = seleccionadas.map(cb => parseInt(cb.dataset.id));
+    let errores = 0;
+    for (const id of ids) {
+        try {
+            const r = await fetch(`/api/reuniones/${id}`, { method: 'DELETE' });
+            if (!(await r.json()).ok) errores++;
+        } catch(e) { errores++; }
+    }
+
+    cancelarSeleccion();
+    await cargarReuniones();
+    if (errores > 0) alert(`${errores} reunión(es) no se pudieron eliminar.`);
 }
 
 // Cerrar modales al hacer clic fuera

@@ -492,37 +492,37 @@
             <div id="wizard-step-1">
                 <p style="font-size:0.9rem; color:#555; margin-bottom:14px;">Selecciona el tipo de reunión:</p>
                 <div class="tipo-grid">
-                    <div class="tipo-card" onclick="seleccionarTipo('CICLO', this)">
+                    <div class="tipo-card" onclick="seleccionarTipo('CICLO', this)" ondblclick="seleccionarTipo('CICLO',this);wizardSiguiente()">
                         <div class="tipo-icon">🔄</div>
                         <div class="tipo-name">Ciclo</div>
                         <div class="tipo-desc">Reunión de ciclo</div>
                     </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('NIVEL', this)">
+                    <div class="tipo-card" onclick="seleccionarTipo('NIVEL', this)" ondblclick="seleccionarTipo('NIVEL',this);wizardSiguiente()">
                         <div class="tipo-icon">📚</div>
                         <div class="tipo-name">Nivel</div>
                         <div class="tipo-desc">Reunión de nivel</div>
                     </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('CCP', this)">
+                    <div class="tipo-card" onclick="seleccionarTipo('CCP', this)" ondblclick="seleccionarTipo('CCP',this);wizardSiguiente()">
                         <div class="tipo-icon">🏛</div>
                         <div class="tipo-name">CCP</div>
                         <div class="tipo-desc">Comisión de Coord. Pedagógica</div>
                     </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('CLAUSTRO', this)">
+                    <div class="tipo-card" onclick="seleccionarTipo('CLAUSTRO', this)" ondblclick="seleccionarTipo('CLAUSTRO',this);wizardSiguiente()">
                         <div class="tipo-icon">🏫</div>
                         <div class="tipo-name">Claustro</div>
                         <div class="tipo-desc">Claustro de profesores</div>
                     </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('COMISIONES', this)">
+                    <div class="tipo-card" onclick="seleccionarTipo('COMISIONES', this)" ondblclick="seleccionarTipo('COMISIONES',this);wizardSiguiente()">
                         <div class="tipo-icon">🗂</div>
                         <div class="tipo-name">Comisiones</div>
                         <div class="tipo-desc">Comisiones de trabajo</div>
                     </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('FAMILIAS', this)">
+                    <div class="tipo-card" onclick="seleccionarTipo('FAMILIAS', this)" ondblclick="seleccionarTipo('FAMILIAS',this);wizardSiguiente()">
                         <div class="tipo-icon">👨‍👩‍👧</div>
                         <div class="tipo-name">Familias</div>
                         <div class="tipo-desc">Reunión con familias/tutores</div>
                     </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('PADRES', this)">
+                    <div class="tipo-card" onclick="seleccionarTipo('PADRES', this)" ondblclick="seleccionarTipo('PADRES',this);wizardSiguiente()">
                         <div class="tipo-icon">👤</div>
                         <div class="tipo-name">Individual</div>
                         <div class="tipo-desc">Entrevista con un alumno/a</div>
@@ -547,11 +547,18 @@
                     </div>
                 </div>
                 <div class="miembros-list" id="miembros-list"></div>
-                <button onclick="añadirAsistente()" style="background:none;border:1px dashed #aaa;border-radius:8px;padding:7px 14px;cursor:pointer;color:#666;font-size:0.85rem;width:100%;margin-top:4px;">
-                    ➕ Añadir asistente manualmente
+                <button onclick="toggleAñadirAsistente()" style="background:none;border:1px dashed #aaa;border-radius:8px;padding:7px 14px;cursor:pointer;color:#666;font-size:0.85rem;width:100%;margin-top:4px;">
+                    ➕ Añadir asistente
                 </button>
                 <div id="asistente-manual" style="display:none; margin-top:8px;">
-                    <input type="text" id="nuevo-asistente-nombre" placeholder="Nombre del asistente" style="width:100%;padding:8px;border:1px solid #cdd;border-radius:8px;box-sizing:border-box;font-size:0.9rem;">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <select id="claustro-asistente-select" style="flex:1;padding:8px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
+                            <option value="">Del claustro...</option>
+                        </select>
+                        <span style="color:#aaa; font-size:0.85rem;">o</span>
+                        <input type="text" id="nuevo-asistente-nombre" placeholder="Otro nombre..." style="flex:1;padding:8px;border:1px solid #cdd;border-radius:8px;box-sizing:border-box;font-size:0.9rem;">
+                        <button onclick="confirmarAñadirAsistente()" style="background:#003366;color:white;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:0.85rem;font-weight:600;white-space:nowrap;">Añadir</button>
+                    </div>
                 </div>
             </div>
 
@@ -601,8 +608,8 @@
         </div>
         <div class="modal-footer">
             <button class="btn-cancel" onclick="cerrarModal('modal-nueva')">Cancelar</button>
-            <button class="btn-back" id="btn-wizard-back" onclick="wizardAnterior()" style="display:none;">← Atrás</button>
-            <button class="btn-primary-modal" id="btn-wizard-next" onclick="wizardSiguiente()">Siguiente →</button>
+            <button class="btn-back" id="btn-wizard-back" onclick="wizardAnterior()" style="display:none;">Atrás</button>
+            <button class="btn-primary-modal" id="btn-wizard-next" onclick="wizardSiguiente()">Siguiente</button>
         </div>
     </div>
 </div>
@@ -975,7 +982,7 @@ function resetWizard() {
     wizardPaso = 1;
     mostrarPaso(1);
     document.getElementById('btn-wizard-back').style.display = 'none';
-    document.getElementById('btn-wizard-next').textContent = 'Siguiente →';
+    document.getElementById('btn-wizard-next').textContent = 'Siguiente';
     document.getElementById('wizard-title').textContent = 'Nueva Reunión';
     document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('nueva-temas').value = '';
@@ -1182,12 +1189,53 @@ function marcarTodosAsistentes(marcar) {
     });
 }
 
-function añadirAsistente() {
+async function toggleAñadirAsistente() {
     const div = document.getElementById('asistente-manual');
-    div.style.display = div.style.display === 'none' ? 'block' : 'none';
-    if (div.style.display !== 'none') {
+    const visible = div.style.display !== 'none' && div.style.display !== '';
+    div.style.display = visible ? 'none' : 'flex';
+    if (!visible) {
+        // Cargar claustro en el dropdown si está vacío
+        const sel = document.getElementById('claustro-asistente-select');
+        if (sel.options.length <= 1) {
+            try {
+                const r = await fetch('/api/claustro');
+                const lista = await r.json();
+                lista.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.nombre;
+                    opt.textContent = m.nombre + (m.rol ? ` (${m.rol})` : '');
+                    sel.appendChild(opt);
+                });
+            } catch(e) {}
+        }
         document.getElementById('nuevo-asistente-nombre').focus();
     }
+}
+
+function confirmarAñadirAsistente() {
+    const sel = document.getElementById('claustro-asistente-select');
+    const txt = document.getElementById('nuevo-asistente-nombre');
+    const nombre = sel.value || txt.value.trim();
+    if (!nombre) return;
+
+    // Comprobar si ya está en la lista
+    const lista = document.getElementById('miembros-list');
+    const existe = [...lista.querySelectorAll('input[type=checkbox]')].some(cb => cb.dataset.nombre === nombre);
+    if (existe) {
+        // Solo marcarlo si ya existe
+        const cb = [...lista.querySelectorAll('input[type=checkbox]')].find(cb => cb.dataset.nombre === nombre);
+        if (cb) cb.checked = true;
+    } else {
+        const i = lista.querySelectorAll('.miembro-item').length;
+        const div = document.createElement('div');
+        div.className = 'miembro-item';
+        div.innerHTML = `<input type="checkbox" id="me${i}" data-nombre="${nombre}" checked>
+            <label for="me${i}" style="flex:1;cursor:pointer;"><span class="miembro-nombre">${nombre}</span></label>`;
+        lista.appendChild(div);
+    }
+    sel.value = '';
+    txt.value = '';
+    document.getElementById('asistente-manual').style.display = 'none';
 }
 
 async function guardarNuevaReunion() {
@@ -1237,7 +1285,8 @@ async function guardarNuevaReunion() {
             alert('Error guardando: ' + (res.error || ''));
         }
     } catch (e) {
-        alert('Error de conexión');
+        console.error('Error guardando reunión:', e);
+        alert('Error de conexión al guardar. Comprueba que el servidor está activo.');
     }
 }
 

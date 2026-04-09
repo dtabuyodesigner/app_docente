@@ -1,8 +1,8 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 8 de Abril 2026
+**Fecha:** 9 de Abril 2026
 **Versión:** `v1.1.30`
-**Rama activa:** `feature/modulo-reuniones-unificado`
+**Rama activa:** `master` (merge de `feature/modulo-reuniones-unificado`)
 
 ---
 

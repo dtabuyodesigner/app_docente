@@ -532,8 +532,15 @@
 
             <!-- PASO 2: Asistentes -->
             <div id="wizard-step-2" style="display:none;">
+                <!-- Selector de comisión (solo para COMISIONES) -->
+                <div id="campo-comision-paso2" style="display:none; margin-bottom:14px;">
+                    <label style="font-weight:600; font-size:0.9rem; color:#333; display:block; margin-bottom:6px;">Comisión *</label>
+                    <select id="nueva-comision-id" onchange="onComisionChange()" style="width:100%;padding:9px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
+                        <option value="">Selecciona una comisión...</option>
+                    </select>
+                </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <p style="font-size:0.9rem; color:#555; margin:0;">Marca los asistentes a la reunión:</p>
+                    <p style="font-size:0.9rem; color:#555; margin:0;" id="asistentes-label">Marca los asistentes a la reunión:</p>
                     <div style="display:flex; gap:6px;">
                         <button onclick="marcarTodosAsistentes(true)" style="font-size:0.78rem;background:#e8f0fb;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#003366;font-weight:600;">✔ Todos</button>
                         <button onclick="marcarTodosAsistentes(false)" style="font-size:0.78rem;background:#fde8ea;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#cc0022;font-weight:600;">✗ Ninguno</button>
@@ -550,13 +557,6 @@
 
             <!-- PASO 3: Datos de la reunión -->
             <div id="wizard-step-3" style="display:none;">
-                <!-- Comisión (solo para tipo COMISIONES) -->
-                <div class="form-group" id="campo-comision" style="display:none;">
-                    <label>Comisión *</label>
-                    <select id="nueva-comision-id" onchange="onComisionChange()">
-                        <option value="">Selecciona comisión...</option>
-                    </select>
-                </div>
                 <!-- Alumno (solo para PADRES/individual) -->
                 <div class="form-group" id="campo-alumno" style="display:none;">
                     <label>Alumno/a *</label>
@@ -771,7 +771,9 @@ function tarjetaReunion(r) {
 
     const titulo = r.alumno_nombre
         ? `Entrevista: ${r.alumno_nombre}`
-        : (r.plantilla_nombre || `Reunión de ${tipoLabel}`);
+        : tipo === 'COMISIONES'
+            ? `Comisión: ${r.plantilla_nombre || 'Sin nombre'}`
+            : `Reunión de ${tipoLabel}`;
 
     const meta = [
         hora ? `🕐 ${hora}h` : '',
@@ -869,7 +871,10 @@ async function verDetalle(id) {
         }
 
         document.getElementById('detalle-title').textContent = reunion.alumno_nombre
-            ? `Entrevista: ${reunion.alumno_nombre}` : `Reunión de ${tipoLabel}`;
+            ? `Entrevista: ${reunion.alumno_nombre}`
+            : tipo === 'COMISIONES'
+                ? `Comisión: ${reunion.plantilla_nombre || 'Comisiones'}`
+                : `Reunión de ${tipoLabel}`;
 
         const campo = (lbl, val) => val ? `<div class="detalle-section">
             <div class="detalle-label">${lbl}</div>
@@ -881,6 +886,7 @@ async function verDetalle(id) {
                 <div class="detalle-section"><div class="detalle-label">Fecha</div><div class="detalle-value">${fecha}</div></div>
                 <div class="detalle-section"><div class="detalle-label">Tipo</div><div class="detalle-value"><span class="reunion-tipo-badge badge-${tipo}">${tipoLabel}</span></div></div>
             </div>
+            ${tipo === 'COMISIONES' && reunion.plantilla_nombre ? campo('Comisión', reunion.plantilla_nombre) : ''}
             ${campo('Lugar', reunion.lugar)}
             ${campo('Asistentes', reunion.asistentes)}
             ${campo('Temas tratados', reunion.temas)}
@@ -1006,7 +1012,7 @@ async function cargarComisionesWizard() {
         const r = await fetch('/api/plantillas_reunion?tipo=COMISIONES');
         _comisionesWizard = await r.json();
         if (_comisionesWizard.length > 0) {
-            select.innerHTML = '<option value="">Selecciona comisión...</option>' +
+            select.innerHTML = '<option value="">Selecciona una comisión...</option>' +
                 _comisionesWizard.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
         } else {
             select.innerHTML = '<option value="">Sin comisiones — configúralas en Configuración</option>';
@@ -1014,12 +1020,36 @@ async function cargarComisionesWizard() {
     } catch(e) {
         select.innerHTML = '<option value="">Error cargando comisiones</option>';
     }
+    // Mostrar prompt inicial hasta que se seleccione una comisión
+    document.getElementById('miembros-list').innerHTML =
+        '<p style="color:#888;font-size:0.85rem;text-align:center;padding:12px;">Selecciona una comisión para ver sus miembros.</p>';
 }
 
 async function onComisionChange() {
-    // Al seleccionar una comisión, actualizar los asistentes en el paso 2 (ya pasado)
-    // Solo informativo — los asistentes ya se marcaron en el paso 2
-    // Si el usuario quiere, puede volver atrás y recargar
+    const select = document.getElementById('nueva-comision-id');
+    const comisionId = parseInt(select.value);
+    if (!comisionId) {
+        document.getElementById('miembros-list').innerHTML =
+            '<p style="color:#888;font-size:0.85rem;text-align:center;padding:12px;">Selecciona una comisión para ver sus miembros.</p>';
+        return;
+    }
+    // Buscar la comisión en los datos ya cargados
+    const comision = _comisionesWizard.find(c => c.id === comisionId);
+    const miembros = comision ? (comision.miembros || []) : [];
+    if (miembros.length === 0) {
+        document.getElementById('miembros-list').innerHTML =
+            '<p style="color:#aaa;font-size:0.85rem;text-align:center;padding:12px;">Esta comisión no tiene miembros configurados.</p>';
+        return;
+    }
+    document.getElementById('miembros-list').innerHTML = miembros.map((m, i) =>
+        `<div class="miembro-item">
+            <input type="checkbox" id="mc${i}" data-nombre="${m.nombre}" checked>
+            <label for="mc${i}" style="flex:1;cursor:pointer;">
+                <span class="miembro-nombre">${m.nombre}</span>
+                ${m.rol ? `<span class="miembro-rol">(${m.rol})</span>` : ''}
+            </label>
+        </div>`
+    ).join('');
 }
 
 function mostrarPaso(paso) {
@@ -1045,9 +1075,21 @@ async function wizardSiguiente() {
         wizardPaso = 2;
         mostrarPaso(2);
         document.getElementById('btn-wizard-back').style.display = 'inline-block';
-        await cargarSugerenciasAsistentes();
+        // Mostrar selector de comisión si aplica
+        const esComision = wizardTipo === 'COMISIONES';
+        document.getElementById('campo-comision-paso2').style.display = esComision ? 'block' : 'none';
+        if (esComision) {
+            await cargarComisionesWizard();
+        } else {
+            await cargarSugerenciasAsistentes();
+        }
 
     } else if (wizardPaso === 2) {
+        // Validar comisión seleccionada si aplica
+        if (wizardTipo === 'COMISIONES' && !document.getElementById('nueva-comision-id').value) {
+            alert('Selecciona una comisión antes de continuar');
+            return;
+        }
         // Recopilar asistentes seleccionados
         wizardAsistentesSeleccionados = [];
         document.querySelectorAll('#miembros-list input[type=checkbox]:checked').forEach(cb => {
@@ -1064,14 +1106,12 @@ async function wizardSiguiente() {
         document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
 
         // Mostrar/ocultar campos según tipo
-        document.getElementById('campo-comision').style.display = wizardTipo === 'COMISIONES' ? 'block' : 'none';
         document.getElementById('campo-alumno').style.display = wizardTipo === 'PADRES' ? 'block' : 'none';
         document.getElementById('campo-ciclo').style.display = wizardTipo === 'CICLO' ? 'block' : 'none';
         document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
         document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
 
         if (wizardTipo === 'CICLO') cargarCiclos();
-        if (wizardTipo === 'COMISIONES') cargarComisionesWizard();
 
     } else if (wizardPaso === 3) {
         await guardarNuevaReunion();

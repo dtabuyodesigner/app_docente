@@ -503,12 +503,25 @@ def reunion_pdf(rid):
         if not asistentes_pdf:
             asistentes_pdf = [tutor_nombre]
 
+        # Normalizar nombre_tutor para comparación fuzzy
+        tutor_nombre_norm = tutor_nombre.strip().lower() if tutor_nombre else ""
+
+        def firma_para(nombre_asis):
+            """Devuelve la imagen de firma si el asistente es el tutor configurado."""
+            if not firma_path_val or not tutor_nombre_norm:
+                return None
+            nombre_norm = nombre_asis.strip().lower()
+            # Coincidencia: el nombre del asistente contiene el del tutor o viceversa
+            if tutor_nombre_norm in nombre_norm or nombre_norm in tutor_nombre_norm:
+                return firma_path_val
+            return None
+
         COLS = 3
         ancho_cel = 17.0 / COLS * cm
         filas_firma = []
         fila_actual = []
         for nombre_asis in asistentes_pdf:
-            fila_actual.append(celda_firma(nombre_asis))
+            fila_actual.append(celda_firma(nombre_asis, imagen_path=firma_para(nombre_asis)))
             if len(fila_actual) == COLS:
                 filas_firma.append(fila_actual)
                 fila_actual = []

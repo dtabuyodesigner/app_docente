@@ -571,11 +571,6 @@
 
             <!-- PASO 3: Datos de la reunión -->
             <div id="wizard-step-3" style="display:none;">
-                <!-- Familiar asistente (solo para FAMILIAS/PADRES) -->
-                <div class="form-group" id="campo-familiar" style="display:none;">
-                    <label>Familiar asistente</label>
-                    <input type="text" id="nueva-familiar" placeholder="Nombre del familiar (padre, madre, tutor legal...)">
-                </div>
                 <!-- Ciclo (solo para tipo CICLO) -->
                 <div class="form-group" id="campo-ciclo" style="display:none;">
                     <label>Ciclo *</label>
@@ -592,6 +587,11 @@
                         <label>Lugar</label>
                         <input type="text" id="nueva-lugar" placeholder="Aula, sala de reuniones...">
                     </div>
+                </div>
+                <!-- Familiar asistente (solo para FAMILIAS/PADRES) -->
+                <div class="form-group" id="campo-familiar" style="display:none;">
+                    <label>Familiar asistente <span style="font-size:0.8rem;color:#888;">(nombre del familiar que viene a la reunión)</span></label>
+                    <input type="text" id="nueva-familiar" placeholder="Ej: María García López (madre)">
                 </div>
                 <div class="form-group">
                     <label>Temas tratados *</label>
@@ -932,74 +932,81 @@ async function borrarReunion(id) {
 }
 
 async function editarReunion() {
-    if (!_detalleReunion) return;
+    if (!_detalleReunion) { console.warn('[Edit] _detalleReunion es null'); return; }
     const r = _detalleReunion;
-    wizardModoEdicion = true;
-    wizardEditandoId = r.id;
+    console.log('[Edit] Abriendo edición para reunión', r.id, r.tipo);
 
     cerrarModal('modal-detalle');
-    cerrarModal('modal-nueva');
 
-    // Reiniciar wizard y configurar modo edición
-    resetWizard();
-    wizardModoEdicion = true;  // resetWizard lo pone a false, restaurar
-    wizardEditandoId = r.id;
+    try {
+        // Reiniciar wizard en modo edición
+        resetWizard();
+        wizardModoEdicion = true;
+        wizardEditandoId = r.id;
 
-    // Preseleccionar tipo
-    const tipo = (r.tipo || 'PADRES').toUpperCase();
-    wizardTipo = tipo;
-    document.getElementById('wizard-title').textContent = 'Editar Reunión';
-    const labels = { CICLO: 'Editar Reunión de Ciclo', NIVEL: 'Editar Reunión de Nivel',
-        CCP: 'Editar Reunión de CCP', CLAUSTRO: 'Editar Reunión de Claustro',
-        COMISIONES: 'Editar Reunión de Comisión', FAMILIAS: 'Editar Reunión con Familias',
-        PADRES: 'Editar Entrevista Individual' };
-    document.getElementById('wizard-title').textContent = labels[tipo] || 'Editar Reunión';
+        const tipo = (r.tipo || 'PADRES').toUpperCase();
+        wizardTipo = tipo;
 
-    // Marcar la tarjeta de tipo
-    const card = document.querySelector(`.tipo-card[ondblclick*="'${tipo}'"]`);
-    if (card) card.classList.add('selected');
+        const labels = { CICLO: 'Editar Reunión de Ciclo', NIVEL: 'Editar Reunión de Nivel',
+            CCP: 'Editar Reunión de CCP', CLAUSTRO: 'Editar Reunión de Claustro',
+            COMISIONES: 'Editar Reunión de Comisión', FAMILIAS: 'Editar Reunión con Familias',
+            PADRES: 'Editar Entrevista Individual' };
+        document.getElementById('wizard-title').textContent = labels[tipo] || 'Editar Reunión';
 
-    // Ir directo al paso 3 (saltamos asistentes — se pueden re-editar manualmente)
-    wizardPaso = 3;
-    mostrarPaso(3);
-    document.getElementById('btn-wizard-back').style.display = 'inline-block';
-    document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
+        // Marcar tarjeta visual (opcional, no crítico)
+        try {
+            document.querySelectorAll('.tipo-card').forEach(c => {
+                if (c.getAttribute('onclick') && c.getAttribute('onclick').includes(`'${tipo}'`)) {
+                    c.classList.add('selected');
+                }
+            });
+        } catch(e) {}
 
-    // Rellenar campos paso 3
-    const esFamilia = ['FAMILIAS', 'PADRES'].includes(tipo);
-    document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
-    document.getElementById('campo-ciclo').style.display = tipo === 'CICLO' ? 'block' : 'none';
-    document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
-    document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
+        // Ir directo al paso 3
+        wizardPaso = 3;
+        mostrarPaso(3);
+        document.getElementById('btn-wizard-back').style.display = 'inline-block';
+        document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
 
-    // Rellenar valores
-    if (r.fecha) document.getElementById('nueva-fecha').value = r.fecha.length > 10 ? r.fecha.substring(0,16) : r.fecha;
-    document.getElementById('nueva-lugar').value = r.lugar || '';
-    document.getElementById('nueva-temas').value = r.temas || '';
-    document.getElementById('nueva-dificultades').value = r.dificultades || '';
-    document.getElementById('nueva-acuerdos').value = r.acuerdos || '';
-    document.getElementById('nueva-propuestas').value = r.propuestas_mejora || '';
-    document.getElementById('nueva-familiar').value = r.familiar_asistente || '';
+        // Mostrar/ocultar campos según tipo
+        const esFamilia = ['FAMILIAS', 'PADRES'].includes(tipo);
+        document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
+        document.getElementById('campo-ciclo').style.display = tipo === 'CICLO' ? 'block' : 'none';
+        document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
+        document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
 
-    // Asistentes — rellenar desde los datos guardados
-    wizardAsistentesSeleccionados = r.asistentes
-        ? r.asistentes.split(',').map(s => s.trim()).filter(Boolean)
-        : [];
+        // Rellenar valores
+        if (r.fecha) document.getElementById('nueva-fecha').value = r.fecha.length > 10 ? r.fecha.substring(0,16) : r.fecha;
+        document.getElementById('nueva-lugar').value = r.lugar || '';
+        document.getElementById('nueva-temas').value = r.temas || '';
+        document.getElementById('nueva-dificultades').value = r.dificultades || '';
+        document.getElementById('nueva-acuerdos').value = r.acuerdos || '';
+        document.getElementById('nueva-propuestas').value = r.propuestas_mejora || '';
+        document.getElementById('nueva-familiar').value = r.familiar_asistente || '';
 
-    if (tipo === 'CICLO') {
-        await cargarCiclos();
-        if (r.ciclo_id) document.getElementById('nueva-ciclo-id').value = r.ciclo_id;
+        // Asistentes guardados
+        wizardAsistentesSeleccionados = r.asistentes
+            ? r.asistentes.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+
+        if (tipo === 'CICLO') {
+            await cargarCiclos();
+            if (r.ciclo_id) document.getElementById('nueva-ciclo-id').value = r.ciclo_id;
+        }
+        if (tipo === 'PADRES') {
+            if (_alumnos.length === 0) await cargarAlumnos();
+            const selAl = document.getElementById('nueva-alumno-id');
+            selAl.innerHTML = '<option value="">Selecciona alumno/a...</option>' +
+                _alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+            if (r.alumno_id) selAl.value = r.alumno_id;
+        }
+
+        document.getElementById('modal-nueva').classList.add('open');
+        console.log('[Edit] Modal abierto correctamente');
+    } catch(err) {
+        console.error('[Edit] Error en editarReunion:', err);
+        alert('Error al abrir edición: ' + err.message);
     }
-    if (tipo === 'PADRES') {
-        await cargarAlumnos();
-        const selAl = document.getElementById('nueva-alumno-id');
-        selAl.innerHTML = '<option value="">Selecciona alumno/a...</option>' +
-            _alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-        if (r.alumno_id) selAl.value = r.alumno_id;
-    }
-
-    // Mostrar modal
-    document.getElementById('modal-nueva').classList.add('open');
 }
 
 // ============================================================

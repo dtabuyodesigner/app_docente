@@ -163,6 +163,26 @@ La rama `feature/refactor-evaluacion-curricular` ha sido integrada en `master` y
 - Fix Enter en campo devolución
 - Fix doble tick verde al guardar
 
+### Programación SDA + IA (Abril 2026)
+- Plantilla oficial SDA unificada en `static/plantilla_sda.csv` (separador `;`)
+- Cabecera oficial aplicada:
+  `Etapa;Area;Trimestre;SDA_ID;SDA_Titulo;Duracion_Semanas;Criterio_Codigo;Criterio_Descriptor;Competencia_Codigo;Competencia_Descriptor;Saberes_Basicos;Actividad_ID;Actividad_Titulo;Actividad_Descripcion;Actividad_Sesiones;Semana_Numero;Semana_Titulo;Dia;Fecha;Sesion_Numero;Sesion_Titulo;Descripcion_Sesion;Material;Evaluable`
+- Plantilla incluye 2 filas de ejemplo listas para referencia.
+- Eliminada plantilla duplicada antigua en raíz (`plantilla_sda.csv`) para evitar confusión.
+- Se mantiene una sola descarga oficial desde Programación: `/static/plantilla_sda.csv`.
+
+### Modal IA en Programación (nuevo flujo)
+- Botón único `🤖 Generar SDA con IA` en la pestaña de SDA.
+- Modal renovado con 2 prompts listos:
+  - `Prompt 1`: generar SDA completa en formato Word (estructura didáctica completa para Primaria/Canarias).
+  - `Prompt 2`: convertir SDA en texto Word a CSV exacto compatible con la app.
+- Ambos prompts incluyen:
+  - Copiar al portapapeles.
+  - Abrir directamente en ChatGPT, Claude y Gemini.
+- Instrucciones visibles en UI:
+  - Descargar plantilla oficial.
+  - Pedir a la IA borrar datos de ejemplo y dejar solo cabeceras antes de rellenar.
+
 ### Otros módulos estables
 - Dashboard con 18 tarjetas
 - Cuaderno de Evaluación unificado (`/api/evaluacion/cuaderno`)
@@ -290,5 +310,5 @@ git push origin --delete feature/refactor-evaluacion-curricular
 
 ---
 
-**Última actualización:** 8 Abril 2026 — mejoras reuniones de ciclo, selector ciclo, diseño claustro  
+**Última actualización:** 9 Abril 2026 — flujo IA SDA (Word + Word→CSV) y plantilla oficial unificada  
 **Estado:** ✅ Rama feature en desarrollo

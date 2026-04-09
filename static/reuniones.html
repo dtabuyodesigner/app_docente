@@ -532,6 +532,13 @@
 
             <!-- PASO 2: Asistentes -->
             <div id="wizard-step-2" style="display:none;">
+                <!-- Selector de alumno (solo para PADRES/individual) -->
+                <div id="campo-alumno-paso2" style="display:none; margin-bottom:14px;">
+                    <label style="font-weight:600; font-size:0.9rem; color:#333; display:block; margin-bottom:6px;">Alumno/a *</label>
+                    <select id="nueva-alumno-id" style="width:100%;padding:9px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
+                        <option value="">Selecciona alumno/a...</option>
+                    </select>
+                </div>
                 <!-- Selector de comisión (solo para COMISIONES) -->
                 <div id="campo-comision-paso2" style="display:none; margin-bottom:14px;">
                     <label style="font-weight:600; font-size:0.9rem; color:#333; display:block; margin-bottom:6px;">Comisión *</label>
@@ -540,8 +547,8 @@
                     </select>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <p style="font-size:0.9rem; color:#555; margin:0;" id="asistentes-label">Marca los asistentes a la reunión:</p>
-                    <div style="display:flex; gap:6px;">
+                    <p style="font-size:0.9rem; color:#555; margin:0;">Asistentes:</p>
+                    <div id="btn-todos-ninguno" style="display:flex; gap:6px;">
                         <button onclick="marcarTodosAsistentes(true)" style="font-size:0.78rem;background:#e8f0fb;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#003366;font-weight:600;">✔ Todos</button>
                         <button onclick="marcarTodosAsistentes(false)" style="font-size:0.78rem;background:#fde8ea;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#cc0022;font-weight:600;">✗ Ninguno</button>
                     </div>
@@ -568,13 +575,6 @@
                 <div class="form-group" id="campo-familiar" style="display:none;">
                     <label>Familiar asistente</label>
                     <input type="text" id="nueva-familiar" placeholder="Nombre del familiar (padre, madre, tutor legal...)">
-                </div>
-                <!-- Alumno (solo para PADRES/individual) -->
-                <div class="form-group" id="campo-alumno" style="display:none;">
-                    <label>Alumno/a *</label>
-                    <select id="nueva-alumno-id">
-                        <option value="">Selecciona alumno/a...</option>
-                    </select>
                 </div>
                 <!-- Ciclo (solo para tipo CICLO) -->
                 <div class="form-group" id="campo-ciclo" style="display:none;">
@@ -968,7 +968,6 @@ async function editarReunion() {
     // Rellenar campos paso 3
     const esFamilia = ['FAMILIAS', 'PADRES'].includes(tipo);
     document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
-    document.getElementById('campo-alumno').style.display = tipo === 'PADRES' ? 'block' : 'none';
     document.getElementById('campo-ciclo').style.display = tipo === 'CICLO' ? 'block' : 'none';
     document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
     document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
@@ -992,7 +991,11 @@ async function editarReunion() {
         if (r.ciclo_id) document.getElementById('nueva-ciclo-id').value = r.ciclo_id;
     }
     if (tipo === 'PADRES') {
-        if (r.alumno_id) document.getElementById('nueva-alumno-id').value = r.alumno_id;
+        await cargarAlumnos();
+        const selAl = document.getElementById('nueva-alumno-id');
+        selAl.innerHTML = '<option value="">Selecciona alumno/a...</option>' +
+            _alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+        if (r.alumno_id) selAl.value = r.alumno_id;
     }
 
     // Mostrar modal
@@ -1161,9 +1164,25 @@ async function wizardSiguiente() {
         wizardPaso = 2;
         mostrarPaso(2);
         document.getElementById('btn-wizard-back').style.display = 'inline-block';
-        // Mostrar selector de comisión si aplica
         const esComision = wizardTipo === 'COMISIONES';
+        const esPadres = wizardTipo === 'PADRES';
+        const esFamiliaOPadres = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
+
         document.getElementById('campo-comision-paso2').style.display = esComision ? 'block' : 'none';
+        document.getElementById('campo-alumno-paso2').style.display = esPadres ? 'block' : 'none';
+
+        // Para FAMILIAS/PADRES, ocultar botones Todos/Ninguno (solo aparece el tutor)
+        const btnTodos = document.getElementById('btn-todos-ninguno');
+        if (btnTodos) btnTodos.style.display = esFamiliaOPadres ? 'none' : 'flex';
+
+        if (esPadres) {
+            // Poblar select de alumnos
+            const sel = document.getElementById('nueva-alumno-id');
+            if (_alumnos.length === 0) await cargarAlumnos();
+            sel.innerHTML = '<option value="">Selecciona alumno/a...</option>' +
+                _alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+        }
+
         if (esComision) {
             await cargarComisionesWizard();
         } else {
@@ -1194,7 +1213,6 @@ async function wizardSiguiente() {
         // Mostrar/ocultar campos según tipo
         const esFamilia = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
         document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
-        document.getElementById('campo-alumno').style.display = wizardTipo === 'PADRES' ? 'block' : 'none';
         document.getElementById('campo-ciclo').style.display = wizardTipo === 'CICLO' ? 'block' : 'none';
         document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
         document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
@@ -1213,7 +1231,7 @@ function wizardAnterior() {
         if (wizardPaso === 1) {
             document.getElementById('btn-wizard-back').style.display = 'none';
         }
-        document.getElementById('btn-wizard-next').textContent = wizardPaso === 3 ? '💾 Guardar' : 'Siguiente →';
+        document.getElementById('btn-wizard-next').textContent = wizardPaso === 3 ? '💾 Guardar' : 'Siguiente';
     }
 }
 
@@ -1249,13 +1267,29 @@ async function cargarSugerenciasAsistentes() {
         } catch(e) {}
     }
 
+    // Para FAMILIAS/PADRES: mostrar SOLO el tutor pre-marcado
+    if (esFamilias) {
+        const tutorMiembro = miembros.find(m =>
+            nombreTutor && m.nombre.toLowerCase().includes(nombreTutor)
+        );
+        const tutorNombre = tutorMiembro ? tutorMiembro.nombre : (nombreTutor || '');
+        if (tutorNombre) {
+            lista.innerHTML = `<div class="miembro-item">
+                <input type="checkbox" id="m0" data-nombre="${tutorNombre}" checked>
+                <label for="m0" style="flex:1;cursor:pointer;">
+                    <span class="miembro-nombre">${tutorNombre}</span>
+                    <span class="miembro-rol">(Tutor/a)</span>
+                </label>
+            </div>`;
+        } else {
+            lista.innerHTML = '<p style="color:#aaa;font-size:0.85rem;padding:8px;">Sin tutor configurado. Añádelo con el botón de abajo.</p>';
+        }
+        return;
+    }
+
     lista.innerHTML = miembros.map((m, i) => {
-        // En familias: solo marcar si el nombre coincide con el tutor configurado
-        const marcado = esFamilias
-            ? (nombreTutor && m.nombre.toLowerCase().includes(nombreTutor))
-            : true;
         return `<div class="miembro-item">
-            <input type="checkbox" id="m${i}" data-nombre="${m.nombre}" ${marcado ? 'checked' : ''}>
+            <input type="checkbox" id="m${i}" data-nombre="${m.nombre}" checked>
             <label for="m${i}" style="flex:1; cursor:pointer;">
                 <span class="miembro-nombre">${m.nombre}</span>
                 ${m.rol ? `<span class="miembro-rol">(${m.rol})</span>` : ''}

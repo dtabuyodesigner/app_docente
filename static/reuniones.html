@@ -564,6 +564,11 @@
 
             <!-- PASO 3: Datos de la reunión -->
             <div id="wizard-step-3" style="display:none;">
+                <!-- Familiar asistente (solo para FAMILIAS/PADRES) -->
+                <div class="form-group" id="campo-familiar" style="display:none;">
+                    <label>Familiar asistente</label>
+                    <input type="text" id="nueva-familiar" placeholder="Nombre del familiar (padre, madre, tutor legal...)">
+                </div>
                 <!-- Alumno (solo para PADRES/individual) -->
                 <div class="form-group" id="campo-alumno" style="display:none;">
                     <label>Alumno/a *</label>
@@ -642,6 +647,8 @@ let vistaActiva = 'lista';
 let wizardPaso = 1;
 let wizardTipo = '';
 let wizardAsistentesSeleccionados = [];
+let wizardModoEdicion = false;
+let wizardEditandoId = null;
 let reunionDetalleId = null;
 let calendarInstance = null;
 let editandoId = null;
@@ -924,8 +931,71 @@ async function borrarReunion(id) {
 }
 
 function editarReunion() {
-    // TODO: abrir wizard en modo edición
-    alert('Edición próximamente');
+    if (!_detalleReunion) return;
+    const r = _detalleReunion;
+    wizardModoEdicion = true;
+    wizardEditandoId = r.id;
+
+    cerrarModal('modal-detalle');
+    cerrarModal('modal-nueva');
+
+    // Reiniciar wizard y configurar modo edición
+    resetWizard();
+    wizardModoEdicion = true;  // resetWizard lo pone a false, restaurar
+    wizardEditandoId = r.id;
+
+    // Preseleccionar tipo
+    const tipo = (r.tipo || 'PADRES').toUpperCase();
+    wizardTipo = tipo;
+    document.getElementById('wizard-title').textContent = 'Editar Reunión';
+    const labels = { CICLO: 'Editar Reunión de Ciclo', NIVEL: 'Editar Reunión de Nivel',
+        CCP: 'Editar Reunión de CCP', CLAUSTRO: 'Editar Reunión de Claustro',
+        COMISIONES: 'Editar Reunión de Comisión', FAMILIAS: 'Editar Reunión con Familias',
+        PADRES: 'Editar Entrevista Individual' };
+    document.getElementById('wizard-title').textContent = labels[tipo] || 'Editar Reunión';
+
+    // Marcar la tarjeta de tipo
+    const card = document.querySelector(`.tipo-card[ondblclick*="'${tipo}'"]`);
+    if (card) card.classList.add('selected');
+
+    // Ir directo al paso 3 (saltamos asistentes — se pueden re-editar manualmente)
+    wizardPaso = 3;
+    mostrarPaso(3);
+    document.getElementById('btn-wizard-back').style.display = 'inline-block';
+    document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
+
+    // Rellenar campos paso 3
+    const esFamilia = ['FAMILIAS', 'PADRES'].includes(tipo);
+    document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
+    document.getElementById('campo-alumno').style.display = tipo === 'PADRES' ? 'block' : 'none';
+    document.getElementById('campo-ciclo').style.display = tipo === 'CICLO' ? 'block' : 'none';
+    document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
+    document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
+
+    // Rellenar valores
+    if (r.fecha) document.getElementById('nueva-fecha').value = r.fecha.length > 10 ? r.fecha.substring(0,16) : r.fecha;
+    document.getElementById('nueva-lugar').value = r.lugar || '';
+    document.getElementById('nueva-temas').value = r.temas || '';
+    document.getElementById('nueva-dificultades').value = r.dificultades || '';
+    document.getElementById('nueva-acuerdos').value = r.acuerdos || '';
+    document.getElementById('nueva-propuestas').value = r.propuestas_mejora || '';
+    document.getElementById('nueva-familiar').value = r.familiar_asistente || '';
+
+    // Asistentes — rellenar desde los datos guardados
+    wizardAsistentesSeleccionados = r.asistentes
+        ? r.asistentes.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+
+    if (tipo === 'CICLO') {
+        await cargarCiclos();
+        if (r.ciclo_id) document.getElementById('nueva-ciclo-id').value = r.ciclo_id;
+    }
+    if (tipo === 'PADRES') {
+        if (r.alumno_id) document.getElementById('nueva-alumno-id').value = r.alumno_id;
+    }
+
+    // Mostrar modal
+    document.getElementById('modal-nueva').classList.add('open');
 }
 
 // ============================================================
@@ -992,6 +1062,9 @@ function resetWizard() {
     document.getElementById('nueva-lugar').value = '';
     document.getElementById('nueva-alumno-id').value = '';
     document.getElementById('nueva-ciclo-id').value = '';
+    document.getElementById('nueva-familiar').value = '';
+    wizardModoEdicion = false;
+    wizardEditandoId = null;
 }
 
 async function cargarCiclos() {
@@ -1118,6 +1191,8 @@ async function wizardSiguiente() {
         document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
 
         // Mostrar/ocultar campos según tipo
+        const esFamilia = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
+        document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
         document.getElementById('campo-alumno').style.display = wizardTipo === 'PADRES' ? 'block' : 'none';
         document.getElementById('campo-ciclo').style.display = wizardTipo === 'CICLO' ? 'block' : 'none';
         document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
@@ -1271,14 +1346,23 @@ async function guardarNuevaReunion() {
         acuerdos: document.getElementById('nueva-acuerdos').value,
         propuestas_mejora: document.getElementById('nueva-propuestas').value,
         lugar: document.getElementById('nueva-lugar').value,
+        familiar_asistente: document.getElementById('nueva-familiar').value.trim() || null,
         alumno_id: alumno_id ? parseInt(alumno_id) : null,
         ciclo_id: ciclo_id ? parseInt(ciclo_id) : null,
         plantilla_id: plantilla_id ? parseInt(plantilla_id) : null,
     };
 
+    // En modo edición, usar PUT; si venimos del paso 3 en edición, usar asistentes guardados
+    if (wizardModoEdicion && wizardAsistentesSeleccionados.length === 0 && _detalleReunion?.asistentes) {
+        data.asistentes = _detalleReunion.asistentes;
+    }
+
+    const url = wizardModoEdicion ? `/api/reuniones/${wizardEditandoId}` : '/api/reuniones';
+    const method = wizardModoEdicion ? 'PUT' : 'POST';
+
     try {
-        const r = await fetch('/api/reuniones', {
-            method: 'POST',
+        const r = await fetch(url, {
+            method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });

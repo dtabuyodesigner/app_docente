@@ -120,22 +120,22 @@ def editar_reunion(rid):
     d = request.json
     conn = get_db()
     cur = conn.cursor()
-    
     try:
         cur.execute("""
-            UPDATE reuniones 
-            SET fecha = ?, asistentes = ?, temas = ?, dificultades = ?, acuerdos = ?, alumno_id = ?, ciclo_id = ?
-            WHERE id = ?
-        """, (d.get("fecha"), d.get("asistentes"), d.get("temas"), d.get("dificultades"), d.get("acuerdos"), d.get("alumno_id"), d.get("ciclo_id"), rid))
+            UPDATE reuniones
+            SET fecha=?, asistentes=?, temas=?, dificultades=?, propuestas_mejora=?,
+                acuerdos=?, alumno_id=?, ciclo_id=?, plantilla_id=?, lugar=?, familiar_asistente=?
+            WHERE id=?
+        """, (d.get("fecha"), d.get("asistentes"), d.get("temas"), d.get("dificultades"),
+              d.get("propuestas_mejora"), d.get("acuerdos"), d.get("alumno_id"),
+              d.get("ciclo_id"), d.get("plantilla_id"), d.get("lugar"),
+              d.get("familiar_asistente"), rid))
         conn.commit()
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()
         print("Error en editar_reunion:", str(e))
         return jsonify({"ok": False, "error": "Error interno al editar la reunión."}), 500
-    finally:
-        pass
-        pass
 
 @reuniones_bp.route("/api/reuniones/<int:rid>", methods=["DELETE"])
 def borrar_reunion(rid):
@@ -259,9 +259,10 @@ def reunion_pdf(rid):
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT r.*, a.nombre as alumno_nombre
+        SELECT r.*, a.nombre as alumno_nombre, p.nombre as plantilla_nombre
         FROM reuniones r
         LEFT JOIN alumnos a ON r.alumno_id = a.id
+        LEFT JOIN plantillas_reunion p ON r.plantilla_id = p.id
         WHERE r.id = ?
     """, (rid,))
     reunion = cur.fetchone()
@@ -299,11 +300,21 @@ def reunion_pdf(rid):
     style_small = ParagraphStyle('RSmall', parent=styles['Normal'],
                                  fontSize=9, textColor=colors.grey)
 
-    # --- CABECERA CON LOGOS (igual que actas evaluación) ---
+    # --- CABECERA CON LOGOS ---
     nombre_centro = cfg.get("nombre_centro", "CEIP")
     curso_escolar = cfg.get("curso_escolar", "")
-    tipo_reunion = "CICLO" if reunion["tipo"] == "CICLO" else "FAMILIAS"
-    titulo_tipo = "Reunión de Ciclo" if reunion["tipo"] == "CICLO" else "Reunión con Familias"
+    tipo_raw = reunion["tipo"] or "PADRES"
+    plantilla_nombre_pdf = (reunion["plantilla_nombre"] if "plantilla_nombre" in reunion.keys() else None) or ""
+    _tipo_labels = {
+        "CICLO": ("CICLO", "Reunión de Ciclo"),
+        "NIVEL": ("NIVEL", "Reunión de Nivel"),
+        "CCP": ("CCP", "Reunión de CCP"),
+        "CLAUSTRO": ("CLAUSTRO", "Reunión de Claustro"),
+        "COMISIONES": ("COMISIÓN", f"Comisión: {plantilla_nombre_pdf}" if plantilla_nombre_pdf else "Reunión de Comisión"),
+        "FAMILIAS": ("FAMILIAS", "Reunión con Familias"),
+        "PADRES": ("FAMILIAS", f"Entrevista: {reunion['alumno_nombre']}" if reunion['alumno_nombre'] else "Entrevista Individual"),
+    }
+    tipo_reunion, titulo_tipo = _tipo_labels.get(tipo_raw, (tipo_raw, f"Reunión — {tipo_raw}"))
 
     def make_logo(lado):
         p = logo_path(lado)
@@ -407,42 +418,33 @@ def reunion_pdf(rid):
     elements.append(Spacer(1, 20))
 
     # --- FIRMAS ---
-    # Obtener nombre del ciclo si es reunión de ciclo
+    # Obtener nombre del grupo para etiqueta "Tutor/a Xº Primaria" en reuniones de familias
     grupo_curso = ""
-    coordinador_ciclo = ""
     try:
         ciclo_id_val = reunion["ciclo_id"] if "ciclo_id" in reunion.keys() else None
-        if reunion["tipo"] == "CICLO" and ciclo_id_val:
+        if ciclo_id_val:
             cur.execute("SELECT nombre FROM config_ciclo WHERE id = ?", (ciclo_id_val,))
             row_ciclo = cur.fetchone()
             if row_ciclo and row_ciclo["nombre"]:
-                ciclo_nombre = row_ciclo["nombre"]
                 import re
-                match = re.match(r'(\d+[ºª])\s+', ciclo_nombre)
-                if match:
-                    grupo_curso = match.group(1)
-                else:
-                    grupo_curso = ciclo_nombre
+                match = re.match(r'(\d+[ºª])\s+', row_ciclo["nombre"])
+                grupo_curso = match.group(1) if match else row_ciclo["nombre"]
         if not grupo_curso:
             grupo_id = session.get('active_group_id')
             if grupo_id:
-                cur.execute("SELECT nombre, coordinador_ciclo FROM grupos WHERE id = ?", (grupo_id,))
+                cur.execute("SELECT nombre FROM grupos WHERE id = ?", (grupo_id,))
                 row_g = cur.fetchone()
                 if row_g and row_g["nombre"]:
                     grupo_curso = row_g["nombre"]
-                coordinador_ciclo = row_g["coordinador_ciclo"] if row_g and row_g["coordinador_ciclo"] else ""
-        else:
-            grupo_id = session.get('active_group_id')
-            if grupo_id:
-                cur.execute("SELECT coordinador_ciclo FROM grupos WHERE id = ?", (grupo_id,))
-                row_g2 = cur.fetchone()
-                coordinador_ciclo = row_g2["coordinador_ciclo"] if row_g2 and row_g2["coordinador_ciclo"] else ""
     except Exception as e:
-        print(f"[WARNING] Error obteniendo curso del ciclo para firma del tutor: {e}")
+        print(f"[WARNING] Error obteniendo curso del grupo: {e}")
         grupo_curso = ""
-        coordinador_ciclo = ""
 
-    tutor_label = f"Tutor/a {grupo_curso}" if grupo_curso else "Tutor/a"
+    # Etiqueta firma izquierda: "Tutor/a Xº Primaria" solo para FAMILIAS/PADRES; resto "El/La Maestro/a"
+    if tipo_raw in ("FAMILIAS", "PADRES"):
+        tutor_label = f"Tutor/a {grupo_curso}" if grupo_curso else "Tutor/a"
+    else:
+        tutor_label = "El/La Maestro/a"
 
     firma_fn = cfg.get("tutor_firma_filename")
     tutor_nombre = cfg.get("nombre_tutor", "El/La Tutor/a")
@@ -455,40 +457,76 @@ def reunion_pdf(rid):
     elements.append(Paragraph("<b>FIRMAS</b>", style_label))
     elements.append(Spacer(1, 8))
 
-    col_tutor = [Paragraph(f"<b>{tutor_label}:</b>", style_label), Spacer(1, 8)]
-    if firma_path_val:
-        try:
-            img_f = RLImage(firma_path_val, width=4.5*cm, height=1.5*cm, kind='proportional')
-            img_f.hAlign = 'CENTER'
-            col_tutor.append(img_f)
-        except Exception:
-            col_tutor.append(Spacer(1, 20))
-    else:
-        col_tutor.append(Spacer(1, 28))
-    col_tutor.append(Paragraph(f"<i>{tutor_nombre}</i>", style_small))
-
-    if reunion["tipo"] == "CICLO":
-        col_otro = [Paragraph("<b>El/La Coordinador/a:</b>", style_label), Spacer(1, 36)]
-        if coordinador_ciclo:
-            col_otro.append(Paragraph(f"<i>{coordinador_ciclo}</i>", style_small))
+    def celda_firma(nombre, imagen_path=None, nombre_impreso=None):
+        """Genera una celda de firma: nombre arriba, espacio/imagen, pie."""
+        cel = [Paragraph(f"<b>{nombre}:</b>", style_label), Spacer(1, 8)]
+        if imagen_path:
+            try:
+                img_f = RLImage(imagen_path, width=4*cm, height=1.4*cm, kind='proportional')
+                img_f.hAlign = 'CENTER'
+                cel.append(img_f)
+            except Exception:
+                cel.append(Spacer(1, 22))
         else:
-            col_otro.append(Paragraph("<i>Fdo: .............................................</i>", style_small))
-    else:
-        col_otro = [
-            Paragraph("<b>El/La Padre/Madre/Tutor Legal:</b>", style_label),
-            Spacer(1, 36),
-            Paragraph("<i>Fdo: .............................................</i>", style_small)
-        ]
+            cel.append(Spacer(1, 28))
+        pie = nombre_impreso if nombre_impreso else "Fdo: ............................................."
+        cel.append(Paragraph(f"<i>{pie}</i>", style_small))
+        return cel
 
-    sig_tbl = Table([[col_tutor, col_otro]], colWidths=[8.5*cm, 8.5*cm])
-    sig_tbl.setStyle(TableStyle([
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    elements.append(sig_tbl)
+    if tipo_raw in ("FAMILIAS", "PADRES"):
+        # Tutor + familiar
+        familiar = ""
+        try:
+            familiar = reunion["familiar_asistente"] if "familiar_asistente" in reunion.keys() else ""
+            familiar = familiar or ""
+        except Exception:
+            familiar = ""
+        col_tutor = celda_firma(tutor_label, firma_path_val, tutor_nombre)
+        col_otro = celda_firma("El/La Padre/Madre/Tutor Legal",
+                               nombre_impreso=familiar if familiar else None)
+        sig_tbl = Table([[col_tutor, col_otro]], colWidths=[8.5*cm, 8.5*cm])
+        sig_tbl.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(sig_tbl)
+    else:
+        # Para todos los demás tipos: una caja por asistente (grid de 3 columnas)
+        import json as _json
+        asistentes_pdf = asistentes_raw.split(',') if asistentes_raw else []
+        # Limpiar nombres
+        asistentes_pdf = [a.strip() for a in asistentes_pdf if a.strip()]
+
+        if not asistentes_pdf:
+            asistentes_pdf = [tutor_nombre]
+
+        COLS = 3
+        ancho_cel = 17.0 / COLS * cm
+        filas_firma = []
+        fila_actual = []
+        for nombre_asis in asistentes_pdf:
+            fila_actual.append(celda_firma(nombre_asis))
+            if len(fila_actual) == COLS:
+                filas_firma.append(fila_actual)
+                fila_actual = []
+        if fila_actual:
+            # Rellenar celdas vacías
+            while len(fila_actual) < COLS:
+                fila_actual.append([Paragraph(" ", style_small)])
+            filas_firma.append(fila_actual)
+
+        sig_tbl = Table(filas_firma, colWidths=[ancho_cel] * COLS)
+        sig_tbl.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        elements.append(sig_tbl)
 
     doc.build(elements)
     buffer.seek(0)

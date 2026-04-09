@@ -105,6 +105,7 @@ def run_migrations():
         ("ALTER TABLE reuniones ADD COLUMN ciclo_id INTEGER REFERENCES config_ciclo(id)", "reuniones.ciclo_id"),
         ("ALTER TABLE reuniones ADD COLUMN dificultades TEXT", "reuniones.dificultades"),
         ("ALTER TABLE reuniones ADD COLUMN propuestas_mejora TEXT", "reuniones.propuestas_mejora"),
+        ("ALTER TABLE reuniones ADD COLUMN familiar_asistente TEXT", "reuniones.familiar_asistente"),
         # --- evaluaciones ---
         ("ALTER TABLE evaluaciones ADD COLUMN nota REAL", "evaluaciones.nota"),
         # --- usuarios ---

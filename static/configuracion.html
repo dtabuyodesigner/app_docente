@@ -454,13 +454,18 @@
                     <label style="font-size:0.82rem; font-weight:600; color:#555; display:block; margin-bottom:4px;">Rol</label>
                     <select id="claustro-nuevo-rol"
                         style="width:100%; padding:8px; border:1px solid #cdd; border-radius:8px; font-size:0.85rem;">
-                        <option>Docente</option>
-                        <option>Coordinador/a</option>
+                        <option>Maestro/a</option>
+                        <option>Esp. Inglés</option>
+                        <option>Esp. Ed. Física</option>
+                        <option>Esp. Música</option>
+                        <option>Esp. Francés</option>
+                        <option>Esp. Religión</option>
+                        <option>AL</option>
+                        <option>PT</option>
+                        <option>Orientador/a</option>
                         <option>Director/a</option>
                         <option>Jefe/a de Estudios</option>
-                        <option>Orientador/a</option>
-                        <option>PT</option>
-                        <option>AL</option>
+                        <option>Secretario/a</option>
                         <option>Otro</option>
                     </select>
                 </div>
@@ -1196,15 +1201,9 @@
                 <span style="color:#4a5568; background:#e2e8f0; padding:4px 10px; border-radius:12px; font-size:0.75rem;">${d.rol}</span>
                 <select id="claustro-rol-${d.id}" onchange="cambiarRolClaustro(${d.id}, this.value)"
                     style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e0; background:#fff; color:#2d3748; cursor:pointer; font-size:0.8rem;">
-                    <option value="Docente" ${d.rol === 'Docente' ? 'selected' : ''}>Docente</option>
-                    <option value="Coordinador/a" ${d.rol === 'Coordinador/a' ? 'selected' : ''}>Coordinador/a</option>
-                    <option value="Director/a" ${d.rol === 'Director/a' ? 'selected' : ''}>Director/a</option>
-                    <option value="Jefe de Estudios" ${d.rol === 'Jefe de Estudios' ? 'selected' : ''}>Jefe de Estudios</option>
-                    <option value="Secretario/a" ${d.rol === 'Secretario/a' ? 'selected' : ''}>Secretario/a</option>
-                    <option value="Orientador/a" ${d.rol === 'Orientador/a' ? 'selected' : ''}>Orientador/a</option>
-                    <option value="AL" ${d.rol === 'AL' ? 'selected' : ''}>AL</option>
-                    <option value="PT" ${d.rol === 'PT' ? 'selected' : ''}>PT</option>
-                    <option value="Infantil" ${d.rol === 'Infantil' ? 'selected' : ''}>Infantil</option>
+                    ${['Maestro/a','Esp. Inglés','Esp. Ed. Física','Esp. Música','Esp. Francés','Esp. Religión',
+                       'AL','PT','Orientador/a','Director/a','Jefe/a de Estudios','Secretario/a','Otro']
+                      .map(r => `<option value="${r}" ${d.rol === r ? 'selected' : ''}>${r}</option>`).join('')}
                 </select>
                 <label style="display:flex; justify-content:center; cursor:pointer;">
                     <input type="checkbox" ${d.activo ? 'checked' : ''} onchange="toggleActivoClaustro(${d.id}, this.checked)"

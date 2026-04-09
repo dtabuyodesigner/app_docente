@@ -1071,6 +1071,11 @@ function seleccionarTipo(tipo, el) {
     wizardTipo = tipo;
     document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
+    const labels = { CICLO: 'Nueva Reunión de Ciclo', NIVEL: 'Nueva Reunión de Nivel',
+        CCP: 'Nueva Reunión de CCP', CLAUSTRO: 'Nueva Reunión de Claustro',
+        COMISIONES: 'Nueva Reunión de Comisión', FAMILIAS: 'Nueva Reunión con Familias',
+        PADRES: 'Nueva Entrevista Individual' };
+    document.getElementById('wizard-title').textContent = labels[tipo] || 'Nueva Reunión';
 }
 
 async function wizardSiguiente() {

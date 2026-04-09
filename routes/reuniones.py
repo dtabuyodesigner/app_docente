@@ -259,9 +259,10 @@ def reunion_pdf(rid):
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT r.*, a.nombre as alumno_nombre
+        SELECT r.*, a.nombre as alumno_nombre, p.nombre as plantilla_nombre
         FROM reuniones r
         LEFT JOIN alumnos a ON r.alumno_id = a.id
+        LEFT JOIN plantillas_reunion p ON r.plantilla_id = p.id
         WHERE r.id = ?
     """, (rid,))
     reunion = cur.fetchone()
@@ -299,11 +300,21 @@ def reunion_pdf(rid):
     style_small = ParagraphStyle('RSmall', parent=styles['Normal'],
                                  fontSize=9, textColor=colors.grey)
 
-    # --- CABECERA CON LOGOS (igual que actas evaluación) ---
+    # --- CABECERA CON LOGOS ---
     nombre_centro = cfg.get("nombre_centro", "CEIP")
     curso_escolar = cfg.get("curso_escolar", "")
-    tipo_reunion = "CICLO" if reunion["tipo"] == "CICLO" else "FAMILIAS"
-    titulo_tipo = "Reunión de Ciclo" if reunion["tipo"] == "CICLO" else "Reunión con Familias"
+    tipo_raw = reunion["tipo"] or "PADRES"
+    plantilla_nombre_pdf = (reunion["plantilla_nombre"] if "plantilla_nombre" in reunion.keys() else None) or ""
+    _tipo_labels = {
+        "CICLO": ("CICLO", "Reunión de Ciclo"),
+        "NIVEL": ("NIVEL", "Reunión de Nivel"),
+        "CCP": ("CCP", "Reunión de CCP"),
+        "CLAUSTRO": ("CLAUSTRO", "Reunión de Claustro"),
+        "COMISIONES": ("COMISIÓN", f"Comisión: {plantilla_nombre_pdf}" if plantilla_nombre_pdf else "Reunión de Comisión"),
+        "FAMILIAS": ("FAMILIAS", "Reunión con Familias"),
+        "PADRES": ("FAMILIAS", f"Entrevista: {reunion['alumno_nombre']}" if reunion['alumno_nombre'] else "Entrevista Individual"),
+    }
+    tipo_reunion, titulo_tipo = _tipo_labels.get(tipo_raw, (tipo_raw, f"Reunión — {tipo_raw}"))
 
     def make_logo(lado):
         p = logo_path(lado)
@@ -442,7 +453,11 @@ def reunion_pdf(rid):
         grupo_curso = ""
         coordinador_ciclo = ""
 
-    tutor_label = f"Tutor/a {grupo_curso}" if grupo_curso else "Tutor/a"
+    # Etiqueta firma izquierda: "Tutor/a Xº Primaria" solo para FAMILIAS/PADRES; resto "El/La Maestro/a"
+    if tipo_raw in ("FAMILIAS", "PADRES"):
+        tutor_label = f"Tutor/a {grupo_curso}" if grupo_curso else "Tutor/a"
+    else:
+        tutor_label = "El/La Maestro/a"
 
     firma_fn = cfg.get("tutor_firma_filename")
     tutor_nombre = cfg.get("nombre_tutor", "El/La Tutor/a")
@@ -467,18 +482,20 @@ def reunion_pdf(rid):
         col_tutor.append(Spacer(1, 28))
     col_tutor.append(Paragraph(f"<i>{tutor_nombre}</i>", style_small))
 
-    if reunion["tipo"] == "CICLO":
-        col_otro = [Paragraph("<b>El/La Coordinador/a:</b>", style_label), Spacer(1, 36)]
-        if coordinador_ciclo:
-            col_otro.append(Paragraph(f"<i>{coordinador_ciclo}</i>", style_small))
-        else:
-            col_otro.append(Paragraph("<i>Fdo: .............................................</i>", style_small))
+    firma_vacia = Paragraph("<i>Fdo: .............................................</i>", style_small)
+    if tipo_raw in ("FAMILIAS", "PADRES"):
+        col_otro = [Paragraph("<b>El/La Padre/Madre/Tutor Legal:</b>", style_label), Spacer(1, 36), firma_vacia]
+    elif tipo_raw == "CICLO":
+        col_otro = [Paragraph("<b>El/La Coordinador/a de Ciclo:</b>", style_label), Spacer(1, 36)]
+        col_otro.append(Paragraph(f"<i>{coordinador_ciclo}</i>", style_small) if coordinador_ciclo else firma_vacia)
+    elif tipo_raw == "CCP":
+        col_otro = [Paragraph("<b>El/La Director/a:</b>", style_label), Spacer(1, 36), firma_vacia]
+    elif tipo_raw == "CLAUSTRO":
+        col_otro = [Paragraph("<b>El/La Director/a:</b>", style_label), Spacer(1, 36), firma_vacia]
+    elif tipo_raw == "COMISIONES":
+        col_otro = [Paragraph("<b>El/La Coordinador/a de Comisión:</b>", style_label), Spacer(1, 36), firma_vacia]
     else:
-        col_otro = [
-            Paragraph("<b>El/La Padre/Madre/Tutor Legal:</b>", style_label),
-            Spacer(1, 36),
-            Paragraph("<i>Fdo: .............................................</i>", style_small)
-        ]
+        col_otro = [Paragraph("<b>El/La Jefe/a de Estudios:</b>", style_label), Spacer(1, 36), firma_vacia]
 
     sig_tbl = Table([[col_tutor, col_otro]], colWidths=[8.5*cm, 8.5*cm])
     sig_tbl.setStyle(TableStyle([

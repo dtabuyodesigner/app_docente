@@ -96,6 +96,10 @@ def diario_page():
 def reuniones_page():
     return send_from_directory('static', 'reuniones.html')
 
+@main_bp.route("/reuniones/plantillas")
+def reuniones_plantillas_page():
+    return send_from_directory('static', 'reuniones_plantillas.html')
+
 @main_bp.route("/horario")
 def horario_page():
     return send_from_directory("static", "horario.html")

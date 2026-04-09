@@ -1,8 +1,35 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 7 de Abril 2026
-**Versión:** `v1.1.29`
-**Rama activa:** `master`
+**Fecha:** 8 de Abril 2026
+**Versión:** `v1.1.30`
+**Rama activa:** `feature/modulo-reuniones-unificado`
+
+---
+
+## ✅ MEJORAS REUNIONES DE CICLO (v1.1.30)
+
+### PDF de Reuniones de Ciclo
+- **Tutor con curso:** Muestra "Tutor/a 1º", "Tutor/a 2º", etc. en lugar de solo "Tutor/a"
+- **Coordinador con nombre:** Si hay coordinador configurado en el grupo, muestra su nombre en la firma
+- **Asistentes sin corchetes:** Parsea el formato JSON y muestra texto plano separado por comas
+
+### Selector de Ciclo
+- Añadido dropdown para seleccionar ciclo en reuniones de tipo CICLO
+- Se guarda el `ciclo_id` en la reunión
+
+### Título Dinámico
+- El modal de nueva reunión muestra "Nueva Reunión de Ciclo", "Nueva Reunión de Nivel", etc.
+
+### Diseño del Claustro (Configuración > Reuniones)
+- Dropdown editable para cambiar el rol de cada docente después de importarlo
+- Opciones de rol: Docente, Coordinador/a, Director/a, Jefe de Estudios, Secretario/a, Orientador/a, AL, PT, Infantil
+- Diseño en formato tabla/grid con columnas centradas
+- Encabezado: Nombre | Rol | Cambiar rol | Activo | Eliminar
+
+### Archivos modificados
+- `routes/reuniones.py` - PDF con tutor curso, coordinador nombre, parseo asistentes
+- `static/reuniones.html` - Selector ciclo, título dinámico
+- `static/configuracion.html` - Dropdown editable roles claustro
 
 ---
 
@@ -263,5 +290,5 @@ git push origin --delete feature/refactor-evaluacion-curricular
 
 ---
 
-**Última actualización:** 7 Abril 2026 — zoom menú comedor + fixes post v1.1.29  
-**Estado:** ✅ Master actualizado y en producción
+**Última actualización:** 8 Abril 2026 — mejoras reuniones de ciclo, selector ciclo, diseño claustro  
+**Estado:** ✅ Rama feature en desarrollo

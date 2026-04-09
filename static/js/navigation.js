@@ -11,7 +11,6 @@ const MENU_STRUCTURE = [
             { name: "Alumnos", icon: "👦", url: "/alumnos" },
             { name: "Pasar Lista", icon: "📋", url: "/asistencia" },
             { name: "Horario", icon: "⏰", url: "/horario" },
-            { name: "Reuniones", icon: "👨‍👩‍👧‍👦", url: "/reuniones" },
             { name: "Cumpleaños", icon: "🎂", url: "/cumpleanos" }
         ]
     },
@@ -24,6 +23,15 @@ const MENU_STRUCTURE = [
             { name: "Clase de Hoy", icon: "🏫", url: "/static/clase_hoy.html" },
             { name: "Rúbricas", icon: "📝", url: "/rubricas" },
             { name: "Tareas", icon: "✅", url: "/tareas" }
+        ]
+    },
+    {
+        category: "Reuniones",
+        icon: "🤝",
+        items: [
+            { name: "Todas las Reuniones", icon: "📅", url: "/reuniones" },
+            { name: "Nueva Reunión", icon: "➕", url: "/reuniones?nueva=1" },
+            { name: "Plantillas", icon: "📋", url: "/reuniones/plantillas" }
         ]
     },
     {
@@ -55,8 +63,8 @@ function initNavigation() {
 
     let menuHtml = `
         <div class="nav-container">
-            <a href="/" class="nav-logo">
-                <span>📘</span> Inicio
+            <a href="/" class="nav-logo" title="Panel de Control">
+                <span>📘</span>
             </a>
             <nav class="nav-menu">
     `;

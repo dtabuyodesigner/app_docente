@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantillas de Reunión</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/dark-mode.css">
+    <style>
+        body { margin: 0; padding: 0; background: #f0f4f8; }
+
+        .page-header {
+            background: linear-gradient(135deg, #003366, #0066cc);
+            color: white;
+            padding: 20px;
+        }
+        .page-header-inner { max-width: 1100px; margin: 0 auto; }
+        .page-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 4px; color: white; }
+        .page-subtitle { font-size: 0.88rem; opacity: 0.8; margin: 0 0 14px; }
+        .page-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-new {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+        .btn-new:hover { background: #218838; }
+
+        .main-content { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+        .tipo-section { margin-bottom: 28px; }
+        .tipo-heading {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #003366;
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e8f0;
+        }
+
+        .plantillas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .plantilla-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e8ecf0;
+            transition: all 0.2s;
+        }
+        .plantilla-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .plantilla-nombre { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0 0 6px; }
+        .plantilla-desc { font-size: 0.82rem; color: #777; margin: 0 0 10px; }
+        .plantilla-miembros {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        .miembro-chip {
+            background: #f0f4f8;
+            color: #444;
+            border-radius: 20px;
+            padding: 2px 9px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .plantilla-actions { display: flex; gap: 6px; justify-content: flex-end; }
+        .btn-sm {
+            background: #f0f4f8;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #444;
+            transition: all 0.15s;
+        }
+        .btn-sm:hover { background: #e0e8f4; color: #003366; }
+        .btn-sm.danger:hover { background: #fde8ea; color: #cc0022; }
+
+        .empty-section {
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+            color: #bbb;
+            font-size: 0.9rem;
+            border: 2px dashed #e0e0e0;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 18px 22px 14px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+        .modal-title { font-size: 1.1rem; font-weight: 800; color: #003366; margin: 0; }
+        .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #aaa; }
+        .modal-body { padding: 18px 22px; }
+        .modal-footer { padding: 12px 22px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-weight: 600; font-size: 0.85rem; color: #333; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cdd5df;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+
+        .miembros-editor { border: 1px solid #e0e8f0; border-radius: 8px; overflow: hidden; }
+        .miembro-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .miembro-row:last-child { border-bottom: none; }
+        .miembro-row input { flex: 1; padding: 5px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
+        .miembro-row select { width: 120px; padding: 5px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.8rem; }
+        .miembro-del { background: none; border: none; cursor: pointer; color: #cc0022; font-size: 1rem; padding: 2px 5px; }
+
+        .btn-add-miembro {
+            width: 100%;
+            background: #f8f9fa;
+            border: none;
+            padding: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: #555;
+            border-top: 1px solid #f0f0f0;
+        }
+        .btn-add-miembro:hover { background: #f0f4f8; }
+
+        .btn-primary-modal {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+        .btn-cancel { background: none; border: 1px solid #ddd; color: #666; padding: 9px 14px; border-radius: 8px; font-size: 0.88rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+
+<div class="page-header">
+    <div class="page-header-inner">
+        <h1 class="page-title">📋 Plantillas de Reunión</h1>
+        <p class="page-subtitle">Define miembros y orden del día por defecto para cada tipo de reunión</p>
+        <div class="page-actions">
+            <a href="/reuniones" class="btn-back">← Volver a Reuniones</a>
+            <button class="btn-new" onclick="abrirNueva()">➕ Nueva Plantilla</button>
+        </div>
+    </div>
+</div>
+
+<div class="main-content" id="main-content">
+    <p style="color:#aaa; text-align:center; padding:40px;">Cargando plantillas...</p>
+</div>
+
+<!-- MODAL EDITAR/CREAR PLANTILLA -->
+<div class="modal-overlay" id="modal-plantilla">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modal-plantilla-title">Nueva Plantilla</h2>
+            <button class="modal-close" onclick="cerrarModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" id="p-nombre" placeholder="Ej: Reunión de Ciclo 1er Trimestre">
+            </div>
+            <div class="form-group">
+                <label>Tipo *</label>
+                <select id="p-tipo">
+                    <option value="CICLO">🔄 Ciclo</option>
+                    <option value="NIVEL">📚 Nivel</option>
+                    <option value="CCP">🏛 CCP</option>
+                    <option value="CLAUSTRO">🏫 Claustro</option>
+                    <option value="FAMILIAS">👨‍👩‍👧 Familias</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" id="p-descripcion" placeholder="Breve descripción de cuándo usar esta plantilla">
+            </div>
+            <div class="form-group">
+                <label>Orden del día base</label>
+                <textarea id="p-orden-dia" placeholder="Puntos del orden del día habituales (uno por línea)..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Miembros habituales</label>
+                <div class="miembros-editor" id="miembros-editor">
+                    <!-- filas generadas por JS -->
+                </div>
+                <button class="btn-add-miembro" onclick="añadirMiembro()">➕ Añadir miembro</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn-primary-modal" onclick="guardar()">💾 Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/navigation.js"></script>
+<script>
+const TIPOS = [
+    { id: 'CICLO', label: '🔄 Ciclo' },
+    { id: 'NIVEL', label: '📚 Nivel' },
+    { id: 'CCP', label: '🏛 CCP' },
+    { id: 'CLAUSTRO', label: '🏫 Claustro' },
+    { id: 'FAMILIAS', label: '👨‍👩‍👧 Familias' },
+];
+const ROLES = ['Docente', 'Coordinador/a', 'Director/a', 'Jefe/a de Estudios', 'Orientador/a', 'PT', 'AL', 'Otro'];
+
+let plantillas = [];
+let editandoId = null;
+let miembrosTemp = [];
+
+document.addEventListener('DOMContentLoaded', cargar);
+
+async function cargar() {
+    const r = await fetch('/api/plantillas_reunion');
+    plantillas = await r.json();
+    render();
+}
+
+function render() {
+    const container = document.getElementById('main-content');
+    let html = '';
+
+    for (const tipo of TIPOS) {
+        const lista = plantillas.filter(p => p.tipo === tipo.id);
+        html += `<div class="tipo-section">
+            <h2 class="tipo-heading">${tipo.label}</h2>`;
+
+        if (lista.length === 0) {
+            html += `<div class="empty-section">Sin plantillas para este tipo.
+                <button onclick="abrirNueva('${tipo.id}')" style="margin-left:10px; background:#003366; color:white; border:none; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:0.82rem;">➕ Crear</button>
+            </div>`;
+        } else {
+            html += `<div class="plantillas-grid">`;
+            for (const p of lista) {
+                const chips = (p.miembros || []).map(m =>
+                    `<span class="miembro-chip">${m.nombre}</span>`
+                ).join('');
+                html += `<div class="plantilla-card">
+                    <div class="plantilla-nombre">${p.nombre}</div>
+                    ${p.descripcion ? `<div class="plantilla-desc">${p.descripcion}</div>` : ''}
+                    <div class="plantilla-miembros">${chips || '<span style="color:#ccc;font-size:0.8rem;">Sin miembros definidos</span>'}</div>
+                    <div class="plantilla-actions">
+                        <button class="btn-sm" onclick="editar(${p.id})">✏ Editar</button>
+                        <button class="btn-sm danger" onclick="borrar(${p.id})">🗑</button>
+                    </div>
+                </div>`;
+            }
+            html += `</div>`;
+        }
+        html += `</div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+function abrirNueva(tipo) {
+    editandoId = null;
+    miembrosTemp = [];
+    document.getElementById('modal-plantilla-title').textContent = 'Nueva Plantilla';
+    document.getElementById('p-nombre').value = '';
+    document.getElementById('p-tipo').value = tipo || 'CICLO';
+    document.getElementById('p-descripcion').value = '';
+    document.getElementById('p-orden-dia').value = '';
+    renderMiembros();
+    document.getElementById('modal-plantilla').classList.add('open');
+}
+
+function editar(id) {
+    const p = plantillas.find(x => x.id === id);
+    if (!p) return;
+    editandoId = id;
+    miembrosTemp = (p.miembros || []).map(m => ({ nombre: m.nombre, rol: m.rol || '' }));
+    document.getElementById('modal-plantilla-title').textContent = 'Editar Plantilla';
+    document.getElementById('p-nombre').value = p.nombre;
+    document.getElementById('p-tipo').value = p.tipo;
+    document.getElementById('p-descripcion').value = p.descripcion || '';
+    document.getElementById('p-orden-dia').value = p.orden_del_dia || '';
+    renderMiembros();
+    document.getElementById('modal-plantilla').classList.add('open');
+}
+
+function renderMiembros() {
+    const editor = document.getElementById('miembros-editor');
+    if (miembrosTemp.length === 0) {
+        editor.innerHTML = '<p style="padding:10px;color:#bbb;font-size:0.85rem;text-align:center;">Sin miembros</p>';
+        return;
+    }
+    editor.innerHTML = miembrosTemp.map((m, i) => `
+        <div class="miembro-row">
+            <input type="text" value="${m.nombre}" placeholder="Nombre" onchange="miembrosTemp[${i}].nombre=this.value">
+            <select onchange="miembrosTemp[${i}].rol=this.value">
+                ${ROLES.map(r => `<option value="${r}" ${m.rol === r ? 'selected' : ''}>${r}</option>`).join('')}
+            </select>
+            <button class="miembro-del" onclick="eliminarMiembro(${i})">✕</button>
+        </div>
+    `).join('');
+}
+
+function añadirMiembro() {
+    miembrosTemp.push({ nombre: '', rol: 'Docente' });
+    renderMiembros();
+    // Focus en el último input
+    setTimeout(() => {
+        const inputs = document.querySelectorAll('#miembros-editor input');
+        if (inputs.length) inputs[inputs.length - 1].focus();
+    }, 50);
+}
+
+function eliminarMiembro(i) {
+    miembrosTemp.splice(i, 1);
+    renderMiembros();
+}
+
+async function guardar() {
+    const nombre = document.getElementById('p-nombre').value.trim();
+    const tipo = document.getElementById('p-tipo').value;
+    if (!nombre) { alert('El nombre es obligatorio'); return; }
+
+    // Recoger valores actuales de los inputs (por si no se disparó el onchange)
+    const rows = document.querySelectorAll('#miembros-editor .miembro-row');
+    rows.forEach((row, i) => {
+        if (miembrosTemp[i]) {
+            miembrosTemp[i].nombre = row.querySelector('input').value;
+            miembrosTemp[i].rol = row.querySelector('select').value;
+        }
+    });
+
+    const data = {
+        nombre,
+        tipo,
+        descripcion: document.getElementById('p-descripcion').value,
+        orden_del_dia: document.getElementById('p-orden-dia').value,
+        miembros: miembrosTemp.filter(m => m.nombre.trim()),
+    };
+
+    const url = editandoId ? `/api/plantillas_reunion/${editandoId}` : '/api/plantillas_reunion';
+    const method = editandoId ? 'PUT' : 'POST';
+
+    const r = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    const res = await r.json();
+    if (res.ok) {
+        cerrarModal();
+        await cargar();
+    } else {
+        alert('Error: ' + (res.error || 'desconocido'));
+    }
+}
+
+async function borrar(id) {
+    if (!confirm('¿Eliminar esta plantilla?')) return;
+    await fetch(`/api/plantillas_reunion/${id}`, { method: 'DELETE' });
+    await cargar();
+}
+
+function cerrarModal() {
+    document.getElementById('modal-plantilla').classList.remove('open');
+}
+
+document.getElementById('modal-plantilla').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-plantilla')) cerrarModal();
+});
+</script>
+</body>
+</html>

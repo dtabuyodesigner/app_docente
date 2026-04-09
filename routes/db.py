@@ -91,6 +91,7 @@ def run_migrations():
         ("ALTER TABLE alumnos ADD COLUMN observaciones_generales TEXT", "alumnos.observaciones_generales"),
         # --- grupos ---
         ("ALTER TABLE grupos ADD COLUMN equipo_docente TEXT", "grupos.equipo_docente"),
+        ("ALTER TABLE grupos ADD COLUMN coordinador_ciclo TEXT", "grupos.coordinador_ciclo"),
         # --- areas ---
         ("ALTER TABLE areas ADD COLUMN es_personalizada BOOLEAN DEFAULT 1", "areas.es_personalizada"),
         # --- criterios ---
@@ -104,6 +105,9 @@ def run_migrations():
         ("ALTER TABLE reuniones ADD COLUMN ciclo_id INTEGER REFERENCES config_ciclo(id)", "reuniones.ciclo_id"),
         ("ALTER TABLE reuniones ADD COLUMN dificultades TEXT", "reuniones.dificultades"),
         ("ALTER TABLE reuniones ADD COLUMN propuestas_mejora TEXT", "reuniones.propuestas_mejora"),
+        ("ALTER TABLE reuniones ADD COLUMN grupo_id INTEGER REFERENCES grupos(id)", "reuniones.grupo_id"),
+        ("ALTER TABLE reuniones ADD COLUMN plantilla_id INTEGER", "reuniones.plantilla_id"),
+        ("ALTER TABLE reuniones ADD COLUMN lugar TEXT", "reuniones.lugar"),
         # --- evaluaciones ---
         ("ALTER TABLE evaluaciones ADD COLUMN nota REAL", "evaluaciones.nota"),
         # --- usuarios ---
@@ -158,6 +162,39 @@ def run_migrations():
             estado TEXT DEFAULT 'realizado',
             FOREIGN KEY(alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
         )""", "tabla encargados"),
+        # --- claustro ---
+        ("""CREATE TABLE IF NOT EXISTS claustro (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            rol TEXT DEFAULT 'Docente',
+            activo INTEGER DEFAULT 1,
+            orden INTEGER DEFAULT 0
+        )""", "tabla claustro"),
+        # --- asistentes por tipo de reunión (vincula claustro con tipos) ---
+        ("""CREATE TABLE IF NOT EXISTS reunion_tipo_asistentes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tipo TEXT NOT NULL,
+            claustro_id INTEGER NOT NULL,
+            FOREIGN KEY(claustro_id) REFERENCES claustro(id) ON DELETE CASCADE,
+            UNIQUE(tipo, claustro_id)
+        )""", "tabla reunion_tipo_asistentes"),
+        # --- plantillas de reunión ---
+        ("""CREATE TABLE IF NOT EXISTS plantillas_reunion (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            tipo TEXT NOT NULL,
+            descripcion TEXT,
+            orden_del_dia TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )""", "tabla plantillas_reunion"),
+        ("""CREATE TABLE IF NOT EXISTS plantillas_reunion_miembros (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            plantilla_id INTEGER NOT NULL,
+            nombre TEXT NOT NULL,
+            rol TEXT,
+            orden INTEGER DEFAULT 0,
+            FOREIGN KEY(plantilla_id) REFERENCES plantillas_reunion(id) ON DELETE CASCADE
+        )""", "tabla plantillas_reunion_miembros"),
     ]
 
     for sql, name in migrations:

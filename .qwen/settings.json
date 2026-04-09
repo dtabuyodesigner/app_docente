@@ -39,7 +39,10 @@
       "Bash(pgrep *)",
       "Bash(venv/bin/python *)",
       "Bash(cd *)",
-      "Bash(echo *)"
+      "Bash(echo *)",
+      "Bash(tail *)",
+      "Bash(git checkout *)",
+      "Bash(head *)"
     ]
   },
   "$version": 3

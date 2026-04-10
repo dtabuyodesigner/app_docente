@@ -523,8 +523,11 @@
                 <p id="updateMessage">Hay una nueva versión del sistema lista para instalar.</p>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
-                <button onclick="applyUpdateFromBanner()" style="background:white; color:#28a745; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer;">Actualizar ahora</button>
-                <button onclick="document.getElementById('updateAlert').style.display='none'" style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.5); padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer;">Omitir</button>
+                <button onclick="applyUpdateFromBanner()"
+                    style="background:white; color:#28a745; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer;">Actualizar
+                    ahora</button>
+                <button onclick="document.getElementById('updateAlert').style.display='none'"
+                    style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.5); padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer;">Omitir</button>
             </div>
         </div>
         <div id="birthdayAlert" class="birthday-card">
@@ -705,13 +708,14 @@
             </div>
         </div>
         <!-- Today Events Modal -->
-        <div class="modal-overlay" id="todayEventsModal">
-            <div class="modal" style="max-width: 500px; text-align: center;">
+        <div class="modal-overlay" id="todayEventsModal" onkeydown="if(event.key==='Enter')this.style.display='none'">
+            <div class="modal" style="max-width: 500px; text-align: center;" tabindex="0"
+                onkeydown="if(event.key==='Enter')document.getElementById('todayEventsModal').style.display='none'">
                 <div class="modal-header" style="justify-content: center;">
                     <h3 style="color: var(--primary); margin: 0;">📅 Eventos de Hoy</h3>
                 </div>
                 <div id="todayEventsContent" style="font-size: 1.1rem; margin: 20px 0;"></div>
-                <button onclick="document.getElementById('todayEventsModal').style.display='none'"
+                <button id="btnEntendido" onclick="document.getElementById('todayEventsModal').style.display='none'"
                     style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
                     Entendido
                 </button>
@@ -1150,17 +1154,20 @@
                 if (todayEvents.length > 0) {
                     const modal = document.getElementById('todayEventsModal');
                     const content = document.getElementById('todayEventsContent');
+                    const btn = document.getElementById('btnEntendido');
                     if (modal && content) {
                         content.innerHTML = todayEvents.map(e => `
                             <div style="margin: 15px 0; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px;">
                                 <span style="font-weight: 600;">✨ ${e.actividad}</span>
-                                <button onclick="marcarEventoHecho(${e.id})" 
+                                <button onclick="marcarEventoHecho(${e.id})"
                                     style="background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">
                                     ✅ Hecho
                                 </button>
                             </div>
                         `).join('');
                         modal.style.display = 'flex';
+                        // Focus en el botón para que Enter funcione directamente
+                        setTimeout(() => { if (btn) btn.focus(); }, 100);
                     }
                 }
             } catch (e) { }

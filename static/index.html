@@ -654,6 +654,20 @@
                     <div id="tooltipLibrosLista" style="margin-top:6px;"></div>
                 </div>
             </div>
+            <div class="stat-card"
+                style="border-top: 4px solid #f59e0b; background: #fffbeb; position: relative; cursor: pointer;"
+                onclick="window.location.href='/excursiones'">
+                <h4 style="color: #92400e;">🚌 Excursiones Pendientes</h4>
+                <p id="statsExcursiones" style="color: #b45309;">-</p>
+                <div style="font-size: 0.75rem; color: #92400e; opacity: 0.8;">Click para ver detalles</div>
+            </div>
+            <div class="stat-card"
+                style="border-top: 4px solid #ef4444; background: #fef2f2; position: relative; cursor: pointer;"
+                onclick="window.location.href='/autorizaciones'">
+                <h4 style="color: #991b1b;">📋 Autorizaciones Pendientes</h4>
+                <p id="statsAutorizaciones" style="color: #b91c1c;">-</p>
+                <div style="font-size: 0.75rem; color: #991b1b; opacity: 0.8;">Alumnos sin autorización firmada</div>
+            </div>
             <!-- Priority Lists Row (Moved Up) -->
             <div class="list-container" style="border-left: 4px solid #f59e0b; background: #fffcf0;">
                 <div class="section-header" style="color: #92400e;">🔔 Avisos Importantes</div>
@@ -985,6 +999,9 @@
                     if (document.getElementById('mediaClase')) document.getElementById('mediaClase').innerText = (data.media_clase ?? 0).toFixed(2);
                     if (document.getElementById('triLabel')) document.getElementById('triLabel').innerText = `📈 Media (T${data.trimestre_actual ?? 1})`;
 
+                    // Excursiones pendientes
+                    loadExcursionesPendientes();
+
                     // Cumples
                     if (data.cumples && data.cumples.length > 0) {
                         const bdayAlert = document.getElementById('birthdayAlert');
@@ -1060,6 +1077,31 @@
 
             // 3. Cargar Observaciones (Independiente)
             loadLastObservations();
+        }
+
+        async function loadExcursionesPendientes() {
+            try {
+                const res = await fetch('/api/excursiones/dashboard');
+                const data = await res.json();
+                const elExc = document.getElementById('statsExcursiones');
+                const elAut = document.getElementById('statsAutorizaciones');
+
+                if (!data || data.length === 0) {
+                    if (elExc) elExc.innerText = '0';
+                    if (elAut) elAut.innerText = '0';
+                    return;
+                }
+
+                let totalPendientesAut = 0;
+                data.forEach(e => {
+                    totalPendientesAut += e.pendientes_auto || 0;
+                });
+
+                if (elExc) elExc.innerText = data.length;
+                if (elAut) elAut.innerText = totalPendientesAut;
+            } catch (e) {
+                console.error('Error cargando excursiones:', e);
+            }
         }
 
         async function updateAlerts(data) {

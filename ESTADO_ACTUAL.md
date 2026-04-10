@@ -1,8 +1,18 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
 **Fecha:** 10 de Abril 2026
-**Versión:** `v1.1.30`
+**Versión:** `v1.1.31`
 **Rama activa:** `master`
+
+---
+
+## ✅ MODAL EVENTOS DE HOY — CERRAR CON ENTER (v1.1.31)
+
+### Modal "Eventos de Hoy" al arrancar la app
+- **Cerrar con Enter:** al abrir el modal, el foco va automáticamente al botón "Entendido"
+- **onkeydown en modal:** captura la tecla Enter para cerrar sin necesidad de hacer clic
+- **Mejora UX:** el usuario solo pulsa Enter y sigue trabajando
+- **Archivo:** `static/index.html` — modal `todayEventsModal` y función `checkTodayEvents()`
 
 ---
 

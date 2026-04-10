@@ -1,12 +1,26 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
-**Fecha:** 9 de Abril 2026
-**Versión:** `v1.1.31`
-**Rama activa:** `master` (merge de `reuniones`)
+**Fecha:** 10 de Abril 2026
+**Versión:** `v1.1.30`
+**Rama activa:** `master`
 
 ---
 
-## ✅ MÓDULO REUNIONES — REFACTORING COMPLETO (v1.1.31)
+## ✅ OPTIMIZACIÓN DIPLOMA BIBLIOTECA — IMPRESIÓN A4 COMPLETA (v1.1.30)
+
+### Diploma de Honor (Lectómetro)
+- **Tamaño:** ocupa casi todo el folio A4 vertical (era medio folio antes)
+- **Tipografía escalada:** títulos 2.4rem, nombre alumno 3.8rem, icono corona 3.5rem
+- **Formato vertical:** eliminada opción horizontal/landscape (no existía, solo existía la versión reducida)
+- **Control de página:** `page-break-inside: avoid` garantiza que el diploma cabe en una sola hoja
+- **Margen @page:** 0.8cm para maximizar espacio útil
+- **Popup blocker:** detección y mensaje amigable si el navegador bloquea la ventana de impresión
+- **Código limpio:** eliminado template duplicado sin usar (~35 líneas muertas)
+- **Archivos modificados:** `static/biblioteca.html`, `version.py`, `VERSION`, `ESTADO_ACTUAL.md`
+
+---
+
+## ✅ MÓDULO REUNIONES — REFACTORING COMPLETO (v1.1.29)
 
 ### Wizard de nueva reunión
 - **Título dinámico al seleccionar tipo:** "Nueva Reunión de Ciclo", "Nueva Reunión de CCP", "Nueva Comisión", etc.

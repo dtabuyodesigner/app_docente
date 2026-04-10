@@ -1,8 +1,21 @@
 # 📍 ESTADO DEL PROYECTO - APP_EVALUAR
 
 **Fecha:** 10 de Abril 2026
-**Versión:** `v1.1.31`
+**Versión:** `v1.1.32`
 **Rama activa:** `master`
+
+---
+
+## ✅ DASHBOARD — EXCURSIONES Y AUTORIZACIONES PENDIENTES (v1.1.32)
+
+### Cards en el Dashboard
+- **Excursiones Pendientes:** muestra cuántas excursiones activas hay
+  - Click en la card redirige a `/excursiones`
+  - Usa endpoint existente `/api/excursiones/dashboard`
+- **Autorizaciones Pendientes:** suma total de alumnos sin autorización firmada
+  - Click en la card redirige a `/autorizaciones`
+  - Cuenta solo excursiones con `requiere_autorizacion=1` y `autorizado=0`
+- **Archivos modificados:** `static/index.html` — cards nuevas + función `loadExcursionesPendientes()`
 
 ---
 

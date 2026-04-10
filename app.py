@@ -95,6 +95,7 @@ from routes.eventos import eventos_bp
 from routes.observaciones import observaciones_bp
 from routes.rubricas import rubricas_bp
 from routes.actas import actas_bp
+from routes.excursiones import excursiones_bp
 
 app.register_blueprint(main_bp)
 app.register_blueprint(alumnos_bp)
@@ -123,6 +124,7 @@ app.register_blueprint(eventos_bp)
 app.register_blueprint(observaciones_bp)
 app.register_blueprint(rubricas_bp)
 app.register_blueprint(actas_bp)
+app.register_blueprint(excursiones_bp)
 
 # ==============================================================================
 # CONFIGURACIÓN DE SEGURIDAD Y CONTEXTO

@@ -101,6 +101,8 @@ def run_migrations():
         ("ALTER TABLE sda ADD COLUMN duracion_semanas INTEGER", "sda.duracion_semanas"),
         # --- horario ---
         ("ALTER TABLE horario ADD COLUMN tipo TEXT DEFAULT 'clase'", "horario.tipo"),
+        # --- excursiones ---
+        ("ALTER TABLE excursiones ADD COLUMN grupos_extra TEXT DEFAULT ''", "excursiones.grupos_extra"),
         # --- reuniones ---
         ("ALTER TABLE reuniones ADD COLUMN ciclo_id INTEGER REFERENCES config_ciclo(id)", "reuniones.ciclo_id"),
         ("ALTER TABLE reuniones ADD COLUMN dificultades TEXT", "reuniones.dificultades"),
@@ -271,6 +273,45 @@ def run_migrations():
             FOREIGN KEY (actividad_id) REFERENCES actividades_sda(id) ON DELETE CASCADE,
             FOREIGN KEY (criterio_id) REFERENCES criterios(id) ON DELETE CASCADE
         )""", "tabla actividad_criterio"),
+        ("""CREATE TABLE IF NOT EXISTS excursiones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tipo TEXT NOT NULL DEFAULT 'excursion',
+            titulo TEXT NOT NULL,
+            fecha TEXT,
+            destino TEXT,
+            descripcion TEXT,
+            grupo_ids TEXT DEFAULT '[]',
+            requiere_autorizacion INTEGER DEFAULT 1,
+            requiere_pago INTEGER DEFAULT 0,
+            coste REAL,
+            fecha_limite TEXT,
+            estado TEXT DEFAULT 'activa',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""", "tabla excursiones"),
+        ("""CREATE TABLE IF NOT EXISTS excursion_alumnos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            excursion_id INTEGER NOT NULL,
+            alumno_id INTEGER NOT NULL,
+            autorizado INTEGER DEFAULT 0,
+            fecha_autorizacion TEXT,
+            pagado INTEGER DEFAULT 0,
+            fecha_pago TEXT,
+            observaciones TEXT,
+            UNIQUE(excursion_id, alumno_id),
+            FOREIGN KEY (excursion_id) REFERENCES excursiones(id) ON DELETE CASCADE,
+            FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )""", "tabla excursion_alumnos"),
+        ("""CREATE TABLE IF NOT EXISTS autorizaciones_alumno (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            alumno_id INTEGER NOT NULL,
+            tipo TEXT NOT NULL,
+            etiqueta TEXT,
+            estado TEXT DEFAULT 'pendiente',
+            fecha_recibida TEXT,
+            observaciones TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+        )""", "tabla autorizaciones_alumno"),
     ]
 
     for sql, name in migrations:

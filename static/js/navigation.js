@@ -11,7 +11,9 @@ const MENU_STRUCTURE = [
             { name: "Alumnos", icon: "👦", url: "/alumnos" },
             { name: "Pasar Lista", icon: "📋", url: "/asistencia" },
             { name: "Horario", icon: "⏰", url: "/horario" },
-            { name: "Cumpleaños", icon: "🎂", url: "/cumpleanos" }
+            { name: "Cumpleaños", icon: "🎂", url: "/cumpleanos" },
+            { name: "Excursiones", icon: "🚌", url: "/excursiones" },
+            { name: "Autorizaciones", icon: "📋", url: "/autorizaciones" }
         ]
     },
     {

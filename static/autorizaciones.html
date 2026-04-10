@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autorizaciones - Cuaderno del Tutor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/dark-mode.css">
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --bg: #f0f2f5;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* ── Layout principal ── */
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        @media (max-width: 768px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+
+        /* ── Panel alumnos ── */
+        .panel-alumnos {
+            background: white;
+            border-radius: 14px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #eef2f7;
+            overflow: hidden;
+            position: sticky;
+            top: 20px;
+        }
+        .panel-alumnos-header {
+            padding: 14px 16px;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .search-box {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .search-box input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .lista-alumnos { max-height: 500px; overflow-y: auto; }
+        .alumno-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8fafc;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.12s;
+        }
+        .alumno-item:hover { background: #f0f7ff; }
+        .alumno-item.activo { background: #eff6ff; font-weight: 700; color: var(--primary); }
+        .alumno-item .badge-count {
+            background: #e0e7ff;
+            color: #3730a3;
+            border-radius: 10px;
+            padding: 1px 7px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        /* ── Panel derecho ── */
+        .panel-derecho {
+            background: white;
+            border-radius: 14px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #eef2f7;
+            padding: 24px;
+            min-height: 400px;
+        }
+        .panel-derecho-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .panel-derecho-header h2 {
+            margin: 0;
+            font-size: 1.15rem;
+            color: var(--primary);
+        }
+        .btn-nueva-auto {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        /* ── Tabla de autorizaciones ── */
+        .tabla-auto {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        .tabla-auto th {
+            background: #f8fafc;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            color: #374151;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .tabla-auto td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .tabla-auto tr:hover td { background: #f8fafc; }
+
+        /* ── Estado badges ── */
+        .estado-select {
+            border: none;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .estado-pendiente { background: #fef3c7; color: #92400e; }
+        .estado-autorizada { background: #d1fae5; color: #065f46; }
+        .estado-no_autoriza { background: #fee2e2; color: #991b1b; }
+        .estado-retirada { background: #e2e8f0; color: #475569; }
+
+        /* ── Tipo labels ── */
+        .tipo-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            width: 90%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal-box h3 { margin: 0 0 20px; color: var(--primary); font-size: 1.1rem; }
+        .modal-box label { display: block; font-weight: 600; font-size: 0.85rem; margin: 12px 0 4px; color: #374151; }
+        .modal-box input, .modal-box textarea, .modal-box select {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .modal-box textarea { resize: vertical; min-height: 70px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-guardar { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 10px 22px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+        .btn-cancelar { background: #f1f5f9; color: #374151; border: none; border-radius: 8px; padding: 10px 18px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+        .btn-danger-sm { background: #dc2626; color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.78rem; cursor: pointer; font-weight: 600; }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #9ca3af;
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+        /* ── Resumen global ── */
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .resumen-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 0.85rem;
+        }
+        .resumen-card .num { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+        .resumen-card .lbl { color: #6b7280; font-size: 0.78rem; }
+    </style>
+    <script src="/static/js/api.js?v=1.0"></script>
+    <script src="/static/js/dark-mode.js"></script>
+    <script src="/static/js/shortcuts.js"></script>
+    <script src="/static/js/navigation.js?v=1.0"></script>
+    <script src="/static/js/global_groups.js?v=1.0"></script>
+</head>
+<body>
+<div class="container">
+
+    <!-- Tabs de sección -->
+    <div class="section-tabs">
+        <a href="/alumnos" class="section-tab-btn">👦 Alumnos</a>
+        <a href="/asistencia" class="section-tab-btn">📋 Pasar Lista</a>
+        <a href="/horario" class="section-tab-btn">⏰ Horario</a>
+        <a href="/cumpleanos" class="section-tab-btn">🎂 Cumpleaños</a>
+        <a href="/excursiones" class="section-tab-btn">🚌 Excursiones</a>
+        <a href="/autorizaciones" class="section-tab-btn active">📋 Autorizaciones</a>
+    </div>
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h1 style="margin:0; font-size:1.8rem; color:var(--primary);">📋 Autorizaciones Generales</h1>
+        <button class="btn-nueva-auto" onclick="abrirBulk()" style="display:flex; align-items:center; gap:6px;">
+            👥 Aplicar a varios alumnos
+        </button>
+    </div>
+
+    <div class="layout">
+        <!-- Lista de alumnos -->
+        <div class="panel-alumnos">
+            <div class="panel-alumnos-header">👦 Alumnos</div>
+            <div class="search-box">
+                <input type="text" id="buscar-alumno" placeholder="Buscar alumno..." oninput="filtrarListaAlumnos()">
+            </div>
+            <div class="lista-alumnos" id="lista-alumnos"></div>
+        </div>
+
+        <!-- Panel derecho -->
+        <div class="panel-derecho">
+            <div id="estado-inicial" class="empty-state">
+                <div class="icon">👈</div>
+                <p>Selecciona un alumno para ver sus autorizaciones.</p>
+            </div>
+
+            <div id="panel-alumno" style="display:none;">
+                <div class="panel-derecho-header">
+                    <h2 id="nombre-alumno-panel">—</h2>
+                    <button class="btn-nueva-auto" onclick="abrirNuevaAuto()">➕ Nueva autorización</button>
+                </div>
+
+                <!-- Resumen rápido -->
+                <div class="resumen-grid" id="resumen-grid"></div>
+
+                <!-- Tabla -->
+                <table class="tabla-auto" id="tabla-auto">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Fecha recibida</th>
+                            <th>Observaciones</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-auto-body"></tbody>
+                </table>
+                <div id="tabla-auto-empty" style="display:none;" class="empty-state">
+                    <div class="icon">📋</div>
+                    <p>Este alumno no tiene autorizaciones registradas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL BULK ── -->
+<div class="modal-overlay" id="modal-bulk">
+    <div class="modal-box" style="max-width:580px; display:flex; flex-direction:column; max-height:90vh; padding:0; overflow:hidden;">
+        <!-- Cabecera fija -->
+        <div style="padding:22px 24px 16px; border-bottom:1px solid #f1f5f9; flex-shrink:0;">
+            <h3 style="margin:0;">👥 Aplicar autorización a varios alumnos</h3>
+        </div>
+
+        <!-- Contenido scrollable -->
+        <div style="overflow-y:auto; padding:16px 24px; flex:1;">
+            <label>Tipo</label>
+            <select id="bulk-tipo" onchange="toggleBulkEtiqueta()">
+                <option value="excursion">🚌 Excursión (especificar cuál)</option>
+                <option value="fotos_interno">Fotos — uso interno del centro</option>
+                <option value="fotos_rrss">Fotos — web / redes sociales</option>
+                <option value="salidas_entorno">Salidas al entorno</option>
+                <option value="datos">Tratamiento de datos (LOPD)</option>
+                <option value="otro">Otro (especificar)</option>
+            </select>
+
+            <div id="bulk-etiqueta-row">
+                <label id="bulk-etiqueta-label">Nombre de la excursión *</label>
+                <input type="text" id="bulk-etiqueta" placeholder="Ej: Visita al Museo de Ciencias...">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px;">
+                <div>
+                    <label>Estado inicial</label>
+                    <select id="bulk-estado" onchange="toggleBulkFecha()">
+                        <option value="pendiente">⏳ Pendiente</option>
+                        <option value="autorizada">✅ Autorizada</option>
+                        <option value="no_autoriza">❌ No autoriza</option>
+                    </select>
+                </div>
+                <div id="bulk-fecha-row" style="display:none;">
+                    <label>Fecha de recepción</label>
+                    <input type="date" id="bulk-fecha">
+                </div>
+            </div>
+
+            <label>Observaciones (opcional)</label>
+            <input type="text" id="bulk-obs" placeholder="Nota común para todos...">
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 6px;">
+                <label style="margin:0; font-weight:700;">Alumnos</label>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-cancelar" style="padding:3px 10px; font-size:0.78rem;" onclick="bulkSelAll(true)">Todos</button>
+                    <button class="btn-cancelar" style="padding:3px 10px; font-size:0.78rem;" onclick="bulkSelAll(false)">Ninguno</button>
+                </div>
+            </div>
+            <div id="bulk-alumnos-list" style="border:1px solid #e2e8f0; border-radius:8px; padding:4px 8px; max-height:200px; overflow-y:auto;"></div>
+        </div>
+
+        <!-- Footer fijo -->
+        <div style="padding:14px 24px; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end; gap:10px; flex-shrink:0; background:white;">
+            <button class="btn-cancelar" onclick="cerrarBulk()">Cancelar</button>
+            <button class="btn-guardar" onclick="guardarBulk()">Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL NUEVA/EDITAR AUTORIZACIÓN ── -->
+<div class="modal-overlay" id="modal-auto">
+    <div class="modal-box">
+        <h3 id="modal-auto-titulo">Nueva Autorización</h3>
+        <input type="hidden" id="auto-id">
+
+        <label>Tipo</label>
+        <select id="auto-tipo" onchange="toggleEtiqueta()">
+            <option value="excursion">🚌 Excursión (especificar cuál)</option>
+            <option value="fotos_interno">Fotos — uso interno del centro</option>
+            <option value="fotos_rrss">Fotos — web / redes sociales</option>
+            <option value="salidas_entorno">Salidas al entorno</option>
+            <option value="datos">Tratamiento de datos (LOPD)</option>
+            <option value="otro">Otro (especificar)</option>
+        </select>
+
+        <div id="etiqueta-row">
+            <label>Nombre de la excursión *</label>
+            <input type="text" id="auto-etiqueta" placeholder="Ej: Visita al Museo de Ciencias...">
+        </div>
+
+        <label>Estado</label>
+        <select id="auto-estado" onchange="toggleFechaRecibida()">
+            <option value="pendiente">Pendiente — no recibida</option>
+            <option value="autorizada">Autorizada — recibida</option>
+            <option value="no_autoriza">No autoriza</option>
+            <option value="retirada">Retirada / Anulada</option>
+        </select>
+
+        <div id="fecha-recibida-row">
+            <label>Fecha de recepción</label>
+            <input type="date" id="auto-fecha-recibida">
+        </div>
+
+        <label>Observaciones</label>
+        <textarea id="auto-observaciones" placeholder="Notas adicionales..."></textarea>
+
+        <div class="modal-footer">
+            <button class="btn-cancelar" onclick="cerrarModalAuto()">Cancelar</button>
+            <button class="btn-guardar" onclick="guardarAuto()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ─── Estado global ───────────────────────────────────────
+let _alumnos = [];
+let _alumnosFiltrados = [];
+let _alumnoActual = null;
+let _autorizaciones = [];
+
+const TIPOS_LABEL = {
+    excursion: '🚌 Excursión',
+    fotos_interno: '📷 Fotos — uso interno',
+    fotos_rrss: '📱 Fotos — web/RRSS',
+    salidas_entorno: '🌳 Salidas al entorno',
+    datos: '🔐 Tratamiento de datos',
+    otro: '📄 Otro'
+};
+const ESTADOS_LABEL = {
+    pendiente: 'Pendiente',
+    autorizada: 'Autorizada',
+    no_autoriza: 'No autoriza',
+    retirada: 'Retirada'
+};
+
+// ─── Inicialización ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    cargarAlumnos();
+});
+document.addEventListener('grupoChanged', () => {
+    cargarAlumnos();
+    _alumnoActual = null;
+    document.getElementById('panel-alumno').style.display = 'none';
+    document.getElementById('estado-inicial').style.display = '';
+});
+
+async function cargarAlumnos() {
+    const res = await fetch('/api/alumnos');
+    _alumnos = await res.json();
+    _alumnosFiltrados = [..._alumnos];
+    renderListaAlumnos();
+}
+
+function filtrarListaAlumnos() {
+    const q = document.getElementById('buscar-alumno').value.toLowerCase();
+    _alumnosFiltrados = _alumnos.filter(a => a.nombre.toLowerCase().includes(q));
+    renderListaAlumnos();
+}
+
+function renderListaAlumnos() {
+    const cont = document.getElementById('lista-alumnos');
+    if (!_alumnosFiltrados.length) {
+        cont.innerHTML = '<div style="padding:16px; color:#9ca3af; font-size:0.85rem; text-align:center;">Sin resultados</div>';
+        return;
+    }
+    cont.innerHTML = _alumnosFiltrados.map(a => {
+        const activo = _alumnoActual && _alumnoActual.id === a.id ? 'activo' : '';
+        return `<div class="alumno-item ${activo}" onclick="seleccionarAlumno(${a.id}, '${a.nombre.replace(/'/g, "\\'")}')">
+            <span>${a.nombre}</span>
+        </div>`;
+    }).join('');
+}
+
+async function seleccionarAlumno(id, nombre) {
+    _alumnoActual = { id, nombre };
+    document.getElementById('estado-inicial').style.display = 'none';
+    document.getElementById('panel-alumno').style.display = '';
+    document.getElementById('nombre-alumno-panel').textContent = nombre;
+
+    // Resaltar en lista
+    document.querySelectorAll('.alumno-item').forEach(el => el.classList.remove('activo'));
+    event.currentTarget.classList.add('activo');
+
+    await cargarAutorizaciones();
+}
+
+// ─── Autorizaciones ──────────────────────────────────────
+async function cargarAutorizaciones() {
+    const res = await fetch(`/api/autorizaciones/${_alumnoActual.id}`);
+    _autorizaciones = await res.json();
+    renderResumen();
+    renderTablaAuto();
+}
+
+function renderResumen() {
+    const total = _autorizaciones.length;
+    const autorizadas = _autorizaciones.filter(a => a.estado === 'autorizada').length;
+    const pendientes = _autorizaciones.filter(a => a.estado === 'pendiente').length;
+    const noAutoriza = _autorizaciones.filter(a => a.estado === 'no_autoriza').length;
+
+    document.getElementById('resumen-grid').innerHTML = `
+        <div class="resumen-card">
+            <div class="num">${total}</div>
+            <div class="lbl">Total registradas</div>
+        </div>
+        <div class="resumen-card" style="border-color:#86efac;">
+            <div class="num" style="color:#166534;">${autorizadas}</div>
+            <div class="lbl">Autorizadas</div>
+        </div>
+        <div class="resumen-card" style="border-color:#fca5a5;">
+            <div class="num" style="color:#dc2626;">${pendientes}</div>
+            <div class="lbl">Pendientes</div>
+        </div>
+        ${noAutoriza > 0 ? `<div class="resumen-card" style="border-color:#fca5a5;">
+            <div class="num" style="color:#991b1b;">${noAutoriza}</div>
+            <div class="lbl">No autoriza</div>
+        </div>` : ''}
+    `;
+}
+
+function renderTablaAuto() {
+    const tbody = document.getElementById('tabla-auto-body');
+    const empty = document.getElementById('tabla-auto-empty');
+    document.getElementById('tabla-auto').style.display = _autorizaciones.length ? '' : 'none';
+    empty.style.display = _autorizaciones.length ? 'none' : '';
+
+    tbody.innerHTML = _autorizaciones.map(a => {
+        const tipoLabel = (a.tipo === 'otro' || a.tipo === 'excursion') && a.etiqueta
+            ? `${a.tipo === 'excursion' ? '🚌' : '📄'} ${a.etiqueta}`
+            : (TIPOS_LABEL[a.tipo] || a.tipo);
+        const estadoCls = `estado-${a.estado}`;
+        const fecha = a.fecha_recibida ? fmtFecha(a.fecha_recibida) : '—';
+
+        return `<tr>
+            <td>
+                <strong>${tipoLabel}</strong>
+            </td>
+            <td>
+                <select class="estado-select ${estadoCls}" onchange="cambiarEstado(${a.id}, this)">
+                    <option value="pendiente" ${a.estado==='pendiente'?'selected':''}>⏳ Pendiente</option>
+                    <option value="autorizada" ${a.estado==='autorizada'?'selected':''}>✅ Autorizada</option>
+                    <option value="no_autoriza" ${a.estado==='no_autoriza'?'selected':''}>❌ No autoriza</option>
+                    <option value="retirada" ${a.estado==='retirada'?'selected':''}>↩️ Retirada</option>
+                </select>
+            </td>
+            <td>${fecha}</td>
+            <td style="max-width:180px; color:#6b7280; font-size:0.82rem;">${a.observaciones || '—'}</td>
+            <td style="white-space:nowrap;">
+                <button class="btn-danger-sm" style="margin-right:4px;" onclick="editarAuto(${a.id})">✏️</button>
+                <button class="btn-danger-sm" onclick="eliminarAuto(${a.id})">🗑️</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+async function cambiarEstado(id, select) {
+    const nuevoEstado = select.value;
+    select.className = `estado-select estado-${nuevoEstado}`;
+    const auto = _autorizaciones.find(a => a.id === id);
+    if (!auto) return;
+
+    const hoy = new Date().toISOString().split('T')[0];
+    const fechaRecibida = nuevoEstado === 'autorizada' && !auto.fecha_recibida ? hoy : auto.fecha_recibida;
+
+    await fetch(`/api/autorizaciones/item/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ ...auto, estado: nuevoEstado, fecha_recibida: fechaRecibida })
+    });
+    auto.estado = nuevoEstado;
+    if (fechaRecibida) auto.fecha_recibida = fechaRecibida;
+    renderResumen();
+    renderTablaAuto();
+}
+
+// ─── Modal ───────────────────────────────────────────────
+function abrirNuevaAuto() {
+    if (!_alumnoActual) return;
+    document.getElementById('auto-id').value = '';
+    document.getElementById('auto-tipo').value = 'excursion';
+    document.getElementById('auto-etiqueta').value = '';
+    document.getElementById('auto-estado').value = 'pendiente';
+    document.getElementById('auto-fecha-recibida').value = '';
+    document.getElementById('auto-observaciones').value = '';
+    toggleEtiqueta();
+    document.getElementById('fecha-recibida-row').style.display = '';
+    document.getElementById('modal-auto-titulo').textContent = 'Nueva Autorización';
+    document.getElementById('modal-auto').classList.add('open');
+}
+
+function editarAuto(id) {
+    const a = _autorizaciones.find(x => x.id === id);
+    if (!a) return;
+    document.getElementById('auto-id').value = a.id;
+    document.getElementById('auto-tipo').value = a.tipo;
+    document.getElementById('auto-etiqueta').value = a.etiqueta || '';
+    document.getElementById('auto-estado').value = a.estado;
+    document.getElementById('auto-fecha-recibida').value = a.fecha_recibida || '';
+    document.getElementById('auto-observaciones').value = a.observaciones || '';
+    toggleEtiqueta();
+    document.getElementById('modal-auto-titulo').textContent = 'Editar Autorización';
+    document.getElementById('modal-auto').classList.add('open');
+}
+
+function cerrarModalAuto() {
+    document.getElementById('modal-auto').classList.remove('open');
+}
+
+function toggleEtiqueta() {
+    const tipo = document.getElementById('auto-tipo').value;
+    const row = document.getElementById('etiqueta-row');
+    const lbl = row.querySelector('label');
+    const input = document.getElementById('auto-etiqueta');
+    if (tipo === 'excursion') {
+        lbl.textContent = 'Nombre de la excursión *';
+        input.placeholder = 'Ej: Visita al Museo de Ciencias...';
+        row.style.display = 'block';
+    } else if (tipo === 'otro') {
+        lbl.textContent = 'Descripción del tipo *';
+        input.placeholder = 'Ej: Autorización sanitaria...';
+        row.style.display = 'block';
+    } else {
+        row.style.display = 'none';
+        input.value = '';
+    }
+}
+
+function toggleFechaRecibida() {
+    const estado = document.getElementById('auto-estado').value;
+    // Siempre visible, pero si cambia a autorizada ponemos hoy si está vacío
+    if (estado === 'autorizada' && !document.getElementById('auto-fecha-recibida').value) {
+        document.getElementById('auto-fecha-recibida').value = new Date().toISOString().split('T')[0];
+    }
+}
+
+async function guardarAuto() {
+    if (!_alumnoActual) return;
+    const tipo = document.getElementById('auto-tipo').value;
+    const etiqueta = document.getElementById('auto-etiqueta').value.trim();
+    if ((tipo === 'otro' || tipo === 'excursion') && !etiqueta) {
+        alert(tipo === 'excursion' ? 'Indica el nombre de la excursión.' : 'Describe el tipo de autorización.');
+        return;
+    }
+
+    const body = {
+        tipo,
+        etiqueta,
+        estado: document.getElementById('auto-estado').value,
+        fecha_recibida: document.getElementById('auto-fecha-recibida').value || null,
+        observaciones: document.getElementById('auto-observaciones').value.trim()
+    };
+
+    const id = document.getElementById('auto-id').value;
+    let res;
+    if (id) {
+        res = await fetch(`/api/autorizaciones/item/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(body)
+        });
+    } else {
+        res = await fetch(`/api/autorizaciones/${_alumnoActual.id}`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(body)
+        });
+    }
+    const data = await res.json();
+    if (data.ok) {
+        cerrarModalAuto();
+        await cargarAutorizaciones();
+    } else {
+        alert('Error al guardar.');
+    }
+}
+
+async function eliminarAuto(id) {
+    if (!confirm('¿Eliminar esta autorización?')) return;
+    await fetch(`/api/autorizaciones/item/${id}`, { method: 'DELETE' });
+    await cargarAutorizaciones();
+}
+
+// ─── Modal Bulk ──────────────────────────────────────────
+function abrirBulk() {
+    document.getElementById('bulk-tipo').value = 'excursion';
+    document.getElementById('bulk-etiqueta').value = '';
+    document.getElementById('bulk-estado').value = 'pendiente';
+    document.getElementById('bulk-fecha').value = '';
+    document.getElementById('bulk-obs').value = '';
+    toggleBulkEtiqueta();
+    toggleBulkFecha();
+    renderBulkAlumnos();
+    document.getElementById('modal-bulk').classList.add('open');
+}
+
+function cerrarBulk() {
+    document.getElementById('modal-bulk').classList.remove('open');
+}
+
+function toggleBulkEtiqueta() {
+    const tipo = document.getElementById('bulk-tipo').value;
+    const row = document.getElementById('bulk-etiqueta-row');
+    const lbl = document.getElementById('bulk-etiqueta-label');
+    const input = document.getElementById('bulk-etiqueta');
+    if (tipo === 'excursion') {
+        lbl.textContent = 'Nombre de la excursión *';
+        input.placeholder = 'Ej: Visita al Museo de Ciencias...';
+        row.style.display = 'block';
+    } else if (tipo === 'otro') {
+        lbl.textContent = 'Descripción del tipo *';
+        input.placeholder = 'Ej: Autorización sanitaria...';
+        row.style.display = 'block';
+    } else {
+        row.style.display = 'none';
+        input.value = '';
+    }
+}
+
+function toggleBulkFecha() {
+    const estado = document.getElementById('bulk-estado').value;
+    const row = document.getElementById('bulk-fecha-row');
+    row.style.display = estado === 'autorizada' ? 'block' : 'none';
+    if (estado === 'autorizada' && !document.getElementById('bulk-fecha').value) {
+        document.getElementById('bulk-fecha').value = new Date().toISOString().split('T')[0];
+    }
+}
+
+function renderBulkAlumnos() {
+    const cont = document.getElementById('bulk-alumnos-list');
+    if (!_alumnos.length) {
+        cont.innerHTML = '<p style="color:#9ca3af; font-size:0.85rem; margin:8px;">Sin alumnos cargados.</p>';
+        return;
+    }
+    cont.innerHTML = _alumnos.map(a => `
+        <label style="display:flex; align-items:center; gap:8px; padding:4px 6px; cursor:pointer; border-radius:6px; font-size:0.85rem;">
+            <input type="checkbox" name="bulk-alumno" value="${a.id}" checked style="flex-shrink:0; width:16px; height:16px;">
+            ${a.nombre}
+        </label>`).join('');
+}
+
+function bulkSelAll(sel) {
+    document.querySelectorAll('input[name=bulk-alumno]').forEach(cb => cb.checked = sel);
+}
+
+async function guardarBulk() {
+    const tipo = document.getElementById('bulk-tipo').value;
+    const etiqueta = document.getElementById('bulk-etiqueta').value.trim();
+    if ((tipo === 'excursion' || tipo === 'otro') && !etiqueta) {
+        alert(tipo === 'excursion' ? 'Indica el nombre de la excursión.' : 'Describe el tipo.');
+        return;
+    }
+
+    const alumno_ids = Array.from(document.querySelectorAll('input[name=bulk-alumno]:checked'))
+        .map(cb => parseInt(cb.value));
+    if (!alumno_ids.length) {
+        alert('Selecciona al menos un alumno.');
+        return;
+    }
+
+    const body = {
+        alumno_ids,
+        tipo,
+        etiqueta,
+        estado: document.getElementById('bulk-estado').value,
+        fecha_recibida: document.getElementById('bulk-fecha').value || null,
+        observaciones: document.getElementById('bulk-obs').value.trim()
+    };
+
+    const res = await fetch('/api/autorizaciones/bulk', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.ok) {
+        cerrarBulk();
+        // Si hay alumno activo, recargar sus autorizaciones
+        if (_alumnoActual) await cargarAutorizaciones();
+        alert(`✅ Autorización creada para ${data.creadas} alumno${data.creadas !== 1 ? 's' : ''}.`);
+    } else {
+        alert('Error: ' + (data.error || 'No se pudo guardar'));
+    }
+}
+
+// ─── Utilidades ───────────────────────────────────────────
+function fmtFecha(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+}
+</script>
+</body>
+</html>

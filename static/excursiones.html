@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excursiones - Cuaderno del Tutor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/dark-mode.css">
+    <style>
+        :root {
+            --primary: #003366;
+            --secondary: #007bff;
+            --bg: #f0f2f5;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            --excursion-color: #f59e0b;
+            --salida-color: #10b981;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* ── Cabecera ── */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .page-header h1 { margin: 0; font-size: 1.8rem; color: var(--primary); }
+
+        /* ── Dashboard pendientes ── */
+        #dashboard-pendientes {
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .alert-pendiente {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-left: 4px solid var(--excursion-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+        .alert-pendiente.salida { border-left-color: var(--salida-color); background: #f0fdf4; border-color: #bbf7d0; }
+        .alert-pendiente strong { color: var(--primary); }
+        .badge-alerta {
+            background: #dc2626;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* ── Grid de cards ── */
+        .excursiones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+        }
+        .excursion-card {
+            background: white;
+            border-radius: 14px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid #eef2f7;
+            overflow: hidden;
+            transition: transform 0.18s, box-shadow 0.18s;
+            cursor: pointer;
+        }
+        .excursion-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            padding: 14px 16px 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .tipo-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+        .tipo-badge.excursion { background: #fef3c7; color: #92400e; }
+        .tipo-badge.salida { background: #d1fae5; color: #065f46; }
+        .card-titulo {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0 0 4px;
+        }
+        .card-meta {
+            font-size: 0.8rem;
+            color: #666;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .card-body { padding: 0 16px 14px; }
+        .progress-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .progress-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .progress-pill.ok { border-color: #86efac; background: #f0fdf4; color: #166534; }
+        .progress-pill.warn { border-color: #fca5a5; background: #fff1f2; color: #991b1b; }
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 10px 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .btn-sm {
+            padding: 5px 12px;
+            border-radius: 7px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-outline { background: white; border: 1px solid #cbd5e1; color: #374151; }
+        .estado-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .estado-activa { background: #d1fae5; color: #065f46; }
+        .estado-cerrada { background: #e2e8f0; color: #475569; }
+
+        /* ── Modal overlay ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            width: 90%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal-box h3 { margin: 0 0 20px; color: var(--primary); font-size: 1.2rem; }
+        .modal-box label { display: block; font-weight: 600; font-size: 0.85rem; margin: 12px 0 4px; color: #374151; }
+        .modal-box input, .modal-box textarea, .modal-box select {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .modal-box textarea { resize: vertical; min-height: 70px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-guardar { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 10px 22px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+        .btn-cancelar { background: #f1f5f9; color: #374151; border: none; border-radius: 8px; padding: 10px 18px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+
+        /* ── Tipos en wizard ── */
+        .tipo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 6px; }
+        .tipo-card-sel {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .tipo-card-sel:hover { border-color: var(--secondary); background: #eff6ff; }
+        .tipo-card-sel.selected { border-color: var(--primary); background: #eff6ff; }
+        .tipo-card-sel .icon { font-size: 2rem; margin-bottom: 6px; }
+        .tipo-card-sel .label { font-weight: 700; font-size: 0.9rem; color: var(--primary); }
+        .tipo-card-sel .sub { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+
+        /* ── Wizard steps ── */
+        #wizard-paso1, #wizard-paso2 { }
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .checkbox-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; }
+        .checkbox-row label { margin: 0; font-weight: 500; cursor: pointer; }
+        .coste-row { display: flex; gap: 10px; }
+        .coste-row > div { flex: 1; }
+
+        /* ── Modal Detalle ── */
+        .modal-detalle { max-width: 860px; }
+        .detalle-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .detalle-header h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
+        .filtros-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .filtro-btn {
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid #d1d5db;
+            background: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #374151;
+        }
+        .filtro-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tabla-alumnos {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        .tabla-alumnos th {
+            background: #f8fafc;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            color: #374151;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .tabla-alumnos td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .tabla-alumnos tr:hover td { background: #f8fafc; }
+        .toggle-btn {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .toggle-btn.on { background: #22c55e; border-color: #16a34a; }
+        .toggle-btn.on-pago { background: #3b82f6; border-color: #1d4ed8; }
+        .bulk-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .btn-bulk {
+            padding: 6px 14px;
+            border-radius: 7px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #374151;
+            transition: background 0.15s;
+        }
+        .btn-bulk:hover { background: #f1f5f9; }
+        .obs-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.82rem;
+            font-family: inherit;
+        }
+        .stats-bar {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .stat-pill {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+        .stat-pill span { font-size: 1rem; }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+        .empty-state p { font-size: 1rem; }
+    </style>
+    <script src="/static/js/api.js?v=1.0"></script>
+    <script src="/static/js/dark-mode.js"></script>
+    <script src="/static/js/shortcuts.js"></script>
+    <script src="/static/js/navigation.js?v=1.0"></script>
+    <script src="/static/js/global_groups.js?v=1.0"></script>
+</head>
+<body>
+<div class="container">
+
+    <!-- Tabs de sección -->
+    <div class="section-tabs">
+        <a href="/alumnos" class="section-tab-btn">👦 Alumnos</a>
+        <a href="/asistencia" class="section-tab-btn">📋 Pasar Lista</a>
+        <a href="/horario" class="section-tab-btn">⏰ Horario</a>
+        <a href="/cumpleanos" class="section-tab-btn">🎂 Cumpleaños</a>
+        <a href="/excursiones" class="section-tab-btn active">🚌 Excursiones</a>
+        <a href="/autorizaciones" class="section-tab-btn">📋 Autorizaciones</a>
+    </div>
+
+    <!-- Dashboard de pendientes -->
+    <div id="dashboard-pendientes"></div>
+
+    <!-- Cabecera -->
+    <div class="page-header">
+        <h1>🚌 Excursiones y Salidas</h1>
+        <button class="btn-sm btn-primary" onclick="abrirNuevaExcursion()" style="padding:10px 18px; font-size:0.9rem; border-radius:10px;">
+            ➕ Nueva
+        </button>
+    </div>
+
+    <!-- Grid de excursiones -->
+    <div id="excursiones-grid" class="excursiones-grid"></div>
+</div>
+
+<!-- ── MODAL CREAR/EDITAR ── -->
+<div class="modal-overlay" id="modal-form">
+    <div class="modal-box">
+        <h3 id="modal-form-titulo">Nueva Excursión / Salida</h3>
+
+        <!-- Paso 1: tipo -->
+        <div id="wizard-paso1">
+            <p style="color:#6b7280; font-size:0.88rem; margin:0 0 14px;">¿Qué tipo de actividad es?</p>
+            <div class="tipo-grid">
+                <div class="tipo-card-sel selected" id="sel-excursion" onclick="selTipo('excursion')">
+                    <div class="icon">🚌</div>
+                    <div class="label">Excursión</div>
+                    <div class="sub">Salida con transporte, visita cultural, deporte...</div>
+                </div>
+                <div class="tipo-card-sel" id="sel-salida" onclick="selTipo('salida')">
+                    <div class="icon">🌳</div>
+                    <div class="label">Salida al entorno</div>
+                    <div class="sub">Salida corta, sin transporte, entorno cercano</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-guardar" onclick="wizardPaso2()">Siguiente</button>
+            </div>
+        </div>
+
+        <!-- Paso 2: datos -->
+        <div id="wizard-paso2" style="display:none;">
+            <input type="hidden" id="form-id">
+            <input type="hidden" id="form-tipo" value="excursion">
+
+            <label>Título *</label>
+            <input type="text" id="form-titulo" placeholder="Ej: Visita al Museo de Ciencias">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div>
+                    <label>Fecha</label>
+                    <input type="date" id="form-fecha">
+                </div>
+                <div>
+                    <label>Fecha límite autorización</label>
+                    <input type="date" id="form-fecha-limite">
+                </div>
+            </div>
+
+            <label>Destino / Lugar</label>
+            <input type="text" id="form-destino" placeholder="Ej: Museo Nacional, Parque del Retiro...">
+
+            <label>Descripción</label>
+            <textarea id="form-descripcion" placeholder="Detalles de la actividad..."></textarea>
+
+            <label>Grupos participantes (tus grupos)</label>
+            <div id="form-grupos" style="display:flex; flex-wrap:wrap; gap:8px; padding:8px 0;"></div>
+
+            <label>Otros grupos del centro</label>
+            <input type="text" id="form-grupos-extra" placeholder="Ej: 2ºA Noelia, 3ºB Marta... (separados por comas)">
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="form-requiere-auto" checked onchange="togglePago()">
+                <label for="form-requiere-auto">Requiere autorización firmada</label>
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="form-requiere-pago" onchange="toggleCoste()">
+                <label for="form-requiere-pago">Requiere pago</label>
+            </div>
+            <div id="form-coste-row" style="display:none; margin-top:8px;">
+                <label>Importe (€)</label>
+                <input type="number" id="form-coste" step="0.01" min="0" placeholder="0.00">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancelar" onclick="wizardPaso1()">Atrás</button>
+                <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-guardar" onclick="guardarExcursion()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL DETALLE ── -->
+<div class="modal-overlay" id="modal-detalle">
+    <div class="modal-box modal-detalle">
+        <div class="detalle-header">
+            <div>
+                <h3 id="detalle-titulo">—</h3>
+                <div id="detalle-meta" style="font-size:0.82rem; color:#6b7280; margin-top:4px;"></div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
+                <button class="btn-sm btn-outline" onclick="editarExcursionActual()" style="font-size:0.78rem;">✏️ Editar</button>
+                <button class="btn-sm" onclick="cerrarDetalle()" style="background:#f1f5f9; color:#374151; border:none; border-radius:8px; padding:6px 12px; cursor:pointer;">✕</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-bar" id="detalle-stats"></div>
+
+        <!-- Bulk actions -->
+        <div class="bulk-actions" id="bulk-actions"></div>
+
+        <!-- Filtros -->
+        <div class="filtros-bar">
+            <button class="filtro-btn active" onclick="setFiltro('todos', this)">Todos</button>
+            <button class="filtro-btn" id="filtro-auto-btn" onclick="setFiltro('sin_auto', this)">Sin autorización</button>
+            <button class="filtro-btn" id="filtro-pago-btn" onclick="setFiltro('sin_pago', this)">Sin pagar</button>
+            <button class="filtro-btn" onclick="setFiltro('ok', this)">Todo OK</button>
+        </div>
+
+        <!-- Tabla -->
+        <div style="overflow-x:auto;">
+            <table class="tabla-alumnos" id="tabla-alumnos">
+                <thead id="tabla-thead"></thead>
+                <tbody id="tabla-tbody"></tbody>
+            </table>
+        </div>
+        <div id="tabla-empty" style="display:none;" class="empty-state">
+            <div class="icon">👤</div>
+            <p>No hay alumnos asignados a esta actividad.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// ─── Estado global ───────────────────────────────────────
+let _excursiones = [];
+let _excursionActual = null;
+let _alumnosDetalle = [];
+let _filtroActual = 'todos';
+let _grupos = [];   // cargados de global_groups
+let _tipoSeleccionado = 'excursion';
+
+// ─── Inicialización ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    await cargarGrupos();
+    cargarExcursiones();
+    cargarDashboard();
+});
+
+document.addEventListener('grupoChanged', async () => {
+    await cargarGrupos();
+    cargarExcursiones();
+    cargarDashboard();
+});
+
+async function cargarGrupos() {
+    try {
+        const res = await fetch('/api/grupos/todos');
+        _grupos = await res.json();
+    } catch(e) { _grupos = []; }
+}
+
+// ─── Dashboard de pendientes ──────────────────────────────
+async function cargarDashboard() {
+    const res = await fetch('/api/excursiones/dashboard');
+    const data = await res.json();
+    const cont = document.getElementById('dashboard-pendientes');
+    cont.innerHTML = '';
+    data.forEach(ex => {
+        const cls = ex.tipo === 'salida' ? 'salida' : '';
+        const icono = ex.tipo === 'salida' ? '🌳' : '🚌';
+        const partes = [];
+        if (ex.pendientes_auto > 0) partes.push(`<span class="badge-alerta">${ex.pendientes_auto} sin autorización</span>`);
+        if (ex.pendientes_pago > 0) partes.push(`<span class="badge-alerta" style="background:#2563eb;">${ex.pendientes_pago} sin pagar</span>`);
+        const fecha = ex.fecha ? ` · ${fmtFecha(ex.fecha)}` : '';
+        cont.innerHTML += `
+            <div class="alert-pendiente ${cls}" onclick="abrirDetalle(${ex.id})" style="cursor:pointer;">
+                <span style="font-size:1.3rem;">${icono}</span>
+                <div style="flex:1;">
+                    <strong>${ex.titulo}</strong>${fecha}
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">${partes.join('')}</div>
+            </div>`;
+    });
+}
+
+// ─── Listar excursiones ───────────────────────────────────
+async function cargarExcursiones() {
+    const res = await fetch('/api/excursiones');
+    _excursiones = await res.json();
+    renderGrid();
+}
+
+function renderGrid() {
+    const cont = document.getElementById('excursiones-grid');
+    if (!_excursiones.length) {
+        cont.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+            <div class="icon">🚌</div>
+            <p>No hay excursiones creadas todavía.<br>Pulsa <strong>Nueva</strong> para empezar.</p>
+        </div>`;
+        return;
+    }
+    cont.innerHTML = _excursiones.map(ex => {
+        const tipoCls = ex.tipo === 'salida' ? 'salida' : 'excursion';
+        const tipoLbl = ex.tipo === 'salida' ? '🌳 Salida' : '🚌 Excursión';
+        const estadoBadge = ex.estado === 'cerrada'
+            ? '<span class="estado-badge estado-cerrada">Cerrada</span>'
+            : '<span class="estado-badge estado-activa">Activa</span>';
+        const total = ex.total_alumnos || 0;
+        const autorizados = ex.total_autorizados || 0;
+        const pagados = ex.total_pagados || 0;
+
+        let pills = '';
+        if (ex.requiere_autorizacion) {
+            const clsAuto = autorizados >= total && total > 0 ? 'ok' : (autorizados < total ? 'warn' : '');
+            pills += `<div class="progress-pill ${clsAuto}">✅ ${autorizados}/${total} auto.</div>`;
+        }
+        if (ex.requiere_pago) {
+            const clsPago = pagados >= total && total > 0 ? 'ok' : (pagados < total ? 'warn' : '');
+            const importe = ex.coste ? ` (${parseFloat(ex.coste).toFixed(2)}€)` : '';
+            pills += `<div class="progress-pill ${clsPago}">💶 ${pagados}/${total} pagados${importe}</div>`;
+        }
+        if (!ex.requiere_autorizacion && !ex.requiere_pago) {
+            pills = `<div class="progress-pill ok">📋 ${total} alumnos</div>`;
+        }
+
+        // Nombres de grupos seleccionados
+        const grupoIds = JSON.parse(ex.grupo_ids || '[]');
+        const nombresGrupos = grupoIds
+            .map(id => (_grupos.find(g => g.id === id) || {}).nombre)
+            .filter(Boolean);
+        const todosGrupos = [...nombresGrupos, ...(ex.grupos_extra ? [ex.grupos_extra] : [])].join(', ');
+
+        return `
+        <div class="excursion-card" onclick="abrirDetalle(${ex.id})">
+            <div class="card-header">
+                <div style="flex:1;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                        <span class="tipo-badge ${tipoCls}">${tipoLbl}</span>
+                        ${estadoBadge}
+                    </div>
+                    <div class="card-titulo">${ex.titulo}</div>
+                    <div class="card-meta">
+                        ${ex.fecha ? `<span>📅 ${fmtFecha(ex.fecha)}</span>` : ''}
+                        ${ex.destino ? `<span>📍 ${ex.destino}</span>` : ''}
+                        ${ex.fecha_limite ? `<span>⏰ Límite: ${fmtFecha(ex.fecha_limite)}</span>` : ''}
+                        ${todosGrupos ? `<span>👥 ${todosGrupos}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="progress-row">${pills}</div>
+            </div>
+            <div class="card-actions" onclick="event.stopPropagation()">
+                <button class="btn-sm btn-outline" onclick="editarExcursion(${ex.id})">✏️ Editar</button>
+                <button class="btn-sm btn-outline" onclick="toggleEstado(${ex.id}, '${ex.estado}')">
+                    ${ex.estado === 'activa' ? '🔒 Cerrar' : '🔓 Reabrir'}
+                </button>
+                <button class="btn-sm btn-danger" onclick="eliminarExcursion(${ex.id})">🗑️</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ─── Modal Nueva/Editar ───────────────────────────────────
+async function abrirNuevaExcursion() {
+    document.getElementById('form-id').value = '';
+    document.getElementById('form-titulo').value = '';
+    document.getElementById('form-fecha').value = '';
+    document.getElementById('form-fecha-limite').value = '';
+    document.getElementById('form-destino').value = '';
+    document.getElementById('form-descripcion').value = '';
+    document.getElementById('form-requiere-auto').checked = true;
+    document.getElementById('form-requiere-pago').checked = false;
+    document.getElementById('form-coste').value = '';
+    document.getElementById('form-coste-row').style.display = 'none';
+    document.getElementById('form-grupos-extra').value = '';
+    document.getElementById('modal-form-titulo').textContent = 'Nueva Excursión / Salida';
+    selTipo('excursion');
+    await cargarGrupos();
+    renderGruposCheckboxes([]);
+    wizardPaso1show();
+    document.getElementById('modal-form').classList.add('open');
+}
+
+async function editarExcursion(id) {
+    await cargarGrupos();
+    const res = await fetch(`/api/excursiones/${id}`);
+    const ex = await res.json();
+    document.getElementById('form-id').value = ex.id;
+    document.getElementById('form-titulo').value = ex.titulo || '';
+    document.getElementById('form-fecha').value = ex.fecha || '';
+    document.getElementById('form-fecha-limite').value = ex.fecha_limite || '';
+    document.getElementById('form-destino').value = ex.destino || '';
+    document.getElementById('form-descripcion').value = ex.descripcion || '';
+    document.getElementById('form-requiere-auto').checked = !!ex.requiere_autorizacion;
+    document.getElementById('form-requiere-pago').checked = !!ex.requiere_pago;
+    document.getElementById('form-coste').value = ex.coste || '';
+    document.getElementById('form-coste-row').style.display = ex.requiere_pago ? 'block' : 'none';
+    document.getElementById('form-grupos-extra').value = ex.grupos_extra || '';
+    document.getElementById('modal-form-titulo').textContent = 'Editar Excursión / Salida';
+    const grupoIds = JSON.parse(ex.grupo_ids || '[]');
+    selTipo(ex.tipo || 'excursion');
+    renderGruposCheckboxes(grupoIds);
+    wizardPaso1skip();
+    document.getElementById('modal-form').classList.add('open');
+}
+
+function editarExcursionActual() {
+    if (_excursionActual) {
+        cerrarDetalle();
+        editarExcursion(_excursionActual.id);
+    }
+}
+
+function cerrarModal() {
+    document.getElementById('modal-form').classList.remove('open');
+}
+
+function wizardPaso1show() {
+    document.getElementById('wizard-paso1').style.display = '';
+    document.getElementById('wizard-paso2').style.display = 'none';
+}
+
+function wizardPaso1skip() {
+    document.getElementById('wizard-paso1').style.display = 'none';
+    document.getElementById('wizard-paso2').style.display = '';
+}
+
+function wizardPaso2() {
+    document.getElementById('wizard-paso1').style.display = 'none';
+    document.getElementById('wizard-paso2').style.display = '';
+}
+
+function wizardPaso1() {
+    document.getElementById('wizard-paso2').style.display = 'none';
+    document.getElementById('wizard-paso1').style.display = '';
+}
+
+function selTipo(tipo) {
+    _tipoSeleccionado = tipo;
+    document.getElementById('form-tipo').value = tipo;
+    document.getElementById('sel-excursion').classList.toggle('selected', tipo === 'excursion');
+    document.getElementById('sel-salida').classList.toggle('selected', tipo === 'salida');
+}
+
+function toggleCoste() {
+    const cb = document.getElementById('form-requiere-pago');
+    document.getElementById('form-coste-row').style.display = cb.checked ? 'block' : 'none';
+}
+
+function renderGruposCheckboxes(seleccionados) {
+    const cont = document.getElementById('form-grupos');
+    if (!_grupos.length) {
+        cont.innerHTML = '<span style="color:#9ca3af; font-size:0.82rem;">No hay grupos disponibles</span>';
+        return;
+    }
+    cont.innerHTML = _grupos.map(g => `
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:5px 10px; font-size:0.85rem; font-weight:500;">
+            <input type="checkbox" name="grupo-check" value="${g.id}" ${seleccionados.includes(g.id) ? 'checked' : ''}>
+            ${g.nombre}
+        </label>`).join('');
+}
+
+async function guardarExcursion() {
+    const titulo = document.getElementById('form-titulo').value.trim();
+    if (!titulo) { alert('El título es obligatorio.'); return; }
+
+    const grupoIds = Array.from(document.querySelectorAll('input[name=grupo-check]:checked'))
+        .map(cb => parseInt(cb.value));
+
+    const body = {
+        tipo: document.getElementById('form-tipo').value,
+        titulo,
+        fecha: document.getElementById('form-fecha').value || null,
+        fecha_limite: document.getElementById('form-fecha-limite').value || null,
+        destino: document.getElementById('form-destino').value.trim(),
+        descripcion: document.getElementById('form-descripcion').value.trim(),
+        grupo_ids: grupoIds,
+        grupos_extra: document.getElementById('form-grupos-extra').value.trim(),
+        requiere_autorizacion: document.getElementById('form-requiere-auto').checked,
+        requiere_pago: document.getElementById('form-requiere-pago').checked,
+        coste: document.getElementById('form-coste').value ? parseFloat(document.getElementById('form-coste').value) : null,
+    };
+
+    const id = document.getElementById('form-id').value;
+    const url = id ? `/api/excursiones/${id}` : '/api/excursiones';
+    const method = id ? 'PUT' : 'POST';
+
+    const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.ok) {
+        cerrarModal();
+        cargarExcursiones();
+        cargarDashboard();
+    } else {
+        alert('Error: ' + (data.error || 'No se pudo guardar'));
+    }
+}
+
+async function eliminarExcursion(id) {
+    if (!confirm('¿Eliminar esta excursión y todos sus registros de alumnos?')) return;
+    await fetch(`/api/excursiones/${id}`, { method: 'DELETE' });
+    cargarExcursiones();
+    cargarDashboard();
+}
+
+async function toggleEstado(id, estadoActual) {
+    const nuevoEstado = estadoActual === 'activa' ? 'cerrada' : 'activa';
+    const ex = _excursiones.find(e => e.id === id);
+    if (!ex) return;
+    await fetch(`/api/excursiones/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ ...ex, grupo_ids: JSON.parse(ex.grupo_ids || '[]'), estado: nuevoEstado })
+    });
+    cargarExcursiones();
+    cargarDashboard();
+}
+
+// ─── Modal Detalle ────────────────────────────────────────
+async function abrirDetalle(id) {
+    const res = await fetch(`/api/excursiones/${id}`);
+    const ex = await res.json();
+    _excursionActual = ex;
+    _alumnosDetalle = ex.alumnos || [];
+    _filtroActual = 'todos';
+
+    document.getElementById('detalle-titulo').textContent = ex.titulo;
+    const tipoBadge = ex.tipo === 'salida'
+        ? '<span class="tipo-badge salida">🌳 Salida</span>'
+        : '<span class="tipo-badge excursion">🚌 Excursión</span>';
+    const fecha = ex.fecha ? ` · ${fmtFecha(ex.fecha)}` : '';
+    const destino = ex.destino ? ` · 📍 ${ex.destino}` : '';
+    const grupoIds = JSON.parse(ex.grupo_ids || '[]');
+    const nombresGrupos = grupoIds
+        .map(id => (_grupos.find(g => g.id === id) || {}).nombre)
+        .filter(Boolean);
+    const todosGrupos = [...nombresGrupos, ...(ex.grupos_extra ? [ex.grupos_extra] : [])].join(', ');
+    const gruposStr = todosGrupos ? ` · 👥 ${todosGrupos}` : '';
+    document.getElementById('detalle-meta').innerHTML = `${tipoBadge}${fecha}${destino}${gruposStr}`;
+
+    // Resetear filtros
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.filtros-bar .filtro-btn').classList.add('active');
+
+    // Mostrar/ocultar filtros según configuración
+    document.getElementById('filtro-auto-btn').style.display = ex.requiere_autorizacion ? '' : 'none';
+    document.getElementById('filtro-pago-btn').style.display = ex.requiere_pago ? '' : 'none';
+
+    renderDetalleStats(ex);
+    renderBulkActions(ex);
+    renderTablaAlumnos(ex);
+    document.getElementById('modal-detalle').classList.add('open');
+}
+
+function cerrarDetalle() {
+    document.getElementById('modal-detalle').classList.remove('open');
+    _excursionActual = null;
+}
+
+function renderDetalleStats(ex) {
+    const total = _alumnosDetalle.length;
+    const autorizados = _alumnosDetalle.filter(a => a.autorizado).length;
+    const pagados = _alumnosDetalle.filter(a => a.pagado).length;
+    let html = `<div class="stat-pill"><span>👥</span> ${total} alumnos</div>`;
+    if (ex.requiere_autorizacion) {
+        const cls = autorizados === total && total > 0 ? 'color:#166534' : 'color:#991b1b';
+        html += `<div class="stat-pill" style="${cls}"><span>✅</span> ${autorizados}/${total} autorizados</div>`;
+    }
+    if (ex.requiere_pago) {
+        const cls = pagados === total && total > 0 ? 'color:#1d4ed8' : 'color:#991b1b';
+        const importe = ex.coste ? ` · ${parseFloat(ex.coste).toFixed(2)}€` : '';
+        html += `<div class="stat-pill" style="${cls}"><span>💶</span> ${pagados}/${total} pagados${importe}</div>`;
+    }
+    document.getElementById('detalle-stats').innerHTML = html;
+}
+
+function renderBulkActions(ex) {
+    let html = '';
+    if (ex.requiere_autorizacion) {
+        html += `<button class="btn-bulk" onclick="bulkToggle('autorizado', true)">✅ Todos autorizados</button>`;
+        html += `<button class="btn-bulk" onclick="bulkToggle('autorizado', false)">❌ Quitar autorización a todos</button>`;
+    }
+    if (ex.requiere_pago) {
+        html += `<button class="btn-bulk" onclick="bulkToggle('pagado', true)">💶 Todos pagados</button>`;
+        html += `<button class="btn-bulk" onclick="bulkToggle('pagado', false)">↩️ Quitar pago a todos</button>`;
+    }
+    document.getElementById('bulk-actions').innerHTML = html;
+}
+
+function renderTablaAlumnos(ex) {
+    const thead = document.getElementById('tabla-thead');
+    const tbody = document.getElementById('tabla-tbody');
+    const empty = document.getElementById('tabla-empty');
+
+    // Cabecera
+    let cols = '<th>Alumno</th>';
+    if (ex.requiere_autorizacion) cols += '<th style="text-align:center;">Autorización</th>';
+    if (ex.requiere_pago) cols += '<th style="text-align:center;">Pago</th>';
+    cols += '<th>Observaciones</th>';
+    thead.innerHTML = `<tr>${cols}</tr>`;
+
+    // Filtrar alumnos
+    const alumnos = filtrarAlumnos(_alumnosDetalle, ex);
+    empty.style.display = alumnos.length === 0 ? '' : 'none';
+    document.getElementById('tabla-alumnos').style.display = alumnos.length === 0 ? 'none' : '';
+
+    tbody.innerHTML = alumnos.map(a => {
+        let celdas = `<td style="font-weight:600;">${a.nombre}</td>`;
+        if (ex.requiere_autorizacion) {
+            const on = a.autorizado ? 'on' : '';
+            celdas += `<td style="text-align:center;">
+                <button class="toggle-btn ${on}" onclick="toggleAlumno(${a.alumno_id}, 'autorizado', ${!a.autorizado})" title="${a.autorizado ? 'Quitar autorización' : 'Marcar como autorizado'}">
+                    ${a.autorizado ? '✅' : '—'}
+                </button>
+                ${a.fecha_autorizacion ? `<div style="font-size:0.7rem;color:#6b7280;margin-top:2px;">${fmtFecha(a.fecha_autorizacion)}</div>` : ''}
+            </td>`;
+        }
+        if (ex.requiere_pago) {
+            const on = a.pagado ? 'on-pago' : '';
+            celdas += `<td style="text-align:center;">
+                <button class="toggle-btn ${on}" onclick="toggleAlumno(${a.alumno_id}, 'pagado', ${!a.pagado})" title="${a.pagado ? 'Quitar pago' : 'Marcar como pagado'}">
+                    ${a.pagado ? '💶' : '—'}
+                </button>
+                ${a.fecha_pago ? `<div style="font-size:0.7rem;color:#6b7280;margin-top:2px;">${fmtFecha(a.fecha_pago)}</div>` : ''}
+            </td>`;
+        }
+        celdas += `<td>
+            <input class="obs-input" value="${a.observaciones || ''}" placeholder="—"
+                onblur="guardarObservacion(${a.alumno_id}, this.value)">
+        </td>`;
+        return `<tr>${celdas}</tr>`;
+    }).join('');
+}
+
+function filtrarAlumnos(alumnos, ex) {
+    if (_filtroActual === 'todos') return alumnos;
+    if (_filtroActual === 'sin_auto') return alumnos.filter(a => !a.autorizado);
+    if (_filtroActual === 'sin_pago') return alumnos.filter(a => !a.pagado);
+    if (_filtroActual === 'ok') {
+        return alumnos.filter(a => {
+            const autoOk = !ex.requiere_autorizacion || a.autorizado;
+            const pagoOk = !ex.requiere_pago || a.pagado;
+            return autoOk && pagoOk;
+        });
+    }
+    return alumnos;
+}
+
+function setFiltro(filtro, btn) {
+    _filtroActual = filtro;
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTablaAlumnos(_excursionActual);
+}
+
+async function toggleAlumno(alumnoId, campo, valor) {
+    const hoy = new Date().toISOString().split('T')[0];
+    const body = { [campo]: valor };
+    if (campo === 'autorizado') body.fecha_autorizacion = valor ? hoy : null;
+    if (campo === 'pagado') body.fecha_pago = valor ? hoy : null;
+
+    await fetch(`/api/excursiones/${_excursionActual.id}/alumnos/${alumnoId}`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+    });
+    // Actualizar local
+    const a = _alumnosDetalle.find(x => x.alumno_id === alumnoId);
+    if (a) {
+        a[campo] = valor ? 1 : 0;
+        if (campo === 'autorizado') a.fecha_autorizacion = valor ? hoy : null;
+        if (campo === 'pagado') a.fecha_pago = valor ? hoy : null;
+    }
+    renderDetalleStats(_excursionActual);
+    renderTablaAlumnos(_excursionActual);
+    // Actualizar dashboard y grid en background
+    cargarDashboard();
+    cargarExcursiones();
+}
+
+async function guardarObservacion(alumnoId, valor) {
+    await fetch(`/api/excursiones/${_excursionActual.id}/alumnos/${alumnoId}`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ observaciones: valor })
+    });
+    const a = _alumnosDetalle.find(x => x.alumno_id === alumnoId);
+    if (a) a.observaciones = valor;
+}
+
+async function bulkToggle(campo, valor) {
+    const accion = valor ? 'marcar todos' : 'desmarcar todos';
+    if (!confirm(`¿${accion.charAt(0).toUpperCase() + accion.slice(1)} para ${campo === 'autorizado' ? 'autorización' : 'pago'}?`)) return;
+    await fetch(`/api/excursiones/${_excursionActual.id}/alumnos/bulk`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ campo, valor })
+    });
+    // Recargar detalle
+    await abrirDetalle(_excursionActual.id);
+    cargarDashboard();
+    cargarExcursiones();
+}
+
+// ─── Utilidades ───────────────────────────────────────────
+function fmtFecha(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+}
+</script>
+</body>
+</html>

@@ -1567,6 +1567,10 @@
 
         function imprimirDiploma(alumnoId, nombre, milestone, diplomaNum) {
             const win = window.open('', '_blank', 'width=900,height=700');
+            if (!win) {
+                alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para esta web e inténtalo de nuevo.');
+                return;
+            }
             win.document.write(`<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1574,39 +1578,79 @@
 <title>Diploma - ${nombre}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Great+Vibes&family=Montserrat:wght@400;700&display=swap');
-  body { margin:0; font-family: 'Montserrat', sans-serif; background:#f9f9f9; display:flex; justify-content:center; align-items:center; min-height:100vh; }
-  .diploma { width:800px; height:560px; border:20px double #c8a000; border-radius:10px; padding:40px; text-align:center; background:#fff; position:relative; box-shadow:0 10px 40px rgba(0,0,0,0.1); }
-  .decor { position:absolute; font-size:4rem; color:rgba(200,160,0,0.1); z-index:0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Montserrat', sans-serif; background:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; }
+  .diploma { width:100%; max-width:750px; aspect-ratio:210/297; border:25px double #c8a000; border-radius:12px; padding:25px 30px; text-align:center; background:#fff; position:relative; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
+  .decor { position:absolute; font-size:4rem; color:rgba(200,160,0,0.12); z-index:0; }
   .decor-tl { top:20px; left:20px; } .decor-tr { top:20px; right:20px; } .decor-bl { bottom:20px; left:20px; } .decor-br { bottom:20px; right:20px; }
-  .content { position:relative; z-index:1; }
-  .icon-top { font-size:4.5rem; margin-bottom:10px; }
-  .header { font-family: 'Cinzel', serif; font-size:2.8rem; color:#8B6914; margin:10px 0; text-transform:uppercase; letter-spacing:4px; }
-  .subheader { font-size:1.1rem; color:#b08d57; margin-bottom:30px; font-weight:700; }
-  .intro { font-style:italic; color:#666; font-size:1.2rem; }
-  .nombre { font-family: 'Great Vibes', cursive; font-size:4.5rem; color:#003366; margin:15px 0; display:block; }
-  .reason { font-size:1.3rem; color:#444; margin-bottom:15px; }
-  .milestone-box { display:inline-block; background:#fef9e7; padding:15px 30px; border:2px solid #c8a000; border-radius:50px; margin:20px 0; }
-  .milestone-text { font-size:2.2rem; font-weight:800; color:#c8a000; }
-  .footer { margin-top:50px; display:flex; justify-content:space-around; align-items:flex-end; }
-  .seal { font-size:3rem; opacity:0.6; }
-  .sign-box { border-top:2px solid #ccc; width:200px; padding-top:8px; font-size:0.9rem; color:#777; }
-  @media print { body { background:white; } .diploma { box-shadow:none; border-width:15px; } }
+  .content { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; }
+  .top-section { flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .icon-top { font-size:4.5rem; margin-bottom:5px; }
+  .header { font-family: 'Cinzel', serif; font-size:2.5rem; color:#8B6914; margin:5px 0; text-transform:uppercase; letter-spacing:4px; }
+  .subheader { font-size:1rem; color:#b08d57; margin-bottom:15px; font-weight:700; }
+  .intro { font-style:italic; color:#666; font-size:1.1rem; }
+  .nombre { font-family: 'Great Vibes', cursive; font-size:4rem; color:#003366; margin:10px 0; display:block; line-height:1.1; word-break:break-word; }
+  .reason { font-size:1.2rem; color:#444; margin:10px 0; }
+  .milestone-box { display:inline-block; background:#fef9e7; padding:12px 30px; border:2px solid #c8a000; border-radius:50px; margin:12px 0; }
+  .milestone-text { font-size:2rem; font-weight:800; color:#c8a000; }
+  .achievement-text { font-size:1rem; color:#555; margin-top:8px; line-height:1.4; }
+  .footer { display:flex; justify-content:space-around; align-items:flex-end; padding-top:10px; }
+  .seal { font-size:2.8rem; opacity:0.6; }
+  .sign-box { border-top:2px solid #ccc; width:180px; padding-top:6px; font-size:0.85rem; color:#777; }
+  @media print {
+    @page { size: A4 portrait; margin:0.8cm; }
+    html, body { margin:0 !important; padding:0 !important; background:white !important; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; overflow:hidden !important; }
+    body { display:block !important; padding:0 !important; }
+    .diploma {
+      box-shadow:none !important;
+      border-width:18px !important;
+      width:100% !important;
+      max-width:100% !important;
+      height:calc(297mm - 1.6cm) !important;
+      max-height:calc(297mm - 1.6cm) !important;
+      aspect-ratio:auto !important;
+      margin:0 auto !important;
+      padding:15px 25px !important;
+      page-break-inside:avoid !important;
+      page-break-after:avoid !important;
+      break-inside:avoid !important;
+    }
+    .icon-top { font-size:3.5rem !important; margin-bottom:8px !important; }
+    .header { font-size:2.4rem !important; letter-spacing:3px !important; margin:8px 0 !important; }
+    .subheader { font-size:0.95rem !important; margin-bottom:12px !important; }
+    .intro { font-size:1rem !important; }
+    .nombre { font-size:3.8rem !important; margin:12px 0 !important; }
+    .reason { font-size:1.1rem !important; margin:10px 0 !important; }
+    .milestone-box { padding:10px 28px !important; margin:12px 0 !important; }
+    .milestone-text { font-size:1.9rem !important; }
+    .achievement-text { font-size:0.95rem !important; margin-top:10px !important; }
+    .footer { padding-top:15px !important; }
+    .decor { font-size:3rem !important; }
+    .decor-tl { top:15px !important; left:15px !important; }
+    .decor-tr { top:15px !important; right:15px !important; }
+    .decor-bl { bottom:15px !important; left:15px !important; }
+    .decor-br { bottom:15px !important; right:15px !important; }
+    .seal { font-size:2.5rem !important; }
+    .sign-box { width:170px !important; font-size:0.8rem !important; padding-top:5px !important; }
+  }
 </style>
 </head>
 <body>
 <div class="diploma">
   <div class="decor decor-tl">📖</div><div class="decor decor-tr">🎓</div><div class="decor decor-bl">✨</div><div class="decor decor-br">🏆</div>
   <div class="content">
-    <div class="icon-top">👑</div>
-    <div class="header">Diploma de Honor</div>
-    <div class="subheader">LECTÓMETRO · BIBLIOTECA ESCOLAR</div>
-    <p class="intro">Se otorga con orgullo el presente reconocimiento a:</p>
-    <div class="nombre">${nombre}</div>
-    <p class="reason">por completar con éxito y devoción el gran hito de:</p>
-    <div class="milestone-box">
-        <span class="milestone-text">${milestone} LIBROS LEÍDOS</span>
+    <div class="top-section">
+      <div class="icon-top">👑</div>
+      <div class="header">Diploma de Honor</div>
+      <div class="subheader">LECTÓMETRO · BIBLIOTECA ESCOLAR</div>
+      <p class="intro">Se otorga con orgullo el presente reconocimiento a:</p>
+      <div class="nombre">${nombre}</div>
+      <p class="reason">por completar con éxito y devoción el gran hito de:</p>
+      <div class="milestone-box">
+          <span class="milestone-text">${milestone} LIBROS LEÍDOS</span>
+      </div>
+      <p class="achievement-text">Demostrando un compromiso excepcional con la literatura,<br>la imaginación y el aprendizaje continuo.</p>
     </div>
-    <p style="font-size:1.1rem; color:#555; margin-top:10px;">Demostrando un compromiso excepcional con la literatura,<br>la imaginación y el aprendizaje continuo.</p>
     <div class="footer">
         <div class="sign-box">Firma del Tutor/a</div>
         <div class="seal">⭐</div>
@@ -1614,13 +1658,12 @@
     </div>
   </div>
 </div>
-  </div>
-</div>
 <script>window.onload = () => window.print();<\/script>
 </body>
 </html>`);
             win.document.close();
         }
+
         let selectedBookIds = []; // IDS de libros seleccionados
 
         function updateSelectionUI() {
@@ -1658,7 +1701,7 @@
 
         async function deleteSelectedBooks() {
             if (!selectedBookIds.length) return;
-            if (!confirm(`¿Estás seguro de que quieres eliminar los ${selectedBookIds.length} libros seleccionados?`)) return;
+            if (!confirm(`¿Estás seguro de que quieres eliminar los ${selectedBookIds.length} libros seleccionados ? `)) return;
 
             try {
                 const response = await fetch('/api/libros/bulk-delete', {
@@ -1674,10 +1717,10 @@
                     loadBooks();
                     loadStats();
                 } else {
-                    alert(`Error: ${d.error}`);
+                    alert(`Error: ${d.error} `);
                 }
             } catch (e) {
-                alert(`Error de red: ${e}`);
+                alert(`Error de red: ${e} `);
             }
         }
 
@@ -1738,7 +1781,7 @@
             const container = document.getElementById('booksGrid');
             container.className = currentView === 'list' ? 'books-list' : 'books-grid';
             if (!books.length) {
-                container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>No se encontraron libros.</p></div>`;
+                container.innerHTML = `< div class="empty-state" style = "grid-column:1/-1" ><div class="icon">📭</div><p>No se encontraron libros.</p></div > `;
                 return;
             }
             container.innerHTML = books.map(b => {
@@ -1747,12 +1790,12 @@
                 const cls = agotado ? 'avail-none' : (b.cantidad_disponible <= 1 ? 'avail-low' : 'avail-ok');
                 const cardCls = agotado ? 'book-card book-card-agotado' : 'book-card';
                 const cover = b.portada && b.portada.startsWith('http')
-                    ? `<div class="book-cover"><img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.innerHTML='📖'"></div>`
-                    : `<div class="book-cover" style="display:flex;align-items:center;justify-content:center;font-size:2rem;background:#f8fafc;">📖</div>`;
-                const checkbox = `<input type="checkbox" class="book-checkbox" onchange="toggleBookSelection(${b.id})" ${isSelected ? 'checked' : ''}>`;
+                    ? `< div class="book-cover" > <img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.innerHTML='📖'"></div>`
+                    : `< div class="book-cover" style = "display:flex;align-items:center;justify-content:center;font-size:2rem;background:#f8fafc;" >📖</div > `;
+                const checkbox = `< input type = "checkbox" class="book-checkbox" onchange = "toggleBookSelection(${b.id})" ${isSelected ? 'checked' : ''}> `;
                 if (currentView === 'list') {
-                    return `<div class="${cardCls}">
-                        ${checkbox}
+                    return `< div class="${cardCls}" >
+            ${checkbox}
                         ${cover}
                         <div class="book-info">
                             <div class="book-title">${b.titulo}</div>
@@ -1763,11 +1806,11 @@
                             ${!agotado ? `<button class="btn btn-success btn-sm" onclick="openPrestamoRapido(${b.id}, '${b.titulo.replace(/'/g, "\\'")}', '${b.autor ? b.autor.replace(/'/g, "\\'") : ''}')" title="Prestar Libro" style="padding: 4px 10px; font-size: .85rem;">📤 Prestar</button>` : ''}
                             <button class="btn btn-outline btn-sm" onclick="openEdit(${b.id})" title="Editar">✏️</button>
                             <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')" title="Eliminar">🗑️</button>
-                        </div>
-                    </div>`;
+                        </div >
+                    </div > `;
                 } else {
-                    return `<div class="${cardCls}">
-                        ${checkbox}
+                    return `< div class="${cardCls}" >
+            ${checkbox}
                         ${cover}
                         <div class="book-title">${b.titulo}</div>
                         <div class="book-author">${b.autor || 'Autor desconocido'}</div>
@@ -1779,8 +1822,8 @@
                                 <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEdit(${b.id})">✏️ Editar</button>
                                 <button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')">🗑️</button>
                             </div>
-                        </div>
-                    </div>`;
+                        </div >
+                    </div > `;
                 }
             }).join('');
         }
@@ -1793,8 +1836,8 @@
                 body: JSON.stringify(body)
             })).json();
             const el = document.getElementById('formAlert');
-            if (d.ok) { el.innerHTML = `<div class="alert alert-success">${d.mensaje}</div>`; document.getElementById('bookForm').reset(); document.getElementById('f-cantidad').value = 1; loadBooks(); loadStats(); setTimeout(() => el.innerHTML = '', 3000); }
-            else el.innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+            if (d.ok) { el.innerHTML = `< div class="alert alert-success" > ${d.mensaje}</div > `; document.getElementById('bookForm').reset(); document.getElementById('f-cantidad').value = 1; loadBooks(); loadStats(); setTimeout(() => el.innerHTML = '', 3000); }
+            else el.innerHTML = `< div class="alert alert-danger" >❌ ${d.error}</div > `;
         }
         function openEdit(id) {
             const b = allBooks.find(x => x.id === id); if (!b) return;
@@ -1811,18 +1854,18 @@
             e.preventDefault();
             const id = document.getElementById('e-id').value;
             const body = { titulo: document.getElementById('e-titulo').value, autor: document.getElementById('e-autor').value, isbn: document.getElementById('e-isbn').value, editorial: document.getElementById('e-editorial').value, año_publicacion: document.getElementById('e-año').value || null, cantidad_total: parseInt(document.getElementById('e-cantidad').value) || 1, nivel_lectura: document.getElementById('e-nivel').value, genero: document.getElementById('e-genero').value, descripcion: document.getElementById('e-desc').value };
-            const d = await (await fetch(`/api/libros/${id}`, {
+            const d = await (await fetch(`/ api / libros / ${id} `, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
             })).json();
             if (d.ok) { closeModal('editModal'); loadBooks(); loadStats(); }
-            else document.getElementById('editAlert').innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+            else document.getElementById('editAlert').innerHTML = `< div class="alert alert-danger" >❌ ${d.error}</div > `;
         }
         async function deleteBook(id, titulo) {
-            if (!confirm(`¿Eliminar "${titulo}"?`)) return;
-            const d = await (await fetch(`/api/libros/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
-            if (d.ok) { loadBooks(); loadStats(); } else alert(`Error: ${d.error}`);
+            if (!confirm(`¿Eliminar "${titulo}" ? `)) return;
+            const d = await (await fetch(`/ api / libros / ${id} `, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
+            if (d.ok) { loadBooks(); loadStats(); } else alert(`Error: ${d.error} `);
         }
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
@@ -1840,8 +1883,8 @@
             const btn = document.getElementById('csvBtn'); btn.textContent = '⏳ Importando...'; btn.disabled = true;
             try {
                 const d = await (await fetch('/api/libros/importar/csv', { method: 'POST', headers: { 'X-CSRFToken': await getCsrf() }, body: fd })).json();
-                let html = d.ok ? `<div class="alert alert-success">${d.mensaje} (${d.libros_importados}/${d.total_filas})</div>` : `<div class="alert alert-danger">❌ ${d.error}</div>`;
-                if (d.ok && d.errores) html += `<div class="alert" style="background:#fff8e1;border-left:4px solid orange;color:#7a5c00;">⚠️ Errores: ${d.errores.join('<br>')}</div>`;
+                let html = d.ok ? `< div class="alert alert-success" > ${d.mensaje} (${d.libros_importados} /${d.total_filas})</div > ` : ` < div class="alert alert-danger" >❌ ${d.error}</div > `;
+                if (d.ok && d.errores) html += `< div class="alert" style = "background:#fff8e1;border-left:4px solid orange;color:#7a5c00;" >⚠️ Errores: ${d.errores.join('<br>')}</div > `;
                 document.getElementById('csvAlert').innerHTML = html;
                 if (d.ok) { csvSelectedFile = null; document.getElementById('fileInfo').style.display = 'none'; document.getElementById('csvFile').value = ''; document.getElementById('csvBtn').style.display = 'none'; loadBooks(); loadStats(); }
             } finally { btn.textContent = '📤 Importar Libros'; btn.disabled = false; }
@@ -1858,10 +1901,10 @@
                     alert(d.mensaje);
                     loadBooks(); loadStats();
                 } else {
-                    alert(`Error: ${d.error}`);
+                    alert(`Error: ${d.error} `);
                 }
             } catch (e) {
-                alert(`Error de red: ${e}`);
+                alert(`Error de red: ${e} `);
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -1872,21 +1915,21 @@
             const titulo = document.getElementById('gbSearchInput').value.trim(); if (!titulo) return;
             document.getElementById('gbResults').innerHTML = '<div style="text-align:center;padding:30px;color:#888;">⏳ Buscando...</div>';
             document.getElementById('gbAlert').innerHTML = '';
-            const d = await (await fetch(`/api/libros/buscar-google?titulo=${encodeURIComponent(titulo)}`)).json();
-            if (!d.ok) { document.getElementById('gbAlert').innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`; document.getElementById('gbResults').innerHTML = ''; return; }
+            const d = await (await fetch(`/ api / libros / buscar - google ? titulo = ${encodeURIComponent(titulo)} `)).json();
+            if (!d.ok) { document.getElementById('gbAlert').innerHTML = `< div class="alert alert-danger" >❌ ${d.error}</div > `; document.getElementById('gbResults').innerHTML = ''; return; }
             if (!d.resultados.length) { document.getElementById('gbResults').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Sin resultados.</p></div>'; return; }
             window._gbResults = d.resultados;
             document.getElementById('gbResults').innerHTML = d.resultados.map((b, i) => `
-        <div class="google-card" onclick="openGbImport(${i})">
-            ${b.portada ? `<img src="${b.portada}" alt="${b.titulo}">` : `<div class="g-no-img">📖</div>`}
+            < div class="google-card" onclick = "openGbImport(${i})" >
+                ${b.portada ? `<img src="${b.portada}" alt="${b.titulo}">` : `<div class="g-no-img">📖</div>`}
             <div class="g-title">${b.titulo}</div>
             <div class="g-author">${b.autor || ''}</div>
             <div style="font-size:.7rem;color:#999;margin-top:3px;">${[b.editorial, b.año_publicacion].filter(Boolean).join(' · ')}</div>
-        </div>`).join('');
+        </div > `).join('');
         }
         function openGbImport(i) {
             selectedGbBook = window._gbResults[i];
-            document.getElementById('gbImportInfo').innerHTML = `<strong>${selectedGbBook.titulo}</strong><br><span style="color:#666;font-size:.85rem;">${selectedGbBook.autor || ''}</span>${selectedGbBook.editorial ? `<br><span style="color:#999;font-size:.8rem;">${selectedGbBook.editorial}</span>` : ''}`;
+            document.getElementById('gbImportInfo').innerHTML = `< strong > ${selectedGbBook.titulo}</strong > <br><span style="color:#666;font-size:.85rem;">${selectedGbBook.autor || ''}</span>${selectedGbBook.editorial ? `<br><span style="color:#999;font-size:.8rem;">${selectedGbBook.editorial}</span>` : ''}`;
             document.getElementById('gb-cantidad').value = 1;
             document.getElementById('gb-nivel').value = '';
             document.getElementById('gb-genero').value = '';
@@ -2027,16 +2070,16 @@
                 return;
             }
             resultsEl.innerHTML = filtered.map(l => `
-                <div onclick="seleccionarLibroPrest(${l.id}, '${(l.titulo || '').replace(/'/g, "\\'")}', ${l.cantidad_disponible})"
-                    style="padding:10px 16px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;font-size:.875rem;transition:background .15s;"
+            <div onclick="seleccionarLibroPrest(${l.id}, '${(l.titulo || '').replace(/'/g, "\\'")}', ${l.cantidad_disponible})"
+            style="padding:10px 16px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;font-size:.875rem;transition:background .15s;"
                     onmouseover="this.style.background='#f0f5ff'" onmouseout="this.style.background='white'">
-                    <div>
-                        <div style="font-weight:600;color:#003366;">${l.titulo}</div>
-                        ${l.autor ? `<div style="color:#666;font-size:.8rem;">${l.autor}</div>` : ''}
-                    </div>
-                    <span style="background:#e8f0fe;color:#003366;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">${l.cantidad_disponible} disp.</span>
-                </div>
-            `).join('');
+            <div>
+                <div style="font-weight:600;color:#003366;">${l.titulo}</div>
+                ${l.autor ? `<div style="color:#666;font-size:.8rem;">${l.autor}</div>` : ''}
+            </div>
+            <span style="background:#e8f0fe;color:#003366;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;">${l.cantidad_disponible} disp.</span>
+        </div>
+        `).join('');
             resultsEl.style.display = 'block';
         }
         function seleccionarLibroPrest(id, titulo, disp) {
@@ -2065,7 +2108,7 @@
                 const epSel = document.getElementById('ep-alumno');
                 const opts = '<option value="">-- Selecciona un alumno --</option>' +
                     alumnosList.sort((a, b) => a.nombre.localeCompare(b.nombre))
-                        .map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+                        .map(a => `< option value = "${a.id}" > ${a.nombre}</option > `).join('');
                 if (pSel) pSel.innerHTML = opts;
                 if (hSel) hSel.innerHTML = opts;
                 if (epSel) epSel.innerHTML = opts;
@@ -2092,7 +2135,7 @@
                 cont.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No hay préstamos activos para el filtro.</p></div>';
                 return;
             }
-            cont.innerHTML = `<table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Fecha</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
+            cont.innerHTML = `< table class="table" ><thead><tr><th>Alumno</th><th>Libro</th><th>Fecha</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
                 ${data.map(p => `<tr>
                     <td>${p.alumno_nombre}</td><td>${p.libro_titulo}</td><td>${p.fecha_prestamo}</td>
                     <td><span class="avail-badge ${p.dias_transcurridos > _plazoGlobal ? 'avail-none' : 'avail-ok'}">${p.dias_transcurridos}d</span></td>
@@ -2102,13 +2145,13 @@
                         <button class="btn btn-danger btn-sm" onclick="eliminarPrestamo(${p.id})">🗑️</button>
                     </td>
                 </tr>`).join('')}
-            </tbody></table>`;
+            </tbody></table > `;
         }
         async function _loadRetrasos() {
             try {
                 const cfg = await (await fetch('/api/config')).json();
                 const plazo = cfg.max_dias_prestamo || 7;
-                _todosRetrasos = await (await fetch(`/api/alertas/retrasos?dias=${plazo}`)).json();
+                _todosRetrasos = await (await fetch(`/ api / alertas / retrasos ? dias = ${plazo} `)).json();
                 filtrarRetrasos();
             } catch (e) { console.error("Error loading retrasos:", e); }
         }
@@ -2125,8 +2168,8 @@
                 cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos para el filtro!</p></div>';
                 return;
             }
-            cont.innerHTML = `<div class="alert alert-danger">⚠️ ${data.length} libro(s) coinciden con la búsqueda</div>
-                <table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Desde</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
+            cont.innerHTML = `< div class="alert alert-danger" >⚠️ ${data.length} libro(s) coinciden con la búsqueda</div >
+            <table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Desde</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
                 ${data.map(p => `<tr>
                     <td>${p.nombre}</td><td>${p.titulo}</td><td>${p.fecha_prestamo}</td>
                     <td><span class="avail-badge avail-none">${p.dias}d</span></td>
@@ -2184,7 +2227,7 @@
                 : '—';
             // Build summary bar
             let summaryHtml = `
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px;">
+                < div style = "display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px;" >
                     <div style="background:#f0f7ff; padding: 15px; border-radius: 14px; border: 1px solid #d0e1f9; text-align: center; box-shadow: 0 4px 10px rgba(0,51,102,0.03);">
                         <div style="font-size: .65rem; color: #5c7c99; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">Total</div>
                         <div style="font-size: 1.6rem; font-weight: 800; color: #003366;">${totalLoans}</div>
@@ -2206,7 +2249,7 @@
                         <div style="font-size: .65rem; color: #dc2626; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">Media Días</div>
                         <div style="font-size: 1.6rem; font-weight: 800; color: #b91c1c;">${avgDays}</div>
                     </div>
-                </div>
+                </div >
             `;
             // Group by student
             const byAlumno = {};
@@ -2220,9 +2263,9 @@
             alumnosOrdenados.forEach((nombre, idx) => {
                 const prestamos = byAlumno[nombre];
                 const nActivos = prestamos.filter(p => p.estado !== 'devuelto').length;
-                const groupId = `${prefix}-group-${idx}`;
+                const groupId = `${prefix} -group - ${idx} `;
                 groupsHtml += `
-                <div class="historial-group" style="background:white; border: 1px solid #eef2f7; border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: all 0.2s;">
+            < div class="historial-group" style = "background:white; border: 1px solid #eef2f7; border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: all 0.2s;" >
                     <div onclick="toggleHistGroup('${groupId}', '${prefix}-${idx}')" 
                          style="padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-left: 5px solid ${nActivos > 0 ? '#f39c12' : '#28a745'}; background: #fff;">
                         <div style="display: flex; align-items: center; gap: 14px;">
@@ -2280,14 +2323,14 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-                `;
+                </div >
+            `;
             });
             cont.innerHTML = summaryHtml + groupsHtml;
         }
         function toggleHistGroup(groupId, rowClassSuffix) {
-            const content = document.getElementById(`${groupId}-content`);
-            const arrow = document.getElementById(`${groupId}-arrow`);
+            const content = document.getElementById(`${groupId} -content`);
+            const arrow = document.getElementById(`${groupId} -arrow`);
             if (!content) return;
             const isOpen = content.style.display !== 'none';
             content.style.display = isOpen ? 'none' : 'block';
@@ -2305,7 +2348,7 @@
         }
         // ── EDIT / DELETE PRESTAMO ─────────────────────────────────
         async function openEditPrest(id) {
-            const r = await (await fetch(`/api/prestamos/${id}`)).json();
+            const r = await (await fetch(`/ api / prestamos / ${id} `)).json();
             if (!r.ok) { alert(r.error); return; }
             const p = r.prestamo;
             document.getElementById('ep-id').value = id;
@@ -2347,7 +2390,7 @@
                 fecha_prestamo: document.getElementById('ep-fecha').value,
                 observaciones: document.getElementById('ep-obs').value
             };
-            const d = await (await fetch(`/api/prestamos/${id}`, {
+            const d = await (await fetch(`/ api / prestamos / ${id} `, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
             })).json();
@@ -2356,19 +2399,19 @@
                 _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats();
                 setTimeout(() => location.reload(), 500);
             } else {
-                document.getElementById('ep-alert').innerHTML = `<div class="alert alert-danger">❌ ${d.error}</div>`;
+                document.getElementById('ep-alert').innerHTML = `< div class="alert alert-danger" >❌ ${d.error}</div > `;
             }
         }
         function closeEditPrest() { document.getElementById('editPrestModal').style.display = 'none'; }
         async function eliminarPrestamo(id) {
             if (!confirm('¿Eliminar este préstamo? Si estaba activo, el libro volverá a estar disponible.')) return;
-            const d = await (await fetch(`/api/prestamos/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
+            const d = await (await fetch(`/ api / prestamos / ${id} `, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
             if (d.ok) { _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats(); location.reload(); }
-            else alert(`Error: ${d.error}`);
+            else alert(`Error: ${d.error} `);
         }
         async function reactivarPrestamo(id) {
             if (!confirm('¿Reactivar este préstamo? Se marcará como activo y se descontará 1 unidad del libro disponible.')) return;
-            const d = await (await fetch(`/api/prestamos/${id}/reactivar`, { method: 'POST', headers: { 'X-CSRFToken': await getCsrf() } })).json();
+            const d = await (await fetch(`/ api / prestamos / ${id}/reactivar`, { method: 'POST', headers: { 'X-CSRFToken': await getCsrf() } })).json();
             if (d.ok) {
                 _prestamosLoaded = false;
                 initPrestamos();

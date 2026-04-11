@@ -4,6 +4,14 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.2.2] — 11 Abril 2026
+### Accesos rápidos Excursiones y Autorizaciones
+- Tarjetas 🚌 Excursiones y ✍️ Autorizaciones añadidas al grid del Panel de Control, tras Horario
+- Grid ampliado de 9 a 10 columnas para 2 filas exactas de 10 tarjetas
+- **Archivos:** `static/index.html`, `VERSION`, `version.py`
+
+---
+
 ## [v1.2.1] — 11 Abril 2026
 ### Fixes dashboard y documentación
 - **Resumen anual filtrado por grupo**: `/api/autorizaciones/resumen-anual` filtra por `active_group_id` (antes contaba todos los alumnos del sistema)

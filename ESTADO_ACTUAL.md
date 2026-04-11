@@ -1,8 +1,23 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.2.1`
+**Versión:** `v1.2.2`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Accesos rápidos Excursiones y Autorizaciones (v1.2.2)
+
+**Fecha:** 11 de Abril 2026 — 18:30
+
+### Qué se hizo
+- Añadidas tarjetas **🚌 Excursiones** y **✍️ Autorizaciones** al grid de accesos rápidos del Panel de Control, posicionadas justo después de Horario
+- Grid ampliado de 9 a 10 columnas (2 filas × 10 tarjetas); breakpoint 1200px ajustado a 5 columnas
+- Rama: `feat/accesos-rapidos-excursiones` → merge a `master`
+
+### Archivos modificados
+- `static/index.html` — nuevas tarjetas en el grid de navegación, CSS grid 9→10 columnas
+- `VERSION`, `version.py` — bump a v1.2.2
 
 ---
 

@@ -55,9 +55,9 @@
         /* --- DASHBOARD GRID --- */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             grid-template-rows: auto auto;
-            gap: 20px;
+            gap: 16px;
             margin-bottom: 40px;
         }
 
@@ -129,8 +129,8 @@
         /* Stats Cards (Top row) */
         .stat-card {
             background: white;
-            padding: 20px;
-            border-radius: 16px;
+            padding: 14px 12px;
+            border-radius: 14px;
             text-align: center;
             border: 1px solid #eef2f7;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
@@ -147,15 +147,15 @@
 
         .stat-card h4 {
             margin: 0;
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             color: #6c757d;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
         }
 
         .stat-card p {
-            margin: 10px 0 0;
-            font-size: 2rem;
+            margin: 6px 0 0;
+            font-size: 1.7rem;
             font-weight: 800;
             color: var(--primary);
         }
@@ -666,7 +666,21 @@
                 onclick="window.location.href='/autorizaciones'">
                 <h4 style="color: #991b1b;">📋 Autorizaciones Pendientes</h4>
                 <p id="statsAutorizaciones" style="color: #b91c1c;">-</p>
-                <div style="font-size: 0.75rem; color: #991b1b; opacity: 0.8;">Alumnos sin autorización firmada</div>
+                <div style="font-size: 0.7rem; color: #991b1b; opacity: 0.8;">Sin auth. excursión</div>
+            </div>
+            <div class="stat-card"
+                style="border-top: 4px solid #7c3aed; background: #f5f3ff; position: relative; cursor: pointer;"
+                onclick="window.location.href='/autorizaciones'">
+                <h4 style="color: #5b21b6;">🖼️ Sin Auto. Imágenes</h4>
+                <p id="statsAutoFotos" style="color: #6d28d9;">-</p>
+                <div style="font-size: 0.7rem; color: #5b21b6; opacity: 0.8;">interno + web/RRSS</div>
+            </div>
+            <div class="stat-card"
+                style="border-top: 4px solid #0891b2; background: #ecfeff; position: relative; cursor: pointer;"
+                onclick="window.location.href='/autorizaciones'">
+                <h4 style="color: #155e75;">🌳 Sin Auto. Salidas</h4>
+                <p id="statsAutoSalidas" style="color: #0e7490;">-</p>
+                <div style="font-size: 0.7rem; color: #155e75; opacity: 0.8;">Salidas al entorno</div>
             </div>
             <!-- Priority Lists Row (Moved Up) -->
             <div class="list-container" style="border-left: 4px solid #f59e0b; background: #fffcf0;">
@@ -1001,6 +1015,7 @@
 
                     // Excursiones pendientes
                     loadExcursionesPendientes();
+                    loadResumenAnualAutos();
 
                     // Cumples
                     if (data.cumples && data.cumples.length > 0) {
@@ -1101,6 +1116,27 @@
                 if (elAut) elAut.innerText = totalPendientesAut;
             } catch (e) {
                 console.error('Error cargando excursiones:', e);
+            }
+        }
+
+        async function loadResumenAnualAutos() {
+            try {
+                const res = await fetch('/api/autorizaciones/resumen-anual');
+                const data = await res.json();
+                const elFotos = document.getElementById('statsAutoFotos');
+                const elSalidas = document.getElementById('statsAutoSalidas');
+                if (elFotos) {
+                    // Suma pendientes de fotos_interno + fotos_rrss (sin duplicar alumnos)
+                    const pFotosInt = (data.fotos_interno || {}).pendientes || 0;
+                    const pFotosRrss = (data.fotos_rrss || {}).pendientes || 0;
+                    // Mostramos el máximo (el peor de los dos)
+                    elFotos.innerText = Math.max(pFotosInt, pFotosRrss);
+                }
+                if (elSalidas) {
+                    elSalidas.innerText = (data.salidas_entorno || {}).pendientes || 0;
+                }
+            } catch(e) {
+                console.error('Error cargando resumen anual autorizaciones:', e);
             }
         }
 

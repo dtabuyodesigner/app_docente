@@ -434,6 +434,81 @@ def api_autorizacion_item(item_id):
 
 
 # ─────────────────────────────────────────────
+# AUTORIZACIONES ANUALES
+# ─────────────────────────────────────────────
+
+# Tipos que se consideran "anuales" (principio de curso, no por excursión)
+TIPOS_ANUALES = ['fotos_interno', 'fotos_rrss', 'salidas_entorno', 'datos']
+
+
+@excursiones_bp.route("/api/autorizaciones/<int:alumno_id>/anual", methods=["POST"])
+def api_upsert_auto_anual(alumno_id):
+    """Crea o actualiza una autorización anual de un alumno (upsert por tipo).
+    Body: { tipo, estado, fecha_recibida? }
+    """
+    conn = get_db()
+    d = request.json or {}
+    tipo = d.get("tipo", "")
+    if tipo not in TIPOS_ANUALES:
+        return jsonify({"ok": False, "error": "Tipo no válido"}), 400
+
+    estado = d.get("estado", "pendiente")
+    fecha_recibida = d.get("fecha_recibida")
+
+    # ¿Existe ya una para este alumno y tipo?
+    existing = conn.execute("""
+        SELECT id FROM autorizaciones_alumno
+        WHERE alumno_id=? AND tipo=?
+        LIMIT 1
+    """, (alumno_id, tipo)).fetchone()
+
+    if existing:
+        conn.execute("""
+            UPDATE autorizaciones_alumno
+            SET estado=?, fecha_recibida=?
+            WHERE id=?
+        """, (estado, fecha_recibida, existing["id"]))
+    else:
+        conn.execute("""
+            INSERT INTO autorizaciones_alumno (alumno_id, tipo, etiqueta, estado, fecha_recibida)
+            VALUES (?, ?, '', ?, ?)
+        """, (alumno_id, tipo, estado, fecha_recibida))
+
+    conn.commit()
+    return jsonify({"ok": True})
+
+
+@excursiones_bp.route("/api/autorizaciones/resumen-anual")
+def api_resumen_anual():
+    """Resumen de autorizaciones anuales para el dashboard.
+    Devuelve, para cada tipo anual, cuántos alumnos tienen estado=autorizada
+    y cuántos están pendientes/sin registrar.
+    """
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Total de alumnos activos
+    total = cur.execute(
+        "SELECT COUNT(*) as n FROM alumnos WHERE deleted_at IS NULL"
+    ).fetchone()["n"]
+
+    result = {}
+    for tipo in TIPOS_ANUALES:
+        autorizadas = cur.execute("""
+            SELECT COUNT(*) as n FROM autorizaciones_alumno aa
+            JOIN alumnos a ON a.id = aa.alumno_id AND a.deleted_at IS NULL
+            WHERE aa.tipo=? AND aa.estado='autorizada'
+        """, (tipo,)).fetchone()["n"]
+        result[tipo] = {
+            "autorizadas": autorizadas,
+            "pendientes": total - autorizadas,
+            "total": total
+        }
+
+    return jsonify(result)
+
+
+# ─────────────────────────────────────────────
 # HELPERS
 # ─────────────────────────────────────────────
 
@@ -469,7 +544,7 @@ def pdf_autorizacion(excursion_id):
     nombre_centro = cfg.get("nombre_centro", "")
     curso_escolar = cfg.get("curso_escolar", "")
 
-    # Nombres de grupos
+    # Nombres de grupos: seleccionados por checkbox + escritos a mano
     grupo_ids = json.loads(ex["grupo_ids"] or "[]")
     grupos_rows = []
     if grupo_ids:
@@ -478,8 +553,10 @@ def pdf_autorizacion(excursion_id):
             f"SELECT nombre FROM grupos WHERE id IN ({ph})", grupo_ids
         ).fetchall()
     nombres_grupos = [r["nombre"] for r in grupos_rows]
-    if ex["grupos_extra"]:
-        nombres_grupos.append(ex["grupos_extra"])
+    # grupos_extra: puede contener varios grupos separados por comas escritos a mano
+    grupos_extra_val = (ex["grupos_extra"] or "").strip()
+    if grupos_extra_val:
+        nombres_grupos.append(grupos_extra_val)
     grupos_str = ", ".join(nombres_grupos) if nombres_grupos else ""
 
     # Formatear fecha
@@ -557,18 +634,22 @@ def pdf_autorizacion(excursion_id):
     elements.append(Paragraph("Estimadas familias:", s_body))
     elements.append(Spacer(1, 0.1*cm))
 
-    # Párrafo principal
+    # Párrafo principal — escapar texto plano antes de embeber en tags XML de ReportLab
+    def xesc(txt):
+        """Escapa caracteres especiales XML para uso en Paragraph de ReportLab."""
+        return (txt or "").replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
     partes = []
     if fecha_larga:
-        partes.append(f"El día <b>{fecha_larga}</b>")
+        partes.append(f"El día <b>{xesc(fecha_larga)}</b>")
     else:
         partes.append("Próximamente")
     if grupos_str:
-        partes[0] += f", los alumnos de <b>{grupos_str}</b>"
+        partes[0] += f", los alumnos de <b>{xesc(grupos_str)}</b>"
     else:
         partes[0] += ", nuestros alumnos"
     if ex["destino"]:
-        partes[0] += f" realizaremos una salida educativa a <b>{ex['destino']}</b>."
+        partes[0] += f" realizaremos una salida educativa a <b>{xesc(ex['destino'])}</b>."
     else:
         partes[0] += " realizaremos una salida educativa."
     elements.append(Paragraph(partes[0], s_body))
@@ -626,15 +707,15 @@ def pdf_autorizacion(excursion_id):
     # Texto de la autorización
     detalle = "a participar en "
     if ex["destino"]:
-        detalle += f"<b>{ex['titulo']}</b> ({ex['destino']})"
+        detalle += f"<b>{xesc(ex['titulo'])}</b> ({xesc(ex['destino'])})"
     else:
-        detalle += f"<b>{ex['titulo']}</b>"
+        detalle += f"<b>{xesc(ex['titulo'])}</b>"
     if fecha_corta:
-        detalle += f" el día <b>{fecha_corta}</b>"
+        detalle += f" el día <b>{xesc(fecha_corta)}</b>"
     if ex["hora_salida"]:
-        detalle += f", con salida del colegio a las <b>{ex['hora_salida']} h</b>"
+        detalle += f", con salida del colegio a las <b>{xesc(ex['hora_salida'])} h</b>"
     if ex["hora_regreso"]:
-        detalle += f" y regreso aproximado a las <b>{ex['hora_regreso']} h</b>"
+        detalle += f" y regreso aproximado a las <b>{xesc(ex['hora_regreso'])} h</b>"
     detalle += "."
     if ex["requiere_pago"] and ex["coste"]:
         detalle += f" Adjunto el importe de <b>{float(ex['coste']):.2f} €</b>."

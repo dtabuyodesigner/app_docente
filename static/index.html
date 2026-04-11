@@ -526,7 +526,7 @@
                 <button onclick="applyUpdateFromBanner()"
                     style="background:white; color:#28a745; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer;">Actualizar
                     ahora</button>
-                <button onclick="document.getElementById('updateAlert').style.display='none'"
+                <button onclick="dismissUpdateBanner()"
                     style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.5); padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer;">Omitir</button>
             </div>
         </div>
@@ -1547,6 +1547,9 @@
         }
         // Comprobar actualizaciones al cargar la página
         async function checkUpdatesOnLoad() {
+            // No mostrar si el usuario ya lo descartó hoy
+            const hoy = new Date().toDateString();
+            if (localStorage.getItem('update_banner_dismissed') === hoy) return;
             try {
                 const res = await fetch('/api/admin/check_updates');
                 const data = await res.json();
@@ -1564,6 +1567,12 @@
                 // Silencioso - no mostrar error si no hay conexión
                 console.log('No se pudo comprobar actualizaciones:', e);
             }
+        }
+        function dismissUpdateBanner() {
+            const hoy = new Date().toDateString();
+            localStorage.setItem('update_banner_dismissed', hoy);
+            const banner = document.getElementById('updateAlert');
+            if (banner) banner.style.display = 'none';
         }
         // Aplicar actualización directamente desde el banner
         async function applyUpdateFromBanner() {

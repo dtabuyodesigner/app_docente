@@ -187,7 +187,12 @@ def check_updates():
                         latest_version = m.group(1)
             except Exception:
                 pass
-            update_available = (latest_version != APP_VERSION)
+            def _parse_ver2(v):
+                try:
+                    return tuple(int(x) for x in v.lstrip('v').split('.'))
+                except Exception:
+                    return (0, 0, 0)
+            update_available = _parse_ver2(latest_version) > _parse_ver2(APP_VERSION)
             return jsonify({
                 "ok": True,
                 "update_available": update_available,
@@ -213,8 +218,13 @@ def check_updates():
         except Exception:
             pass
 
-        # Si la versión remota es distinta → hay actualización (chequeo primario)
-        update_available = (latest_version != APP_VERSION)
+        # Si la versión remota es MAYOR que la local → hay actualización (comparación numérica)
+        def _parse_ver(v):
+            try:
+                return tuple(int(x) for x in v.lstrip('v').split('.'))
+            except Exception:
+                return (0, 0, 0)
+        update_available = _parse_ver(latest_version) > _parse_ver(APP_VERSION)
 
         # Consultar GitHub para lista de cambios
         commits_url = f"https://api.github.com/repos/{github_repo}/commits?sha={dev_branch}&per_page=5"

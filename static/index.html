@@ -1575,6 +1575,11 @@
                 `;
             }
         }
+        // Refrescar contadores al volver de otra página
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) loadExcursionesPendientes();
+        });
+
         document.addEventListener('DOMContentLoaded', async () => {
             loadDashboard();
             await checkIntegrity();

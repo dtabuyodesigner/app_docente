@@ -301,8 +301,8 @@ def api_autorizaciones(alumno_id):
 
         # Fallback: enlazar por título si no llega excursion_id
         if not excursion_id_val and tipo == 'excursion' and etiqueta:
-            ex_match = cur.execute(
-                "SELECT id FROM excursiones WHERE titulo=?", (etiqueta,)
+            ex_match = conn.execute(
+                "SELECT id FROM excursiones WHERE LOWER(TRIM(titulo))=LOWER(TRIM(?))", (etiqueta,)
             ).fetchone()
             if ex_match:
                 excursion_id_val = ex_match['id']
@@ -314,8 +314,8 @@ def api_autorizaciones(alumno_id):
         """, (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id_val))
         new_id = cur.lastrowid
 
-        if excursion_id_val:
-            _sync_auto_to_excursion(cur, alumno_id, excursion_id_val, estado, fecha_recibida)
+        if excursion_id_val and tipo == 'excursion':
+            _sync_auto_to_excursion(conn.cursor(), alumno_id, excursion_id_val, estado, fecha_recibida)
 
         conn.commit()
         return jsonify({"ok": True, "id": new_id})
@@ -347,6 +347,14 @@ def api_autorizaciones_bulk():
     if not alumno_ids:
         return jsonify({"ok": False, "error": "No hay alumnos seleccionados"}), 400
 
+    # Fallback por título (una sola vez, vale para todos)
+    if not excursion_id_val and tipo == 'excursion' and etiqueta:
+        ex_match = conn.execute(
+            "SELECT id FROM excursiones WHERE LOWER(TRIM(titulo))=LOWER(TRIM(?))", (etiqueta,)
+        ).fetchone()
+        if ex_match:
+            excursion_id_val = ex_match['id']
+
     creadas = 0
     for alumno_id in alumno_ids:
         cur.execute("""
@@ -354,8 +362,8 @@ def api_autorizaciones_bulk():
                 (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id_val))
-        if excursion_id_val:
-            _sync_auto_to_excursion(cur, alumno_id, excursion_id_val, estado, fecha_recibida)
+        if excursion_id_val and tipo == 'excursion':
+            _sync_auto_to_excursion(conn.cursor(), alumno_id, excursion_id_val, estado, fecha_recibida)
         creadas += 1
 
     conn.commit()
@@ -373,33 +381,39 @@ def api_autorizacion_item(item_id):
         return jsonify({"ok": True})
 
     d = request.json or {}
-    tipo = d.get("tipo", "otro")
-    etiqueta = d.get("etiqueta", "")
-    estado = d.get("estado", "pendiente")
-    fecha_recibida = d.get("fecha_recibida")
-    observaciones = d.get("observaciones", "")
-    excursion_id_val = d.get("excursion_id")
 
-    # Fallback: si no hay excursion_id pero tipo=excursion y hay etiqueta, buscar por título
+    # Leer el registro actual ANTES de modificar (para tener alumno_id y excursion_id existente)
+    current = conn.execute(
+        "SELECT * FROM autorizaciones_alumno WHERE id=?", (item_id,)
+    ).fetchone()
+    if not current:
+        return jsonify({"ok": False, "error": "No encontrado"}), 404
+
+    alumno_id = current['alumno_id']
+    tipo = d.get("tipo", current['tipo'])
+    etiqueta = d.get("etiqueta", current['etiqueta'] or "")
+    estado = d.get("estado", current['estado'])
+    fecha_recibida = d.get("fecha_recibida", current['fecha_recibida'])
+    observaciones = d.get("observaciones", current['observaciones'] or "")
+
+    # excursion_id: prioridad → request > BD actual > búsqueda por título
+    excursion_id_val = d.get("excursion_id") or current['excursion_id']
     if not excursion_id_val and tipo == 'excursion' and etiqueta:
-        ex_match = cur.execute(
-            "SELECT id FROM excursiones WHERE titulo=?", (etiqueta,)
+        ex_match = conn.execute(
+            "SELECT id FROM excursiones WHERE LOWER(TRIM(titulo))=LOWER(TRIM(?))", (etiqueta,)
         ).fetchone()
         if ex_match:
             excursion_id_val = ex_match['id']
 
-    cur.execute("""
+    conn.execute("""
         UPDATE autorizaciones_alumno SET
             tipo=?, etiqueta=?, estado=?, fecha_recibida=?, observaciones=?, excursion_id=?
         WHERE id=?
     """, (tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id_val, item_id))
 
-    if excursion_id_val:
-        row = cur.execute(
-            "SELECT alumno_id FROM autorizaciones_alumno WHERE id=?", (item_id,)
-        ).fetchone()
-        if row:
-            _sync_auto_to_excursion(cur, row['alumno_id'], excursion_id_val, estado, fecha_recibida)
+    # Sincronizar a excursion_alumnos si está vinculada a una excursión
+    if excursion_id_val and tipo == 'excursion':
+        _sync_auto_to_excursion(conn.cursor(), alumno_id, excursion_id_val, estado, fecha_recibida)
 
     conn.commit()
     return jsonify({"ok": True})

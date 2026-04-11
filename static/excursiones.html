@@ -514,6 +514,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     cargarDashboard();
 });
 
+// Refrescar al volver de autorizaciones u otras páginas
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        cargarExcursiones();
+        cargarDashboard();
+    }
+});
+
 document.addEventListener('grupoChanged', async () => {
     await cargarGrupos();
     cargarExcursiones();

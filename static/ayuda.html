@@ -256,6 +256,7 @@
                     <li><a href="#sda" onclick="showSection('sda')">🧩 Situaciones de Aprendizaje (SDA)</a></li>
                     <li><a href="#ia-sda" onclick="showSection('ia-sda')">🤖 Generar SDA con IA</a></li>
                     <li><a href="#dashboard" onclick="showSection('dashboard')">📈 Panel de Control (Dashboard)</a></li>
+                    <li><a href="#excursiones" onclick="showSection('excursiones')">🚌 Excursiones y Autorizaciones</a></li>
                     <li><a href="#biblioteca" onclick="showSection('biblioteca')">📚 Biblioteca y Préstamos</a></li>
                     <li><a href="#configuracion" onclick="showSection('configuracion')">⚙️ Configuración y Grupos</a>
                     </li>
@@ -283,7 +284,8 @@
                     </ul>
                     <h2>📈 El Panel de Control (Dashboard)</h2>
                     <p>Al acceder a la aplicación, lo primero que verás es un resumen visual de la situación actual.
-                        Este panel incluye:</p>
+                        Este panel incluye tarjetas de asistencia, comedor, evaluación, material, biblioteca,
+                        excursiones y autorizaciones anuales, junto con:</p>
                     <ul>
                         <li><strong>Últimas Reuniones:</strong> Listado de reuniones de ciclo o con padres previstas
                             para hoy o días pasados.</li>
@@ -1037,18 +1039,95 @@ EJ-1.1;Lee con fluidez;Primaria;Lengua y Literatura;;Sí</pre>
                 </section>
                 <section id="dashboard" class="help-section">
                     <h1>📈 Panel de Control (Dashboard)</h1>
-                    <p>El Panel de Control es tu centro de mando. Al entrar, verás de un vistazo lo más importante:</p>
-                    <h2>1. Últimas Reuniones</h2>
-                    <p>Muestra las reuniones recientes o próximas vinculadas a tus alumnos o a tu nivel (Ciclo). Si no
-                        ves una reunión, asegúrate de que tiene la fecha correcta y está asignada a tu grupo.</p>
-                    <h2>2. Alertas de Rendimiento</h2>
+                    <p>El Panel de Control es tu centro de mando. Al entrar, verás de un vistazo lo más importante de
+                        tu grupo activo:</p>
+                    <h2>Tarjetas de resumen</h2>
+                    <ul>
+                        <li><strong>Asistencia hoy</strong> — presentes y faltas del día.</li>
+                        <li><strong>Comedor</strong> — alumnos que se quedan a comer hoy.</li>
+                        <li><strong>Media de clase</strong> — nota media del último trimestre evaluado.</li>
+                        <li><strong>Material pendiente</strong> — alumnos que aún no han entregado algún material.</li>
+                        <li><strong>Libros retrasados</strong> — préstamos de biblioteca sin devolver en plazo.</li>
+                        <li><strong>Excursiones pendientes</strong> — salidas activas (ya creadas, con fecha futura).</li>
+                        <li><strong>Autorizaciones pendientes</strong> — alumnos sin autorización firmada en alguna
+                            excursión activa.</li>
+                        <li><strong>🖼️ Sin Auto. Imágenes</strong> — alumnos sin autorización anual de fotografías (uso
+                            interno o web/RRSS). Muestra <em>"✓ Al día"</em> cuando todos están autorizados.</li>
+                        <li><strong>🌳 Sin Auto. Salidas</strong> — alumnos sin autorización anual de salidas al entorno.
+                            Muestra <em>"✓ Al día"</em> cuando todos están autorizados.</li>
+                    </ul>
+                    <h2>Alertas de Rendimiento</h2>
                     <p>El sistema analiza automáticamente las notas de tus alumnos. Si la media de un área cae por
                         debajo de 5 (o "No Iniciado" en Infantil), aparecerá un aviso aquí para que puedas actuar a
                         tiempo.</p>
-                    <h2>3. Ranking de Lectura</h2>
+                    <h2>Ranking de Lectura</h2>
                     <p>Una gráfica visual que muestra quiénes son los lectores más activos de tu clase, basándose en los
                         préstamos de la biblioteca.</p>
+                    <div class="highlight-box info">
+                        <strong>💡 Consejo:</strong> Todas las tarjetas del dashboard muestran datos del
+                        <strong>grupo activo</strong>. Si tienes varios grupos, cámbialos desde el selector de la barra
+                        superior.
+                    </div>
                 </section>
+
+                <!-- SECCIÓN EXCURSIONES Y AUTORIZACIONES -->
+                <section id="excursiones" class="help-section">
+                    <h1>🚌 Excursiones y Autorizaciones</h1>
+                    <p>Gestiona las salidas escolares y el control de autorizaciones familiares desde un único lugar.</p>
+
+                    <h2>1. Crear una Excursión</h2>
+                    <ol>
+                        <li>Ve a <strong>Excursiones</strong> en el menú superior.</li>
+                        <li>Pulsa <strong>Nueva Excursión</strong> e introduce el título, la fecha, el destino y el
+                            precio.</li>
+                        <li>Selecciona los <strong>grupos</strong> participantes con las casillas. Si algún grupo no
+                            aparece en el listado (p. ej. un grupo de otro ciclo), puedes escribirlo a mano en el campo
+                            <em>"Otros grupos"</em>.</li>
+                    </ol>
+                    <div class="highlight-box warning">
+                        <strong>⚠️ Importante:</strong> Los grupos escritos a mano en "Otros grupos" aparecen en el PDF
+                        de autorización junto con los grupos seleccionados.
+                    </div>
+
+                    <h2>2. Gestionar Autorizaciones de una Excursión</h2>
+                    <p>Desde el listado de excursiones, pulsa <strong>Ver autorizaciones</strong> para acceder a la
+                        ficha de la excursión. Allí puedes marcar para cada alumno si ha traído la autorización
+                        firmada.</p>
+
+                    <h2>3. Imprimir el PDF de Autorización</h2>
+                    <p>Desde la ficha de la excursión, pulsa <strong>🖨️ Descargar PDF</strong>. El documento incluye
+                        automáticamente todos los grupos seleccionados y los grupos escritos a mano.</p>
+
+                    <h2>4. Autorizaciones Anuales (principio de curso)</h2>
+                    <p>Algunas autorizaciones se entregan una vez al inicio del curso y valen para todo el año:</p>
+                    <ul>
+                        <li><strong>🖼️ Fotos (uso interno)</strong> — imágenes en comunicaciones internas del centro.</li>
+                        <li><strong>📱 Fotos (web/RRSS)</strong> — imágenes en la web o redes sociales del colegio.</li>
+                        <li><strong>🌳 Salidas al entorno</strong> — salidas cercanas al colegio sin necesidad de
+                            autorización por escrito cada vez.</li>
+                        <li><strong>📄 LOPD / Datos</strong> — cesión de datos personales según la normativa vigente.</li>
+                    </ul>
+                    <p>Estas autorizaciones se gestionan desde la <strong>ficha de cada alumno</strong>
+                        (pestaña <em>Datos Personales</em>), en el apartado <em>"Autorizaciones anuales"</em>. Cada chip
+                        tiene tres estados que cambian con un clic:</p>
+                    <ul>
+                        <li><span style="background:#fef3c7;padding:2px 6px;border-radius:4px;">⏳ Pendiente</span> —
+                            aún no se ha recibido la autorización.</li>
+                        <li><span style="background:#dcfce7;padding:2px 6px;border-radius:4px;">✅ Autorizada</span> —
+                            autorización recibida y firmada.</li>
+                        <li><span style="background:#fee2e2;padding:2px 6px;border-radius:4px;">❌ No autoriza</span> —
+                            la familia no autoriza expresamente.</li>
+                    </ul>
+                    <p>El <strong>dashboard</strong> muestra cuántos alumnos de tu grupo aún están en estado
+                        <em>pendiente</em> para imágenes y salidas.
+                    </p>
+                    <div class="highlight-box info">
+                        <strong>💡 Consejo:</strong> Al inicio del curso, reparte los formularios de autorizaciones
+                        anuales y ve marcando en la ficha de cada alumno conforme los vayas recibiendo. El dashboard te
+                        recordará quiénes faltan.
+                    </div>
+                </section>
+
                 <section id="biblioteca" class="help-section">
                     <h1>📚 Biblioteca y Préstamos</h1>
                     <p>Gestiona el fondo de libros y controla los préstamos a tus alumnos de forma sencilla.</p>

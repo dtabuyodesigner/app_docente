@@ -4,6 +4,27 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.2.1] — 11 Abril 2026
+### Fixes dashboard y documentación
+- **Resumen anual filtrado por grupo**: `/api/autorizaciones/resumen-anual` filtra por `active_group_id` (antes contaba todos los alumnos del sistema)
+- **Tarjetas autorizaciones**: cuando no hay pendientes muestran "✓ Al día" en verde
+- **Ayuda**: nueva sección "🚌 Excursiones y Autorizaciones" con flujo completo, tipos anuales y chips de estado; sección Dashboard ampliada con todas las tarjetas
+- **Archivos:** `routes/excursiones.py`, `static/index.html`, `static/ayuda.html`, `VERSION`, `version.py`
+
+---
+
+## [v1.2.0] — 11 Abril 2026
+### Hardening de Seguridad
+- **Eliminado fallback APP_PASSWORD**: ya no existe backdoor de login vía variable de entorno; autenticación solo vía base de datos con hash
+- **CSRF protection activada en todos los blueprints**: eliminadas 6 exemptions (curricular, alumnos, criterios, evaluacion_actividades, evaluacion_cuaderno, reuniones); token CSRF requerido en todas las mutaciones
+- **Frontend actualizado**: `reuniones.html` ahora carga `api.js` (interceptor CSRF global) y tiene meta tag `csrf-token`
+- **Rate limiting en login**: bloqueo tras 5 intentos fallidos en 5 minutos; bloqueo de 10 minutos; logging de intentos
+- **Expiración de sesiones**: sesiones permanentes con lifetime de 24h; auto-renovación en cada request para usuarios logueados
+- **Headers de seguridad**: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Strict-Transport-Security
+- **Archivos:** `routes/main.py`, `app.py`, `static/reuniones.html`, `VERSION`, `version.py`
+
+---
+
 ## [v1.1.39] — 11 Abril 2026
 ### Autorizaciones: mejoras PDF, ficha alumno y dashboard
 - **PDF grupos**: XML escaping correcto; se incluyen siempre grupos seleccionados + grupos escritos a mano (`grupos_extra`)

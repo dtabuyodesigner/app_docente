@@ -1,8 +1,46 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.1.39`
-**Rama activa:** `feat/autorizaciones-mejoras`
+**Versión:** `v1.2.1`
+**Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Fixes dashboard y ayuda (v1.2.1)
+
+**Fecha:** 11 de Abril 2026 — tarde
+
+### Qué se hizo
+- **Tarjetas autorizaciones anuales**: cuando no hay pendientes muestran "✓ Al día" en verde en lugar del número 0
+- **Resumen anual filtrado por grupo**: el endpoint `/api/autorizaciones/resumen-anual` ahora filtra por `active_group_id` de la sesión, igual que el resto del dashboard
+- **Ayuda actualizada**: nueva sección "Excursiones y Autorizaciones" con descripción completa del flujo; sección Dashboard ampliada con todas las tarjetas
+
+### Archivos modificados
+- `routes/excursiones.py` — filtro por grupo activo en resumen-anual
+- `static/index.html` — estado visual "✓ Al día" en tarjetas de autorizaciones
+- `static/ayuda.html` — nueva sección excursiones, dashboard actualizado
+- `VERSION`, `version.py` — bump a v1.2.1
+
+---
+
+## ✅ Hardening de Seguridad (v1.2.0)
+
+**Fecha:** 11 de Abril 2026 — sesión actual
+
+### Qué se hizo
+- **Eliminado fallback APP_PASSWORD**: borrado el backdoor de login que permitía acceso con variable de entorno `APP_PASSWORD`; autenticación solo vía DB con hash
+- **CSRF protection global**: eliminadas las 6 exemptions de blueprints (curricular, alumnos, criterios, evaluacion_actividades, evaluacion_cuaderno, reuniones); todas las mutaciones requieren token CSRF
+- **reuniones.html actualizado**: añadido meta tag `csrf-token` y carga de `api.js` para interceptor CSRF global
+- **Rate limiting en login**: bloqueo tras 5 intentos fallidos consecutivos en ventana de 5 minutos; bloqueo de 10 minutos; logging de seguridad
+- **Expiración de sesiones**: sesiones con lifetime de 24h de inactividad; auto-renovación en cada request
+- **Headers de seguridad**: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Strict-Transport-Security
+
+### Archivos modificados
+- `routes/main.py` — eliminado fallback APP_PASSWORD, añadido rate limiting, validación CSRF manual para login
+- `app.py` — CSRF protection global, expiración de sesiones (24h), headers de seguridad, auto-renovación de sesión
+- `static/reuniones.html` — añadido meta csrf-token y api.js interceptor
+- `VERSION` — actualizado a 1.2.0
+- `version.py` — actualizado a v1.2.0
 
 ---
 
@@ -115,4 +153,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 11 Abril 2026 — Mejora tests automatizados
+**Última actualización:** 11 Abril 2026 — Hardening de Seguridad (v1.2.0)

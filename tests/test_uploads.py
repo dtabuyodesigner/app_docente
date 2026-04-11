@@ -52,10 +52,10 @@ def test_serve_uploads_route(client):
             os.remove(logo_path)
 
 def test_serve_uploads_404(client):
-    """Verifica que devuelve 404 para archivos inexistentes estando logueado."""
-    login_client(client)
+    """Verifica que devuelve 302 redirect al login para archivos inexistentes."""
     response = client.get('/uploads/archivo_que_no_existe_123456.jpg')
-    assert response.status_code == 404
+    assert response.status_code == 302
+    assert '/login' in response.location
 
 def test_serve_uploads_redirect_if_not_logged_in(client):
     """Verifica que redirige al login si no hay sesión."""

@@ -1,0 +1,134 @@
+# CHANGELOG — APP_EVALUAR / Cuaderno del Tutor
+
+Historial de cambios ordenado por versión. El estado actual del proyecto está en `ESTADO_ACTUAL.md`.
+
+---
+
+## [v1.1.33] — 11 Abril 2026
+### Mejora Tests Automatizados
+- Corregido test `test_serve_uploads_404` (ahora verifica 302 redirect)
+- Añadidos tests de seguridad: auth, rutas protegidas, CSRF, static files
+- Añadidos tests de API: validación de schemas, auth, endpoints
+- Añadidos tests de funcionalidad: alumnos, evaluación
+- **Archivos:** `tests/test_security.py`, `tests/test_api.py`, `tests/test_uploads.py`
+
+---
+
+## [v1.1.32] — 10 Abril 2026
+### Dashboard — Excursiones y Autorizaciones Pendientes
+- Card "Excursiones Pendientes": muestra excursiones activas, redirige a `/excursiones`
+- Card "Autorizaciones Pendientes": suma alumnos sin autorización firmada, redirige a `/autorizaciones`
+- **Archivos:** `static/index.html`
+
+---
+
+## [v1.1.31]
+### Modal Eventos de Hoy — Cerrar con Enter
+- Foco automático al botón "Entendido" al abrir el modal
+- `onkeydown` captura Enter para cerrar sin clic
+- **Archivos:** `static/index.html`
+
+---
+
+## [v1.1.30]
+### Diploma Biblioteca — Impresión A4 completa
+- Diploma ocupa folio A4 completo (era medio folio)
+- Tipografía escalada, `page-break-inside: avoid`, detección popup blocker
+- **Archivos:** `static/biblioteca.html`, `version.py`, `VERSION`, `ESTADO_ACTUAL.md`
+
+### Mejoras Reuniones de Ciclo
+- PDF: tutor con curso ("Tutor/a 1º"), coordinador con nombre, asistentes sin corchetes
+- Selector de ciclo en reuniones tipo CICLO
+- Dropdown editable para rol de cada docente en Configuración > Reuniones
+- **Archivos:** `routes/reuniones.py`, `static/reuniones.html`, `static/configuracion.html`
+
+---
+
+## [v1.1.29]
+### Módulo Reuniones — Refactoring completo
+- Wizard de nueva reunión con título dinámico, doble clic para avanzar
+- Selección masiva con barra de acción, checkbox indeterminate, borrado en serie
+- PDF por tipo: cabecera y firmas adaptadas por tipo de reunión (CICLO, CCP, FAMILIAS, etc.)
+- Editar reuniones: wizard pre-rellenado con PUT `/api/reuniones/<id>`
+- Configuración > Reuniones: roles actualizados, Ciclo Infantil añadido
+- Nueva columna: `reuniones.familiar_asistente`
+- Firma del tutor en grid de asistentes (fuzzy match)
+- **Archivos:** `routes/reuniones.py`, `static/reuniones.html`, `static/configuracion.html`, `static/reuniones_plantillas.html`, `utils/db.py`
+
+### Fixes adicionales (post-release v1.1.29)
+- Fix versión en Panel de Control: `/api/version` → `/api/admin/version`
+- Menú comedor: lightbox con zoom (rueda ratón, botones +/−, arrastrar, pellizco táctil)
+- **Archivos:** `static/index.html`, `static/asistencia.html`
+
+---
+
+## [v1.1.28]
+### Sistema de Actas de Incidencia
+- Creación rápida desde Diario, campos: Fecha, Lugar, Profesor, Descripción, Firmante
+- PDF con logos del centro y firma del tutor
+- Selector de docentes, firma automática si no se especifica firmante
+- Botón "Convertir a Acta" en historial de observaciones
+- Nueva tabla: `actas_incidencias`
+- **Archivos:** `routes/actas.py`, `static/diario.html`, `utils/db.py`
+
+### Historial de Observaciones
+- Botón "Historial" en Diario, filtros por texto/fechas/alumno/área
+- Últimas 200 observaciones, layout con scroll
+- Nuevo endpoint: `/api/observaciones/historial`
+- **Archivos:** `routes/observaciones.py`, `static/diario.html`
+
+### Banner de Actualización
+- Banner verde en Panel de Control con actualización directa
+- **Archivos:** `static/index.html`, `static/configuracion.html`
+
+---
+
+## [v1.1.27]
+### Fix banner de actualizaciones
+- "Omitir" usa `localStorage` (antes `sessionStorage`), persiste entre sesiones
+- Comparación contra rama `master` en lugar de rama feature
+- **Archivos:** `static/js/navigation.js`, `routes/admin.py`
+
+---
+
+## [v1.1.26]
+### Mejoras UX/UI
+- Modo Oscuro: toggle 🌙/☀️, persistencia localStorage, detección preferencia sistema
+- Responsive móvil: media queries para 1024/768/480px, botones táctiles 44px mínimo
+- Atajos de teclado: Ctrl+S, Ctrl+F, Esc, Ctrl+N
+- **Archivos nuevos:** `static/css/dark-mode.css`, `static/js/dark-mode.js`, `static/js/shortcuts.js`
+
+---
+
+## [v1.1.25]
+- Fix Enter en campo devolución biblioteca
+- Fix doble tick verde al guardar préstamo
+
+---
+
+## [v1.1.24]
+- Mensaje de error detallado al borrar criterios con evaluaciones asociadas
+
+---
+
+## [v1.1.22]
+- Medias SDA/Área en tiempo real (cross-mode POR_SA ↔ POR_ACTIVIDADES)
+- Fix editar criterio: error de validación `activo` boolean vs int
+- Fix rellenador masivo POR_CRITERIOS_DIRECTOS escribía en tabla errónea
+
+---
+
+## [Anteriores a v1.1.22]
+### Sistema Dual de Evaluación (merge feature/refactor-evaluacion-curricular → master, 6 Abril 2026)
+- Modos: POR_ACTIVIDADES | POR_SA | POR_CRITERIOS_DIRECTOS
+- Etapas: Infantil (detección automática) | Primaria
+- Escalas: NI/EP/CO | PA/AD/MA | NUMÉRICA 1–4
+- Rellenador Masivo y Borrado Masivo en rejilla
+- Importador SDA con columna `Criterios_Vinculados`, fix COLLATE NOCASE
+- Sistema de versiones: `VERSION` + `release.sh`
+- Generador SDA con IA (Claude / ChatGPT / Gemini)
+- Módulos estables: Dashboard (18 tarjetas), Biblioteca, Lectura, Reuniones, Biblioteca, Cumpleaños, Horario
+- Fix rejilla vacía sin SDAs en trimestre
+- Fix Cuaderno de Evaluación vacío (error silencioso JS)
+- Fix firma del tutor en Acta
+- Fix CSRF bloqueaba DELETE en criterios

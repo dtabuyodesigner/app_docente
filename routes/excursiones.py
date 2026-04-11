@@ -482,23 +482,39 @@ def api_upsert_auto_anual(alumno_id):
 def api_resumen_anual():
     """Resumen de autorizaciones anuales para el dashboard.
     Devuelve, para cada tipo anual, cuántos alumnos tienen estado=autorizada
-    y cuántos están pendientes/sin registrar.
+    y cuántos están pendientes/sin registrar, filtrado por el grupo activo.
     """
+    from flask import session as flask_session
     conn = get_db()
     cur = conn.cursor()
 
-    # Total de alumnos activos
-    total = cur.execute(
-        "SELECT COUNT(*) as n FROM alumnos WHERE deleted_at IS NULL"
-    ).fetchone()["n"]
+    grupo_id = flask_session.get('active_group_id')
+
+    # Filtrar por grupo activo si existe
+    if grupo_id:
+        total = cur.execute(
+            "SELECT COUNT(*) as n FROM alumnos WHERE grupo_id=? AND deleted_at IS NULL",
+            (grupo_id,)
+        ).fetchone()["n"]
+    else:
+        total = cur.execute(
+            "SELECT COUNT(*) as n FROM alumnos WHERE deleted_at IS NULL"
+        ).fetchone()["n"]
 
     result = {}
     for tipo in TIPOS_ANUALES:
-        autorizadas = cur.execute("""
-            SELECT COUNT(*) as n FROM autorizaciones_alumno aa
-            JOIN alumnos a ON a.id = aa.alumno_id AND a.deleted_at IS NULL
-            WHERE aa.tipo=? AND aa.estado='autorizada'
-        """, (tipo,)).fetchone()["n"]
+        if grupo_id:
+            autorizadas = cur.execute("""
+                SELECT COUNT(*) as n FROM autorizaciones_alumno aa
+                JOIN alumnos a ON a.id = aa.alumno_id AND a.deleted_at IS NULL
+                WHERE aa.tipo=? AND aa.estado='autorizada' AND a.grupo_id=?
+            """, (tipo, grupo_id)).fetchone()["n"]
+        else:
+            autorizadas = cur.execute("""
+                SELECT COUNT(*) as n FROM autorizaciones_alumno aa
+                JOIN alumnos a ON a.id = aa.alumno_id AND a.deleted_at IS NULL
+                WHERE aa.tipo=? AND aa.estado='autorizada'
+            """, (tipo,)).fetchone()["n"]
         result[tipo] = {
             "autorizadas": autorizadas,
             "pendientes": total - autorizadas,

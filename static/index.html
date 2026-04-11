@@ -1126,14 +1126,22 @@
                 const elFotos = document.getElementById('statsAutoFotos');
                 const elSalidas = document.getElementById('statsAutoSalidas');
                 if (elFotos) {
-                    // Suma pendientes de fotos_interno + fotos_rrss (sin duplicar alumnos)
                     const pFotosInt = (data.fotos_interno || {}).pendientes || 0;
                     const pFotosRrss = (data.fotos_rrss || {}).pendientes || 0;
-                    // Mostramos el máximo (el peor de los dos)
-                    elFotos.innerText = Math.max(pFotosInt, pFotosRrss);
+                    const nFotos = Math.max(pFotosInt, pFotosRrss);
+                    if (nFotos === 0) {
+                        elFotos.innerHTML = '<span style="font-size:1.1rem; color:#16a34a;">✓ Al día</span>';
+                    } else {
+                        elFotos.innerText = nFotos;
+                    }
                 }
                 if (elSalidas) {
-                    elSalidas.innerText = (data.salidas_entorno || {}).pendientes || 0;
+                    const nSalidas = (data.salidas_entorno || {}).pendientes || 0;
+                    if (nSalidas === 0) {
+                        elSalidas.innerHTML = '<span style="font-size:1.1rem; color:#16a34a;">✓ Al día</span>';
+                    } else {
+                        elSalidas.innerText = nSalidas;
+                    }
                 }
             } catch(e) {
                 console.error('Error cargando resumen anual autorizaciones:', e);

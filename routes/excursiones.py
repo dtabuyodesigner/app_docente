@@ -299,6 +299,14 @@ def api_autorizaciones(alumno_id):
         observaciones = d.get("observaciones", "")
         excursion_id_val = d.get("excursion_id")
 
+        # Fallback: enlazar por título si no llega excursion_id
+        if not excursion_id_val and tipo == 'excursion' and etiqueta:
+            ex_match = cur.execute(
+                "SELECT id FROM excursiones WHERE titulo=?", (etiqueta,)
+            ).fetchone()
+            if ex_match:
+                excursion_id_val = ex_match['id']
+
         cur.execute("""
             INSERT INTO autorizaciones_alumno
                 (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id)
@@ -371,6 +379,14 @@ def api_autorizacion_item(item_id):
     fecha_recibida = d.get("fecha_recibida")
     observaciones = d.get("observaciones", "")
     excursion_id_val = d.get("excursion_id")
+
+    # Fallback: si no hay excursion_id pero tipo=excursion y hay etiqueta, buscar por título
+    if not excursion_id_val and tipo == 'excursion' and etiqueta:
+        ex_match = cur.execute(
+            "SELECT id FROM excursiones WHERE titulo=?", (etiqueta,)
+        ).fetchone()
+        if ex_match:
+            excursion_id_val = ex_match['id']
 
     cur.execute("""
         UPDATE autorizaciones_alumno SET

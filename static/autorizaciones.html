@@ -679,12 +679,20 @@ async function cambiarEstado(id, select) {
     const hoy = new Date().toISOString().split('T')[0];
     const fechaRecibida = nuevoEstado === 'autorizada' && !auto.fecha_recibida ? hoy : auto.fecha_recibida;
 
+    // Si tipo=excursion pero no tiene excursion_id, intentar enlazarlo por título
+    let excursion_id = auto.excursion_id;
+    if (!excursion_id && auto.tipo === 'excursion' && auto.etiqueta) {
+        const ex = _excursiones.find(e => e.titulo === auto.etiqueta);
+        if (ex) excursion_id = ex.id;
+    }
+
     await fetch(`/api/autorizaciones/item/${id}`, {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ ...auto, estado: nuevoEstado, fecha_recibida: fechaRecibida })
+        body: JSON.stringify({ ...auto, excursion_id, estado: nuevoEstado, fecha_recibida: fechaRecibida })
     });
     auto.estado = nuevoEstado;
+    auto.excursion_id = excursion_id;
     if (fechaRecibida) auto.fecha_recibida = fechaRecibida;
     renderResumen();
     renderTablaAuto();

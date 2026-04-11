@@ -207,6 +207,34 @@
         }
         .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
 
+        /* ── Vista global alumnos ── */
+        .global-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .alumno-card-auto {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: box-shadow 0.15s, border-color 0.15s;
+        }
+        .alumno-card-auto:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #93c5fd; }
+        .alumno-card-auto.activo { border-color: var(--primary); background: #eff6ff; }
+        .alumno-card-auto .nombre { font-weight: 700; font-size: 0.88rem; color: var(--primary); margin-bottom: 6px; }
+        .chips-auto { display: flex; flex-wrap: wrap; gap: 4px; }
+        .chip-auto {
+            font-size: 0.7rem; font-weight: 700;
+            padding: 2px 7px; border-radius: 10px;
+        }
+        .chip-pendiente { background: #fef3c7; color: #92400e; }
+        .chip-autorizada { background: #d1fae5; color: #065f46; }
+        .chip-no_autoriza { background: #fee2e2; color: #991b1b; }
+        .chip-retirada { background: #e2e8f0; color: #475569; }
+
         /* ── Resumen global ── */
         .resumen-grid {
             display: grid;
@@ -262,9 +290,13 @@
 
         <!-- Panel derecho -->
         <div class="panel-derecho">
-            <div id="estado-inicial" class="empty-state">
-                <div class="icon">👈</div>
-                <p>Selecciona un alumno para ver sus autorizaciones.</p>
+            <!-- Vista global: todos los alumnos con chips -->
+            <div id="vista-global">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h2 style="margin:0; font-size:1.05rem; color:var(--primary);">Todos los alumnos</h2>
+                    <span id="global-cargando" style="font-size:0.82rem; color:#9ca3af;">Cargando...</span>
+                </div>
+                <div id="global-grid" class="global-grid"></div>
             </div>
 
             <div id="panel-alumno" style="display:none;">
@@ -409,6 +441,7 @@ let _alumnos = [];
 let _alumnosFiltrados = [];
 let _alumnoActual = null;
 let _autorizaciones = [];
+let _autosPorAlumno = {};  // { alumno_id: [autorizaciones] }
 
 const TIPOS_LABEL = {
     excursion: '🚌 Excursión',
@@ -441,6 +474,49 @@ async function cargarAlumnos() {
     _alumnos = await res.json();
     _alumnosFiltrados = [..._alumnos];
     renderListaAlumnos();
+    cargarVistaGlobal();
+}
+
+async function cargarVistaGlobal() {
+    const cargando = document.getElementById('global-cargando');
+    cargando.textContent = 'Cargando...';
+    _autosPorAlumno = {};
+    // Cargar autorizaciones de todos en paralelo
+    await Promise.all(_alumnos.map(async a => {
+        try {
+            const r = await fetch(`/api/autorizaciones/${a.id}`);
+            _autosPorAlumno[a.id] = await r.json();
+        } catch { _autosPorAlumno[a.id] = []; }
+    }));
+    cargando.textContent = '';
+    renderVistaGlobal();
+}
+
+function renderVistaGlobal() {
+    const grid = document.getElementById('global-grid');
+    if (!_alumnosFiltrados.length) {
+        grid.innerHTML = '<p style="color:#9ca3af; font-size:0.85rem;">Sin alumnos.</p>';
+        return;
+    }
+    grid.innerHTML = _alumnosFiltrados.map(a => {
+        const autos = _autosPorAlumno[a.id] || [];
+        const activo = _alumnoActual && _alumnoActual.id === a.id ? 'activo' : '';
+        let chips = '';
+        if (autos.length === 0) {
+            chips = '<span style="font-size:0.72rem; color:#9ca3af;">Sin autorizaciones</span>';
+        } else {
+            chips = autos.map(au => {
+                const lbl = (au.tipo === 'excursion' || au.tipo === 'otro') && au.etiqueta
+                    ? au.etiqueta
+                    : (TIPOS_LABEL[au.tipo] || au.tipo).replace(/^[^ ]+ /, '');
+                return `<span class="chip-auto chip-${au.estado}" title="${lbl}">${lbl.length > 18 ? lbl.slice(0,16)+'…' : lbl}</span>`;
+            }).join('');
+        }
+        return `<div class="alumno-card-auto ${activo}" onclick="seleccionarAlumnoGlobal(${a.id}, '${a.nombre.replace(/'/g, "\\'")}', this)">
+            <div class="nombre">${a.nombre}</div>
+            <div class="chips-auto">${chips}</div>
+        </div>`;
+    }).join('');
 }
 
 function filtrarListaAlumnos() {
@@ -461,17 +537,34 @@ function renderListaAlumnos() {
             <span>${a.nombre}</span>
         </div>`;
     }).join('');
+    // Sincronizar filtro con vista global
+    renderVistaGlobal();
 }
 
-async function seleccionarAlumno(id, nombre) {
+function seleccionarAlumnoGlobal(id, nombre, cardEl) {
+    // Resaltar card global
+    document.querySelectorAll('.alumno-card-auto').forEach(c => c.classList.remove('activo'));
+    cardEl.classList.add('activo');
+    seleccionarAlumno(id, nombre, false);
+}
+
+async function seleccionarAlumno(id, nombre, resaltarLista = true) {
     _alumnoActual = { id, nombre };
-    document.getElementById('estado-inicial').style.display = 'none';
     document.getElementById('panel-alumno').style.display = '';
     document.getElementById('nombre-alumno-panel').textContent = nombre;
 
-    // Resaltar en lista
+    if (resaltarLista) {
+        document.querySelectorAll('.alumno-item').forEach(el => el.classList.remove('activo'));
+        // Resaltar en lista lateral
+        document.querySelectorAll('.alumno-item').forEach(el => {
+            if (el.textContent.trim() === nombre) el.classList.add('activo');
+        });
+    }
+    // Resaltar en lista lateral siempre
     document.querySelectorAll('.alumno-item').forEach(el => el.classList.remove('activo'));
-    event.currentTarget.classList.add('activo');
+    document.querySelectorAll('.alumno-item').forEach(el => {
+        if (el.querySelector('span')?.textContent === nombre) el.classList.add('activo');
+    });
 
     await cargarAutorizaciones();
 }
@@ -480,8 +573,10 @@ async function seleccionarAlumno(id, nombre) {
 async function cargarAutorizaciones() {
     const res = await fetch(`/api/autorizaciones/${_alumnoActual.id}`);
     _autorizaciones = await res.json();
+    _autosPorAlumno[_alumnoActual.id] = _autorizaciones;
     renderResumen();
     renderTablaAuto();
+    renderVistaGlobal();
 }
 
 function renderResumen() {

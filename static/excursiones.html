@@ -410,6 +410,14 @@
                     <label>Fecha límite autorización</label>
                     <input type="date" id="form-fecha-limite">
                 </div>
+                <div>
+                    <label>Hora de salida</label>
+                    <input type="time" id="form-hora-salida" placeholder="08:45">
+                </div>
+                <div>
+                    <label>Hora de regreso</label>
+                    <input type="time" id="form-hora-regreso" placeholder="12:30">
+                </div>
             </div>
 
             <label>Destino / Lugar</label>
@@ -456,6 +464,7 @@
             </div>
             <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
                 <button class="btn-sm btn-outline" onclick="editarExcursionActual()" style="font-size:0.78rem;">✏️ Editar</button>
+                <button class="btn-sm btn-outline" id="btn-pdf-detalle" onclick="descargarPdf(_excursionActual?.id)" style="font-size:0.78rem; display:none;">📄 Autorización</button>
                 <button class="btn-sm" onclick="cerrarDetalle()" style="background:#f1f5f9; color:#374151; border:none; border-radius:8px; padding:6px 12px; cursor:pointer;">✕</button>
             </div>
         </div>
@@ -610,6 +619,7 @@ function renderGrid() {
             </div>
             <div class="card-actions" onclick="event.stopPropagation()">
                 <button class="btn-sm btn-outline" onclick="editarExcursion(${ex.id})">✏️ Editar</button>
+                ${ex.requiere_autorizacion ? `<button class="btn-sm btn-outline" onclick="descargarPdf(${ex.id})" title="Descargar autorización para imprimir">📄 Autorización</button>` : ''}
                 <button class="btn-sm btn-outline" onclick="toggleEstado(${ex.id}, '${ex.estado}')">
                     ${ex.estado === 'activa' ? '🔒 Cerrar' : '🔓 Reabrir'}
                 </button>
@@ -632,6 +642,8 @@ async function abrirNuevaExcursion() {
     document.getElementById('form-coste').value = '';
     document.getElementById('form-coste-row').style.display = 'none';
     document.getElementById('form-grupos-extra').value = '';
+    document.getElementById('form-hora-salida').value = '';
+    document.getElementById('form-hora-regreso').value = '';
     document.getElementById('modal-form-titulo').textContent = 'Nueva Excursión / Salida';
     selTipo('excursion');
     await cargarGrupos();
@@ -655,6 +667,8 @@ async function editarExcursion(id) {
     document.getElementById('form-coste').value = ex.coste || '';
     document.getElementById('form-coste-row').style.display = ex.requiere_pago ? 'block' : 'none';
     document.getElementById('form-grupos-extra').value = ex.grupos_extra || '';
+    document.getElementById('form-hora-salida').value = ex.hora_salida || '';
+    document.getElementById('form-hora-regreso').value = ex.hora_regreso || '';
     document.getElementById('modal-form-titulo').textContent = 'Editar Excursión / Salida';
     const grupoIds = JSON.parse(ex.grupo_ids || '[]');
     selTipo(ex.tipo || 'excursion');
@@ -735,6 +749,8 @@ async function guardarExcursion() {
         descripcion: document.getElementById('form-descripcion').value.trim(),
         grupo_ids: grupoIds,
         grupos_extra: document.getElementById('form-grupos-extra').value.trim(),
+        hora_salida: document.getElementById('form-hora-salida').value || '',
+        hora_regreso: document.getElementById('form-hora-regreso').value || '',
         requiere_autorizacion: document.getElementById('form-requiere-auto').checked,
         requiere_pago: document.getElementById('form-requiere-pago').checked,
         coste: document.getElementById('form-coste').value ? parseFloat(document.getElementById('form-coste').value) : null,
@@ -805,6 +821,7 @@ async function abrirDetalle(id) {
     document.getElementById('filtro-auto-btn').style.display = ex.requiere_autorizacion ? '' : 'none';
     document.getElementById('filtro-pago-btn').style.display = ex.requiere_pago ? '' : 'none';
 
+    document.getElementById('btn-pdf-detalle').style.display = ex.requiere_autorizacion ? '' : 'none';
     renderDetalleStats(ex);
     renderBulkActions(ex);
     renderTablaAlumnos(ex);
@@ -959,6 +976,11 @@ async function bulkToggle(campo, valor) {
     await abrirDetalle(_excursionActual.id);
     cargarDashboard();
     cargarExcursiones();
+}
+
+function descargarPdf(id) {
+    if (!id) return;
+    window.open(`/api/excursiones/${id}/pdf-autorizacion`, '_blank');
 }
 
 // ─── Utilidades ───────────────────────────────────────────

@@ -47,14 +47,18 @@ def api_excursiones():
         requiere_pago = 1 if d.get("requiere_pago", False) else 0
         coste = d.get("coste")
         fecha_limite = d.get("fecha_limite")
+        hora_salida = d.get("hora_salida", "")
+        hora_regreso = d.get("hora_regreso", "")
 
         cur.execute("""
             INSERT INTO excursiones
                 (tipo, titulo, fecha, destino, descripcion, grupo_ids, grupos_extra,
-                 requiere_autorizacion, requiere_pago, coste, fecha_limite, estado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa')
+                 requiere_autorizacion, requiere_pago, coste, fecha_limite, estado,
+                 hora_salida, hora_regreso)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activa', ?, ?)
         """, (tipo, titulo, fecha, destino, descripcion, grupo_ids, grupos_extra,
-              requiere_autorizacion, requiere_pago, coste, fecha_limite))
+              requiere_autorizacion, requiere_pago, coste, fecha_limite,
+              hora_salida, hora_regreso))
         conn.commit()
         excursion_id = cur.lastrowid
 
@@ -134,17 +138,20 @@ def api_excursion_detalle(excursion_id):
         requiere_pago = 1 if d.get("requiere_pago", False) else 0
         coste = d.get("coste")
         fecha_limite = d.get("fecha_limite")
+        hora_salida = d.get("hora_salida", "")
+        hora_regreso = d.get("hora_regreso", "")
         estado = d.get("estado", "activa")
 
         cur.execute("""
             UPDATE excursiones SET
                 tipo=?, titulo=?, fecha=?, destino=?, descripcion=?, grupo_ids=?,
                 grupos_extra=?, requiere_autorizacion=?, requiere_pago=?,
-                coste=?, fecha_limite=?, estado=?
+                coste=?, fecha_limite=?, hora_salida=?, hora_regreso=?, estado=?
             WHERE id=?
         """, (tipo, titulo, fecha, destino, descripcion, grupo_ids,
               grupos_extra, requiere_autorizacion, requiere_pago,
-              coste, fecha_limite, estado, excursion_id))
+              coste, fecha_limite, hora_salida, hora_regreso, estado,
+              excursion_id))
 
         # Sincronizar alumnos: añadir los de grupos nuevos (no eliminar existentes)
         alumno_ids_nuevos = _alumnos_de_grupos(cur, grupo_ids_list)
@@ -345,6 +352,236 @@ def api_autorizacion_item(item_id):
 # ─────────────────────────────────────────────
 # HELPERS
 # ─────────────────────────────────────────────
+
+@excursiones_bp.route("/api/excursiones/<int:excursion_id>/pdf-autorizacion")
+def pdf_autorizacion(excursion_id):
+    """Genera el PDF de autorización familiar para una excursión."""
+    from flask import send_file
+    from utils.db import get_app_data_dir
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
+                                    Table, TableStyle, HRFlowable)
+    from reportlab.platypus import Image as RLImage
+    import os
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    ex = cur.execute("SELECT * FROM excursiones WHERE id=?", (excursion_id,)).fetchone()
+    if not ex:
+        return jsonify({"ok": False, "error": "No encontrada"}), 404
+
+    # Config del centro
+    cur.execute("""
+        SELECT clave, valor FROM config
+        WHERE clave LIKE 'logo_%' OR clave IN ('nombre_centro', 'curso_escolar')
+    """)
+    cfg = {r["clave"]: r["valor"] for r in cur.fetchall()}
+    uploads_dir = os.path.join(get_app_data_dir(), "uploads")
+    nombre_centro = cfg.get("nombre_centro", "")
+    curso_escolar = cfg.get("curso_escolar", "")
+
+    # Nombres de grupos
+    grupo_ids = json.loads(ex["grupo_ids"] or "[]")
+    grupos_rows = []
+    if grupo_ids:
+        ph = ",".join("?" * len(grupo_ids))
+        grupos_rows = cur.execute(
+            f"SELECT nombre FROM grupos WHERE id IN ({ph})", grupo_ids
+        ).fetchall()
+    nombres_grupos = [r["nombre"] for r in grupos_rows]
+    if ex["grupos_extra"]:
+        nombres_grupos.append(ex["grupos_extra"])
+    grupos_str = ", ".join(nombres_grupos) if nombres_grupos else ""
+
+    # Formatear fecha
+    def fmt_fecha(iso):
+        if not iso:
+            return ""
+        try:
+            d, m, y = iso.split("-")[2], iso.split("-")[1], iso.split("-")[0]
+            return f"{d} de {['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][int(m)-1]} de {y}"
+        except Exception:
+            return iso
+
+    fecha_larga = fmt_fecha(ex["fecha"])
+    fecha_corta = f"{ex['fecha'].split('-')[2]}/{ex['fecha'].split('-')[1]}/{ex['fecha'].split('-')[0]}" if ex["fecha"] else ""
+
+    # Construir PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            leftMargin=2*cm, rightMargin=2*cm,
+                            topMargin=1.5*cm, bottomMargin=2*cm)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    s_title = ParagraphStyle('ETitle', parent=styles['Normal'],
+                             fontSize=14, fontName='Helvetica-Bold',
+                             alignment=1, spaceAfter=6, leading=18)
+    s_subtitle = ParagraphStyle('ESub', parent=styles['Normal'],
+                                fontSize=11, fontName='Helvetica-Bold',
+                                alignment=1, spaceAfter=10, textColor=colors.HexColor('#003366'))
+    s_body = ParagraphStyle('EBody', parent=styles['Normal'],
+                            fontSize=10, leading=16, spaceAfter=6)
+    s_bold = ParagraphStyle('EBold', parent=styles['Normal'],
+                            fontSize=10, fontName='Helvetica-Bold', spaceAfter=4)
+    s_small = ParagraphStyle('ESmall', parent=styles['Normal'],
+                             fontSize=9, textColor=colors.grey)
+    s_firma = ParagraphStyle('EFirma', parent=styles['Normal'],
+                             fontSize=10, leading=22, spaceAfter=4)
+
+    # ── CABECERA con logos ──
+    def make_logo(lado):
+        fn = cfg.get(f"logo_{lado}_filename")
+        if fn:
+            p = os.path.join(uploads_dir, fn)
+            if os.path.exists(p):
+                try:
+                    return RLImage(p, width=3*cm, height=2*cm)
+                except Exception:
+                    pass
+        return Paragraph(" ", styles['Normal'])
+
+    centro_txt = f"<b>{nombre_centro}</b>"
+    if curso_escolar:
+        centro_txt += f"<br/>Curso {curso_escolar}"
+    col_centro = Paragraph(centro_txt,
+                           ParagraphStyle('hdr', parent=styles['Normal'],
+                                          alignment=1, fontSize=11,
+                                          fontName='Helvetica-Bold', leading=16))
+    hdr = Table([[make_logo("izda"), col_centro, make_logo("dcha")]],
+                colWidths=[4*cm, 9*cm, 4*cm])
+    hdr.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('ALIGN', (1,0), (1,0), 'CENTER'),
+    ]))
+    elements.append(hdr)
+    elements.append(Spacer(1, 0.4*cm))
+    elements.append(HRFlowable(width="100%", thickness=1.5,
+                               color=colors.HexColor('#003366')))
+    elements.append(Spacer(1, 0.3*cm))
+
+    # ── TÍTULO (del CRUD) ──
+    elements.append(Paragraph(ex["titulo"].upper(), s_title))
+    elements.append(Spacer(1, 0.2*cm))
+
+    # ── CUERPO ──
+    elements.append(Paragraph("Estimadas familias:", s_body))
+    elements.append(Spacer(1, 0.1*cm))
+
+    # Párrafo principal
+    partes = []
+    if fecha_larga:
+        partes.append(f"El día <b>{fecha_larga}</b>")
+    else:
+        partes.append("Próximamente")
+    if grupos_str:
+        partes[0] += f", los alumnos de <b>{grupos_str}</b>"
+    else:
+        partes[0] += ", nuestros alumnos"
+    if ex["destino"]:
+        partes[0] += f" realizaremos una salida educativa a <b>{ex['destino']}</b>."
+    else:
+        partes[0] += " realizaremos una salida educativa."
+    elements.append(Paragraph(partes[0], s_body))
+    elements.append(Spacer(1, 0.2*cm))
+
+    # Horario y precio
+    if ex["hora_salida"] or ex["hora_regreso"] or ex["requiere_pago"]:
+        elements.append(Paragraph("<b>Información de la actividad:</b>", s_bold))
+        if ex["hora_salida"]:
+            elements.append(Paragraph(f"• Salida del colegio: <b>{ex['hora_salida']} h</b>", s_body))
+        if ex["hora_regreso"]:
+            elements.append(Paragraph(f"• Regreso aproximado al colegio: <b>{ex['hora_regreso']} h</b>", s_body))
+        if ex["requiere_pago"] and ex["coste"]:
+            elements.append(Paragraph(f"• Coste de la actividad: <b>{float(ex['coste']):.2f} €</b>", s_body))
+        elif ex["requiere_pago"]:
+            elements.append(Paragraph("• La actividad tiene coste (pendiente de confirmar importe).", s_body))
+        elements.append(Spacer(1, 0.2*cm))
+
+    # Descripción (si existe)
+    if ex["descripcion"]:
+        elements.append(Paragraph(ex["descripcion"], s_body))
+        elements.append(Spacer(1, 0.2*cm))
+
+    # ── SEPARADOR DE RECORTE ──
+    elements.append(Spacer(1, 0.5*cm))
+    cut_style = TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE', (0,0), (-1,-1), 9),
+        ('TEXTCOLOR', (0,0), (-1,-1), colors.grey),
+    ])
+    cut_row = Table(
+        [["- - - - - - - - - - - ✂ - - - - - - - - - - - - - - - ✂ - - - - - - - - - - - - - ✂ - - - - - - - - - - -"]],
+        colWidths=[17*cm]
+    )
+    cut_row.setStyle(cut_style)
+    elements.append(cut_row)
+    elements.append(Spacer(1, 0.4*cm))
+
+    # ── SECCIÓN DE AUTORIZACIÓN ──
+    elements.append(Paragraph("<b>AUTORIZACIÓN</b>", s_subtitle))
+    elements.append(Spacer(1, 0.2*cm))
+
+    # "Yo, ___"
+    yo_line = "Yo, &nbsp;" + "_" * 55
+    elements.append(Paragraph(yo_line, s_firma))
+    dni_line = "(DNI/NIE: &nbsp;" + "_" * 30 + ")"
+    elements.append(Paragraph(dni_line, s_firma))
+    elements.append(Spacer(1, 0.1*cm))
+
+    auth_txt = "autorizo a mi hijo/a &nbsp;" + "_" * 48
+    elements.append(Paragraph(auth_txt, s_firma))
+    elements.append(Spacer(1, 0.1*cm))
+
+    # Texto de la autorización
+    detalle = "a participar en "
+    if ex["destino"]:
+        detalle += f"<b>{ex['titulo']}</b> ({ex['destino']})"
+    else:
+        detalle += f"<b>{ex['titulo']}</b>"
+    if fecha_corta:
+        detalle += f" el día <b>{fecha_corta}</b>"
+    if ex["hora_salida"]:
+        detalle += f", con salida del colegio a las <b>{ex['hora_salida']} h</b>"
+    if ex["hora_regreso"]:
+        detalle += f" y regreso aproximado a las <b>{ex['hora_regreso']} h</b>"
+    detalle += "."
+    if ex["requiere_pago"] and ex["coste"]:
+        detalle += f" Adjunto el importe de <b>{float(ex['coste']):.2f} €</b>."
+    elif ex["requiere_pago"]:
+        detalle += " Adjunto el importe correspondiente."
+    elements.append(Paragraph(detalle, s_body))
+    elements.append(Spacer(1, 0.6*cm))
+
+    # Firma y fecha
+    firma_tbl = Table(
+        [["Firmado: " + "_"*30,  "Fecha: " + "_"*20]],
+        colWidths=[10*cm, 7*cm]
+    )
+    firma_tbl.setStyle(TableStyle([
+        ('FONTSIZE', (0,0), (-1,-1), 10),
+        ('VALIGN', (0,0), (-1,-1), 'BOTTOM'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+    ]))
+    elements.append(firma_tbl)
+    elements.append(Spacer(1, 0.2*cm))
+    elements.append(Paragraph(
+        "Nombre y apellidos del padre/madre/tutor legal",
+        s_small
+    ))
+
+    doc.build(elements)
+    buffer.seek(0)
+    nombre_archivo = f"autorizacion_{ex['titulo'][:30].replace(' ', '_')}.pdf"
+    return send_file(buffer, mimetype='application/pdf',
+                     as_attachment=True, download_name=nombre_archivo)
+
 
 @excursiones_bp.route("/api/grupos/todos")
 def api_grupos_todos():

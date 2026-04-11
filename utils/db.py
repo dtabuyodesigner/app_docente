@@ -103,6 +103,8 @@ def run_migrations():
         ("ALTER TABLE horario ADD COLUMN tipo TEXT DEFAULT 'clase'", "horario.tipo"),
         # --- excursiones ---
         ("ALTER TABLE excursiones ADD COLUMN grupos_extra TEXT DEFAULT ''", "excursiones.grupos_extra"),
+        ("ALTER TABLE excursiones ADD COLUMN hora_salida TEXT", "excursiones.hora_salida"),
+        ("ALTER TABLE excursiones ADD COLUMN hora_regreso TEXT", "excursiones.hora_regreso"),
         # --- reuniones ---
         ("ALTER TABLE reuniones ADD COLUMN ciclo_id INTEGER REFERENCES config_ciclo(id)", "reuniones.ciclo_id"),
         ("ALTER TABLE reuniones ADD COLUMN dificultades TEXT", "reuniones.dificultades"),

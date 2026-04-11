@@ -381,12 +381,14 @@ def api_autorizacion_item(item_id):
         return jsonify({"ok": True})
 
     d = request.json or {}
+    print(f"\n[PUT /autorizaciones/item/{item_id}] body={dict(d)}")
 
-    # Leer el registro actual ANTES de modificar (para tener alumno_id y excursion_id existente)
+    # Leer el registro actual ANTES de modificar
     current = conn.execute(
         "SELECT * FROM autorizaciones_alumno WHERE id=?", (item_id,)
     ).fetchone()
     if not current:
+        print(f"  ERROR: item {item_id} no encontrado en BD")
         return jsonify({"ok": False, "error": "No encontrado"}), 404
 
     alumno_id = current['alumno_id']
@@ -396,6 +398,9 @@ def api_autorizacion_item(item_id):
     fecha_recibida = d.get("fecha_recibida", current['fecha_recibida'])
     observaciones = d.get("observaciones", current['observaciones'] or "")
 
+    print(f"  current: alumno={alumno_id}, tipo={tipo}, etiqueta='{etiqueta}', "
+          f"estado={estado}, excursion_id_db={current['excursion_id']}")
+
     # excursion_id: prioridad → request > BD actual > búsqueda por título
     excursion_id_val = d.get("excursion_id") or current['excursion_id']
     if not excursion_id_val and tipo == 'excursion' and etiqueta:
@@ -404,6 +409,11 @@ def api_autorizacion_item(item_id):
         ).fetchone()
         if ex_match:
             excursion_id_val = ex_match['id']
+            print(f"  → enlazado por título: excursion_id={excursion_id_val}")
+        else:
+            print(f"  → NO se encontró excursión con título='{etiqueta}'")
+
+    print(f"  excursion_id_val final={excursion_id_val}")
 
     conn.execute("""
         UPDATE autorizaciones_alumno SET
@@ -411,9 +421,16 @@ def api_autorizacion_item(item_id):
         WHERE id=?
     """, (tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id_val, item_id))
 
-    # Sincronizar a excursion_alumnos si está vinculada a una excursión
     if excursion_id_val and tipo == 'excursion':
-        _sync_auto_to_excursion(conn.cursor(), alumno_id, excursion_id_val, estado, fecha_recibida)
+        print(f"  → llamando _sync_auto_to_excursion(alumno={alumno_id}, exc={excursion_id_val}, estado={estado})")
+        try:
+            _sync_auto_to_excursion(conn.cursor(), alumno_id, excursion_id_val, estado, fecha_recibida)
+            print(f"  → sync OK")
+        except Exception as e:
+            print(f"  → ERROR en sync: {e}")
+            import traceback; traceback.print_exc()
+    else:
+        print(f"  → sync OMITIDO (excursion_id_val={excursion_id_val}, tipo={tipo})")
 
     conn.commit()
     return jsonify({"ok": True})
@@ -688,6 +705,8 @@ def _sync_auto_to_excursion(cur, alumno_id, excursion_id, estado_aut, fecha_reci
         "SELECT id FROM excursion_alumnos WHERE excursion_id=? AND alumno_id=?",
         (excursion_id, alumno_id)
     ).fetchone()
+    print(f"    _sync_auto_to_excursion: exc={excursion_id}, alumno={alumno_id}, "
+          f"estado_aut={estado_aut}→estado_ex={estado_ex}, row_exists={existing is not None}")
     if existing:
         cur.execute("""
             UPDATE excursion_alumnos SET estado_auto=?, autorizado=?, fecha_autorizacion=?
@@ -695,6 +714,9 @@ def _sync_auto_to_excursion(cur, alumno_id, excursion_id, estado_aut, fecha_reci
         """, (estado_ex, 1 if estado_ex == 'autorizado' else 0,
               fecha_recibida if estado_ex != 'pendiente' else None,
               excursion_id, alumno_id))
+        print(f"    → excursion_alumnos actualizado: estado_auto={estado_ex}")
+    else:
+        print(f"    → WARNING: alumno {alumno_id} NO está en excursion_alumnos para exc {excursion_id}")
 
 
 def _sync_excursion_to_auto(cur, excursion_id, alumno_id, estado_auto):

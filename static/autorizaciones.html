@@ -686,11 +686,18 @@ async function cambiarEstado(id, select) {
         if (ex) excursion_id = ex.id;
     }
 
-    await fetch(`/api/autorizaciones/item/${id}`, {
+    console.log('[cambiarEstado] id=%d tipo=%s etiqueta=%s excursion_id=%s estado=%s',
+        id, auto.tipo, auto.etiqueta, excursion_id, nuevoEstado);
+
+    const body = { ...auto, excursion_id, estado: nuevoEstado, fecha_recibida: fechaRecibida };
+    const res = await fetch(`/api/autorizaciones/item/${id}`, {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ ...auto, excursion_id, estado: nuevoEstado, fecha_recibida: fechaRecibida })
+        body: JSON.stringify(body)
     });
+    const data = await res.json();
+    console.log('[cambiarEstado] respuesta servidor:', data);
+
     auto.estado = nuevoEstado;
     auto.excursion_id = excursion_id;
     if (fechaRecibida) auto.fecha_recibida = fechaRecibida;

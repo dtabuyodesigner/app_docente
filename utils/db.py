@@ -327,6 +327,35 @@ def run_migrations():
         except Exception:
             pass  # Ya existe o no aplica
 
+    # Migración especial: enlazar autorizaciones_alumno huérfanas (excursion_id NULL)
+    # usando matching por LIKE (títulos pueden diferir, ej. "Granja Escuela" vs "Visita a la Granja Escuela")
+    try:
+        orphans = conn.execute("""
+            SELECT id, etiqueta FROM autorizaciones_alumno
+            WHERE tipo='excursion' AND (excursion_id IS NULL OR excursion_id='')
+        """).fetchall()
+        fixed = 0
+        for row in orphans:
+            if not row[1]:
+                continue
+            match = conn.execute("""
+                SELECT id, titulo FROM excursiones
+                WHERE LOWER(TRIM(titulo))=LOWER(TRIM(?))
+                   OR LOWER(titulo) LIKE '%' || LOWER(TRIM(?)) || '%'
+                ORDER BY CASE WHEN LOWER(TRIM(titulo))=LOWER(TRIM(?)) THEN 0 ELSE 1 END
+                LIMIT 1
+            """, (row[1], row[1], row[1])).fetchone()
+            if match:
+                conn.execute("""
+                    UPDATE autorizaciones_alumno SET excursion_id=?, etiqueta=? WHERE id=?
+                """, (match[0], match[1], row[0]))
+                fixed += 1
+        if fixed:
+            conn.commit()
+            migrated.append(f"fix autorizaciones_alumno.excursion_id ({fixed} registros)")
+    except Exception:
+        pass
+
     # Datos iniciales obligatorios
     try:
         conn.execute("INSERT OR IGNORE INTO etapas (id, nombre, activa) VALUES (1, 'Infantil', 1)")

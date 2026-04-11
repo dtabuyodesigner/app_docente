@@ -679,10 +679,15 @@ async function cambiarEstado(id, select) {
     const hoy = new Date().toISOString().split('T')[0];
     const fechaRecibida = nuevoEstado === 'autorizada' && !auto.fecha_recibida ? hoy : auto.fecha_recibida;
 
-    // Si tipo=excursion pero no tiene excursion_id, intentar enlazarlo por título
+    // Si tipo=excursion pero no tiene excursion_id, intentar enlazarlo por título (exacto o contiene)
     let excursion_id = auto.excursion_id;
     if (!excursion_id && auto.tipo === 'excursion' && auto.etiqueta) {
-        const ex = _excursiones.find(e => e.titulo === auto.etiqueta);
+        const etiq = auto.etiqueta.toLowerCase();
+        const ex = _excursiones.find(e =>
+            e.titulo.toLowerCase() === etiq ||
+            e.titulo.toLowerCase().includes(etiq) ||
+            etiq.includes(e.titulo.toLowerCase())
+        );
         if (ex) excursion_id = ex.id;
     }
 

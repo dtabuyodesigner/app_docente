@@ -301,11 +301,10 @@ def api_autorizaciones(alumno_id):
 
         # Fallback: enlazar por título si no llega excursion_id
         if not excursion_id_val and tipo == 'excursion' and etiqueta:
-            ex_match = conn.execute(
-                "SELECT id FROM excursiones WHERE LOWER(TRIM(titulo))=LOWER(TRIM(?))", (etiqueta,)
-            ).fetchone()
+            ex_match = _find_excursion_by_titulo(conn, etiqueta)
             if ex_match:
                 excursion_id_val = ex_match['id']
+                etiqueta = ex_match['titulo']  # normalizar al título exacto
 
         cur.execute("""
             INSERT INTO autorizaciones_alumno
@@ -349,11 +348,10 @@ def api_autorizaciones_bulk():
 
     # Fallback por título (una sola vez, vale para todos)
     if not excursion_id_val and tipo == 'excursion' and etiqueta:
-        ex_match = conn.execute(
-            "SELECT id FROM excursiones WHERE LOWER(TRIM(titulo))=LOWER(TRIM(?))", (etiqueta,)
-        ).fetchone()
+        ex_match = _find_excursion_by_titulo(conn, etiqueta)
         if ex_match:
             excursion_id_val = ex_match['id']
+            etiqueta = ex_match['titulo']  # normalizar al título exacto
 
     creadas = 0
     for alumno_id in alumno_ids:
@@ -401,15 +399,14 @@ def api_autorizacion_item(item_id):
     print(f"  current: alumno={alumno_id}, tipo={tipo}, etiqueta='{etiqueta}', "
           f"estado={estado}, excursion_id_db={current['excursion_id']}")
 
-    # excursion_id: prioridad → request > BD actual > búsqueda por título
+    # excursion_id: prioridad → request > BD actual > búsqueda por título (LIKE)
     excursion_id_val = d.get("excursion_id") or current['excursion_id']
     if not excursion_id_val and tipo == 'excursion' and etiqueta:
-        ex_match = conn.execute(
-            "SELECT id FROM excursiones WHERE LOWER(TRIM(titulo))=LOWER(TRIM(?))", (etiqueta,)
-        ).fetchone()
+        ex_match = _find_excursion_by_titulo(conn, etiqueta)
         if ex_match:
             excursion_id_val = ex_match['id']
-            print(f"  → enlazado por título: excursion_id={excursion_id_val}")
+            etiqueta = ex_match['titulo']  # normalizar al título exacto
+            print(f"  → enlazado por LIKE: excursion_id={excursion_id_val} titulo='{etiqueta}'")
         else:
             print(f"  → NO se encontró excursión con título='{etiqueta}'")
 
@@ -683,6 +680,17 @@ def api_grupos_todos():
         ORDER BY g.curso ASC, g.nombre ASC
     """).fetchall()
     return jsonify([dict(r) for r in rows])
+
+
+def _find_excursion_by_titulo(conn_or_cur, etiqueta):
+    """Busca una excursión por título: igualdad exacta primero, luego LIKE (contiene)."""
+    return conn_or_cur.execute("""
+        SELECT id, titulo FROM excursiones
+        WHERE LOWER(TRIM(titulo))=LOWER(TRIM(?))
+           OR LOWER(titulo) LIKE '%' || LOWER(TRIM(?)) || '%'
+        ORDER BY CASE WHEN LOWER(TRIM(titulo))=LOWER(TRIM(?)) THEN 0 ELSE 1 END
+        LIMIT 1
+    """, (etiqueta, etiqueta, etiqueta)).fetchone()
 
 
 def _alumnos_de_grupos(cur, grupo_ids):

@@ -1,8 +1,26 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.1.33`
-**Rama activa:** `fix/test-uploads-404-y-mas-tests`
+**Versión:** `v1.1.39`
+**Rama activa:** `feat/autorizaciones-mejoras`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Autorizaciones: mejoras PDF, ficha alumno y dashboard (v1.1.39)
+
+**Fecha:** 11 de Abril 2026 — sesión actual
+
+### Qué se hizo
+- **1.1 PDF grupos**: corrección de XML escaping + lógica robusta para incluir siempre grupos_extra junto a los grupos seleccionados en el PDF de autorización
+- **1.2 Autorizaciones anuales en ficha del alumno**: sección "Autorizaciones anuales" en Datos Personales con chips clickeables (fotos_interno, fotos_rrss, salidas_entorno, datos/LOPD) que ciclan entre Pendiente → Autorizada → No autoriza. Endpoint `/api/autorizaciones/<id>/anual` para upsert
+- **1.3 Dashboard**: grid ampliado de 4 a 5 columnas; tarjetas más compactas (padding reducido); añadidas 2 tarjetas nuevas: "Sin Auto. Imágenes" y "Sin Auto. Salidas". Endpoint `/api/autorizaciones/resumen-anual` para conteos
+- **Versión**: sincronizado de v1.1.33 a v1.1.39 (incluye cambios v1.1.34–1.1.38 ya en git que no tenían VERSION actualizado)
+
+### Archivos modificados
+- `routes/excursiones.py` — fix PDF XML escaping, nuevos endpoints anual y resumen-anual
+- `static/alumnos.html` — sección autorizaciones anuales en ficha
+- `static/index.html` — grid 5 col, tarjetas compactas, 2 nuevas tarjetas
+- `VERSION`, `version.py` — v1.1.39
 
 ---
 

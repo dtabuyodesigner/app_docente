@@ -264,6 +264,18 @@
                     <textarea id="observaciones_generales"></textarea>
                     <label>Personas Autorizadas</label>
                     <textarea id="personas_autorizadas" placeholder="Lista de personas autorizadas..."></textarea>
+
+                    <!-- ── AUTORIZACIONES ANUALES ── -->
+                    <div id="seccion-autos-anuales" style="margin-top:18px; display:none;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                            <label style="margin:0; font-weight:700; font-size:0.95rem; color:#003366;">
+                                Autorizaciones anuales
+                            </label>
+                            <span style="font-size:0.75rem; color:#9ca3af;">Principio de curso</span>
+                        </div>
+                        <div id="chips-autos-anuales" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                    </div>
+
                     <div style="margin-top:15px; text-align:right;">
                         <button onclick="limpiarFicha()"
                             style="background:#ddd; border-radius: 4px; border: 1px solid #ccc;">
@@ -642,6 +654,7 @@
                         document.getElementById("observaciones_generales").value = d.observaciones_generales || "";
                         document.getElementById("personas_autorizadas").value = d.personas_autorizadas || "";
                     });
+                cargarAutosAnuales(id);
                 // Si estamos en la pestaña de progreso, cargar el gráfico
                 if (document.getElementById("sectionProgreso").style.display === "block") {
                     renderProgressChart(id);
@@ -1181,6 +1194,79 @@
                 const ids = checked.map(c => c.value).join(',');
                 const label = `los ${checked.length} alumnos seleccionados`;
                 abrirModalTransferir(ids, label);
+            }
+
+            // ── AUTORIZACIONES ANUALES ──────────────────────────────────────────
+            const TIPOS_ANUALES = {
+                fotos_interno: { label: 'Fotos (uso interno)', icon: '🖼️' },
+                fotos_rrss:    { label: 'Fotos (web/RRSS)',   icon: '📱' },
+                salidas_entorno: { label: 'Salidas al entorno', icon: '🌳' },
+                datos:         { label: 'LOPD / Datos',       icon: '📄' },
+            };
+            const ESTADOS_CICLO = ['pendiente', 'autorizada', 'no_autoriza'];
+            const ESTADO_LABEL = {
+                pendiente:   '⏳ Pendiente',
+                autorizada:  '✅ Autorizada',
+                no_autoriza: '❌ No autoriza',
+            };
+            const ESTADO_COLOR = {
+                pendiente:   { bg: '#f3f4f6', text: '#6b7280', border: '#d1d5db' },
+                autorizada:  { bg: '#d1fae5', text: '#065f46', border: '#6ee7b7' },
+                no_autoriza: { bg: '#fee2e2', text: '#991b1b', border: '#fca5a5' },
+            };
+
+            let _autosAnuales = {};  // { tipo: { id, estado } }
+
+            async function cargarAutosAnuales(alumno_id) {
+                try {
+                    const res = await fetch(`/api/autorizaciones/${alumno_id}`);
+                    const todos = await res.json();
+                    _autosAnuales = {};
+                    const tiposAnuales = Object.keys(TIPOS_ANUALES);
+                    todos.filter(a => tiposAnuales.includes(a.tipo))
+                         .forEach(a => { _autosAnuales[a.tipo] = { id: a.id, estado: a.estado }; });
+                    renderChipsAnuales(alumno_id);
+                    document.getElementById('seccion-autos-anuales').style.display = '';
+                } catch(e) {
+                    console.error('Error cargando autorizaciones anuales', e);
+                }
+            }
+
+            function renderChipsAnuales(alumno_id) {
+                const cont = document.getElementById('chips-autos-anuales');
+                cont.innerHTML = Object.entries(TIPOS_ANUALES).map(([tipo, meta]) => {
+                    const actual = (_autosAnuales[tipo] || {}).estado || 'pendiente';
+                    const col = ESTADO_COLOR[actual] || ESTADO_COLOR.pendiente;
+                    return `<button
+                        onclick="toggleAutoAnual('${tipo}', ${alumno_id})"
+                        title="Clic para cambiar estado"
+                        style="background:${col.bg}; color:${col.text}; border:1.5px solid ${col.border};
+                               border-radius:20px; padding:5px 12px; font-size:0.82rem; font-weight:600;
+                               cursor:pointer; transition:all 0.15s; white-space:nowrap;">
+                        ${meta.icon} ${meta.label}: ${ESTADO_LABEL[actual]}
+                    </button>`;
+                }).join('');
+            }
+
+            async function toggleAutoAnual(tipo, alumno_id) {
+                const actual = (_autosAnuales[tipo] || {}).estado || 'pendiente';
+                const idx = ESTADOS_CICLO.indexOf(actual);
+                const siguiente = ESTADOS_CICLO[(idx + 1) % ESTADOS_CICLO.length];
+                const fecha = siguiente === 'autorizada'
+                    ? new Date().toISOString().split('T')[0]
+                    : null;
+                try {
+                    await fetch(`/api/autorizaciones/${alumno_id}/anual`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tipo, estado: siguiente, fecha_recibida: fecha }),
+                    });
+                    if (!_autosAnuales[tipo]) _autosAnuales[tipo] = {};
+                    _autosAnuales[tipo].estado = siguiente;
+                    renderChipsAnuales(alumno_id);
+                } catch(e) {
+                    console.error('Error actualizando autorización anual', e);
+                }
             }
         </script>
 </body>

@@ -4,6 +4,17 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.1.39] — 11 Abril 2026
+### Autorizaciones: mejoras PDF, ficha alumno y dashboard
+- **PDF grupos**: XML escaping correcto; se incluyen siempre grupos seleccionados + grupos escritos a mano (`grupos_extra`)
+- **Autorizaciones anuales en ficha alumno**: chips interactivos en Datos Personales para fotos (interno/RRSS), salidas al entorno y LOPD; click cicla el estado; se persiste vía upsert
+- **Dashboard**: grid 5 columnas (antes 4); tarjetas más compactas; 2 nuevas tarjetas "Sin Auto. Imágenes" y "Sin Auto. Salidas al entorno"
+- **Nuevos endpoints**: `POST /api/autorizaciones/<id>/anual`, `GET /api/autorizaciones/resumen-anual`
+- **Versión sincronizada**: `VERSION`/`version.py` actualizados a v1.1.39
+- **Archivos:** `routes/excursiones.py`, `static/alumnos.html`, `static/index.html`, `VERSION`, `version.py`
+
+---
+
 ## [v1.1.33] — 11 Abril 2026
 ### Mejora Tests Automatizados
 - Corregido test `test_serve_uploads_404` (ahora verifica 302 redirect)

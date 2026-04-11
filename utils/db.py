@@ -105,6 +105,8 @@ def run_migrations():
         ("ALTER TABLE excursiones ADD COLUMN grupos_extra TEXT DEFAULT ''", "excursiones.grupos_extra"),
         ("ALTER TABLE excursiones ADD COLUMN hora_salida TEXT", "excursiones.hora_salida"),
         ("ALTER TABLE excursiones ADD COLUMN hora_regreso TEXT", "excursiones.hora_regreso"),
+        ("ALTER TABLE excursion_alumnos ADD COLUMN estado_auto TEXT DEFAULT 'pendiente'", "excursion_alumnos.estado_auto"),
+        ("UPDATE excursion_alumnos SET estado_auto='autorizado' WHERE autorizado=1 AND (estado_auto IS NULL OR estado_auto='pendiente')", "sync excursion_alumnos.estado_auto"),
         # --- reuniones ---
         ("ALTER TABLE reuniones ADD COLUMN ciclo_id INTEGER REFERENCES config_ciclo(id)", "reuniones.ciclo_id"),
         ("ALTER TABLE reuniones ADD COLUMN dificultades TEXT", "reuniones.dificultades"),

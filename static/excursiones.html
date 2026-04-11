@@ -282,6 +282,7 @@
         }
         .toggle-btn.on { background: #22c55e; border-color: #16a34a; }
         .toggle-btn.on-pago { background: #3b82f6; border-color: #1d4ed8; }
+        .toggle-btn.on-rechazo { background: #ef4444; border-color: #b91c1c; color: white; }
         .bulk-actions {
             display: flex;
             gap: 8px;
@@ -464,7 +465,7 @@
             </div>
             <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
                 <button class="btn-sm btn-outline" onclick="editarExcursionActual()" style="font-size:0.78rem;">✏️ Editar</button>
-                <button class="btn-sm btn-outline" id="btn-pdf-detalle" onclick="descargarPdf(_excursionActual?.id)" style="font-size:0.78rem; display:none;">📄 Autorización</button>
+                <button class="btn-sm btn-outline" id="btn-pdf-detalle" onclick="descargarPdf(_excursionActual?.id)" style="font-size:0.78rem;">📄 Autorización</button>
                 <button class="btn-sm" onclick="cerrarDetalle()" style="background:#f1f5f9; color:#374151; border:none; border-radius:8px; padding:6px 12px; cursor:pointer;">✕</button>
             </div>
         </div>
@@ -619,7 +620,7 @@ function renderGrid() {
             </div>
             <div class="card-actions" onclick="event.stopPropagation()">
                 <button class="btn-sm btn-outline" onclick="editarExcursion(${ex.id})">✏️ Editar</button>
-                ${ex.requiere_autorizacion ? `<button class="btn-sm btn-outline" onclick="descargarPdf(${ex.id})" title="Descargar autorización para imprimir">📄 Autorización</button>` : ''}
+                <button class="btn-sm btn-outline" onclick="descargarPdf(${ex.id})" title="Descargar autorización para imprimir">📄 Autorización</button>
                 <button class="btn-sm btn-outline" onclick="toggleEstado(${ex.id}, '${ex.estado}')">
                     ${ex.estado === 'activa' ? '🔒 Cerrar' : '🔓 Reabrir'}
                 </button>
@@ -821,7 +822,6 @@ async function abrirDetalle(id) {
     document.getElementById('filtro-auto-btn').style.display = ex.requiere_autorizacion ? '' : 'none';
     document.getElementById('filtro-pago-btn').style.display = ex.requiere_pago ? '' : 'none';
 
-    document.getElementById('btn-pdf-detalle').style.display = ex.requiere_autorizacion ? '' : 'none';
     renderDetalleStats(ex);
     renderBulkActions(ex);
     renderTablaAlumnos(ex);
@@ -833,14 +833,23 @@ function cerrarDetalle() {
     _excursionActual = null;
 }
 
+function getEstadoAuto(a) {
+    if (a.estado_auto) return a.estado_auto;
+    return a.autorizado ? 'autorizado' : 'pendiente';
+}
+
 function renderDetalleStats(ex) {
     const total = _alumnosDetalle.length;
-    const autorizados = _alumnosDetalle.filter(a => a.autorizado).length;
+    const autorizados = _alumnosDetalle.filter(a => getEstadoAuto(a) === 'autorizado').length;
+    const rechazados = _alumnosDetalle.filter(a => getEstadoAuto(a) === 'no_autoriza').length;
     const pagados = _alumnosDetalle.filter(a => a.pagado).length;
     let html = `<div class="stat-pill"><span>👥</span> ${total} alumnos</div>`;
     if (ex.requiere_autorizacion) {
-        const cls = autorizados === total && total > 0 ? 'color:#166534' : 'color:#991b1b';
-        html += `<div class="stat-pill" style="${cls}"><span>✅</span> ${autorizados}/${total} autorizados</div>`;
+        const pendientes = total - autorizados - rechazados;
+        const cls = pendientes === 0 && total > 0 ? 'color:#166534' : 'color:#991b1b';
+        let txt = `✅ ${autorizados}/${total} autorizados`;
+        if (rechazados > 0) txt += ` · 🚫 ${rechazados} no autorizan`;
+        html += `<div class="stat-pill" style="${cls}">${txt}</div>`;
     }
     if (ex.requiere_pago) {
         const cls = pagados === total && total > 0 ? 'color:#1d4ed8' : 'color:#991b1b';
@@ -883,12 +892,15 @@ function renderTablaAlumnos(ex) {
     tbody.innerHTML = alumnos.map(a => {
         let celdas = `<td style="font-weight:600;">${a.nombre}</td>`;
         if (ex.requiere_autorizacion) {
-            const on = a.autorizado ? 'on' : '';
+            const estadoA = getEstadoAuto(a);
+            const btnCls = estadoA === 'autorizado' ? 'on' : (estadoA === 'no_autoriza' ? 'on-rechazo' : '');
+            const btnIco = estadoA === 'autorizado' ? '✅' : (estadoA === 'no_autoriza' ? '🚫' : '—');
+            const titles = { autorizado: 'Autorizado · pulsa para → No autoriza', no_autoriza: 'No autoriza · pulsa para → quitar', pendiente: 'Pendiente · pulsa para → Autorizado' };
             celdas += `<td style="text-align:center;">
-                <button class="toggle-btn ${on}" onclick="toggleAlumno(${a.alumno_id}, 'autorizado', ${!a.autorizado})" title="${a.autorizado ? 'Quitar autorización' : 'Marcar como autorizado'}">
-                    ${a.autorizado ? '✅' : '—'}
+                <button class="toggle-btn ${btnCls}" onclick="toggleAutoEstado(${a.alumno_id}, '${estadoA}')" title="${titles[estadoA] || ''}">
+                    ${btnIco}
                 </button>
-                ${a.fecha_autorizacion ? `<div style="font-size:0.7rem;color:#6b7280;margin-top:2px;">${fmtFecha(a.fecha_autorizacion)}</div>` : ''}
+                ${(a.fecha_autorizacion && estadoA !== 'pendiente') ? `<div style="font-size:0.7rem;color:#6b7280;margin-top:2px;">${fmtFecha(a.fecha_autorizacion)}</div>` : ''}
             </td>`;
         }
         if (ex.requiere_pago) {
@@ -910,11 +922,11 @@ function renderTablaAlumnos(ex) {
 
 function filtrarAlumnos(alumnos, ex) {
     if (_filtroActual === 'todos') return alumnos;
-    if (_filtroActual === 'sin_auto') return alumnos.filter(a => !a.autorizado);
+    if (_filtroActual === 'sin_auto') return alumnos.filter(a => getEstadoAuto(a) === 'pendiente');
     if (_filtroActual === 'sin_pago') return alumnos.filter(a => !a.pagado);
     if (_filtroActual === 'ok') {
         return alumnos.filter(a => {
-            const autoOk = !ex.requiere_autorizacion || a.autorizado;
+            const autoOk = !ex.requiere_autorizacion || getEstadoAuto(a) !== 'pendiente';
             const pagoOk = !ex.requiere_pago || a.pagado;
             return autoOk && pagoOk;
         });
@@ -974,6 +986,36 @@ async function bulkToggle(campo, valor) {
     });
     // Recargar detalle
     await abrirDetalle(_excursionActual.id);
+    cargarDashboard();
+    cargarExcursiones();
+}
+
+function nextEstadoAuto(estadoActual) {
+    if (estadoActual === 'pendiente' || !estadoActual) return 'autorizado';
+    if (estadoActual === 'autorizado') return 'no_autoriza';
+    return 'pendiente';
+}
+
+async function toggleAutoEstado(alumnoId, estadoActual) {
+    const nuevoEstado = nextEstadoAuto(estadoActual);
+    const hoy = new Date().toISOString().split('T')[0];
+    const body = {
+        estado_auto: nuevoEstado,
+        fecha_autorizacion: nuevoEstado !== 'pendiente' ? hoy : null
+    };
+    await fetch(`/api/excursiones/${_excursionActual.id}/alumnos/${alumnoId}`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+    });
+    const a = _alumnosDetalle.find(x => x.alumno_id === alumnoId);
+    if (a) {
+        a.estado_auto = nuevoEstado;
+        a.autorizado = nuevoEstado === 'autorizado' ? 1 : 0;
+        a.fecha_autorizacion = body.fecha_autorizacion;
+    }
+    renderDetalleStats(_excursionActual);
+    renderTablaAlumnos(_excursionActual);
     cargarDashboard();
     cargarExcursiones();
 }

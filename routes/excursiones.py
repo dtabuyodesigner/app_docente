@@ -77,7 +77,7 @@ def api_excursiones():
     rows = cur.execute("""
         SELECT e.*,
                COUNT(ea.id) AS total_alumnos,
-               SUM(ea.autorizado) AS total_autorizados,
+               SUM(CASE WHEN ea.estado_auto='autorizado' THEN 1 ELSE 0 END) AS total_autorizados,
                SUM(ea.pagado) AS total_pagados
         FROM excursiones e
         LEFT JOIN excursion_alumnos ea ON ea.excursion_id = e.id
@@ -98,7 +98,7 @@ def api_excursiones_dashboard():
         SELECT e.id, e.titulo, e.fecha, e.tipo,
                e.requiere_autorizacion, e.requiere_pago,
                COUNT(ea.id) AS total,
-               SUM(CASE WHEN e.requiere_autorizacion=1 AND ea.autorizado=0 THEN 1 ELSE 0 END) AS pendientes_auto,
+               SUM(CASE WHEN e.requiere_autorizacion=1 AND (ea.estado_auto IS NULL OR ea.estado_auto='pendiente') THEN 1 ELSE 0 END) AS pendientes_auto,
                SUM(CASE WHEN e.requiere_pago=1 AND ea.pagado=0 THEN 1 ELSE 0 END) AS pendientes_pago
         FROM excursiones e
         LEFT JOIN excursion_alumnos ea ON ea.excursion_id = e.id
@@ -191,9 +191,20 @@ def api_toggle_alumno(excursion_id, alumno_id):
     updates = []
     params = []
 
-    if "autorizado" in d:
+    if "estado_auto" in d:
+        estado_auto = d["estado_auto"]
+        updates.append("estado_auto=?")
+        params.append(estado_auto)
+        updates.append("autorizado=?")
+        params.append(1 if estado_auto == "autorizado" else 0)
+        updates.append("fecha_autorizacion=?")
+        from datetime import date as _date
+        params.append(_date.today().isoformat() if estado_auto != "pendiente" else None)
+    elif "autorizado" in d:
         updates.append("autorizado=?")
         params.append(1 if d["autorizado"] else 0)
+        updates.append("estado_auto=?")
+        params.append("autorizado" if d["autorizado"] else "pendiente")
         updates.append("fecha_autorizacion=?")
         params.append(d.get("fecha_autorizacion") if d["autorizado"] else None)
 
@@ -235,10 +246,16 @@ def api_bulk_toggle(excursion_id):
     from datetime import date
     fecha_hoy = date.today().isoformat() if valor else None
 
-    cur.execute(f"""
-        UPDATE excursion_alumnos SET {campo}=?, {fecha_campo}=?
-        WHERE excursion_id=?
-    """, (valor, fecha_hoy, excursion_id))
+    if campo == "autorizado":
+        cur.execute("""
+            UPDATE excursion_alumnos SET autorizado=?, fecha_autorizacion=?, estado_auto=?
+            WHERE excursion_id=?
+        """, (valor, fecha_hoy, "autorizado" if valor else "pendiente", excursion_id))
+    else:
+        cur.execute(f"""
+            UPDATE excursion_alumnos SET {campo}=?, {fecha_campo}=?
+            WHERE excursion_id=?
+        """, (valor, fecha_hoy, excursion_id))
     conn.commit()
     return jsonify({"ok": True})
 

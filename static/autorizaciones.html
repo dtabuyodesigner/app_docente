@@ -351,9 +351,13 @@
             </select>
 
             <div id="bulk-etiqueta-row">
-                <label id="bulk-etiqueta-label">Nombre de la excursión *</label>
-                <input type="text" id="bulk-etiqueta" placeholder="Ej: Visita al Museo de Ciencias...">
+                <label id="bulk-etiqueta-label">Excursión *</label>
+                <select id="bulk-excursion-select" onchange="onSelectBulkExcursion()" style="display:none;">
+                    <option value="">— Seleccionar excursión —</option>
+                </select>
+                <input type="text" id="bulk-etiqueta" placeholder="Ej: Autorización sanitaria..." style="display:none;">
             </div>
+            <input type="hidden" id="bulk-excursion-id">
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px;">
                 <div>
@@ -408,9 +412,13 @@
         </select>
 
         <div id="etiqueta-row">
-            <label>Nombre de la excursión *</label>
-            <input type="text" id="auto-etiqueta" placeholder="Ej: Visita al Museo de Ciencias...">
+            <label id="etiqueta-label">Excursión *</label>
+            <select id="auto-excursion-select" onchange="onSelectExcursion()" style="display:none;">
+                <option value="">— Seleccionar excursión —</option>
+            </select>
+            <input type="text" id="auto-etiqueta" placeholder="Ej: Autorización sanitaria..." style="display:none;">
         </div>
+        <input type="hidden" id="auto-excursion-id">
 
         <label>Estado</label>
         <select id="auto-estado" onchange="toggleFechaRecibida()">
@@ -442,6 +450,7 @@ let _alumnosFiltrados = [];
 let _alumnoActual = null;
 let _autorizaciones = [];
 let _autosPorAlumno = {};  // { alumno_id: [autorizaciones] }
+let _excursiones = [];    // lista de todas las excursiones para el select
 
 const TIPOS_LABEL = {
     excursion: '🚌 Excursión',
@@ -461,7 +470,28 @@ const ESTADOS_LABEL = {
 // ─── Inicialización ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     cargarAlumnos();
+    cargarExcursiones();
 });
+
+async function cargarExcursiones() {
+    try {
+        const res = await fetch('/api/excursiones');
+        _excursiones = await res.json();
+        populateExcursionesSelect();
+    } catch(e) { _excursiones = []; }
+}
+
+function populateExcursionesSelect() {
+    const opts = _excursiones.map(ex => {
+        const fecha = ex.fecha ? ` (${fmtFecha(ex.fecha)})` : '';
+        return `<option value="${ex.id}">${ex.titulo}${fecha}</option>`;
+    }).join('');
+    const base = '<option value="">— Seleccionar excursión —</option>';
+    ['auto-excursion-select', 'bulk-excursion-select'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = base + opts;
+    });
+}
 document.addEventListener('grupoChanged', () => {
     cargarAlumnos();
     _alumnoActual = null;
@@ -658,6 +688,7 @@ async function cambiarEstado(id, select) {
     if (fechaRecibida) auto.fecha_recibida = fechaRecibida;
     renderResumen();
     renderTablaAuto();
+    renderVistaGlobal();
 }
 
 // ─── Modal ───────────────────────────────────────────────
@@ -666,6 +697,8 @@ function abrirNuevaAuto() {
     document.getElementById('auto-id').value = '';
     document.getElementById('auto-tipo').value = 'excursion';
     document.getElementById('auto-etiqueta').value = '';
+    document.getElementById('auto-excursion-id').value = '';
+    document.getElementById('auto-excursion-select').value = '';
     document.getElementById('auto-estado').value = 'pendiente';
     document.getElementById('auto-fecha-recibida').value = '';
     document.getElementById('auto-observaciones').value = '';
@@ -681,10 +714,14 @@ function editarAuto(id) {
     document.getElementById('auto-id').value = a.id;
     document.getElementById('auto-tipo').value = a.tipo;
     document.getElementById('auto-etiqueta').value = a.etiqueta || '';
+    document.getElementById('auto-excursion-id').value = a.excursion_id || '';
     document.getElementById('auto-estado').value = a.estado;
     document.getElementById('auto-fecha-recibida').value = a.fecha_recibida || '';
     document.getElementById('auto-observaciones').value = a.observaciones || '';
     toggleEtiqueta();
+    if (a.tipo === 'excursion' && a.excursion_id) {
+        document.getElementById('auto-excursion-select').value = a.excursion_id;
+    }
     document.getElementById('modal-auto-titulo').textContent = 'Editar Autorización';
     document.getElementById('modal-auto').classList.add('open');
 }
@@ -696,20 +733,35 @@ function cerrarModalAuto() {
 function toggleEtiqueta() {
     const tipo = document.getElementById('auto-tipo').value;
     const row = document.getElementById('etiqueta-row');
-    const lbl = row.querySelector('label');
-    const input = document.getElementById('auto-etiqueta');
+    const lbl = document.getElementById('etiqueta-label');
+    const inputText = document.getElementById('auto-etiqueta');
+    const inputSel = document.getElementById('auto-excursion-select');
+
     if (tipo === 'excursion') {
-        lbl.textContent = 'Nombre de la excursión *';
-        input.placeholder = 'Ej: Visita al Museo de Ciencias...';
+        lbl.textContent = 'Excursión *';
+        inputSel.style.display = 'block';
+        inputText.style.display = 'none';
         row.style.display = 'block';
     } else if (tipo === 'otro') {
         lbl.textContent = 'Descripción del tipo *';
-        input.placeholder = 'Ej: Autorización sanitaria...';
+        inputText.placeholder = 'Ej: Autorización sanitaria...';
+        inputText.style.display = 'block';
+        inputSel.style.display = 'none';
         row.style.display = 'block';
     } else {
         row.style.display = 'none';
-        input.value = '';
+        inputText.value = '';
+        document.getElementById('auto-excursion-id').value = '';
     }
+}
+
+function onSelectExcursion() {
+    const sel = document.getElementById('auto-excursion-select');
+    const excId = sel.value;
+    document.getElementById('auto-excursion-id').value = excId;
+    // auto-rellenar etiqueta con el título
+    const ex = _excursiones.find(e => e.id == excId);
+    document.getElementById('auto-etiqueta').value = ex ? ex.titulo : '';
 }
 
 function toggleFechaRecibida() {
@@ -723,15 +775,23 @@ function toggleFechaRecibida() {
 async function guardarAuto() {
     if (!_alumnoActual) return;
     const tipo = document.getElementById('auto-tipo').value;
-    const etiqueta = document.getElementById('auto-etiqueta').value.trim();
-    if ((tipo === 'otro' || tipo === 'excursion') && !etiqueta) {
-        alert(tipo === 'excursion' ? 'Indica el nombre de la excursión.' : 'Describe el tipo de autorización.');
+    let etiqueta = document.getElementById('auto-etiqueta').value.trim();
+    const excursion_id = document.getElementById('auto-excursion-id').value;
+
+    if (tipo === 'excursion') {
+        if (!excursion_id) { alert('Selecciona una excursión.'); return; }
+        // etiqueta = título de la excursión seleccionada
+        const ex = _excursiones.find(e => e.id == excursion_id);
+        if (ex) etiqueta = ex.titulo;
+    } else if (tipo === 'otro' && !etiqueta) {
+        alert('Describe el tipo de autorización.');
         return;
     }
 
     const body = {
         tipo,
         etiqueta,
+        excursion_id: excursion_id ? parseInt(excursion_id) : null,
         estado: document.getElementById('auto-estado').value,
         fecha_recibida: document.getElementById('auto-fecha-recibida').value || null,
         observaciones: document.getElementById('auto-observaciones').value.trim()
@@ -771,6 +831,8 @@ async function eliminarAuto(id) {
 function abrirBulk() {
     document.getElementById('bulk-tipo').value = 'excursion';
     document.getElementById('bulk-etiqueta').value = '';
+    document.getElementById('bulk-excursion-id').value = '';
+    document.getElementById('bulk-excursion-select').value = '';
     document.getElementById('bulk-estado').value = 'pendiente';
     document.getElementById('bulk-fecha').value = '';
     document.getElementById('bulk-obs').value = '';
@@ -788,19 +850,33 @@ function toggleBulkEtiqueta() {
     const tipo = document.getElementById('bulk-tipo').value;
     const row = document.getElementById('bulk-etiqueta-row');
     const lbl = document.getElementById('bulk-etiqueta-label');
-    const input = document.getElementById('bulk-etiqueta');
+    const inputText = document.getElementById('bulk-etiqueta');
+    const inputSel = document.getElementById('bulk-excursion-select');
+
     if (tipo === 'excursion') {
-        lbl.textContent = 'Nombre de la excursión *';
-        input.placeholder = 'Ej: Visita al Museo de Ciencias...';
+        lbl.textContent = 'Excursión *';
+        inputSel.style.display = 'block';
+        inputText.style.display = 'none';
         row.style.display = 'block';
     } else if (tipo === 'otro') {
         lbl.textContent = 'Descripción del tipo *';
-        input.placeholder = 'Ej: Autorización sanitaria...';
+        inputText.placeholder = 'Ej: Autorización sanitaria...';
+        inputText.style.display = 'block';
+        inputSel.style.display = 'none';
         row.style.display = 'block';
     } else {
         row.style.display = 'none';
-        input.value = '';
+        inputText.value = '';
+        document.getElementById('bulk-excursion-id').value = '';
     }
+}
+
+function onSelectBulkExcursion() {
+    const sel = document.getElementById('bulk-excursion-select');
+    const excId = sel.value;
+    document.getElementById('bulk-excursion-id').value = excId;
+    const ex = _excursiones.find(e => e.id == excId);
+    document.getElementById('bulk-etiqueta').value = ex ? ex.titulo : '';
 }
 
 function toggleBulkFecha() {
@@ -831,9 +907,15 @@ function bulkSelAll(sel) {
 
 async function guardarBulk() {
     const tipo = document.getElementById('bulk-tipo').value;
-    const etiqueta = document.getElementById('bulk-etiqueta').value.trim();
-    if ((tipo === 'excursion' || tipo === 'otro') && !etiqueta) {
-        alert(tipo === 'excursion' ? 'Indica el nombre de la excursión.' : 'Describe el tipo.');
+    let etiqueta = document.getElementById('bulk-etiqueta').value.trim();
+    const excursion_id = document.getElementById('bulk-excursion-id').value;
+
+    if (tipo === 'excursion') {
+        if (!excursion_id) { alert('Selecciona una excursión.'); return; }
+        const ex = _excursiones.find(e => e.id == excursion_id);
+        if (ex) etiqueta = ex.titulo;
+    } else if (tipo === 'otro' && !etiqueta) {
+        alert('Describe el tipo.');
         return;
     }
 
@@ -848,6 +930,7 @@ async function guardarBulk() {
         alumno_ids,
         tipo,
         etiqueta,
+        excursion_id: excursion_id ? parseInt(excursion_id) : null,
         estado: document.getElementById('bulk-estado').value,
         fecha_recibida: document.getElementById('bulk-fecha').value || null,
         observaciones: document.getElementById('bulk-obs').value.trim()

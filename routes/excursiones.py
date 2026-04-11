@@ -226,6 +226,11 @@ def api_toggle_alumno(excursion_id, alumno_id):
         UPDATE excursion_alumnos SET {', '.join(updates)}
         WHERE excursion_id=? AND alumno_id=?
     """, params)
+
+    # Sincronizar → autorizaciones_alumno si cambió el estado de autorización
+    if "estado_auto" in d:
+        _sync_excursion_to_auto(cur, excursion_id, alumno_id, d["estado_auto"])
+
     conn.commit()
     return jsonify({"ok": True})
 
@@ -292,14 +297,20 @@ def api_autorizaciones(alumno_id):
         estado = d.get("estado", "pendiente")
         fecha_recibida = d.get("fecha_recibida")
         observaciones = d.get("observaciones", "")
+        excursion_id_val = d.get("excursion_id")
 
         cur.execute("""
             INSERT INTO autorizaciones_alumno
-                (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones))
+                (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id_val))
+        new_id = cur.lastrowid
+
+        if excursion_id_val:
+            _sync_auto_to_excursion(cur, alumno_id, excursion_id_val, estado, fecha_recibida)
+
         conn.commit()
-        return jsonify({"ok": True, "id": cur.lastrowid})
+        return jsonify({"ok": True, "id": new_id})
 
     rows = cur.execute("""
         SELECT * FROM autorizaciones_alumno
@@ -323,6 +334,7 @@ def api_autorizaciones_bulk():
     estado = d.get("estado", "pendiente")
     fecha_recibida = d.get("fecha_recibida")
     observaciones = d.get("observaciones", "")
+    excursion_id_val = d.get("excursion_id")
 
     if not alumno_ids:
         return jsonify({"ok": False, "error": "No hay alumnos seleccionados"}), 400
@@ -331,9 +343,11 @@ def api_autorizaciones_bulk():
     for alumno_id in alumno_ids:
         cur.execute("""
             INSERT INTO autorizaciones_alumno
-                (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones))
+                (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (alumno_id, tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id_val))
+        if excursion_id_val:
+            _sync_auto_to_excursion(cur, alumno_id, excursion_id_val, estado, fecha_recibida)
         creadas += 1
 
     conn.commit()
@@ -356,12 +370,21 @@ def api_autorizacion_item(item_id):
     estado = d.get("estado", "pendiente")
     fecha_recibida = d.get("fecha_recibida")
     observaciones = d.get("observaciones", "")
+    excursion_id_val = d.get("excursion_id")
 
     cur.execute("""
         UPDATE autorizaciones_alumno SET
-            tipo=?, etiqueta=?, estado=?, fecha_recibida=?, observaciones=?
+            tipo=?, etiqueta=?, estado=?, fecha_recibida=?, observaciones=?, excursion_id=?
         WHERE id=?
-    """, (tipo, etiqueta, estado, fecha_recibida, observaciones, item_id))
+    """, (tipo, etiqueta, estado, fecha_recibida, observaciones, excursion_id_val, item_id))
+
+    if excursion_id_val:
+        row = cur.execute(
+            "SELECT alumno_id FROM autorizaciones_alumno WHERE id=?", (item_id,)
+        ).fetchone()
+        if row:
+            _sync_auto_to_excursion(cur, row['alumno_id'], excursion_id_val, estado, fecha_recibida)
+
     conn.commit()
     return jsonify({"ok": True})
 
@@ -625,3 +648,46 @@ def _alumnos_de_grupos(cur, grupo_ids):
         WHERE grupo_id IN ({placeholders}) AND deleted_at IS NULL
     """, grupo_ids).fetchall()
     return [r[0] for r in rows]
+
+
+def _sync_auto_to_excursion(cur, alumno_id, excursion_id, estado_aut, fecha_recibida):
+    """Sincroniza el estado de autorizaciones_alumno → excursion_alumnos."""
+    estado_map = {'autorizada': 'autorizado', 'no_autoriza': 'no_autoriza', 'retirada': 'pendiente'}
+    estado_ex = estado_map.get(estado_aut, 'pendiente')
+    existing = cur.execute(
+        "SELECT id FROM excursion_alumnos WHERE excursion_id=? AND alumno_id=?",
+        (excursion_id, alumno_id)
+    ).fetchone()
+    if existing:
+        cur.execute("""
+            UPDATE excursion_alumnos SET estado_auto=?, autorizado=?, fecha_autorizacion=?
+            WHERE excursion_id=? AND alumno_id=?
+        """, (estado_ex, 1 if estado_ex == 'autorizado' else 0,
+              fecha_recibida if estado_ex != 'pendiente' else None,
+              excursion_id, alumno_id))
+
+
+def _sync_excursion_to_auto(cur, excursion_id, alumno_id, estado_auto):
+    """Sincroniza el estado de excursion_alumnos → autorizaciones_alumno."""
+    from datetime import date
+    ex_row = cur.execute("SELECT titulo FROM excursiones WHERE id=?", (excursion_id,)).fetchone()
+    if not ex_row:
+        return
+    estado_map = {'autorizado': 'autorizada', 'no_autoriza': 'no_autoriza', 'pendiente': 'pendiente'}
+    estado_aut = estado_map.get(estado_auto, 'pendiente')
+    fecha_sync = date.today().isoformat() if estado_auto != 'pendiente' else None
+    existing = cur.execute(
+        "SELECT id FROM autorizaciones_alumno WHERE alumno_id=? AND excursion_id=?",
+        (alumno_id, excursion_id)
+    ).fetchone()
+    if existing:
+        cur.execute(
+            "UPDATE autorizaciones_alumno SET estado=?, fecha_recibida=? WHERE id=?",
+            (estado_aut, fecha_sync, existing['id'])
+        )
+    else:
+        cur.execute("""
+            INSERT INTO autorizaciones_alumno
+                (alumno_id, tipo, etiqueta, estado, fecha_recibida, excursion_id)
+            VALUES (?, 'excursion', ?, ?, ?, ?)
+        """, (alumno_id, ex_row['titulo'], estado_aut, fecha_sync, excursion_id))

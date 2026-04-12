@@ -426,9 +426,14 @@
 }
 
 /* ── Autorizaciones — lista de alumnos (dark mode) ── */
+[data-theme="dark"] .lista-alumnos {
+    background: var(--white);
+}
+
 [data-theme="dark"] .alumno-item {
     border-bottom-color: var(--gray-200);
     color: #e0e0e0;
+    background: var(--white) !important;
 }
 
 [data-theme="dark"] .alumno-item:hover {
@@ -436,8 +441,13 @@
 }
 
 [data-theme="dark"] .alumno-item.activo {
-    background: var(--gray-100) !important;
-    color: var(--primary) !important;
+    background: #2563eb !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .alumno-item.activo .badge-count {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
 }
 
 [data-theme="dark"] .alumno-item .badge-count {

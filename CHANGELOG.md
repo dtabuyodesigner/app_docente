@@ -4,6 +4,14 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.2.6] — 12 Abril 2026
+### Dark mode Autorizaciones: alumno seleccionado visible
+- Alumno seleccionado ahora tiene fondo azul (#2563eb) con texto blanco (antes fondo blanco con texto oscuro)
+- Contenedor de lista con fondo oscuro explícito
+- **Archivos:** `static/css/dark-mode.css`, `VERSION`, `version.py`
+
+---
+
 ## [v1.2.5] — 12 Abril 2026
 ### Dark mode en Autorizaciones
 - Lista de alumnos ahora legible en modo oscuro (texto gris claro sobre fondo oscuro)

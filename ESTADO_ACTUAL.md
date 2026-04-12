@@ -1,8 +1,23 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.2.5`
+**Versión:** `v1.2.6`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Dark mode Autorizaciones: alumno seleccionado con fondo azul (v1.2.6)
+
+**Fecha:** 12 de Abril 2026 — 15:10
+
+### Qué se hizo
+- Corregido fondo del alumno seleccionado: ahora fondo azul (#2563eb) con texto blanco
+- Contenedor `.lista-alumnos` con fondo oscuro explícito
+- Badge del seleccionado también adaptado (fondo semitransparente, texto blanco)
+
+### Archivos modificados
+- `static/css/dark-mode.css` — reglas mejoradas para `.alumno-item`, `.activo`, `.badge-count`
+- `VERSION`, `version.py` — bump a v1.2.6
 
 ---
 
@@ -220,4 +235,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 12 Abril 2026 — Dark mode Autorizaciones corregido
+**Última actualización:** 12 Abril 2026 — Alumno seleccionado visible en dark mode

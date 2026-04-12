@@ -6,6 +6,22 @@
 
 ---
 
+## ✅ Texto tarjetas Dashboard: "Autorización" en lugar de "Sin Auto." (v1.2.4)
+
+**Fecha:** 12 de Abril 2026 — 14:30
+
+### Qué se hizo
+- Cambiadas etiquetas de tarjetas en Dashboard: "Sin Auto. Imágenes" → **"Autorización Imágenes"**, "Sin Auto. Salidas" → **"Autorización Salidas"**
+- Mensaje más positivo y claro: muestra las autorizaciones gestionadas, no las pendientes
+- Actualizada ayuda (`ayuda.html`) para reflejar el nuevo nombre
+
+### Archivos modificados
+- `static/index.html` — títulos de tarjetas de autorizaciones anuales
+- `static/ayuda.html` — documentación actualizada
+- `VERSION`, `version.py` — bump a v1.2.4
+
+---
+
 ## ✅ Limpieza de documentación: tests pendientes eliminados (v1.2.3)
 
 **Fecha:** 12 de Abril 2026 — 14:00
@@ -188,4 +204,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 12 Abril 2026 — Limpieza documentación tests pendientes
+**Última actualización:** 12 Abril 2026 — Texto tarjetas Dashboard más positivo

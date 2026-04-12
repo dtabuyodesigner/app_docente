@@ -6,6 +6,20 @@
 
 ---
 
+## ✅ Limpieza de documentación: tests pendientes eliminados (v1.2.3)
+
+**Fecha:** 12 de Abril 2026 — 14:00
+
+### Qué se hizo
+- Eliminada sección "Tests por confirmar" de ESTADO_ACTUAL.md (7 tests de evaluación que nunca se implementaron como tests automatizados)
+- Documentación actualizada para reflejar el estado real del proyecto
+
+### Archivos modificados
+- `ESTADO_ACTUAL.md` — eliminada tabla de tests pendientes
+- `VERSION`, `version.py` — bump a v1.2.3
+
+---
+
 ## ✅ Accesos rápidos Excursiones y Autorizaciones (v1.2.2)
 
 **Fecha:** 11 de Abril 2026 — 18:30
@@ -128,17 +142,6 @@
 | 9 | 🟢 LOW | **PII en Sentry**: `send_default_pii=True` envía datos de sesión a Sentry | `app.py` | Poner a `False` o eliminar si Sentry no es necesario |
 | 10 | 🟢 LOW | **Debug print() en producción**: `_sync_auto_to_excursion` tiene prints de debug | `routes/excursiones.py` | Reemplazar por `security_logger.info()` |
 
-### Tests por confirmar
-
-| Test | Descripción | Estado |
-|------|-------------|--------|
-| Test 8 | Rejilla POR_CRITERIOS_DIRECTOS → botones EP/CO se iluminan y guardan en `evaluacion_criterios` | ⬜ Pendiente |
-| Test 9 | Rellenar EP en rejilla POR_CRITERIOS_DIRECTOS → medias del área se recalculan | ⬜ Pendiente |
-| Test 10 | Clic en píldora activa en rejilla → la borra de `evaluacion_criterios` | ⬜ Pendiente |
-| Test 11 | Evaluar alumno en POR_ACTIVIDADES → cambiar a POR_SA → criterios evaluados aparecen | ⬜ Pendiente |
-| Test 12 | Editar criterio → Guardar → sin error de validación | ⬜ Pendiente |
-| Test 13 | Seleccionar todo en lista criterios → Borrar → borra solo los sin evaluaciones | ⬜ Pendiente |
-
 ### Backlog de mejoras
 - Ver [Mejoras Pendientes — Backlog](.claude/projects/-home-danito73-Documentos-APP-EVALUAR/memory/project_mejoras_pendientes.md)
 - Plan Reuniones (Claustro, CCP, Comisiones): schema, CRUDs y auto-populate pendiente
@@ -185,4 +188,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 11 Abril 2026 — Auditoría de seguridad documentada (10 items pendientes)
+**Última actualización:** 12 Abril 2026 — Limpieza documentación tests pendientes

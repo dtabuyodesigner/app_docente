@@ -4,6 +4,13 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.2.3] — 12 Abril 2026
+### Limpieza de documentación
+- Eliminada sección "Tests por confirmar" de ESTADO_ACTUAL.md (tests que nunca se implementaron)
+- **Archivos:** `ESTADO_ACTUAL.md`, `VERSION`, `version.py`
+
+---
+
 ## [v1.2.2] — 11 Abril 2026
 ### Accesos rápidos Excursiones y Autorizaciones
 - Tarjetas 🚌 Excursiones y ✍️ Autorizaciones añadidas al grid del Panel de Control, tras Horario

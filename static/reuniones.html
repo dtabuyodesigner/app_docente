@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Reuniones</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,29 +15,37 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/es.js'></script>
     <style>
-        body { margin: 0; padding: 0; background: #f0f4f8; }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f0f4f8;
+        }
 
         .page-header {
             background: linear-gradient(135deg, #003366, #0066cc);
             color: white;
             padding: 20px 0 0;
         }
+
         .page-header-inner {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
         }
+
         .page-title {
             font-size: 1.6rem;
             font-weight: 800;
             margin: 0 0 4px;
             color: white;
         }
+
         .page-subtitle {
             font-size: 0.9rem;
             opacity: 0.8;
             margin: 0 0 16px;
         }
+
         .page-actions {
             display: flex;
             gap: 10px;
@@ -43,6 +53,7 @@
             margin-bottom: 16px;
             flex-wrap: wrap;
         }
+
         .btn-new {
             background: #28a745;
             color: white;
@@ -57,12 +68,16 @@
             gap: 6px;
             transition: all 0.2s;
         }
-        .btn-new:hover { background: #218838; transform: translateY(-1px); }
+
+        .btn-new:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
 
         .btn-sec {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 8px 16px;
             border-radius: 8px;
             font-weight: 600;
@@ -70,7 +85,10 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-sec:hover { background: rgba(255,255,255,0.25); }
+
+        .btn-sec:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
 
         /* Tabs en el header */
         .type-tabs {
@@ -79,10 +97,14 @@
             overflow-x: auto;
             scrollbar-width: none;
         }
-        .type-tabs::-webkit-scrollbar { display: none; }
+
+        .type-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
         .type-tab {
             padding: 10px 16px;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.7);
             font-weight: 600;
             font-size: 0.88rem;
             cursor: pointer;
@@ -95,19 +117,26 @@
             align-items: center;
             gap: 6px;
         }
-        .type-tab:hover { color: white; background: rgba(255,255,255,0.1); }
+
+        .type-tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
         .type-tab.active {
             color: #003366;
             background: #f0f4f8;
             font-weight: 700;
         }
+
         .tab-badge {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             color: white;
             border-radius: 10px;
             padding: 1px 7px;
             font-size: 0.75rem;
         }
+
         .type-tab.active .tab-badge {
             background: #003366;
             color: white;
@@ -129,14 +158,16 @@
             border-radius: 10px;
             padding: 12px 16px;
             margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             gap: 12px;
             flex-wrap: wrap;
         }
+
         .view-toggle {
             display: flex;
             gap: 4px;
         }
+
         .view-btn {
             background: #f0f4f8;
             border: none;
@@ -147,10 +178,12 @@
             color: #555;
             transition: all 0.2s;
         }
+
         .view-btn.active {
             background: #003366;
             color: white;
         }
+
         .search-box {
             flex: 1;
             max-width: 300px;
@@ -162,23 +195,29 @@
         }
 
         /* Lista de reuniones */
-        #lista-reuniones { display: flex; flex-direction: column; gap: 10px; }
+        #lista-reuniones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
         .reunion-card {
             background: white;
             border-radius: 10px;
             padding: 14px 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             display: flex;
             align-items: center;
             gap: 14px;
             transition: transform 0.15s, box-shadow 0.15s;
             cursor: pointer;
         }
+
         .reunion-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
         }
+
         .reunion-date-box {
             min-width: 52px;
             text-align: center;
@@ -186,8 +225,21 @@
             border-radius: 8px;
             padding: 6px 4px;
         }
-        .reunion-date-day { font-size: 1.5rem; font-weight: 800; color: #003366; line-height: 1; }
-        .reunion-date-mon { font-size: 0.7rem; font-weight: 700; color: #666; text-transform: uppercase; }
+
+        .reunion-date-day {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #003366;
+            line-height: 1;
+        }
+
+        .reunion-date-mon {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #666;
+            text-transform: uppercase;
+        }
+
         .reunion-tipo-badge {
             font-size: 0.72rem;
             font-weight: 700;
@@ -196,16 +248,63 @@
             text-transform: uppercase;
             letter-spacing: 0.03em;
         }
-        .badge-CICLO { background: #e8f4fd; color: #0066cc; }
-        .badge-NIVEL { background: #e8f8f0; color: #1a7a40; }
-        .badge-CCP { background: #fff3e0; color: #b86e00; }
-        .badge-CLAUSTRO { background: #f3e8fd; color: #6600cc; }
-        .badge-COMISIONES { background: #f0f4e8; color: #4a6a00; }
-        .badge-PADRES, .badge-FAMILIAS { background: #fde8ea; color: #cc0022; }
-        .reunion-info { flex: 1; min-width: 0; }
-        .reunion-title { font-weight: 700; font-size: 0.95rem; color: #1a1a2e; margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .reunion-meta { font-size: 0.82rem; color: #666; }
-        .reunion-actions { display: flex; gap: 6px; }
+
+        .badge-CICLO {
+            background: #e8f4fd;
+            color: #0066cc;
+        }
+
+        .badge-NIVEL {
+            background: #e8f8f0;
+            color: #1a7a40;
+        }
+
+        .badge-CCP {
+            background: #fff3e0;
+            color: #b86e00;
+        }
+
+        .badge-CLAUSTRO {
+            background: #f3e8fd;
+            color: #6600cc;
+        }
+
+        .badge-COMISIONES {
+            background: #f0f4e8;
+            color: #4a6a00;
+        }
+
+        .badge-PADRES,
+        .badge-FAMILIAS {
+            background: #fde8ea;
+            color: #cc0022;
+        }
+
+        .reunion-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .reunion-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1a1a2e;
+            margin: 0 0 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .reunion-meta {
+            font-size: 0.82rem;
+            color: #666;
+        }
+
+        .reunion-actions {
+            display: flex;
+            gap: 6px;
+        }
+
         .btn-icon {
             background: none;
             border: none;
@@ -216,7 +315,11 @@
             color: #666;
             transition: all 0.15s;
         }
-        .btn-icon:hover { background: #f0f4f8; color: #003366; }
+
+        .btn-icon:hover {
+            background: #f0f4f8;
+            color: #003366;
+        }
 
         /* Selección masiva */
         .bulk-bar {
@@ -231,7 +334,11 @@
             font-size: 0.9rem;
             font-weight: 600;
         }
-        .bulk-bar.visible { display: flex; }
+
+        .bulk-bar.visible {
+            display: flex;
+        }
+
         .bulk-bar button {
             background: #cc0022;
             color: white;
@@ -242,20 +349,31 @@
             font-weight: 700;
             font-size: 0.85rem;
         }
+
         .bulk-bar button.sec {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
         }
+
         .card-checkbox {
-            width: 18px; height: 18px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
             accent-color: #003366;
             flex-shrink: 0;
         }
 
         /* Calendario */
-        #calendar-view { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        #calendar { min-height: 500px; }
+        #calendar-view {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        #calendar {
+            min-height: 500px;
+        }
 
         /* Estado vacío */
         .empty-state {
@@ -263,21 +381,33 @@
             padding: 60px 20px;
             color: #999;
         }
-        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
-        .empty-state p { font-size: 1rem; margin: 0 0 16px; }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin: 0 0 16px;
+        }
 
         /* Modal overlay */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 2000;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-        .modal-overlay.open { display: flex; }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
         .modal {
             background: white;
             border-radius: 14px;
@@ -285,8 +415,9 @@
             max-width: 640px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
+
         .modal-header {
             padding: 20px 24px 16px;
             border-bottom: 1px solid #eee;
@@ -298,7 +429,14 @@
             background: white;
             z-index: 1;
         }
-        .modal-title { font-size: 1.15rem; font-weight: 800; color: #003366; margin: 0; }
+
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #003366;
+            margin: 0;
+        }
+
         .modal-close {
             background: none;
             border: none;
@@ -308,8 +446,16 @@
             padding: 4px 8px;
             border-radius: 6px;
         }
-        .modal-close:hover { background: #f5f5f5; color: #333; }
-        .modal-body { padding: 20px 24px; }
+
+        .modal-close:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+        }
+
         .modal-footer {
             padding: 14px 24px;
             border-top: 1px solid #eee;
@@ -327,6 +473,7 @@
             border-radius: 8px;
             border: 1px solid #e0e0e0;
         }
+
         .wizard-step {
             flex: 1;
             text-align: center;
@@ -338,9 +485,20 @@
             border-right: 1px solid #e0e0e0;
             transition: all 0.2s;
         }
-        .wizard-step:last-child { border-right: none; }
-        .wizard-step.active { background: #003366; color: white; }
-        .wizard-step.done { background: #28a745; color: white; }
+
+        .wizard-step:last-child {
+            border-right: none;
+        }
+
+        .wizard-step.active {
+            background: #003366;
+            color: white;
+        }
+
+        .wizard-step.done {
+            background: #28a745;
+            color: white;
+        }
 
         /* Selector de tipo de reunión */
         .tipo-grid {
@@ -348,6 +506,7 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
         }
+
         .tipo-card {
             border: 2px solid #e0e6ed;
             border-radius: 10px;
@@ -356,14 +515,42 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .tipo-card:hover { border-color: #0066cc; background: #f0f7ff; }
-        .tipo-card.selected { border-color: #003366; background: #e8f0fb; }
-        .tipo-card .tipo-icon { font-size: 1.8rem; margin-bottom: 6px; }
-        .tipo-card .tipo-name { font-size: 0.85rem; font-weight: 700; color: #1a1a2e; }
-        .tipo-card .tipo-desc { font-size: 0.72rem; color: #777; margin-top: 2px; }
+
+        .tipo-card:hover {
+            border-color: #0066cc;
+            background: #f0f7ff;
+        }
+
+        .tipo-card.selected {
+            border-color: #003366;
+            background: #e8f0fb;
+        }
+
+        .tipo-card .tipo-icon {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+        }
+
+        .tipo-card .tipo-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .tipo-card .tipo-desc {
+            font-size: 0.72rem;
+            color: #777;
+            margin-top: 2px;
+        }
 
         /* Lista de miembros/asistentes */
-        .miembros-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+        .miembros-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
         .miembro-item {
             display: flex;
             align-items: center;
@@ -372,15 +559,45 @@
             background: #f8f9fa;
             border-radius: 8px;
         }
-        .miembro-item input[type="checkbox"] { width: 18px; height: 18px; }
-        .miembro-nombre { font-weight: 600; font-size: 0.9rem; flex: 1; }
-        .miembro-rol { font-size: 0.78rem; color: #888; }
+
+        .miembro-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .miembro-nombre {
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+
+        .miembro-rol {
+            font-size: 0.78rem;
+            color: #888;
+        }
 
         /* Formulario */
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .form-group { margin-bottom: 14px; }
-        .form-group label { display: block; font-weight: 600; font-size: 0.88rem; color: #333; margin-bottom: 5px; }
-        .form-group input, .form-group select, .form-group textarea {
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 8px 12px;
             border: 1px solid #cdd5df;
@@ -389,7 +606,11 @@
             font-family: inherit;
             box-sizing: border-box;
         }
-        .form-group textarea { min-height: 80px; resize: vertical; }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
 
         /* Botones del footer */
         .btn-primary-modal {
@@ -403,7 +624,11 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-primary-modal:hover { background: #0047a0; }
+
+        .btn-primary-modal:hover {
+            background: #0047a0;
+        }
+
         .btn-back {
             background: #f0f4f8;
             color: #333;
@@ -414,6 +639,7 @@
             font-size: 0.9rem;
             cursor: pointer;
         }
+
         .btn-cancel {
             background: none;
             border: 1px solid #ddd;
@@ -426,420 +652,473 @@
         }
 
         /* Modal detalle */
-        .detalle-section { margin-bottom: 16px; }
-        .detalle-label { font-size: 0.8rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-        .detalle-value { font-size: 0.95rem; color: #1a1a2e; white-space: pre-wrap; }
+        .detalle-section {
+            margin-bottom: 16px;
+        }
+
+        .detalle-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+
+        .detalle-value {
+            font-size: 0.95rem;
+            color: #1a1a2e;
+            white-space: pre-wrap;
+        }
 
         /* Responsive */
         @media (max-width: 600px) {
-            .tipo-grid { grid-template-columns: repeat(2, 1fr); }
-            .form-row { grid-template-columns: 1fr; }
-            .page-actions { gap: 6px; }
+            .tipo-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .page-actions {
+                gap: 6px;
+            }
         }
     </style>
 </head>
+
 <body>
-<div id="nav-placeholder"></div>
+    <div id="nav-placeholder"></div>
 
-<!-- HEADER CON TABS -->
-<div class="page-header">
-    <div class="page-header-inner">
-        <h1 class="page-title">🤝 Reuniones</h1>
-        <p class="page-subtitle">Gestión unificada de todas las reuniones del centro</p>
-        <div class="page-actions">
-            <button class="btn-new" onclick="abrirNuevaReunion()">➕ Nueva Reunión</button>
-            <button class="btn-sec" onclick="window.location.href='/reuniones/plantillas'">📋 Plantillas</button>
-            <button class="btn-sec" onclick="exportarCSV()" title="Exportar reuniones a CSV">📥 Exportar</button>
-        </div>
-        <div class="type-tabs" id="type-tabs">
-            <button class="type-tab active" data-tipo="" onclick="cambiarTipo(this, '')">
-                🗂 Todas <span class="tab-badge" id="badge-todas">0</span>
-            </button>
-            <button class="type-tab" data-tipo="CICLO" onclick="cambiarTipo(this, 'CICLO')">
-                🔄 Ciclo <span class="tab-badge" id="badge-CICLO">0</span>
-            </button>
-            <button class="type-tab" data-tipo="NIVEL" onclick="cambiarTipo(this, 'NIVEL')">
-                📚 Nivel <span class="tab-badge" id="badge-NIVEL">0</span>
-            </button>
-            <button class="type-tab" data-tipo="CCP" onclick="cambiarTipo(this, 'CCP')">
-                🏛 CCP <span class="tab-badge" id="badge-CCP">0</span>
-            </button>
-            <button class="type-tab" data-tipo="CLAUSTRO" onclick="cambiarTipo(this, 'CLAUSTRO')">
-                🏫 Claustro <span class="tab-badge" id="badge-CLAUSTRO">0</span>
-            </button>
-            <button class="type-tab" data-tipo="COMISIONES" onclick="cambiarTipo(this, 'COMISIONES')">
-                🗂 Comisiones <span class="tab-badge" id="badge-COMISIONES">0</span>
-            </button>
-            <button class="type-tab" data-tipo="FAMILIAS" onclick="cambiarTipo(this, 'FAMILIAS')">
-                👨‍👩‍👧 Familias <span class="tab-badge" id="badge-FAMILIAS">0</span>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- CONTENIDO -->
-<div class="main-content">
-    <div class="toolbar">
-        <div class="view-toggle">
-            <button class="view-btn active" id="btn-lista" onclick="cambiarVista('lista')">☰ Lista</button>
-            <button class="view-btn" id="btn-calendario" onclick="cambiarVista('calendario')">📅 Calendario</button>
-        </div>
-        <input type="text" class="search-box" id="search-input" placeholder="🔍 Buscar..." oninput="filtrarLista()">
-        <div>
-            <select id="sort-select" onchange="filtrarLista()" style="padding:7px 10px; border:1px solid #ddd; border-radius:8px; font-size:0.85rem;">
-                <option value="fecha_desc">Más recientes</option>
-                <option value="fecha_asc">Más antiguas</option>
-                <option value="tipo">Por tipo</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Barra de selección masiva -->
-    <div class="bulk-bar" id="bulk-bar">
-        <input type="checkbox" id="check-all" class="card-checkbox" onchange="toggleSeleccionarTodo(this.checked)" title="Seleccionar todo">
-        <span id="bulk-count">0 seleccionadas</span>
-        <button onclick="borrarSeleccionadas()">🗑 Eliminar seleccionadas</button>
-        <button class="sec" onclick="cancelarSeleccion()">Cancelar</button>
-    </div>
-
-    <div id="lista-view">
-        <div id="lista-reuniones">
-            <div class="empty-state">
-                <div class="icon">📭</div>
-                <p>Cargando reuniones...</p>
+    <!-- HEADER CON TABS -->
+    <div class="page-header">
+        <div class="page-header-inner">
+            <h1 class="page-title">🤝 Reuniones</h1>
+            <p class="page-subtitle">Gestión unificada de todas las reuniones del centro</p>
+            <div class="page-actions">
+                <button class="btn-new" onclick="abrirNuevaReunion()">➕ Nueva Reunión</button>
+                <button class="btn-sec" onclick="window.location.href='/reuniones/plantillas'">📋 Plantillas</button>
+                <button class="btn-sec" onclick="exportarCSV()" title="Exportar reuniones a CSV">📥 Exportar</button>
             </div>
-        </div>
-    </div>
-
-    <div id="calendar-view" style="display:none;">
-        <div id="calendar"></div>
-    </div>
-</div>
-
-<!-- MODAL NUEVA REUNIÓN (WIZARD) -->
-<div class="modal-overlay" id="modal-nueva">
-    <div class="modal">
-        <div class="modal-header">
-            <h2 class="modal-title" id="wizard-title">Nueva Reunión</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-nueva')">✕</button>
-        </div>
-        <div class="modal-body">
-            <!-- Pasos -->
-            <div class="wizard-steps">
-                <div class="wizard-step active" id="step-ind-1">1. Tipo</div>
-                <div class="wizard-step" id="step-ind-2">2. Asistentes</div>
-                <div class="wizard-step" id="step-ind-3">3. Datos</div>
-            </div>
-
-            <!-- PASO 1: Tipo -->
-            <div id="wizard-step-1">
-                <p style="font-size:0.9rem; color:#555; margin-bottom:14px;">Selecciona el tipo de reunión:</p>
-                <div class="tipo-grid">
-                    <div class="tipo-card" onclick="seleccionarTipo('CICLO', this)" ondblclick="seleccionarTipo('CICLO',this);wizardSiguiente()">
-                        <div class="tipo-icon">🔄</div>
-                        <div class="tipo-name">Ciclo</div>
-                        <div class="tipo-desc">Reunión de ciclo</div>
-                    </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('NIVEL', this)" ondblclick="seleccionarTipo('NIVEL',this);wizardSiguiente()">
-                        <div class="tipo-icon">📚</div>
-                        <div class="tipo-name">Nivel</div>
-                        <div class="tipo-desc">Reunión de nivel</div>
-                    </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('CCP', this)" ondblclick="seleccionarTipo('CCP',this);wizardSiguiente()">
-                        <div class="tipo-icon">🏛</div>
-                        <div class="tipo-name">CCP</div>
-                        <div class="tipo-desc">Comisión de Coord. Pedagógica</div>
-                    </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('CLAUSTRO', this)" ondblclick="seleccionarTipo('CLAUSTRO',this);wizardSiguiente()">
-                        <div class="tipo-icon">🏫</div>
-                        <div class="tipo-name">Claustro</div>
-                        <div class="tipo-desc">Claustro de profesores</div>
-                    </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('COMISIONES', this)" ondblclick="seleccionarTipo('COMISIONES',this);wizardSiguiente()">
-                        <div class="tipo-icon">🗂</div>
-                        <div class="tipo-name">Comisiones</div>
-                        <div class="tipo-desc">Comisiones de trabajo</div>
-                    </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('FAMILIAS', this)" ondblclick="seleccionarTipo('FAMILIAS',this);wizardSiguiente()">
-                        <div class="tipo-icon">👨‍👩‍👧</div>
-                        <div class="tipo-name">Familias</div>
-                        <div class="tipo-desc">Reunión con familias/tutores</div>
-                    </div>
-                    <div class="tipo-card" onclick="seleccionarTipo('PADRES', this)" ondblclick="seleccionarTipo('PADRES',this);wizardSiguiente()">
-                        <div class="tipo-icon">👤</div>
-                        <div class="tipo-name">Individual</div>
-                        <div class="tipo-desc">Entrevista con un alumno/a</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PASO 2: Asistentes -->
-            <div id="wizard-step-2" style="display:none;">
-                <!-- Selector de alumno (solo para PADRES/individual) -->
-                <div id="campo-alumno-paso2" style="display:none; margin-bottom:14px;">
-                    <label style="font-weight:600; font-size:0.9rem; color:#333; display:block; margin-bottom:6px;">Alumno/a *</label>
-                    <select id="nueva-alumno-id" style="width:100%;padding:9px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
-                        <option value="">Selecciona alumno/a...</option>
-                    </select>
-                </div>
-                <!-- Selector de comisión (solo para COMISIONES) -->
-                <div id="campo-comision-paso2" style="display:none; margin-bottom:14px;">
-                    <label style="font-weight:600; font-size:0.9rem; color:#333; display:block; margin-bottom:6px;">Comisión *</label>
-                    <select id="nueva-comision-id" onchange="onComisionChange()" style="width:100%;padding:9px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
-                        <option value="">Selecciona una comisión...</option>
-                    </select>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <p style="font-size:0.9rem; color:#555; margin:0;">Asistentes:</p>
-                    <div id="btn-todos-ninguno" style="display:flex; gap:6px;">
-                        <button onclick="marcarTodosAsistentes(true)" style="font-size:0.78rem;background:#e8f0fb;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#003366;font-weight:600;">✔ Todos</button>
-                        <button onclick="marcarTodosAsistentes(false)" style="font-size:0.78rem;background:#fde8ea;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#cc0022;font-weight:600;">✗ Ninguno</button>
-                    </div>
-                </div>
-                <div class="miembros-list" id="miembros-list"></div>
-                <button onclick="toggleAñadirAsistente()" style="background:none;border:1px dashed #aaa;border-radius:8px;padding:7px 14px;cursor:pointer;color:#666;font-size:0.85rem;width:100%;margin-top:4px;">
-                    ➕ Añadir asistente
+            <div class="type-tabs" id="type-tabs">
+                <button class="type-tab active" data-tipo="" onclick="cambiarTipo(this, '')">
+                    🗂 Todas <span class="tab-badge" id="badge-todas">0</span>
                 </button>
-                <div id="asistente-manual" style="display:none; margin-top:8px;">
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <select id="claustro-asistente-select" style="flex:1;padding:8px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
-                            <option value="">Del claustro...</option>
+                <button class="type-tab" data-tipo="CICLO" onclick="cambiarTipo(this, 'CICLO')">
+                    🔄 Ciclo <span class="tab-badge" id="badge-CICLO">0</span>
+                </button>
+                <button class="type-tab" data-tipo="NIVEL" onclick="cambiarTipo(this, 'NIVEL')">
+                    📚 Nivel <span class="tab-badge" id="badge-NIVEL">0</span>
+                </button>
+                <button class="type-tab" data-tipo="CCP" onclick="cambiarTipo(this, 'CCP')">
+                    🏛 CCP <span class="tab-badge" id="badge-CCP">0</span>
+                </button>
+                <button class="type-tab" data-tipo="CLAUSTRO" onclick="cambiarTipo(this, 'CLAUSTRO')">
+                    🏫 Claustro <span class="tab-badge" id="badge-CLAUSTRO">0</span>
+                </button>
+                <button class="type-tab" data-tipo="COMISIONES" onclick="cambiarTipo(this, 'COMISIONES')">
+                    🗂 Comisiones <span class="tab-badge" id="badge-COMISIONES">0</span>
+                </button>
+                <button class="type-tab" data-tipo="FAMILIAS" onclick="cambiarTipo(this, 'FAMILIAS')">
+                    👨‍👩‍👧 Familias <span class="tab-badge" id="badge-FAMILIAS">0</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="main-content">
+        <div class="toolbar">
+            <div class="view-toggle">
+                <button class="view-btn active" id="btn-lista" onclick="cambiarVista('lista')">☰ Lista</button>
+                <button class="view-btn" id="btn-calendario" onclick="cambiarVista('calendario')">📅 Calendario</button>
+            </div>
+            <input type="text" class="search-box" id="search-input" placeholder="🔍 Buscar..." oninput="filtrarLista()">
+            <div>
+                <select id="sort-select" onchange="filtrarLista()"
+                    style="padding:7px 10px; border:1px solid #ddd; border-radius:8px; font-size:0.85rem;">
+                    <option value="fecha_desc">Más recientes</option>
+                    <option value="fecha_asc">Más antiguas</option>
+                    <option value="tipo">Por tipo</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Barra de selección masiva -->
+        <div class="bulk-bar" id="bulk-bar">
+            <input type="checkbox" id="check-all" class="card-checkbox" onchange="toggleSeleccionarTodo(this.checked)"
+                title="Seleccionar todo">
+            <span id="bulk-count">0 seleccionadas</span>
+            <button onclick="borrarSeleccionadas()">🗑 Eliminar seleccionadas</button>
+            <button class="sec" onclick="cancelarSeleccion()">Cancelar</button>
+        </div>
+
+        <div id="lista-view">
+            <div id="lista-reuniones">
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <p>Cargando reuniones...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="calendar-view" style="display:none;">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVA REUNIÓN (WIZARD) -->
+    <div class="modal-overlay" id="modal-nueva">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="wizard-title">Nueva Reunión</h2>
+                <button class="modal-close" onclick="cerrarModal('modal-nueva')">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Pasos -->
+                <div class="wizard-steps">
+                    <div class="wizard-step active" id="step-ind-1">1. Tipo</div>
+                    <div class="wizard-step" id="step-ind-2">2. Asistentes</div>
+                    <div class="wizard-step" id="step-ind-3">3. Datos</div>
+                </div>
+
+                <!-- PASO 1: Tipo -->
+                <div id="wizard-step-1">
+                    <p style="font-size:0.9rem; color:#555; margin-bottom:14px;">Selecciona el tipo de reunión:</p>
+                    <div class="tipo-grid">
+                        <div class="tipo-card" onclick="seleccionarTipo('CICLO', this)"
+                            ondblclick="seleccionarTipo('CICLO',this);wizardSiguiente()">
+                            <div class="tipo-icon">🔄</div>
+                            <div class="tipo-name">Ciclo</div>
+                            <div class="tipo-desc">Reunión de ciclo</div>
+                        </div>
+                        <div class="tipo-card" onclick="seleccionarTipo('NIVEL', this)"
+                            ondblclick="seleccionarTipo('NIVEL',this);wizardSiguiente()">
+                            <div class="tipo-icon">📚</div>
+                            <div class="tipo-name">Nivel</div>
+                            <div class="tipo-desc">Reunión de nivel</div>
+                        </div>
+                        <div class="tipo-card" onclick="seleccionarTipo('CCP', this)"
+                            ondblclick="seleccionarTipo('CCP',this);wizardSiguiente()">
+                            <div class="tipo-icon">🏛</div>
+                            <div class="tipo-name">CCP</div>
+                            <div class="tipo-desc">Comisión de Coord. Pedagógica</div>
+                        </div>
+                        <div class="tipo-card" onclick="seleccionarTipo('CLAUSTRO', this)"
+                            ondblclick="seleccionarTipo('CLAUSTRO',this);wizardSiguiente()">
+                            <div class="tipo-icon">🏫</div>
+                            <div class="tipo-name">Claustro</div>
+                            <div class="tipo-desc">Claustro de profesores</div>
+                        </div>
+                        <div class="tipo-card" onclick="seleccionarTipo('COMISIONES', this)"
+                            ondblclick="seleccionarTipo('COMISIONES',this);wizardSiguiente()">
+                            <div class="tipo-icon">🗂</div>
+                            <div class="tipo-name">Comisiones</div>
+                            <div class="tipo-desc">Comisiones de trabajo</div>
+                        </div>
+                        <div class="tipo-card" onclick="seleccionarTipo('FAMILIAS', this)"
+                            ondblclick="seleccionarTipo('FAMILIAS',this);wizardSiguiente()">
+                            <div class="tipo-icon">👨‍👩‍👧</div>
+                            <div class="tipo-name">Familias</div>
+                            <div class="tipo-desc">Reunión con familias/tutores</div>
+                        </div>
+                        <div class="tipo-card" onclick="seleccionarTipo('PADRES', this)"
+                            ondblclick="seleccionarTipo('PADRES',this);wizardSiguiente()">
+                            <div class="tipo-icon">👤</div>
+                            <div class="tipo-name">Individual</div>
+                            <div class="tipo-desc">Entrevista con un alumno/a</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 2: Asistentes -->
+                <div id="wizard-step-2" style="display:none;">
+                    <!-- Selector de alumno (solo para PADRES/individual) -->
+                    <div id="campo-alumno-paso2" style="display:none; margin-bottom:14px;">
+                        <label
+                            style="font-weight:600; font-size:0.9rem; color:#333; display:block; margin-bottom:6px;">Alumno/a
+                            *</label>
+                        <select id="nueva-alumno-id"
+                            style="width:100%;padding:9px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
+                            <option value="">Selecciona alumno/a...</option>
                         </select>
-                        <span style="color:#aaa; font-size:0.85rem;">o</span>
-                        <input type="text" id="nuevo-asistente-nombre" placeholder="Otro nombre..." style="flex:1;padding:8px;border:1px solid #cdd;border-radius:8px;box-sizing:border-box;font-size:0.9rem;">
-                        <button onclick="confirmarAñadirAsistente()" style="background:#003366;color:white;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:0.85rem;font-weight:600;white-space:nowrap;">Añadir</button>
+                    </div>
+                    <!-- Selector de comisión (solo para COMISIONES) -->
+                    <div id="campo-comision-paso2" style="display:none; margin-bottom:14px;">
+                        <label
+                            style="font-weight:600; font-size:0.9rem; color:#333; display:block; margin-bottom:6px;">Comisión
+                            *</label>
+                        <select id="nueva-comision-id" onchange="onComisionChange()"
+                            style="width:100%;padding:9px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
+                            <option value="">Selecciona una comisión...</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <p style="font-size:0.9rem; color:#555; margin:0;">Asistentes:</p>
+                        <div id="btn-todos-ninguno" style="display:flex; gap:6px;">
+                            <button onclick="marcarTodosAsistentes(true)"
+                                style="font-size:0.78rem;background:#e8f0fb;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#003366;font-weight:600;">✔
+                                Todos</button>
+                            <button onclick="marcarTodosAsistentes(false)"
+                                style="font-size:0.78rem;background:#fde8ea;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#cc0022;font-weight:600;">✗
+                                Ninguno</button>
+                        </div>
+                    </div>
+                    <div class="miembros-list" id="miembros-list"></div>
+                    <button onclick="toggleAñadirAsistente()"
+                        style="background:none;border:1px dashed #aaa;border-radius:8px;padding:7px 14px;cursor:pointer;color:#666;font-size:0.85rem;width:100%;margin-top:4px;">
+                        ➕ Añadir asistente
+                    </button>
+                    <div id="asistente-manual" style="display:none; margin-top:8px;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <select id="claustro-asistente-select"
+                                style="flex:1;padding:8px;border:1px solid #cdd;border-radius:8px;font-size:0.9rem;">
+                                <option value="">Del claustro...</option>
+                            </select>
+                            <span style="color:#aaa; font-size:0.85rem;">o</span>
+                            <input type="text" id="nuevo-asistente-nombre" placeholder="Otro nombre..."
+                                style="flex:1;padding:8px;border:1px solid #cdd;border-radius:8px;box-sizing:border-box;font-size:0.9rem;">
+                            <button onclick="confirmarAñadirAsistente()"
+                                style="background:#003366;color:white;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:0.85rem;font-weight:600;white-space:nowrap;">Añadir</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 3: Datos de la reunión -->
+                <div id="wizard-step-3" style="display:none;">
+                    <!-- Ciclo (solo para tipo CICLO) -->
+                    <div class="form-group" id="campo-ciclo" style="display:none;">
+                        <label>Ciclo *</label>
+                        <select id="nueva-ciclo-id">
+                            <option value="">Selecciona ciclo...</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fecha *</label>
+                            <input type="datetime-local" id="nueva-fecha">
+                        </div>
+                        <div class="form-group">
+                            <label>Lugar</label>
+                            <input type="text" id="nueva-lugar" placeholder="Aula, sala de reuniones...">
+                        </div>
+                    </div>
+                    <!-- Familiar asistente (solo para FAMILIAS/PADRES) -->
+                    <div class="form-group" id="campo-familiar" style="display:none;">
+                        <label>Familiar asistente <span style="font-size:0.8rem;color:#888;">(nombre del familiar que
+                                viene a la reunión)</span></label>
+                        <input type="text" id="nueva-familiar" placeholder="Ej: María García López (madre)">
+                    </div>
+                    <div class="form-group">
+                        <label>Temas tratados *</label>
+                        <textarea id="nueva-temas" placeholder="Puntos del orden del día tratados..."></textarea>
+                    </div>
+                    <div class="form-group" id="campo-dificultades">
+                        <label>Dificultades / Observaciones</label>
+                        <textarea id="nueva-dificultades"
+                            placeholder="Aspectos a mejorar, situaciones especiales..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Acuerdos / Conclusiones</label>
+                        <textarea id="nueva-acuerdos" placeholder="Decisiones tomadas, próximos pasos..."></textarea>
+                    </div>
+                    <div class="form-group" id="campo-propuestas">
+                        <label>Propuestas de mejora</label>
+                        <textarea id="nueva-propuestas" placeholder="Propuestas para mejorar..."></textarea>
                     </div>
                 </div>
             </div>
-
-            <!-- PASO 3: Datos de la reunión -->
-            <div id="wizard-step-3" style="display:none;">
-                <!-- Ciclo (solo para tipo CICLO) -->
-                <div class="form-group" id="campo-ciclo" style="display:none;">
-                    <label>Ciclo *</label>
-                    <select id="nueva-ciclo-id">
-                        <option value="">Selecciona ciclo...</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Fecha *</label>
-                        <input type="datetime-local" id="nueva-fecha">
-                    </div>
-                    <div class="form-group">
-                        <label>Lugar</label>
-                        <input type="text" id="nueva-lugar" placeholder="Aula, sala de reuniones...">
-                    </div>
-                </div>
-                <!-- Familiar asistente (solo para FAMILIAS/PADRES) -->
-                <div class="form-group" id="campo-familiar" style="display:none;">
-                    <label>Familiar asistente <span style="font-size:0.8rem;color:#888;">(nombre del familiar que viene a la reunión)</span></label>
-                    <input type="text" id="nueva-familiar" placeholder="Ej: María García López (madre)">
-                </div>
-                <div class="form-group">
-                    <label>Temas tratados *</label>
-                    <textarea id="nueva-temas" placeholder="Puntos del orden del día tratados..."></textarea>
-                </div>
-                <div class="form-group" id="campo-dificultades">
-                    <label>Dificultades / Observaciones</label>
-                    <textarea id="nueva-dificultades" placeholder="Aspectos a mejorar, situaciones especiales..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Acuerdos / Conclusiones</label>
-                    <textarea id="nueva-acuerdos" placeholder="Decisiones tomadas, próximos pasos..."></textarea>
-                </div>
-                <div class="form-group" id="campo-propuestas">
-                    <label>Propuestas de mejora</label>
-                    <textarea id="nueva-propuestas" placeholder="Propuestas para mejorar..."></textarea>
-                </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="cerrarModal('modal-nueva')">Cancelar</button>
+                <button class="btn-back" id="btn-wizard-back" onclick="wizardAnterior()"
+                    style="display:none;">Atrás</button>
+                <button class="btn-primary-modal" id="btn-wizard-next" onclick="wizardSiguiente()">Siguiente</button>
             </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn-cancel" onclick="cerrarModal('modal-nueva')">Cancelar</button>
-            <button class="btn-back" id="btn-wizard-back" onclick="wizardAnterior()" style="display:none;">Atrás</button>
-            <button class="btn-primary-modal" id="btn-wizard-next" onclick="wizardSiguiente()">Siguiente</button>
+    </div>
+
+    <!-- MODAL DETALLE / EDITAR -->
+    <div class="modal-overlay" id="modal-detalle">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="detalle-title">Reunión</h2>
+                <button class="modal-close" onclick="cerrarModal('modal-detalle')">✕</button>
+            </div>
+            <div class="modal-body" id="detalle-body"></div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="cerrarModal('modal-detalle')">Cerrar</button>
+                <button class="btn-sec"
+                    style="background:#f0f4f8; color:#333; border:none; padding:9px 16px; border-radius:8px; font-weight:600; cursor:pointer;"
+                    onclick="descargarPDF()">📄 PDF</button>
+                <button class="btn-primary-modal" onclick="editarReunion()">✏ Editar</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- MODAL DETALLE / EDITAR -->
-<div class="modal-overlay" id="modal-detalle">
-    <div class="modal">
-        <div class="modal-header">
-            <h2 class="modal-title" id="detalle-title">Reunión</h2>
-            <button class="modal-close" onclick="cerrarModal('modal-detalle')">✕</button>
-        </div>
-        <div class="modal-body" id="detalle-body"></div>
-        <div class="modal-footer">
-            <button class="btn-cancel" onclick="cerrarModal('modal-detalle')">Cerrar</button>
-            <button class="btn-sec" style="background:#f0f4f8; color:#333; border:none; padding:9px 16px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="descargarPDF()">📄 PDF</button>
-            <button class="btn-primary-modal" onclick="editarReunion()">✏ Editar</button>
-        </div>
-    </div>
-</div>
+    <script src="/static/js/api.js?v=1.4"></script>
+    <script src="/static/js/navigation.js"></script>
+    <script src="/static/js/global_groups.js"></script>
+    <script>
+        // ============================================================
+        // ESTADO GLOBAL
+        // ============================================================
+        let todasReuniones = [];
+        let reunionesVisibles = [];
+        let tipoActivo = '';
+        let vistaActiva = 'lista';
+        let wizardPaso = 1;
+        let wizardTipo = '';
+        let wizardAsistentesSeleccionados = [];
+        let wizardModoEdicion = false;
+        let wizardEditandoId = null;
+        let reunionDetalleId = null;
+        let calendarInstance = null;
+        let editandoId = null;
 
-<script src="/static/js/navigation.js"></script>
-<script src="/static/js/global_groups.js"></script>
-<script>
-// ============================================================
-// ESTADO GLOBAL
-// ============================================================
-let todasReuniones = [];
-let reunionesVisibles = [];
-let tipoActivo = '';
-let vistaActiva = 'lista';
-let wizardPaso = 1;
-let wizardTipo = '';
-let wizardAsistentesSeleccionados = [];
-let wizardModoEdicion = false;
-let wizardEditandoId = null;
-let reunionDetalleId = null;
-let calendarInstance = null;
-let editandoId = null;
+        // ============================================================
+        // CARGA INICIAL
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            await cargarAlumnos();
+            await cargarReuniones();
+            initCalendar();
 
-// ============================================================
-// CARGA INICIAL
-// ============================================================
-document.addEventListener('DOMContentLoaded', async () => {
-    await cargarAlumnos();
-    await cargarReuniones();
-    initCalendar();
+            // Si viene ?nueva=1 en la URL, abrir el modal directamente
+            if (new URLSearchParams(location.search).get('nueva') === '1') {
+                setTimeout(abrirNuevaReunion, 300);
+            }
+        });
 
-    // Si viene ?nueva=1 en la URL, abrir el modal directamente
-    if (new URLSearchParams(location.search).get('nueva') === '1') {
-        setTimeout(abrirNuevaReunion, 300);
-    }
-});
-
-async function cargarReuniones() {
-    try {
-        const r = await fetch('/api/reuniones/todas');
-        todasReuniones = await r.json();
-        actualizarBadges();
-        renderLista();
-        actualizarCalendario();
-    } catch (e) {
-        console.error('Error cargando reuniones:', e);
-    }
-}
-
-function actualizarBadges() {
-    const tipos = ['CICLO', 'NIVEL', 'CCP', 'CLAUSTRO', 'COMISIONES'];
-    document.getElementById('badge-todas').textContent = todasReuniones.length;
-    for (const t of tipos) {
-        const el = document.getElementById('badge-' + t);
-        if (el) el.textContent = todasReuniones.filter(r => r.tipo === t).length;
-    }
-    // Familias = PADRES + FAMILIAS
-    const elFam = document.getElementById('badge-FAMILIAS');
-    if (elFam) elFam.textContent = todasReuniones.filter(r => ['PADRES', 'FAMILIAS'].includes(r.tipo)).length;
-}
-
-function normalizarTipo(tipo) {
-    if (!tipo) return '';
-    if (tipo === 'PADRES') return 'FAMILIAS';
-    return tipo;
-}
-
-function cambiarTipo(btn, tipo) {
-    document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    tipoActivo = tipo;
-    renderLista();
-    actualizarCalendario();
-}
-
-function cambiarVista(vista) {
-    vistaActiva = vista;
-    document.getElementById('lista-view').style.display = vista === 'lista' ? 'block' : 'none';
-    document.getElementById('calendar-view').style.display = vista === 'calendario' ? 'block' : 'none';
-    document.getElementById('btn-lista').classList.toggle('active', vista === 'lista');
-    document.getElementById('btn-calendario').classList.toggle('active', vista === 'calendario');
-    if (vista === 'calendario' && calendarInstance) {
-        calendarInstance.render();
-    }
-}
-
-// ============================================================
-// LISTA
-// ============================================================
-function renderLista() {
-    let items = todasReuniones;
-
-    // Filtrar por tipo
-    if (tipoActivo) {
-        if (tipoActivo === 'FAMILIAS') {
-            items = items.filter(r => ['PADRES', 'FAMILIAS'].includes(r.tipo));
-        } else {
-            items = items.filter(r => r.tipo === tipoActivo);
+        async function cargarReuniones() {
+            try {
+                const r = await fetch('/api/reuniones/todas');
+                todasReuniones = await r.json();
+                actualizarBadges();
+                renderLista();
+                actualizarCalendario();
+            } catch (e) {
+                console.error('Error cargando reuniones:', e);
+            }
         }
-    }
 
-    reunionesVisibles = items;
-    filtrarLista();
-}
+        function actualizarBadges() {
+            const tipos = ['CICLO', 'NIVEL', 'CCP', 'CLAUSTRO', 'COMISIONES'];
+            document.getElementById('badge-todas').textContent = todasReuniones.length;
+            for (const t of tipos) {
+                const el = document.getElementById('badge-' + t);
+                if (el) el.textContent = todasReuniones.filter(r => r.tipo === t).length;
+            }
+            // Familias = PADRES + FAMILIAS
+            const elFam = document.getElementById('badge-FAMILIAS');
+            if (elFam) elFam.textContent = todasReuniones.filter(r => ['PADRES', 'FAMILIAS'].includes(r.tipo)).length;
+        }
 
-function filtrarLista() {
-    const q = document.getElementById('search-input').value.toLowerCase();
-    const sort = document.getElementById('sort-select').value;
+        function normalizarTipo(tipo) {
+            if (!tipo) return '';
+            if (tipo === 'PADRES') return 'FAMILIAS';
+            return tipo;
+        }
 
-    let items = [...reunionesVisibles];
+        function cambiarTipo(btn, tipo) {
+            document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            tipoActivo = tipo;
+            renderLista();
+            actualizarCalendario();
+        }
 
-    if (q) {
-        items = items.filter(r =>
-            (r.temas || '').toLowerCase().includes(q) ||
-            (r.asistentes || '').toLowerCase().includes(q) ||
-            (r.acuerdos || '').toLowerCase().includes(q) ||
-            (r.alumno_nombre || '').toLowerCase().includes(q)
-        );
-    }
+        function cambiarVista(vista) {
+            vistaActiva = vista;
+            document.getElementById('lista-view').style.display = vista === 'lista' ? 'block' : 'none';
+            document.getElementById('calendar-view').style.display = vista === 'calendario' ? 'block' : 'none';
+            document.getElementById('btn-lista').classList.toggle('active', vista === 'lista');
+            document.getElementById('btn-calendario').classList.toggle('active', vista === 'calendario');
+            if (vista === 'calendario' && calendarInstance) {
+                calendarInstance.render();
+            }
+        }
 
-    if (sort === 'fecha_desc') items.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
-    else if (sort === 'fecha_asc') items.sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
-    else if (sort === 'tipo') items.sort((a, b) => (a.tipo || '').localeCompare(b.tipo || ''));
+        // ============================================================
+        // LISTA
+        // ============================================================
+        function renderLista() {
+            let items = todasReuniones;
 
-    const container = document.getElementById('lista-reuniones');
+            // Filtrar por tipo
+            if (tipoActivo) {
+                if (tipoActivo === 'FAMILIAS') {
+                    items = items.filter(r => ['PADRES', 'FAMILIAS'].includes(r.tipo));
+                } else {
+                    items = items.filter(r => r.tipo === tipoActivo);
+                }
+            }
 
-    if (items.length === 0) {
-        container.innerHTML = `<div class="empty-state">
+            reunionesVisibles = items;
+            filtrarLista();
+        }
+
+        function filtrarLista() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const sort = document.getElementById('sort-select').value;
+
+            let items = [...reunionesVisibles];
+
+            if (q) {
+                items = items.filter(r =>
+                    (r.temas || '').toLowerCase().includes(q) ||
+                    (r.asistentes || '').toLowerCase().includes(q) ||
+                    (r.acuerdos || '').toLowerCase().includes(q) ||
+                    (r.alumno_nombre || '').toLowerCase().includes(q)
+                );
+            }
+
+            if (sort === 'fecha_desc') items.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+            else if (sort === 'fecha_asc') items.sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+            else if (sort === 'tipo') items.sort((a, b) => (a.tipo || '').localeCompare(b.tipo || ''));
+
+            const container = document.getElementById('lista-reuniones');
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="empty-state">
             <div class="icon">📭</div>
             <p>No hay reuniones en esta categoría</p>
         </div>`;
-        return;
-    }
+                return;
+            }
 
-    container.innerHTML = items.map(r => tarjetaReunion(r)).join('');
-}
+            container.innerHTML = items.map(r => tarjetaReunion(r)).join('');
+        }
 
-function tarjetaReunion(r) {
-    const fecha = r.fecha ? r.fecha.substring(0, 10) : '';
-    let dia = '—', mes = '—';
-    if (fecha) {
-        const d = new Date(fecha + 'T12:00:00');
-        dia = d.getDate();
-        mes = d.toLocaleString('es', { month: 'short' });
-    }
-    const hora = r.fecha && r.fecha.length > 10 ? r.fecha.substring(11, 16) : '';
+        function tarjetaReunion(r) {
+            const fecha = r.fecha ? r.fecha.substring(0, 10) : '';
+            let dia = '—', mes = '—';
+            if (fecha) {
+                const d = new Date(fecha + 'T12:00:00');
+                dia = d.getDate();
+                mes = d.toLocaleString('es', { month: 'short' });
+            }
+            const hora = r.fecha && r.fecha.length > 10 ? r.fecha.substring(11, 16) : '';
 
-    const tipo = normalizarTipo(r.tipo);
-    const tipoLabel = {
-        CICLO: 'Ciclo', NIVEL: 'Nivel', CCP: 'CCP',
-        CLAUSTRO: 'Claustro', COMISIONES: 'Comisiones', FAMILIAS: 'Familias'
-    }[tipo] || r.tipo || '';
+            const tipo = normalizarTipo(r.tipo);
+            const tipoLabel = {
+                CICLO: 'Ciclo', NIVEL: 'Nivel', CCP: 'CCP',
+                CLAUSTRO: 'Claustro', COMISIONES: 'Comisiones', FAMILIAS: 'Familias'
+            }[tipo] || r.tipo || '';
 
-    const titulo = r.alumno_nombre
-        ? `Entrevista: ${r.alumno_nombre}`
-        : tipo === 'COMISIONES'
-            ? `Comisión: ${r.plantilla_nombre || 'Sin nombre'}`
-            : `Reunión de ${tipoLabel}`;
+            const titulo = r.alumno_nombre
+                ? `Entrevista: ${r.alumno_nombre}`
+                : tipo === 'COMISIONES'
+                    ? `Comisión: ${r.plantilla_nombre || 'Sin nombre'}`
+                    : `Reunión de ${tipoLabel}`;
 
-    const meta = [
-        hora ? `🕐 ${hora}h` : '',
-        r.lugar ? `📍 ${r.lugar}` : '',
-        r.asistentes ? `👥 ${r.asistentes.split(',').length} asistentes` : ''
-    ].filter(Boolean).join(' · ');
+            const meta = [
+                hora ? `🕐 ${hora}h` : '',
+                r.lugar ? `📍 ${r.lugar}` : '',
+                r.asistentes ? `👥 ${r.asistentes.split(',').length} asistentes` : ''
+            ].filter(Boolean).join(' · ');
 
-    return `<div class="reunion-card" id="card-${r.id}" onclick="handleCardClick(event, ${r.id})">
+            return `<div class="reunion-card" id="card-${r.id}" onclick="handleCardClick(event, ${r.id})">
         <div onclick="event.stopPropagation()" style="display:flex;align-items:center;padding-right:8px;">
             <input type="checkbox" class="card-checkbox" data-id="${r.id}" onchange="onCheckCard(this)" title="Seleccionar">
         </div>
@@ -859,90 +1138,90 @@ function tarjetaReunion(r) {
             <button class="btn-icon" title="Borrar" onclick="borrarReunion(${r.id})">🗑</button>
         </div>
     </div>`;
-}
-
-// ============================================================
-// CALENDARIO
-// ============================================================
-function initCalendar() {
-    const calEl = document.getElementById('calendar');
-    calendarInstance = new FullCalendar.Calendar(calEl, {
-        initialView: 'dayGridMonth',
-        locale: 'es',
-        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' },
-        events: [],
-        eventClick: (info) => verDetalle(parseInt(info.event.id)),
-        eventColor: '#003366',
-        eventTextColor: '#ffffff',
-    });
-    calendarInstance.render();
-}
-
-function actualizarCalendario() {
-    if (!calendarInstance) return;
-    calendarInstance.removeAllEvents();
-
-    let items = todasReuniones;
-    if (tipoActivo) {
-        if (tipoActivo === 'FAMILIAS') items = items.filter(r => ['PADRES','FAMILIAS'].includes(r.tipo));
-        else items = items.filter(r => r.tipo === tipoActivo);
-    }
-
-    const colores = {
-        CICLO: '#0066cc', NIVEL: '#1a7a40', CCP: '#b86e00',
-        CLAUSTRO: '#6600cc', COMISIONES: '#4a6a00', FAMILIAS: '#cc0022', PADRES: '#cc0022'
-    };
-
-    items.forEach(r => {
-        if (!r.fecha) return;
-        const tipo = r.tipo || 'PADRES';
-        const titulo = r.alumno_nombre
-            ? `👤 ${r.alumno_nombre}`
-            : `🤝 ${tipo}`;
-        calendarInstance.addEvent({
-            id: r.id,
-            title: titulo,
-            start: r.fecha,
-            color: colores[tipo] || '#003366',
-            textColor: '#ffffff'
-        });
-    });
-}
-
-// ============================================================
-// DETALLE
-// ============================================================
-let _detalleReunion = null;
-
-async function verDetalle(id) {
-    reunionDetalleId = id;
-    try {
-        const r = await fetch(`/api/reuniones?id=${id}`);
-        const reunion = await r.json();
-        _detalleReunion = reunion;
-
-        const tipo = normalizarTipo(reunion.tipo);
-        const tipoLabel = { CICLO: 'Ciclo', NIVEL: 'Nivel', CCP: 'CCP', CLAUSTRO: 'Claustro', COMISIONES: 'Comisiones', FAMILIAS: 'Familias/Tutores' }[tipo] || reunion.tipo;
-
-        let fecha = reunion.fecha || '';
-        if (fecha.length >= 10) {
-            const d = new Date(fecha.substring(0,10) + 'T12:00:00');
-            fecha = d.toLocaleDateString('es', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-            if (reunion.fecha.length > 10) fecha += ' · ' + reunion.fecha.substring(11,16) + 'h';
         }
 
-        document.getElementById('detalle-title').textContent = reunion.alumno_nombre
-            ? `Entrevista: ${reunion.alumno_nombre}`
-            : tipo === 'COMISIONES'
-                ? `Comisión: ${reunion.plantilla_nombre || 'Comisiones'}`
-                : `Reunión de ${tipoLabel}`;
+        // ============================================================
+        // CALENDARIO
+        // ============================================================
+        function initCalendar() {
+            const calEl = document.getElementById('calendar');
+            calendarInstance = new FullCalendar.Calendar(calEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listWeek' },
+                events: [],
+                eventClick: (info) => verDetalle(parseInt(info.event.id)),
+                eventColor: '#003366',
+                eventTextColor: '#ffffff',
+            });
+            calendarInstance.render();
+        }
 
-        const campo = (lbl, val) => val ? `<div class="detalle-section">
+        function actualizarCalendario() {
+            if (!calendarInstance) return;
+            calendarInstance.removeAllEvents();
+
+            let items = todasReuniones;
+            if (tipoActivo) {
+                if (tipoActivo === 'FAMILIAS') items = items.filter(r => ['PADRES', 'FAMILIAS'].includes(r.tipo));
+                else items = items.filter(r => r.tipo === tipoActivo);
+            }
+
+            const colores = {
+                CICLO: '#0066cc', NIVEL: '#1a7a40', CCP: '#b86e00',
+                CLAUSTRO: '#6600cc', COMISIONES: '#4a6a00', FAMILIAS: '#cc0022', PADRES: '#cc0022'
+            };
+
+            items.forEach(r => {
+                if (!r.fecha) return;
+                const tipo = r.tipo || 'PADRES';
+                const titulo = r.alumno_nombre
+                    ? `👤 ${r.alumno_nombre}`
+                    : `🤝 ${tipo}`;
+                calendarInstance.addEvent({
+                    id: r.id,
+                    title: titulo,
+                    start: r.fecha,
+                    color: colores[tipo] || '#003366',
+                    textColor: '#ffffff'
+                });
+            });
+        }
+
+        // ============================================================
+        // DETALLE
+        // ============================================================
+        let _detalleReunion = null;
+
+        async function verDetalle(id) {
+            reunionDetalleId = id;
+            try {
+                const r = await fetch(`/api/reuniones?id=${id}`);
+                const reunion = await r.json();
+                _detalleReunion = reunion;
+
+                const tipo = normalizarTipo(reunion.tipo);
+                const tipoLabel = { CICLO: 'Ciclo', NIVEL: 'Nivel', CCP: 'CCP', CLAUSTRO: 'Claustro', COMISIONES: 'Comisiones', FAMILIAS: 'Familias/Tutores' }[tipo] || reunion.tipo;
+
+                let fecha = reunion.fecha || '';
+                if (fecha.length >= 10) {
+                    const d = new Date(fecha.substring(0, 10) + 'T12:00:00');
+                    fecha = d.toLocaleDateString('es', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    if (reunion.fecha.length > 10) fecha += ' · ' + reunion.fecha.substring(11, 16) + 'h';
+                }
+
+                document.getElementById('detalle-title').textContent = reunion.alumno_nombre
+                    ? `Entrevista: ${reunion.alumno_nombre}`
+                    : tipo === 'COMISIONES'
+                        ? `Comisión: ${reunion.plantilla_nombre || 'Comisiones'}`
+                        : `Reunión de ${tipoLabel}`;
+
+                const campo = (lbl, val) => val ? `<div class="detalle-section">
             <div class="detalle-label">${lbl}</div>
             <div class="detalle-value">${val}</div>
         </div>` : '';
 
-        document.getElementById('detalle-body').innerHTML = `
+                document.getElementById('detalle-body').innerHTML = `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
                 <div class="detalle-section"><div class="detalle-label">Fecha</div><div class="detalle-value">${fecha}</div></div>
                 <div class="detalle-section"><div class="detalle-label">Tipo</div><div class="detalle-value"><span class="reunion-tipo-badge badge-${tipo}">${tipoLabel}</span></div></div>
@@ -956,601 +1235,606 @@ async function verDetalle(id) {
             ${campo('Propuestas de mejora', reunion.propuestas_mejora)}
         `;
 
-        document.getElementById('modal-detalle').classList.add('open');
-    } catch (e) {
-        console.error('Error cargando detalle:', e);
-    }
-}
+                document.getElementById('modal-detalle').classList.add('open');
+            } catch (e) {
+                console.error('Error cargando detalle:', e);
+            }
+        }
 
-function descargarPDF() {
-    if (reunionDetalleId) descargarPDFId(reunionDetalleId);
-}
+        function descargarPDF() {
+            if (reunionDetalleId) descargarPDFId(reunionDetalleId);
+        }
 
-function descargarPDFId(id) {
-    window.open(`/api/reuniones/${id}/pdf`, '_blank');
-}
+        function descargarPDFId(id) {
+            window.open(`/api/reuniones/${id}/pdf`, '_blank');
+        }
 
-async function borrarReunion(id) {
-    if (!confirm('¿Eliminar esta reunión?')) return;
-    await fetch(`/api/reuniones/${id}`, { method: 'DELETE' });
-    cerrarModal('modal-detalle');
-    await cargarReuniones();
-}
+        async function borrarReunion(id) {
+            if (!confirm('¿Eliminar esta reunión?')) return;
+            await fetch(`/api/reuniones/${id}`, { method: 'DELETE' });
+            cerrarModal('modal-detalle');
+            await cargarReuniones();
+        }
 
-async function editarReunion() {
-    if (!_detalleReunion) { console.warn('[Edit] _detalleReunion es null'); return; }
-    const r = _detalleReunion;
-    console.log('[Edit] Abriendo edición para reunión', r.id, r.tipo);
+        async function editarReunion() {
+            if (!_detalleReunion) { console.warn('[Edit] _detalleReunion es null'); return; }
+            const r = _detalleReunion;
+            console.log('[Edit] Abriendo edición para reunión', r.id, r.tipo);
 
-    cerrarModal('modal-detalle');
+            cerrarModal('modal-detalle');
 
-    try {
-        // Reiniciar wizard en modo edición
-        resetWizard();
-        wizardModoEdicion = true;
-        wizardEditandoId = r.id;
+            try {
+                // Reiniciar wizard en modo edición
+                resetWizard();
+                wizardModoEdicion = true;
+                wizardEditandoId = r.id;
 
-        const tipo = (r.tipo || 'PADRES').toUpperCase();
-        wizardTipo = tipo;
+                const tipo = (r.tipo || 'PADRES').toUpperCase();
+                wizardTipo = tipo;
 
-        const labels = { CICLO: 'Editar Reunión de Ciclo', NIVEL: 'Editar Reunión de Nivel',
-            CCP: 'Editar Reunión de CCP', CLAUSTRO: 'Editar Reunión de Claustro',
-            COMISIONES: 'Editar Reunión de Comisión', FAMILIAS: 'Editar Reunión con Familias',
-            PADRES: 'Editar Entrevista Individual' };
-        document.getElementById('wizard-title').textContent = labels[tipo] || 'Editar Reunión';
+                const labels = {
+                    CICLO: 'Editar Reunión de Ciclo', NIVEL: 'Editar Reunión de Nivel',
+                    CCP: 'Editar Reunión de CCP', CLAUSTRO: 'Editar Reunión de Claustro',
+                    COMISIONES: 'Editar Reunión de Comisión', FAMILIAS: 'Editar Reunión con Familias',
+                    PADRES: 'Editar Entrevista Individual'
+                };
+                document.getElementById('wizard-title').textContent = labels[tipo] || 'Editar Reunión';
 
-        // Marcar tarjeta visual (opcional, no crítico)
-        try {
-            document.querySelectorAll('.tipo-card').forEach(c => {
-                if (c.getAttribute('onclick') && c.getAttribute('onclick').includes(`'${tipo}'`)) {
-                    c.classList.add('selected');
+                // Marcar tarjeta visual (opcional, no crítico)
+                try {
+                    document.querySelectorAll('.tipo-card').forEach(c => {
+                        if (c.getAttribute('onclick') && c.getAttribute('onclick').includes(`'${tipo}'`)) {
+                            c.classList.add('selected');
+                        }
+                    });
+                } catch (e) { }
+
+                // Ir directo al paso 3
+                wizardPaso = 3;
+                mostrarPaso(3);
+                document.getElementById('btn-wizard-back').style.display = 'inline-block';
+                document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
+
+                // Mostrar/ocultar campos según tipo
+                const esFamilia = ['FAMILIAS', 'PADRES'].includes(tipo);
+                document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
+                document.getElementById('campo-ciclo').style.display = tipo === 'CICLO' ? 'block' : 'none';
+                document.getElementById('campo-dificultades').style.display = ['CICLO', 'NIVEL', 'CCP', 'CLAUSTRO', 'COMISIONES'].includes(tipo) ? 'block' : 'none';
+                document.getElementById('campo-propuestas').style.display = ['CICLO', 'NIVEL', 'CCP', 'CLAUSTRO', 'COMISIONES'].includes(tipo) ? 'block' : 'none';
+
+                // Rellenar valores
+                if (r.fecha) document.getElementById('nueva-fecha').value = r.fecha.length > 10 ? r.fecha.substring(0, 16) : r.fecha;
+                document.getElementById('nueva-lugar').value = r.lugar || '';
+                document.getElementById('nueva-temas').value = r.temas || '';
+                document.getElementById('nueva-dificultades').value = r.dificultades || '';
+                document.getElementById('nueva-acuerdos').value = r.acuerdos || '';
+                document.getElementById('nueva-propuestas').value = r.propuestas_mejora || '';
+                document.getElementById('nueva-familiar').value = r.familiar_asistente || '';
+
+                // Asistentes guardados
+                wizardAsistentesSeleccionados = r.asistentes
+                    ? r.asistentes.split(',').map(s => s.trim()).filter(Boolean)
+                    : [];
+
+                if (tipo === 'CICLO') {
+                    await cargarCiclos();
+                    if (r.ciclo_id) document.getElementById('nueva-ciclo-id').value = r.ciclo_id;
                 }
-            });
-        } catch(e) {}
+                if (tipo === 'PADRES') {
+                    if (_alumnos.length === 0) await cargarAlumnos();
+                    const selAl = document.getElementById('nueva-alumno-id');
+                    selAl.innerHTML = '<option value="">Selecciona alumno/a...</option>' +
+                        _alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+                    if (r.alumno_id) selAl.value = r.alumno_id;
+                }
 
-        // Ir directo al paso 3
-        wizardPaso = 3;
-        mostrarPaso(3);
-        document.getElementById('btn-wizard-back').style.display = 'inline-block';
-        document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
-
-        // Mostrar/ocultar campos según tipo
-        const esFamilia = ['FAMILIAS', 'PADRES'].includes(tipo);
-        document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
-        document.getElementById('campo-ciclo').style.display = tipo === 'CICLO' ? 'block' : 'none';
-        document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
-        document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(tipo) ? 'block' : 'none';
-
-        // Rellenar valores
-        if (r.fecha) document.getElementById('nueva-fecha').value = r.fecha.length > 10 ? r.fecha.substring(0,16) : r.fecha;
-        document.getElementById('nueva-lugar').value = r.lugar || '';
-        document.getElementById('nueva-temas').value = r.temas || '';
-        document.getElementById('nueva-dificultades').value = r.dificultades || '';
-        document.getElementById('nueva-acuerdos').value = r.acuerdos || '';
-        document.getElementById('nueva-propuestas').value = r.propuestas_mejora || '';
-        document.getElementById('nueva-familiar').value = r.familiar_asistente || '';
-
-        // Asistentes guardados
-        wizardAsistentesSeleccionados = r.asistentes
-            ? r.asistentes.split(',').map(s => s.trim()).filter(Boolean)
-            : [];
-
-        if (tipo === 'CICLO') {
-            await cargarCiclos();
-            if (r.ciclo_id) document.getElementById('nueva-ciclo-id').value = r.ciclo_id;
-        }
-        if (tipo === 'PADRES') {
-            if (_alumnos.length === 0) await cargarAlumnos();
-            const selAl = document.getElementById('nueva-alumno-id');
-            selAl.innerHTML = '<option value="">Selecciona alumno/a...</option>' +
-                _alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
-            if (r.alumno_id) selAl.value = r.alumno_id;
+                document.getElementById('modal-nueva').classList.add('open');
+                console.log('[Edit] Modal abierto correctamente');
+            } catch (err) {
+                console.error('[Edit] Error en editarReunion:', err);
+                alert('Error al abrir edición: ' + err.message);
+            }
         }
 
-        document.getElementById('modal-nueva').classList.add('open');
-        console.log('[Edit] Modal abierto correctamente');
-    } catch(err) {
-        console.error('[Edit] Error en editarReunion:', err);
-        alert('Error al abrir edición: ' + err.message);
-    }
-}
+        // ============================================================
+        // WIZARD NUEVA REUNIÓN
+        // ============================================================
+        let _alumnos = [];
 
-// ============================================================
-// WIZARD NUEVA REUNIÓN
-// ============================================================
-let _alumnos = [];
-
-async function cargarAlumnos() {
-    try {
-        const r = await fetch('/api/alumnos');
-        _alumnos = await r.json();
-        const sel = document.getElementById('nueva-alumno-id');
-        _alumnos.forEach(a => {
-            const opt = document.createElement('option');
-            opt.value = a.id;
-            opt.textContent = a.nombre;
-            sel.appendChild(opt);
-        });
-    } catch (e) {
-        console.error('Error cargando alumnos:', e);
-    }
-}
-
-function abrirNuevaReunion(tipo) {
-    editandoId = null;
-    wizardPaso = 1;
-    wizardTipo = tipo || '';
-    wizardAsistentesSeleccionados = [];
-
-    resetWizard();
-    document.getElementById('modal-nueva').classList.add('open');
-
-    // Cargar alumnos para reuniones de padres
-    cargarAlumnos();
-
-    if (tipo) {
-        // Actualizar título según tipo
-        const tiposLabel = { CICLO: ' de Ciclo', NIVEL: ' de Nivel', CCP: ' de CCP', CLAUSTRO: ' de Claustro', COMISIONES: ' de Comisiones' };
-        document.getElementById('wizard-title').textContent = 'Nueva Reunión' + (tiposLabel[tipo] || '');
-        
-        // Si viene tipo preseleccionado desde tab, ir directo al paso 2
-        const card = document.querySelector(`.tipo-card[onclick*="'${tipo}'"]`);
-        if (card) seleccionarTipo(tipo, card);
-        setTimeout(wizardSiguiente, 100);
-    }
-
-    // Preseleccionar fecha actual
-    const now = new Date();
-    const local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    document.getElementById('nueva-fecha').value = local;
-}
-
-function resetWizard() {
-    wizardPaso = 1;
-    mostrarPaso(1);
-    document.getElementById('btn-wizard-back').style.display = 'none';
-    document.getElementById('btn-wizard-next').textContent = 'Siguiente';
-    document.getElementById('wizard-title').textContent = 'Nueva Reunión';
-    document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
-    document.getElementById('nueva-temas').value = '';
-    document.getElementById('nueva-acuerdos').value = '';
-    document.getElementById('nueva-dificultades').value = '';
-    document.getElementById('nueva-propuestas').value = '';
-    document.getElementById('nueva-lugar').value = '';
-    document.getElementById('nueva-alumno-id').value = '';
-    document.getElementById('nueva-ciclo-id').value = '';
-    document.getElementById('nueva-familiar').value = '';
-    wizardModoEdicion = false;
-    wizardEditandoId = null;
-}
-
-async function cargarCiclos() {
-    const select = document.getElementById('nueva-ciclo-id');
-    select.innerHTML = '<option value="">Cargando...</option>';
-    try {
-        const r = await fetch('/api/ciclos');
-        const ciclos = await r.json();
-        if (ciclos && ciclos.length > 0) {
-            select.innerHTML = '<option value="">Selecciona ciclo...</option>' +
-                ciclos.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-        } else {
-            select.innerHTML = '<option value="">Sin ciclos configurados</option>';
+        async function cargarAlumnos() {
+            try {
+                const r = await fetch('/api/alumnos');
+                _alumnos = await r.json();
+                const sel = document.getElementById('nueva-alumno-id');
+                _alumnos.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = a.nombre;
+                    sel.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Error cargando alumnos:', e);
+            }
         }
-    } catch(e) {
-        select.innerHTML = '<option value="">Error cargando ciclos</option>';
-    }
-}
 
-let _comisionesWizard = [];
-async function cargarComisionesWizard() {
-    const select = document.getElementById('nueva-comision-id');
-    select.innerHTML = '<option value="">Cargando...</option>';
-    try {
-        const r = await fetch('/api/plantillas_reunion?tipo=COMISIONES');
-        _comisionesWizard = await r.json();
-        if (_comisionesWizard.length > 0) {
-            select.innerHTML = '<option value="">Selecciona una comisión...</option>' +
-                _comisionesWizard.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-        } else {
-            select.innerHTML = '<option value="">Sin comisiones — configúralas en Configuración</option>';
+        function abrirNuevaReunion(tipo) {
+            editandoId = null;
+            wizardPaso = 1;
+            wizardTipo = tipo || '';
+            wizardAsistentesSeleccionados = [];
+
+            resetWizard();
+            document.getElementById('modal-nueva').classList.add('open');
+
+            // Cargar alumnos para reuniones de padres
+            cargarAlumnos();
+
+            if (tipo) {
+                // Actualizar título según tipo
+                const tiposLabel = { CICLO: ' de Ciclo', NIVEL: ' de Nivel', CCP: ' de CCP', CLAUSTRO: ' de Claustro', COMISIONES: ' de Comisiones' };
+                document.getElementById('wizard-title').textContent = 'Nueva Reunión' + (tiposLabel[tipo] || '');
+
+                // Si viene tipo preseleccionado desde tab, ir directo al paso 2
+                const card = document.querySelector(`.tipo-card[onclick*="'${tipo}'"]`);
+                if (card) seleccionarTipo(tipo, card);
+                setTimeout(wizardSiguiente, 100);
+            }
+
+            // Preseleccionar fecha actual
+            const now = new Date();
+            const local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('nueva-fecha').value = local;
         }
-    } catch(e) {
-        select.innerHTML = '<option value="">Error cargando comisiones</option>';
-    }
-    // Mostrar prompt inicial hasta que se seleccione una comisión
-    document.getElementById('miembros-list').innerHTML =
-        '<p style="color:#888;font-size:0.85rem;text-align:center;padding:12px;">Selecciona una comisión para ver sus miembros.</p>';
-}
 
-async function onComisionChange() {
-    const select = document.getElementById('nueva-comision-id');
-    const comisionId = parseInt(select.value);
-    if (!comisionId) {
-        document.getElementById('miembros-list').innerHTML =
-            '<p style="color:#888;font-size:0.85rem;text-align:center;padding:12px;">Selecciona una comisión para ver sus miembros.</p>';
-        return;
-    }
-    // Buscar la comisión en los datos ya cargados
-    const comision = _comisionesWizard.find(c => c.id === comisionId);
-    const miembros = comision ? (comision.miembros || []) : [];
-    if (miembros.length === 0) {
-        document.getElementById('miembros-list').innerHTML =
-            '<p style="color:#aaa;font-size:0.85rem;text-align:center;padding:12px;">Esta comisión no tiene miembros configurados.</p>';
-        return;
-    }
-    document.getElementById('miembros-list').innerHTML = miembros.map((m, i) =>
-        `<div class="miembro-item">
+        function resetWizard() {
+            wizardPaso = 1;
+            mostrarPaso(1);
+            document.getElementById('btn-wizard-back').style.display = 'none';
+            document.getElementById('btn-wizard-next').textContent = 'Siguiente';
+            document.getElementById('wizard-title').textContent = 'Nueva Reunión';
+            document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('nueva-temas').value = '';
+            document.getElementById('nueva-acuerdos').value = '';
+            document.getElementById('nueva-dificultades').value = '';
+            document.getElementById('nueva-propuestas').value = '';
+            document.getElementById('nueva-lugar').value = '';
+            document.getElementById('nueva-alumno-id').value = '';
+            document.getElementById('nueva-ciclo-id').value = '';
+            document.getElementById('nueva-familiar').value = '';
+            wizardModoEdicion = false;
+            wizardEditandoId = null;
+        }
+
+        async function cargarCiclos() {
+            const select = document.getElementById('nueva-ciclo-id');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            try {
+                const r = await fetch('/api/ciclos');
+                const ciclos = await r.json();
+                if (ciclos && ciclos.length > 0) {
+                    select.innerHTML = '<option value="">Selecciona ciclo...</option>' +
+                        ciclos.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">Sin ciclos configurados</option>';
+                }
+            } catch (e) {
+                select.innerHTML = '<option value="">Error cargando ciclos</option>';
+            }
+        }
+
+        let _comisionesWizard = [];
+        async function cargarComisionesWizard() {
+            const select = document.getElementById('nueva-comision-id');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            try {
+                const r = await fetch('/api/plantillas_reunion?tipo=COMISIONES');
+                _comisionesWizard = await r.json();
+                if (_comisionesWizard.length > 0) {
+                    select.innerHTML = '<option value="">Selecciona una comisión...</option>' +
+                        _comisionesWizard.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">Sin comisiones — configúralas en Configuración</option>';
+                }
+            } catch (e) {
+                select.innerHTML = '<option value="">Error cargando comisiones</option>';
+            }
+            // Mostrar prompt inicial hasta que se seleccione una comisión
+            document.getElementById('miembros-list').innerHTML =
+                '<p style="color:#888;font-size:0.85rem;text-align:center;padding:12px;">Selecciona una comisión para ver sus miembros.</p>';
+        }
+
+        async function onComisionChange() {
+            const select = document.getElementById('nueva-comision-id');
+            const comisionId = parseInt(select.value);
+            if (!comisionId) {
+                document.getElementById('miembros-list').innerHTML =
+                    '<p style="color:#888;font-size:0.85rem;text-align:center;padding:12px;">Selecciona una comisión para ver sus miembros.</p>';
+                return;
+            }
+            // Buscar la comisión en los datos ya cargados
+            const comision = _comisionesWizard.find(c => c.id === comisionId);
+            const miembros = comision ? (comision.miembros || []) : [];
+            if (miembros.length === 0) {
+                document.getElementById('miembros-list').innerHTML =
+                    '<p style="color:#aaa;font-size:0.85rem;text-align:center;padding:12px;">Esta comisión no tiene miembros configurados.</p>';
+                return;
+            }
+            document.getElementById('miembros-list').innerHTML = miembros.map((m, i) =>
+                `<div class="miembro-item">
             <input type="checkbox" id="mc${i}" data-nombre="${m.nombre}" checked>
             <label for="mc${i}" style="flex:1;cursor:pointer;">
                 <span class="miembro-nombre">${m.nombre}</span>
                 ${m.rol ? `<span class="miembro-rol">(${m.rol})</span>` : ''}
             </label>
         </div>`
-    ).join('');
-}
-
-function mostrarPaso(paso) {
-    for (let i = 1; i <= 3; i++) {
-        document.getElementById(`wizard-step-${i}`).style.display = i === paso ? 'block' : 'none';
-        const ind = document.getElementById(`step-ind-${i}`);
-        ind.className = 'wizard-step' + (i < paso ? ' done' : i === paso ? ' active' : '');
-    }
-}
-
-function seleccionarTipo(tipo, el) {
-    wizardTipo = tipo;
-    document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    const labels = { CICLO: 'Nueva Reunión de Ciclo', NIVEL: 'Nueva Reunión de Nivel',
-        CCP: 'Nueva Reunión de CCP', CLAUSTRO: 'Nueva Reunión de Claustro',
-        COMISIONES: 'Nueva Reunión de Comisión', FAMILIAS: 'Nueva Reunión con Familias',
-        PADRES: 'Nueva Entrevista Individual' };
-    document.getElementById('wizard-title').textContent = labels[tipo] || 'Nueva Reunión';
-}
-
-async function wizardSiguiente() {
-    if (wizardPaso === 1) {
-        if (!wizardTipo) {
-            alert('Selecciona un tipo de reunión');
-            return;
-        }
-        wizardPaso = 2;
-        mostrarPaso(2);
-        document.getElementById('btn-wizard-back').style.display = 'inline-block';
-        const esComision = wizardTipo === 'COMISIONES';
-        const esPadres = wizardTipo === 'PADRES';
-        const esFamiliaOPadres = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
-
-        document.getElementById('campo-comision-paso2').style.display = esComision ? 'block' : 'none';
-        document.getElementById('campo-alumno-paso2').style.display = esPadres ? 'block' : 'none';
-
-        // Para FAMILIAS/PADRES, ocultar botones Todos/Ninguno (solo aparece el tutor)
-        const btnTodos = document.getElementById('btn-todos-ninguno');
-        if (btnTodos) btnTodos.style.display = esFamiliaOPadres ? 'none' : 'flex';
-
-        if (esPadres) {
-            // Poblar select de alumnos
-            const sel = document.getElementById('nueva-alumno-id');
-            if (_alumnos.length === 0) await cargarAlumnos();
-            sel.innerHTML = '<option value="">Selecciona alumno/a...</option>' +
-                _alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+            ).join('');
         }
 
-        if (esComision) {
-            await cargarComisionesWizard();
-        } else {
-            await cargarSugerenciasAsistentes();
+        function mostrarPaso(paso) {
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`wizard-step-${i}`).style.display = i === paso ? 'block' : 'none';
+                const ind = document.getElementById(`step-ind-${i}`);
+                ind.className = 'wizard-step' + (i < paso ? ' done' : i === paso ? ' active' : '');
+            }
         }
 
-    } else if (wizardPaso === 2) {
-        // Validar comisión seleccionada si aplica
-        if (wizardTipo === 'COMISIONES' && !document.getElementById('nueva-comision-id').value) {
-            alert('Selecciona una comisión antes de continuar');
-            return;
-        }
-        // Recopilar asistentes seleccionados
-        wizardAsistentesSeleccionados = [];
-        document.querySelectorAll('#miembros-list input[type=checkbox]:checked').forEach(cb => {
-            wizardAsistentesSeleccionados.push(cb.dataset.nombre);
-        });
-        // Añadir manual si hay texto
-        const manual = document.getElementById('nuevo-asistente-nombre');
-        if (manual && manual.value.trim()) {
-            wizardAsistentesSeleccionados.push(manual.value.trim());
+        function seleccionarTipo(tipo, el) {
+            wizardTipo = tipo;
+            document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            const labels = {
+                CICLO: 'Nueva Reunión de Ciclo', NIVEL: 'Nueva Reunión de Nivel',
+                CCP: 'Nueva Reunión de CCP', CLAUSTRO: 'Nueva Reunión de Claustro',
+                COMISIONES: 'Nueva Reunión de Comisión', FAMILIAS: 'Nueva Reunión con Familias',
+                PADRES: 'Nueva Entrevista Individual'
+            };
+            document.getElementById('wizard-title').textContent = labels[tipo] || 'Nueva Reunión';
         }
 
-        wizardPaso = 3;
-        mostrarPaso(3);
-        document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
+        async function wizardSiguiente() {
+            if (wizardPaso === 1) {
+                if (!wizardTipo) {
+                    alert('Selecciona un tipo de reunión');
+                    return;
+                }
+                wizardPaso = 2;
+                mostrarPaso(2);
+                document.getElementById('btn-wizard-back').style.display = 'inline-block';
+                const esComision = wizardTipo === 'COMISIONES';
+                const esPadres = wizardTipo === 'PADRES';
+                const esFamiliaOPadres = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
 
-        // Mostrar/ocultar campos según tipo
-        const esFamilia = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
-        document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
-        document.getElementById('campo-ciclo').style.display = wizardTipo === 'CICLO' ? 'block' : 'none';
-        document.getElementById('campo-dificultades').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
-        document.getElementById('campo-propuestas').style.display = ['CICLO','NIVEL','CCP','CLAUSTRO','COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
+                document.getElementById('campo-comision-paso2').style.display = esComision ? 'block' : 'none';
+                document.getElementById('campo-alumno-paso2').style.display = esPadres ? 'block' : 'none';
 
-        if (wizardTipo === 'CICLO') cargarCiclos();
+                // Para FAMILIAS/PADRES, ocultar botones Todos/Ninguno (solo aparece el tutor)
+                const btnTodos = document.getElementById('btn-todos-ninguno');
+                if (btnTodos) btnTodos.style.display = esFamiliaOPadres ? 'none' : 'flex';
 
-    } else if (wizardPaso === 3) {
-        await guardarNuevaReunion();
-    }
-}
+                if (esPadres) {
+                    // Poblar select de alumnos
+                    const sel = document.getElementById('nueva-alumno-id');
+                    if (_alumnos.length === 0) await cargarAlumnos();
+                    sel.innerHTML = '<option value="">Selecciona alumno/a...</option>' +
+                        _alumnos.map(a => `<option value="${a.id}">${a.nombre}</option>`).join('');
+                }
 
-function wizardAnterior() {
-    if (wizardPaso > 1) {
-        wizardPaso--;
-        mostrarPaso(wizardPaso);
-        if (wizardPaso === 1) {
-            document.getElementById('btn-wizard-back').style.display = 'none';
+                if (esComision) {
+                    await cargarComisionesWizard();
+                } else {
+                    await cargarSugerenciasAsistentes();
+                }
+
+            } else if (wizardPaso === 2) {
+                // Validar comisión seleccionada si aplica
+                if (wizardTipo === 'COMISIONES' && !document.getElementById('nueva-comision-id').value) {
+                    alert('Selecciona una comisión antes de continuar');
+                    return;
+                }
+                // Recopilar asistentes seleccionados
+                wizardAsistentesSeleccionados = [];
+                document.querySelectorAll('#miembros-list input[type=checkbox]:checked').forEach(cb => {
+                    wizardAsistentesSeleccionados.push(cb.dataset.nombre);
+                });
+                // Añadir manual si hay texto
+                const manual = document.getElementById('nuevo-asistente-nombre');
+                if (manual && manual.value.trim()) {
+                    wizardAsistentesSeleccionados.push(manual.value.trim());
+                }
+
+                wizardPaso = 3;
+                mostrarPaso(3);
+                document.getElementById('btn-wizard-next').textContent = '💾 Guardar';
+
+                // Mostrar/ocultar campos según tipo
+                const esFamilia = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
+                document.getElementById('campo-familiar').style.display = esFamilia ? 'block' : 'none';
+                document.getElementById('campo-ciclo').style.display = wizardTipo === 'CICLO' ? 'block' : 'none';
+                document.getElementById('campo-dificultades').style.display = ['CICLO', 'NIVEL', 'CCP', 'CLAUSTRO', 'COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
+                document.getElementById('campo-propuestas').style.display = ['CICLO', 'NIVEL', 'CCP', 'CLAUSTRO', 'COMISIONES'].includes(wizardTipo) ? 'block' : 'none';
+
+                if (wizardTipo === 'CICLO') cargarCiclos();
+
+            } else if (wizardPaso === 3) {
+                await guardarNuevaReunion();
+            }
         }
-        document.getElementById('btn-wizard-next').textContent = wizardPaso === 3 ? '💾 Guardar' : 'Siguiente';
-    }
-}
 
-async function cargarSugerenciasAsistentes() {
-    const lista = document.getElementById('miembros-list');
-    lista.innerHTML = '<p style="color:#888; font-size:0.85rem;">Cargando asistentes...</p>';
+        function wizardAnterior() {
+            if (wizardPaso > 1) {
+                wizardPaso--;
+                mostrarPaso(wizardPaso);
+                if (wizardPaso === 1) {
+                    document.getElementById('btn-wizard-back').style.display = 'none';
+                }
+                document.getElementById('btn-wizard-next').textContent = wizardPaso === 3 ? '💾 Guardar' : 'Siguiente';
+            }
+        }
 
-    const esFamilias = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
+        async function cargarSugerenciasAsistentes() {
+            const lista = document.getElementById('miembros-list');
+            lista.innerHTML = '<p style="color:#888; font-size:0.85rem;">Cargando asistentes...</p>';
 
-    let miembros = [];
-    try {
-        const r = await fetch(`/api/reunion_asistentes/${wizardTipo}/sugeridos`);
-        miembros = await r.json();
-    } catch(e) {}
+            const esFamilias = ['FAMILIAS', 'PADRES'].includes(wizardTipo);
 
-    if (miembros.length === 0) {
-        lista.innerHTML = `<div style="text-align:center; padding:16px; color:#aaa;">
+            let miembros = [];
+            try {
+                const r = await fetch(`/api/reunion_asistentes/${wizardTipo}/sugeridos`);
+                miembros = await r.json();
+            } catch (e) { }
+
+            if (miembros.length === 0) {
+                lista.innerHTML = `<div style="text-align:center; padding:16px; color:#aaa;">
             <p style="font-size:0.88rem; margin:0 0 8px;">Sin asistentes configurados para este tipo.</p>
             <a href="/configuracion#reuniones" style="font-size:0.82rem; color:#0066cc;">
                 ⚙️ Configura el claustro en Configuración → Reuniones
             </a>
         </div>`;
-        return;
-    }
+                return;
+            }
 
-    // Para FAMILIAS: solo marcar el tutor por defecto, el resto desmarcado
-    let nombreTutor = '';
-    if (esFamilias) {
-        try {
-            const rc = await fetch('/api/configuracion');
-            const cfg = await rc.json();
-            nombreTutor = (cfg.nombre_tutor || '').trim().toLowerCase();
-        } catch(e) {}
-    }
+            // Para FAMILIAS: solo marcar el tutor por defecto, el resto desmarcado
+            let nombreTutor = '';
+            if (esFamilias) {
+                try {
+                    const rc = await fetch('/api/configuracion');
+                    const cfg = await rc.json();
+                    nombreTutor = (cfg.nombre_tutor || '').trim().toLowerCase();
+                } catch (e) { }
+            }
 
-    // Para FAMILIAS/PADRES: mostrar SOLO el tutor pre-marcado
-    if (esFamilias) {
-        const tutorMiembro = miembros.find(m =>
-            nombreTutor && m.nombre.toLowerCase().includes(nombreTutor)
-        );
-        const tutorNombre = tutorMiembro ? tutorMiembro.nombre : (nombreTutor || '');
-        if (tutorNombre) {
-            lista.innerHTML = `<div class="miembro-item">
+            // Para FAMILIAS/PADRES: mostrar SOLO el tutor pre-marcado
+            if (esFamilias) {
+                const tutorMiembro = miembros.find(m =>
+                    nombreTutor && m.nombre.toLowerCase().includes(nombreTutor)
+                );
+                const tutorNombre = tutorMiembro ? tutorMiembro.nombre : (nombreTutor || '');
+                if (tutorNombre) {
+                    lista.innerHTML = `<div class="miembro-item">
                 <input type="checkbox" id="m0" data-nombre="${tutorNombre}" checked>
                 <label for="m0" style="flex:1;cursor:pointer;">
                     <span class="miembro-nombre">${tutorNombre}</span>
                     <span class="miembro-rol">(Tutor/a)</span>
                 </label>
             </div>`;
-        } else {
-            lista.innerHTML = '<p style="color:#aaa;font-size:0.85rem;padding:8px;">Sin tutor configurado. Añádelo con el botón de abajo.</p>';
-        }
-        return;
-    }
+                } else {
+                    lista.innerHTML = '<p style="color:#aaa;font-size:0.85rem;padding:8px;">Sin tutor configurado. Añádelo con el botón de abajo.</p>';
+                }
+                return;
+            }
 
-    lista.innerHTML = miembros.map((m, i) => {
-        return `<div class="miembro-item">
+            lista.innerHTML = miembros.map((m, i) => {
+                return `<div class="miembro-item">
             <input type="checkbox" id="m${i}" data-nombre="${m.nombre}" checked>
             <label for="m${i}" style="flex:1; cursor:pointer;">
                 <span class="miembro-nombre">${m.nombre}</span>
                 ${m.rol ? `<span class="miembro-rol">(${m.rol})</span>` : ''}
             </label>
         </div>`;
-    }).join('');
-}
-
-function marcarTodosAsistentes(marcar) {
-    document.querySelectorAll('#miembros-list input[type=checkbox]').forEach(cb => {
-        cb.checked = marcar;
-    });
-}
-
-async function toggleAñadirAsistente() {
-    const div = document.getElementById('asistente-manual');
-    const visible = div.style.display !== 'none' && div.style.display !== '';
-    div.style.display = visible ? 'none' : 'flex';
-    if (!visible) {
-        // Cargar claustro en el dropdown si está vacío
-        const sel = document.getElementById('claustro-asistente-select');
-        if (sel.options.length <= 1) {
-            try {
-                const r = await fetch('/api/claustro');
-                const lista = await r.json();
-                lista.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.nombre;
-                    opt.textContent = m.nombre + (m.rol ? ` (${m.rol})` : '');
-                    sel.appendChild(opt);
-                });
-            } catch(e) {}
+            }).join('');
         }
-        document.getElementById('nuevo-asistente-nombre').focus();
-    }
-}
 
-function confirmarAñadirAsistente() {
-    const sel = document.getElementById('claustro-asistente-select');
-    const txt = document.getElementById('nuevo-asistente-nombre');
-    const nombre = sel.value || txt.value.trim();
-    if (!nombre) return;
+        function marcarTodosAsistentes(marcar) {
+            document.querySelectorAll('#miembros-list input[type=checkbox]').forEach(cb => {
+                cb.checked = marcar;
+            });
+        }
 
-    // Comprobar si ya está en la lista
-    const lista = document.getElementById('miembros-list');
-    const existe = [...lista.querySelectorAll('input[type=checkbox]')].some(cb => cb.dataset.nombre === nombre);
-    if (existe) {
-        // Solo marcarlo si ya existe
-        const cb = [...lista.querySelectorAll('input[type=checkbox]')].find(cb => cb.dataset.nombre === nombre);
-        if (cb) cb.checked = true;
-    } else {
-        const i = lista.querySelectorAll('.miembro-item').length;
-        const div = document.createElement('div');
-        div.className = 'miembro-item';
-        div.innerHTML = `<input type="checkbox" id="me${i}" data-nombre="${nombre}" checked>
+        async function toggleAñadirAsistente() {
+            const div = document.getElementById('asistente-manual');
+            const visible = div.style.display !== 'none' && div.style.display !== '';
+            div.style.display = visible ? 'none' : 'flex';
+            if (!visible) {
+                // Cargar claustro en el dropdown si está vacío
+                const sel = document.getElementById('claustro-asistente-select');
+                if (sel.options.length <= 1) {
+                    try {
+                        const r = await fetch('/api/claustro');
+                        const lista = await r.json();
+                        lista.forEach(m => {
+                            const opt = document.createElement('option');
+                            opt.value = m.nombre;
+                            opt.textContent = m.nombre + (m.rol ? ` (${m.rol})` : '');
+                            sel.appendChild(opt);
+                        });
+                    } catch (e) { }
+                }
+                document.getElementById('nuevo-asistente-nombre').focus();
+            }
+        }
+
+        function confirmarAñadirAsistente() {
+            const sel = document.getElementById('claustro-asistente-select');
+            const txt = document.getElementById('nuevo-asistente-nombre');
+            const nombre = sel.value || txt.value.trim();
+            if (!nombre) return;
+
+            // Comprobar si ya está en la lista
+            const lista = document.getElementById('miembros-list');
+            const existe = [...lista.querySelectorAll('input[type=checkbox]')].some(cb => cb.dataset.nombre === nombre);
+            if (existe) {
+                // Solo marcarlo si ya existe
+                const cb = [...lista.querySelectorAll('input[type=checkbox]')].find(cb => cb.dataset.nombre === nombre);
+                if (cb) cb.checked = true;
+            } else {
+                const i = lista.querySelectorAll('.miembro-item').length;
+                const div = document.createElement('div');
+                div.className = 'miembro-item';
+                div.innerHTML = `<input type="checkbox" id="me${i}" data-nombre="${nombre}" checked>
             <label for="me${i}" style="flex:1;cursor:pointer;"><span class="miembro-nombre">${nombre}</span></label>`;
-        lista.appendChild(div);
-    }
-    sel.value = '';
-    txt.value = '';
-    document.getElementById('asistente-manual').style.display = 'none';
-}
-
-async function guardarNuevaReunion() {
-    const fecha = document.getElementById('nueva-fecha').value;
-    const temas = document.getElementById('nueva-temas').value.trim();
-    if (!fecha || !temas) {
-        alert('Fecha y temas son obligatorios');
-        return;
-    }
-
-    const asistentes = wizardAsistentesSeleccionados.join(', ');
-    const alumno_id = wizardTipo === 'PADRES'
-        ? (document.getElementById('nueva-alumno-id').value || null)
-        : null;
-    const ciclo_id = wizardTipo === 'CICLO'
-        ? (document.getElementById('nueva-ciclo-id').value || null)
-        : null;
-    const plantilla_id = wizardTipo === 'COMISIONES'
-        ? (document.getElementById('nueva-comision-id').value || null)
-        : null;
-
-    const data = {
-        tipo: wizardTipo,
-        fecha,
-        asistentes,
-        temas,
-        dificultades: document.getElementById('nueva-dificultades').value,
-        acuerdos: document.getElementById('nueva-acuerdos').value,
-        propuestas_mejora: document.getElementById('nueva-propuestas').value,
-        lugar: document.getElementById('nueva-lugar').value,
-        familiar_asistente: document.getElementById('nueva-familiar').value.trim() || null,
-        alumno_id: alumno_id ? parseInt(alumno_id) : null,
-        ciclo_id: ciclo_id ? parseInt(ciclo_id) : null,
-        plantilla_id: plantilla_id ? parseInt(plantilla_id) : null,
-    };
-
-    // En modo edición, usar PUT; si venimos del paso 3 en edición, usar asistentes guardados
-    if (wizardModoEdicion && wizardAsistentesSeleccionados.length === 0 && _detalleReunion?.asistentes) {
-        data.asistentes = _detalleReunion.asistentes;
-    }
-
-    const url = wizardModoEdicion ? `/api/reuniones/${wizardEditandoId}` : '/api/reuniones';
-    const method = wizardModoEdicion ? 'PUT' : 'POST';
-
-    try {
-        const r = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        const res = await r.json();
-        if (res.ok) {
-            cerrarModal('modal-nueva');
-            await cargarReuniones();
-        } else {
-            alert('Error guardando: ' + (res.error || ''));
+                lista.appendChild(div);
+            }
+            sel.value = '';
+            txt.value = '';
+            document.getElementById('asistente-manual').style.display = 'none';
         }
-    } catch (e) {
-        console.error('Error guardando reunión:', e);
-        alert('Error de conexión al guardar. Comprueba que el servidor está activo.');
-    }
-}
 
-// ============================================================
-// EXPORTAR CSV
-// ============================================================
-function exportarCSV() {
-    const tipo = tipoActivo ? `?tipo=${tipoActivo}` : '';
-    window.location.href = `/api/reuniones/exportar/csv${tipo}`;
-}
+        async function guardarNuevaReunion() {
+            const fecha = document.getElementById('nueva-fecha').value;
+            const temas = document.getElementById('nueva-temas').value.trim();
+            if (!fecha || !temas) {
+                alert('Fecha y temas son obligatorios');
+                return;
+            }
 
-// ============================================================
-// UTILIDADES
-// ============================================================
-function cerrarModal(id) {
-    document.getElementById(id).classList.remove('open');
-}
+            const asistentes = wizardAsistentesSeleccionados.join(', ');
+            const alumno_id = wizardTipo === 'PADRES'
+                ? (document.getElementById('nueva-alumno-id').value || null)
+                : null;
+            const ciclo_id = wizardTipo === 'CICLO'
+                ? (document.getElementById('nueva-ciclo-id').value || null)
+                : null;
+            const plantilla_id = wizardTipo === 'COMISIONES'
+                ? (document.getElementById('nueva-comision-id').value || null)
+                : null;
 
-// ============================================================
-// SELECCIÓN MASIVA
-// ============================================================
-function handleCardClick(event, id) {
-    // Si hay selección activa, click en card activa el checkbox
-    const bar = document.getElementById('bulk-bar');
-    if (bar.classList.contains('visible')) {
-        const cb = document.querySelector(`.card-checkbox[data-id="${id}"]`);
-        if (cb) { cb.checked = !cb.checked; onCheckCard(cb); }
-    } else {
-        verDetalle(id);
-    }
-}
+            const data = {
+                tipo: wizardTipo,
+                fecha,
+                asistentes,
+                temas,
+                dificultades: document.getElementById('nueva-dificultades').value,
+                acuerdos: document.getElementById('nueva-acuerdos').value,
+                propuestas_mejora: document.getElementById('nueva-propuestas').value,
+                lugar: document.getElementById('nueva-lugar').value,
+                familiar_asistente: document.getElementById('nueva-familiar').value.trim() || null,
+                alumno_id: alumno_id ? parseInt(alumno_id) : null,
+                ciclo_id: ciclo_id ? parseInt(ciclo_id) : null,
+                plantilla_id: plantilla_id ? parseInt(plantilla_id) : null,
+            };
 
-function onCheckCard(cb) {
-    const seleccionadas = document.querySelectorAll('.card-checkbox[data-id]:checked');
-    const total = document.querySelectorAll('.card-checkbox[data-id]').length;
-    const bar = document.getElementById('bulk-bar');
-    const checkAll = document.getElementById('check-all');
+            // En modo edición, usar PUT; si venimos del paso 3 en edición, usar asistentes guardados
+            if (wizardModoEdicion && wizardAsistentesSeleccionados.length === 0 && _detalleReunion?.asistentes) {
+                data.asistentes = _detalleReunion.asistentes;
+            }
 
-    if (seleccionadas.length > 0) {
-        bar.classList.add('visible');
-        document.getElementById('bulk-count').textContent = `${seleccionadas.length} seleccionada${seleccionadas.length > 1 ? 's' : ''}`;
-        checkAll.checked = seleccionadas.length === total;
-        checkAll.indeterminate = seleccionadas.length > 0 && seleccionadas.length < total;
-    } else {
-        bar.classList.remove('visible');
-        checkAll.checked = false;
-        checkAll.indeterminate = false;
-    }
-}
+            const url = wizardModoEdicion ? `/api/reuniones/${wizardEditandoId}` : '/api/reuniones';
+            const method = wizardModoEdicion ? 'PUT' : 'POST';
 
-function toggleSeleccionarTodo(marcar) {
-    document.querySelectorAll('.card-checkbox[data-id]').forEach(cb => { cb.checked = marcar; });
-    onCheckCard(null);
-}
+            try {
+                const r = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const res = await r.json();
+                if (res.ok) {
+                    cerrarModal('modal-nueva');
+                    await cargarReuniones();
+                } else {
+                    alert('Error guardando: ' + (res.error || ''));
+                }
+            } catch (e) {
+                console.error('Error guardando reunión:', e);
+                alert('Error de conexión al guardar. Comprueba que el servidor está activo.');
+            }
+        }
 
-function cancelarSeleccion() {
-    document.querySelectorAll('.card-checkbox[data-id]').forEach(cb => { cb.checked = false; });
-    document.getElementById('bulk-bar').classList.remove('visible');
-    document.getElementById('check-all').checked = false;
-}
+        // ============================================================
+        // EXPORTAR CSV
+        // ============================================================
+        function exportarCSV() {
+            const tipo = tipoActivo ? `?tipo=${tipoActivo}` : '';
+            window.location.href = `/api/reuniones/exportar/csv${tipo}`;
+        }
 
-async function borrarSeleccionadas() {
-    const seleccionadas = [...document.querySelectorAll('.card-checkbox[data-id]:checked')];
-    if (seleccionadas.length === 0) return;
-    if (!confirm(`¿Eliminar ${seleccionadas.length} reunión${seleccionadas.length > 1 ? 'es' : ''}? Esta acción no se puede deshacer.`)) return;
+        // ============================================================
+        // UTILIDADES
+        // ============================================================
+        function cerrarModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
 
-    const ids = seleccionadas.map(cb => parseInt(cb.dataset.id));
-    let errores = 0;
-    for (const id of ids) {
-        try {
-            const r = await fetch(`/api/reuniones/${id}`, { method: 'DELETE' });
-            if (!(await r.json()).ok) errores++;
-        } catch(e) { errores++; }
-    }
+        // ============================================================
+        // SELECCIÓN MASIVA
+        // ============================================================
+        function handleCardClick(event, id) {
+            // Si hay selección activa, click en card activa el checkbox
+            const bar = document.getElementById('bulk-bar');
+            if (bar.classList.contains('visible')) {
+                const cb = document.querySelector(`.card-checkbox[data-id="${id}"]`);
+                if (cb) { cb.checked = !cb.checked; onCheckCard(cb); }
+            } else {
+                verDetalle(id);
+            }
+        }
 
-    cancelarSeleccion();
-    await cargarReuniones();
-    if (errores > 0) alert(`${errores} reunión(es) no se pudieron eliminar.`);
-}
+        function onCheckCard(cb) {
+            const seleccionadas = document.querySelectorAll('.card-checkbox[data-id]:checked');
+            const total = document.querySelectorAll('.card-checkbox[data-id]').length;
+            const bar = document.getElementById('bulk-bar');
+            const checkAll = document.getElementById('check-all');
 
-// Cerrar modales al hacer clic fuera
-document.addEventListener('click', (e) => {
-    ['modal-nueva', 'modal-detalle'].forEach(id => {
-        const el = document.getElementById(id);
-        if (e.target === el) cerrarModal(id);
-    });
-});
-</script>
+            if (seleccionadas.length > 0) {
+                bar.classList.add('visible');
+                document.getElementById('bulk-count').textContent = `${seleccionadas.length} seleccionada${seleccionadas.length > 1 ? 's' : ''}`;
+                checkAll.checked = seleccionadas.length === total;
+                checkAll.indeterminate = seleccionadas.length > 0 && seleccionadas.length < total;
+            } else {
+                bar.classList.remove('visible');
+                checkAll.checked = false;
+                checkAll.indeterminate = false;
+            }
+        }
+
+        function toggleSeleccionarTodo(marcar) {
+            document.querySelectorAll('.card-checkbox[data-id]').forEach(cb => { cb.checked = marcar; });
+            onCheckCard(null);
+        }
+
+        function cancelarSeleccion() {
+            document.querySelectorAll('.card-checkbox[data-id]').forEach(cb => { cb.checked = false; });
+            document.getElementById('bulk-bar').classList.remove('visible');
+            document.getElementById('check-all').checked = false;
+        }
+
+        async function borrarSeleccionadas() {
+            const seleccionadas = [...document.querySelectorAll('.card-checkbox[data-id]:checked')];
+            if (seleccionadas.length === 0) return;
+            if (!confirm(`¿Eliminar ${seleccionadas.length} reunión${seleccionadas.length > 1 ? 'es' : ''}? Esta acción no se puede deshacer.`)) return;
+
+            const ids = seleccionadas.map(cb => parseInt(cb.dataset.id));
+            let errores = 0;
+            for (const id of ids) {
+                try {
+                    const r = await fetch(`/api/reuniones/${id}`, { method: 'DELETE' });
+                    if (!(await r.json()).ok) errores++;
+                } catch (e) { errores++; }
+            }
+
+            cancelarSeleccion();
+            await cargarReuniones();
+            if (errores > 0) alert(`${errores} reunión(es) no se pudieron eliminar.`);
+        }
+
+        // Cerrar modales al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            ['modal-nueva', 'modal-detalle'].forEach(id => {
+                const el = document.getElementById(id);
+                if (e.target === el) cerrarModal(id);
+            });
+        });
+    </script>
 </body>
+
 </html>

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sqlite3 /home/danito73/.cuadernodeltutor/app_evaluar.db \".tables\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000/excursiones)",
+      "Bash(python -c \"from app import app; print\\('OK'\\)\")"
+    ]
+  }
+}

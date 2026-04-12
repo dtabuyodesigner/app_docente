@@ -33,4 +33,32 @@
 
 ---
 
-*Documento generado el 9 de Abril de 2026*
+## 5. Limpieza realizada - 10 Abril 2026
+
+### Archivos eliminados
+- `app.db`, `app_evaluar.db`, `cuaderno_tutor.db` (archivos vacíos)
+- `__pycache__/`, `.pytest_cache/`, `.claude/`, `.qwen/`
+
+### Archivosmovidos
+- CSVs de raíz → `data/`: pilar_t3_*.csv, plantilla_*.csv, test_sda6_DEE.csv
+
+### Nueva estructura
+```
+/data/                      ← CSVs de datos
+/backups/                   ← Backups de base de datos
+/static/                   ← Archivos estáticos
+/templates/                 ← Plantillas HTML
+/routes/                   → Rutas de la app
+/utils/                    → Utilidades
+/tests/                    → Tests
+/scripts/                  → Scripts de gestión
+/schemas/                  → Esquemas
+/CRITERIOS_EVALUACION_INFANTIL/
+/PROGRAMACIONES/
+/logs/
+/files/
+```
+
+---
+
+*Documento actualizado el 10 de Abril de 2026*

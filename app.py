@@ -40,6 +40,23 @@ except ImportError:
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-key-change-in-prod")
 
+# Session configuration — expire after 24 hours of inactivity
+from datetime import timedelta
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# Security headers
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # HSTS (only effective over HTTPS; harmless on HTTP)
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
+
 # Initialize Swagger if available
 swagger = None
 if HAS_SWAGGER:
@@ -57,12 +74,12 @@ if HAS_SWAGGER:
 from utils.db import init_db_if_not_exists, get_db_path
 init_db_if_not_exists()
 
-from utils.db import run_migrations
-run_migrations()
-
-# Tareas de blindaje técnico (Integridad y Backup)
+# Backup e integridad ANTES de las migraciones — así siempre hay un punto de restauración
 from utils.backup import run_startup_tasks
 run_startup_tasks()
+
+from utils.db import run_migrations
+run_migrations()
 
 # ==============================================================================
 # REGISTRO DE BLUEPRINTS (CORREGIDO: SIN DUPLICADOS)
@@ -135,13 +152,17 @@ app.teardown_appcontext(close_db)
 
 csrf = CSRFProtect()
 csrf.init_app(app)
-csrf.exempt(curricular_bp)
-csrf.exempt(alumnos_bp)
-csrf.exempt(criterios_bp)
-csrf.exempt(evaluacion_actividades_bp)
-csrf.exempt(evaluacion_cuaderno_bp)
-csrf.exempt(reuniones_bp)
-csrf.exempt("routes.main.exit_app")
+# CSRF protection enabled on all blueprints
+# Login endpoint is exempt — user has no session yet to obtain CSRF token
+# We patch this after importing the view function
+from routes.main import do_login
+csrf.exempt(do_login)
+
+# Auto-renew session lifetime on each request for logged-in users
+@app.before_request
+def renew_session():
+    if session.get('logged_in'):
+        session.permanent = True
 
 # ==============================================================================
 # RUTAS Y ENDPOINTS

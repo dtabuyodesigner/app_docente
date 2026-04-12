@@ -2,10 +2,43 @@ from flask import Blueprint, send_from_directory, request, jsonify, session, red
 from werkzeug.security import check_password_hash, generate_password_hash
 from utils.db import get_db
 import os
+import time
 from utils.security import get_security_logger
+from flask_wtf.csrf import validate_csrf, ValidationError as CSRFValidationError
 
 main_bp = Blueprint('main', __name__)
 security_logger = get_security_logger()
+
+# ─── RATE LIMITING SIMPLE PARA LOGIN ─────────────────────────────────────────
+# Diccionario en memoria: IP -> lista de timestamps de intentos fallidos
+_login_attempts = {}
+_LOGIN_MAX_ATTEMPTS = 5
+_LOGIN_WINDOW = 300  # 5 minutos
+_LOGIN_BLOCK_TIME = 600  # 10 minutos de bloqueo
+
+def _check_rate_limit(ip):
+    """Devuelve (allowed, message). Bloquea tras MAX_ATTEMPTS intentos en la ventana."""
+    now = time.time()
+    if ip not in _login_attempts:
+        _login_attempts[ip] = []
+
+    # Limpiar intentos fuera de la ventana
+    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < _LOGIN_WINDOW]
+
+    if len(_login_attempts[ip]) >= _LOGIN_MAX_ATTEMPTS:
+        first_attempt = min(_login_attempts[ip])
+        elapsed = now - first_attempt
+        if elapsed < _LOGIN_BLOCK_TIME:
+            remaining = int(_LOGIN_BLOCK_TIME - elapsed)
+            return False, f"Demasiados intentos. Inténtalo de nuevo en {remaining // 60} minutos."
+
+    return True, ""
+
+def _record_failed_attempt(ip):
+    _login_attempts.setdefault(ip, []).append(time.time())
+
+def _clear_attempts(ip):
+    _login_attempts.pop(ip, None)
 
 # ─── PRIMER ARRANQUE ─────────────────────────────────────────────────────────
 
@@ -152,11 +185,25 @@ def cumpleanos_page():
 def prestamos_page():
     return redirect("/biblioteca#prestamos")
 
-# We exempt login so that users whose session expired don't get 400 Bad Request
-# However, for a fully secure app we should supply a CSRF token to the login page as well.
-# For simplicity in this Phase 1, we will exempt it.
 @main_bp.route("/login", methods=["POST"])
 def do_login():
+    ip = request.remote_addr
+
+    # Rate limiting check
+    allowed, msg = _check_rate_limit(ip)
+    if not allowed:
+        security_logger.warning(f"Rate-limited login attempt from IP: {ip}")
+        return jsonify({"ok": False, "error": msg}), 429
+
+    # CSRF check — only if token is present (user may not have session yet)
+    csrf_token = request.headers.get("X-CSRFToken") or request.form.get("csrf_token")
+    if csrf_token:
+        try:
+            validate_csrf(csrf_token)
+        except CSRFValidationError:
+            security_logger.warning(f"Invalid CSRF token on login from IP: {ip}")
+            return jsonify({"ok": False, "error": "Token CSRF inválido"}), 403
+
     data = request.get_json(silent=True) or {}
     username = data.get("username", "").strip()
     password = data.get("password", "")
@@ -169,23 +216,16 @@ def do_login():
     cur.execute("SELECT id, username, password_hash, role FROM usuarios WHERE username = ?", (username,))
     user = cur.fetchone()
 
-    # Si por algún casual la DB no tiene usuarios y existe APP_PASSWORD, se deja como fallback de emergencia temporal
-    legacy_pwd = os.getenv("APP_PASSWORD")
-    if not user and legacy_pwd and password == legacy_pwd and username == "admin":
-        session['logged_in'] = True
-        session['user_id'] = 0
-        session['username'] = 'admin'
-        session['role'] = 'admin'
-        return jsonify({"ok": True})
-
     if user and check_password_hash(user["password_hash"], password):
+        _clear_attempts(ip)  # Reset counter on success
         session['logged_in'] = True
         session['user_id'] = user["id"]
         session['username'] = user["username"]
         session['role'] = user["role"]
-        
-        security_logger.info(f"Successful login for user '{username}'. IP: {request.remote_addr}")
-        
+        session.permanent = True
+
+        security_logger.info(f"Successful login for user '{username}'. IP: {ip}")
+
         # Load default active group
         cur.execute("SELECT id FROM profesores WHERE usuario_id = ?", (user["id"],))
         prof = cur.fetchone()
@@ -196,8 +236,9 @@ def do_login():
                 session['active_group_id'] = grupo["id"]
 
         return jsonify({"ok": True})
-        
-    security_logger.warning(f"Failed login attempt for username '{username}'. IP: {request.remote_addr}")
+
+    _record_failed_attempt(ip)
+    security_logger.warning(f"Failed login attempt for username '{username}'. IP: {ip}")
     return jsonify({"ok": False, "error": "Credenciales incorrectas"}), 401
 
 @main_bp.route("/api/grupos", methods=["GET"])

@@ -454,3 +454,49 @@
     background: #312e81 !important;
     color: #c7d2fe !important;
 }
+
+/* ── Excursiones — tarjetas (dark mode) ── */
+[data-theme="dark"] .excursion-card {
+    background: var(--white) !important;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .excursion-card .card-titulo {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .excursion-card .card-meta,
+[data-theme="dark"] .excursion-card .card-meta span {
+    color: #b0b0c8 !important;
+}
+
+[data-theme="dark"] .excursion-card .card-body,
+[data-theme="dark"] .excursion-card .card-body span {
+    color: #d0d0e0 !important;
+}
+
+[data-theme="dark"] .excursion-card .badge-excursion,
+[data-theme="dark"] .excursion-card .badge-activa {
+    color: #e0e0e0 !important;
+}
+
+/* ── Alumnos — lista (dark mode) ── */
+[data-theme="dark"] .alumno-item {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .alumno-item .alumno-nombre,
+[data-theme="dark"] .alumno-item span {
+    color: #ffffff !important;
+}
+
+/* ── Diario — nombres y teléfonos (dark mode) ── */
+[data-theme="dark"] .student-name,
+[data-theme="dark"] div[style*="font-size:1rem"] {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] div[style*="font-size:0.8rem"] span,
+[data-theme="dark"] div[style*="color:#555"] {
+    color: #b0b0c8 !important;
+}

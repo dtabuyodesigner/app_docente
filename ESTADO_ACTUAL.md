@@ -1,8 +1,23 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.2.6`
+**Versión:** `v1.2.7`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Dark mode general: Excursiones, Alumnos y Diario (v1.2.7)
+
+**Fecha:** 12 de Abril 2026 — 15:30
+
+### Qué se hizo
+- **Excursiones**: tarjetas con fondo oscuro, títulos en blanco, metadatos en gris claro
+- **Alumnos**: nombres en blanco en la lista de alumnos
+- **Diario**: nombres de alumnos en blanco, teléfonos en gris claro visible
+
+### Archivos modificados
+- `static/css/dark-mode.css` — reglas para `.excursion-card`, `.alumno-item`, diario
+- `VERSION`, `version.py` — bump a v1.2.7
 
 ---
 
@@ -235,4 +250,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 12 Abril 2026 — Alumno seleccionado visible en dark mode
+**Última actualización:** 12 Abril 2026 — Dark mode general (Excursiones, Alumnos, Diario)

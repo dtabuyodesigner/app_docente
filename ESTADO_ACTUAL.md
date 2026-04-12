@@ -1,6 +1,6 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.2.2`
+**Versión:** `v1.2.4`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
 

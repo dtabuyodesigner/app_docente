@@ -1,8 +1,23 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.2.7`
+**Versión:** `v1.2.8`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Dark mode Excursiones: botones de acción visibles (v1.2.8)
+
+**Fecha:** 12 de Abril 2026 — 15:45
+
+### Qué se hizo
+- Botones de acción en tarjetas de excursiones ("Editar", "Autorización", "Cerrar") ahora visibles en dark mode
+- Fondo gris oscuro, borde visible, texto blanco
+- Iconos SVG también adaptados al tema oscuro
+
+### Archivos modificados
+- `static/css/dark-mode.css` — reglas para `.card-actions`, `.btn-outline`, `.btn-sm`
+- `VERSION`, `version.py` — bump a v1.2.8
 
 ---
 
@@ -250,4 +265,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 12 Abril 2026 — Dark mode general (Excursiones, Alumnos, Diario)
+**Última actualización:** 12 Abril 2026 — Botones excursiones visibles en dark mode

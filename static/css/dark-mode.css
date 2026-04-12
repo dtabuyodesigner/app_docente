@@ -500,3 +500,31 @@
 [data-theme="dark"] div[style*="color:#555"] {
     color: #b0b0c8 !important;
 }
+
+/* ── Excursiones — botones de acción (dark mode) ── */
+[data-theme="dark"] .card-actions {
+    border-top-color: var(--gray-300);
+}
+
+[data-theme="dark"] .btn-outline {
+    background: var(--gray-200) !important;
+    border-color: var(--gray-300) !important;
+    color: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .btn-outline:hover {
+    background: var(--gray-100) !important;
+}
+
+[data-theme="dark"] .btn-outline svg,
+[data-theme="dark"] .btn-outline i {
+    color: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .btn-danger {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-sm {
+    color: #e0e0e0 !important;
+}

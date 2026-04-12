@@ -4,6 +4,14 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.2.8] — 12 Abril 2026
+### Dark mode Excursiones: botones visibles
+- Botones de acción en tarjetas de excursiones ahora legibles (fondo gris oscuro, texto blanco)
+- Iconos SVG adaptados al tema oscuro
+- **Archivos:** `static/css/dark-mode.css`, `VERSION`, `version.py`
+
+---
+
 ## [v1.2.7] — 12 Abril 2026
 ### Dark mode general: Excursiones, Alumnos, Diario
 - Tarjetas de excursiones con fondo oscuro y texto blanco/gris claro

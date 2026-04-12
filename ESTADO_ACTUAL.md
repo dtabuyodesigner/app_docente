@@ -111,6 +111,23 @@
 
 ## 📋 PENDIENTE
 
+### 🔒 Seguridad — Auditoría completa (auditoría KILO + verificación propia)
+
+> Fecha auditoría: 11 Abril 2026. Los falsos positivos de SQLi (24 puntos) fueron descartados: todos los f-strings construyen placeholders `?`, los valores siempre van parametrizados.
+
+| # | Severidad | Problema | Archivos | Fix necesario |
+|---|-----------|----------|----------|---------------|
+| 1 | 🔴 CRITICAL | **Restore backup path traversal**: `filename` sin validar permite escribir fuera de `backups/` | `routes/admin.py` | `os.path.realpath()` + `os.path.commonpath()` para validar que el path queda dentro de `BACKUP_DIR` |
+| 2 | 🟠 HIGH | **CSRF faltante en Excursiones y Autorizaciones**: ambos HTML no tienen meta csrf-token ni cargan api.js; POST/PUT/DELETE/PATCH fallarán con CSRF global | `static/excursiones.html`, `static/autorizaciones.html` | Añadir `<meta name="csrf-token">` y `<script src="/static/js/api.js">` (mismo patrón que reuniones.html) |
+| 3 | 🟠 HIGH | **Password "1234" hardcodeado** en emergency reset | `routes/main.py`, `scripts/recover_admin.py` | Generar contraseña aleatoria segura en vez de "1234" fijo |
+| 4 | 🟡 MEDIUM | **IDOR Excursiones**: cualquier usuario autenticado puede modificar/borrar excursiones de otros profesores | `routes/excursiones.py` | Verificar que el usuario es creador o pertenece al grupo |
+| 5 | 🟡 MEDIUM | **IDOR Reuniones**: mismo problema | `routes/reuniones.py` | Verificar ownership |
+| 6 | 🟡 MEDIUM | **IDOR Informe alumno**: acceso a PDF de cualquier alumno sin verificar tutoría | `routes/informes.py` | Verificar que el alumno pertenece a grupo del profesor |
+| 7 | 🟢 LOW | **SECRET_KEY fallback hardcodeado** ("dev-key-change-in-prod") | `app.py` | Log warning si no hay SECRET_KEY en .env; considerar fallar si no existe |
+| 8 | 🟢 LOW | **File upload sin validación de magic bytes**: solo se valida extensión, no contenido real | `routes/configuracion.py` | Validar magic bytes de imagen (PNG/JPG/GIF/WebP) |
+| 9 | 🟢 LOW | **PII en Sentry**: `send_default_pii=True` envía datos de sesión a Sentry | `app.py` | Poner a `False` o eliminar si Sentry no es necesario |
+| 10 | 🟢 LOW | **Debug print() en producción**: `_sync_auto_to_excursion` tiene prints de debug | `routes/excursiones.py` | Reemplazar por `security_logger.info()` |
+
 ### Tests por confirmar
 
 | Test | Descripción | Estado |
@@ -168,4 +185,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 11 Abril 2026 — Hardening de Seguridad (v1.2.0)
+**Última actualización:** 11 Abril 2026 — Auditoría de seguridad documentada (10 items pendientes)

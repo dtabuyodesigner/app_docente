@@ -224,12 +224,14 @@
 }
 
 [data-theme="dark"] .type-tab {
-    color: rgba(255,255,255,0.65);
+    color: rgba(255, 255, 255, 0.65);
 }
+
 [data-theme="dark"] .type-tab:hover {
     color: white;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
+
 [data-theme="dark"] .type-tab.active {
     color: #e0e0f0;
     background: #121220;
@@ -249,16 +251,28 @@
 [data-theme="dark"] .reunion-date-box {
     background: var(--gray-200);
 }
-[data-theme="dark"] .reunion-date-day { color: var(--primary); }
-[data-theme="dark"] .reunion-date-mon { color: var(--gray-500); }
 
-[data-theme="dark"] .reunion-title { color: var(--dark); }
-[data-theme="dark"] .reunion-meta { color: var(--gray-500); }
+[data-theme="dark"] .reunion-date-day {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .reunion-date-mon {
+    color: var(--gray-500);
+}
+
+[data-theme="dark"] .reunion-title {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .reunion-meta {
+    color: var(--gray-500);
+}
 
 [data-theme="dark"] .view-btn {
     background: var(--gray-200);
     color: var(--dark);
 }
+
 [data-theme="dark"] .view-btn.active {
     background: var(--primary);
     color: white;
@@ -268,45 +282,91 @@
     border-color: var(--gray-300);
     background: var(--gray-100);
 }
+
 [data-theme="dark"] .tipo-card:hover {
     border-color: var(--primary);
     background: var(--primary-light);
 }
+
 [data-theme="dark"] .tipo-card.selected {
     border-color: var(--primary);
     background: var(--primary-light);
 }
-[data-theme="dark"] .tipo-card .tipo-name { color: var(--dark); }
-[data-theme="dark"] .tipo-card .tipo-desc { color: var(--gray-500); }
+
+[data-theme="dark"] .tipo-card .tipo-name {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .tipo-card .tipo-desc {
+    color: var(--gray-500);
+}
 
 [data-theme="dark"] .miembro-item {
     background: var(--gray-200);
 }
-[data-theme="dark"] .miembro-nombre { color: var(--dark); }
 
-[data-theme="dark"] .wizard-step { background: var(--gray-200); color: var(--dark); }
-[data-theme="dark"] .wizard-step.active { background: var(--primary); color: white; }
-[data-theme="dark"] .wizard-step.done { background: #1a5a2a; color: white; }
+[data-theme="dark"] .miembro-nombre {
+    color: var(--dark);
+}
 
-[data-theme="dark"] .detalle-label { color: var(--gray-500); }
-[data-theme="dark"] .detalle-value { color: var(--dark); }
+[data-theme="dark"] .wizard-step {
+    background: var(--gray-200);
+    color: var(--dark);
+}
 
-[data-theme="dark"] .plantilla-nombre { color: var(--dark); }
-[data-theme="dark"] .plantilla-desc { color: var(--gray-500); }
+[data-theme="dark"] .wizard-step.active {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .wizard-step.done {
+    background: #1a5a2a;
+    color: white;
+}
+
+[data-theme="dark"] .detalle-label {
+    color: var(--gray-500);
+}
+
+[data-theme="dark"] .detalle-value {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .plantilla-nombre {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .plantilla-desc {
+    color: var(--gray-500);
+}
+
 [data-theme="dark"] .miembro-chip {
     background: var(--gray-200);
     color: var(--dark);
 }
-[data-theme="dark"] .tipo-heading { color: var(--primary); border-bottom-color: var(--gray-300); }
 
-[data-theme="dark"] .miembros-editor { border-color: var(--gray-300); }
-[data-theme="dark"] .miembro-row { border-color: var(--gray-300); }
+[data-theme="dark"] .tipo-heading {
+    color: var(--primary);
+    border-bottom-color: var(--gray-300);
+}
+
+[data-theme="dark"] .miembros-editor {
+    border-color: var(--gray-300);
+}
+
+[data-theme="dark"] .miembro-row {
+    border-color: var(--gray-300);
+}
+
 [data-theme="dark"] .btn-add-miembro {
     background: var(--gray-100);
     color: var(--gray-500);
     border-top-color: var(--gray-300);
 }
-[data-theme="dark"] .btn-add-miembro:hover { background: var(--gray-200); }
+
+[data-theme="dark"] .btn-add-miembro:hover {
+    background: var(--gray-200);
+}
 
 /* --- Configuración Reuniones / Claustro (modo oscuro) --- */
 /* Textos descriptivos: gris → blanco brillante */
@@ -315,36 +375,72 @@
 [data-theme="dark"] #reunionesConfigSection label {
     color: #d8d8f0 !important;
 }
+
 /* Texto de la zona de importar CSV */
 [data-theme="dark"] #reunionesConfigSection div[style*="background:#f0f7ff"] {
     background: #1a2a3a !important;
     border-color: #44558a !important;
 }
+
 [data-theme="dark"] #reunionesConfigSection div[style*="background:#f0f7ff"] p,
 [data-theme="dark"] #reunionesConfigSection div[style*="background:#f0f7ff"] span {
     color: #b0c8e8 !important;
 }
+
 /* Filas del claustro */
-[data-theme="dark"] #claustro-lista > div {
+[data-theme="dark"] #claustro-lista>div {
     background: var(--gray-200) !important;
     border-color: var(--gray-300) !important;
 }
-[data-theme="dark"] #claustro-lista span { color: #e0e0f0 !important; }
+
+[data-theme="dark"] #claustro-lista span {
+    color: #e0e0f0 !important;
+}
+
 /* Badges de rol en claustro */
 [data-theme="dark"] #claustro-lista span[style*="background:#e8ecf4"] {
     background: var(--gray-300) !important;
     color: #c8c8e8 !important;
 }
+
 /* Desplegables de tipos de asistentes */
-[data-theme="dark"] #tipos-asistentes > div {
+[data-theme="dark"] #tipos-asistentes>div {
     border-color: var(--gray-300) !important;
 }
-[data-theme="dark"] #tipos-asistentes > div > div:first-child {
+
+[data-theme="dark"] #tipos-asistentes>div>div:first-child {
     background: var(--gray-200) !important;
     color: #e0e0f0 !important;
 }
-[data-theme="dark"] #tipos-asistentes > div > div:first-child span {
+
+[data-theme="dark"] #tipos-asistentes>div>div:first-child span {
     color: #a0a0c8 !important;
 }
-[data-theme="dark"] #tipos-asistentes label { color: #d8d8f0 !important; }
-[data-theme="dark"] #tipos-asistentes label span { color: #a8a8c8 !important; }
+
+[data-theme="dark"] #tipos-asistentes label {
+    color: #d8d8f0 !important;
+}
+
+[data-theme="dark"] #tipos-asistentes label span {
+    color: #a8a8c8 !important;
+}
+
+/* ── Autorizaciones — lista de alumnos (dark mode) ── */
+[data-theme="dark"] .alumno-item {
+    border-bottom-color: var(--gray-200);
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .alumno-item:hover {
+    background: var(--gray-200) !important;
+}
+
+[data-theme="dark"] .alumno-item.activo {
+    background: var(--gray-100) !important;
+    color: var(--primary) !important;
+}
+
+[data-theme="dark"] .alumno-item .badge-count {
+    background: #312e81 !important;
+    color: #c7d2fe !important;
+}

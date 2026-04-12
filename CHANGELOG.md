@@ -4,6 +4,14 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.2.5] — 12 Abril 2026
+### Dark mode en Autorizaciones
+- Lista de alumnos ahora legible en modo oscuro (texto gris claro sobre fondo oscuro)
+- Hover, seleccionado y badges adaptados al tema oscuro
+- **Archivos:** `static/css/dark-mode.css`, `VERSION`, `version.py`
+
+---
+
 ## [v1.2.4] — 12 Abril 2026
 ### Mejora de texto en Dashboard
 - Tarjetas de autorizaciones anuales renombradas: "Sin Auto. Imágenes" → "Autorización Imágenes", "Sin Auto. Salidas" → "Autorización Salidas"

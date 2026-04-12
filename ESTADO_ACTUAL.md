@@ -1,8 +1,24 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.2.4`
+**Versión:** `v1.2.5`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Dark mode en Autorizaciones: lista de alumnos legible (v1.2.5)
+
+**Fecha:** 12 de Abril 2026 — 15:00
+
+### Qué se hizo
+- Añadidas reglas CSS en `dark-mode.css` para `.alumno-item` en modo oscuro
+- Texto de alumnos ahora visible (gris claro `#e0e0e0` sobre fondo oscuro)
+- Hover y seleccionado con fondos adaptados al tema oscuro
+- Badge de conteo con fondo oscuro y texto claro
+
+### Archivos modificados
+- `static/css/dark-mode.css` — reglas para `.alumno-item`, hover, activo y badges
+- `VERSION`, `version.py` — bump a v1.2.5
 
 ---
 
@@ -204,4 +220,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 12 Abril 2026 — Texto tarjetas Dashboard más positivo
+**Última actualización:** 12 Abril 2026 — Dark mode Autorizaciones corregido

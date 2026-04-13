@@ -19,7 +19,7 @@
 
 Aplicación web de gestión docente ("Cuaderno del Tutor") en Flask + SQLite + pywebview, empaquetada con PyInstaller para Windows. La usa Pilar (maestra de 1.º de Primaria) en su portátil Windows 11 para programar, evaluar y gestionar su clase.
 
-- **Repo:** `github.com/dtabuyodesigner/app_docente` (branch `feature/refactor-evaluacion-curricular`)
+- **Repo:** `github.com/dtabuyodesigner/app_docente`
 - **Stack:** Flask, SQLite, PyInstaller, JavaScript vanilla
 - **Carpeta de trabajo:** `~/Documentos/APP_EVALUAR`
 - **Estructura de archivos:** `static/` para HTML, `routes/` para Python
@@ -34,6 +34,102 @@ Aplicación web de gestión docente ("Cuaderno del Tutor") en Flask + SQLite + p
 - Los commits no deben incluir comandos `cp` — los archivos se guardan directamente en su carpeta correcta.
 - Cuando Antigravity, Qwen u otro asistente proporcione versiones alternativas de un archivo, comparar contra el original antes de adoptar.
 - Windows puede requerir `git clone --single-branch` para evitar problemas de nombres de archivo en el historial.
+
+---
+
+## Workflow Git
+
+### Rama antes de cualquier modificación
+
+Antes de tocar código, **crear siempre una rama**. Nunca trabajar directamente en `master`.
+
+```bash
+git checkout -b fix/descripcion-corta      # para correcciones
+git checkout -b feat/descripcion-corta     # para nuevas funcionalidades
+```
+
+Al terminar y verificar que todo funciona, hacer merge a `master`.
+
+### Formato de commits (Conventional Commits)
+
+```
+fix: descripción corta del fix
+feat: descripción corta de la nueva funcionalidad
+docs: cambios en documentación
+refactor: refactor sin cambio funcional
+```
+
+### Comandos habituales
+
+```bash
+# Arrancar la app en desarrollo
+./start_app.sh
+# → http://localhost:5000
+
+# Nuevo release (bump versión + commit + push)
+./release.sh
+
+# Tests
+cd /home/danito73/Documentos/APP_EVALUAR
+python -m pytest tests/
+```
+
+---
+
+## Gestión de versiones
+
+### Versión — subir en cada modificación
+
+**Archivos a actualizar siempre juntos:**
+
+- `VERSION` → número sin `v` (ej: `1.1.33`)
+- `version.py` → `APP_VERSION = "v1.1.33"`
+
+Incremento por tipo de cambio:
+- **Patch** (x.x.**N**): fix de bug, ajuste menor, retoque de UI
+- **Minor** (x.**N**.0): nueva funcionalidad, módulo nuevo
+- **Major** (**N**.0.0): cambio de arquitectura, refactor completo
+
+Se puede usar el script `./release.sh` para hacer bump + commit + push automático.
+
+### Actualizar ESTADO_ACTUAL.md
+
+Al terminar cualquier modificación, **añadir una nueva sección al inicio** de `ESTADO_ACTUAL.md` con este formato:
+
+```markdown
+## ✅ DESCRIPCIÓN DE LA MEJORA (vX.X.XX)
+
+**Fecha:** DD de Mes YYYY — HH:MM
+
+### Qué se hizo
+- Punto 1
+- Punto 2
+
+### Archivos modificados
+- `ruta/archivo.py` — descripción del cambio
+- `static/archivo.html` — descripción del cambio
+```
+
+Actualizar también la línea de pie:
+```
+**Última actualización:** DD Mes YYYY — descripción breve
+```
+
+### Actualizar la ayuda
+
+Si la modificación añade una funcionalidad nueva, cambia un flujo existente o elimina algo, **actualizar `static/ayuda.html`** para reflejar el cambio.
+
+Criterio: si un usuario que no sabe nada de la modificación lo necesitaría saber para usar la app → actualizar la ayuda.
+
+### Checklist antes de hacer merge a master
+
+- [ ] `python -m pytest tests/` pasa sin errores
+- [ ] La app arranca correctamente con `./start_app.sh`
+- [ ] Versión subida en `VERSION` y `version.py`
+- [ ] `ESTADO_ACTUAL.md` actualizado con fecha y hora
+- [ ] `CHANGELOG.md` actualizado con la nueva entrada
+- [ ] `static/ayuda.html` actualizado si el cambio lo requiere
+- [ ] Commits con formato Conventional Commits
 
 ---
 
@@ -117,52 +213,15 @@ Estas se dejan en blanco (entre `;;`) salvo indicación contraria:
 
 Solo después de tener estos tres datos confirmados se puede generar la lista de fechas disponibles.
 
-**Ejemplo de pregunta al usuario:**
-
-> Antes de planificar, necesito que me confirmes:
-> 1. ¿Qué día empieza y termina el periodo?
-> 2. ¿Qué días no lectivos hay? (festivos, puentes, jornadas del centro...)
-> 3. ¿Cuántas sesiones de esta área hay cada día de la semana?
-
 ### Procedimiento paso a paso
 
-#### Paso 1: Leer el Word/ODT original
-
-Extraer:
-- Títulos de las SDAs y sus nombres
-- Criterios de evaluación con descriptor completo
-- Competencias específicas con descriptor completo
-- Saberes básicos relacionados
-- Actividades con título y número de sesiones
-- Lista de sesiones de cada actividad (título y descripción)
-
-#### Paso 2: Preguntar el calendario y calcular slots
-
-Preguntar a Daniel las fechas, no lectivos y sesiones por día. Generar la lista cronológica de fechas lectivas y contar el total de sesiones disponibles.
-
-#### Paso 3: Cuadrar sesiones con slots
-
-- Si sesiones del Word == slots disponibles → asignación directa.
-- Si sesiones del Word > slots → recortar fusionando sesiones similares (avisar a Daniel).
-- Si sesiones del Word < slots → ampliar añadiendo sesiones coherentes (avisar a Daniel).
-
-SA5 va primero, SA6 después. Buscar un punto de corte natural entre semanas.
-
-#### Paso 4: Mostrar el plan ANTES de generar
-
-Presentar una tabla con: Fecha | Día | Nº sesiones | Actividad | Título de la sesión. **Esperar confirmación** antes de generar archivos.
-
-#### Paso 5: Generar el CSV
-
-Una fila por sesión, todas las columnas obligatorias rellenas, respetando todas las reglas de arriba.
-
-#### Paso 6: Generar el Word relleno con fechas
-
-Daniel quiere conservar el Word actualizado con las fechas asignadas como referencia visual.
-
-#### Paso 7: Verificar antes de entregar
-
-Ejecutar este script de comprobación:
+1. **Leer el Word/ODT original** — Extraer SDAs, criterios, competencias, saberes, actividades y sesiones.
+2. **Preguntar el calendario** — Fechas, no lectivos y sesiones por día.
+3. **Cuadrar sesiones con slots** — Si sobran, fusionar; si faltan, ampliar (siempre avisar a Daniel).
+4. **Mostrar el plan ANTES de generar** — Tabla Fecha | Día | Sesiones | Actividad | Título. Esperar confirmación.
+5. **Generar el CSV** — Una fila por sesión, respetando todas las reglas.
+6. **Generar el Word relleno con fechas** — Como referencia visual para Daniel.
+7. **Verificar antes de entregar** — Ejecutar el script de comprobación:
 
 ```python
 import csv
@@ -184,12 +243,6 @@ for i, r in enumerate(rows, 2):
 print(f"OK: {len(rows)} filas válidas")
 ```
 
-### Ejemplo de fila completa
-
-```
-Primaria;Matemáticas;3;MA_SA5;SDA 5 – El reloj de la clase;;MAT5.1;Lee las horas en punto y las medias horas en relojes analógicos y digitales.;CE2;Modelizar y representar la realidad utilizando conceptos y herramientas matemáticas para analizar la información, tomar decisiones y resolver problemas.;B. Sentido de la medida: Medida del tiempo: unidades (hora, minuto). Lectura de relojes analógicos y digitales (horas en punto y medias). Asociación de horas con rutinas.;MA_5.1;Construcción y lectura del reloj;;7;;;;06/04/2026;1;Construimos nuestro reloj;Cada alumno construye su reloj de cartulina con manecillas móviles.;;
-```
-
 ### Errores comunes a evitar
 
 1. ❌ No prefijar los IDs → la app mezcla actividades entre áreas.
@@ -199,26 +252,42 @@ Primaria;Matemáticas;3;MA_SA5;SDA 5 – El reloj de la clase;;MAT5.1;Lee las ho
 5. ❌ Inventar nombres de área que no existen literalmente en la app.
 6. ❌ Repetir IDs entre áreas distintas sin prefijar.
 7. ❌ Generar archivos sin enseñar primero el plan a Daniel.
-8. ❌ Asumir el calendario lectivo o los días no lectivos sin preguntar: cambian según trimestre, curso, comunidad autónoma y centro.
+8. ❌ Asumir el calendario lectivo o los días no lectivos sin preguntar.
+
+---
+
+## Archivos clave
+
+| Archivo | Propósito |
+|---------|-----------|
+| `VERSION` | Versión en texto plano (fuente de verdad) |
+| `version.py` | `APP_VERSION` para la app Flask |
+| `ESTADO_ACTUAL.md` | Estado actual del proyecto |
+| `CHANGELOG.md` | Historial completo de cambios por versión |
+| `static/ayuda.html` | Ayuda integrada en la app |
+| `schema.sql` | Esquema base de datos |
+| `utils/db.py` | Migraciones automáticas al arrancar |
+| `utils/backup.py` | Backup diario automático (corre antes de migraciones) |
+| `routes/` | Un archivo por módulo |
+| `static/` | HTML, CSS, JS del frontend |
+| `data/` | CSVs de importación/exportación |
 
 ---
 
 ## Agentes especializados
 
-En la carpeta `.agents/` del proyecto hay agentes especializados. Son archivos `.md` con instrucciones para adoptar un rol concreto. Úsalos cuando el tipo de tarea lo requiera.
+En la carpeta `.agents/` del proyecto hay agentes especializados. Son archivos `.md` con instrucciones para adoptar un rol concreto.
 
 | Archivo | Nombre | Cuándo usarlo |
 |---------|--------|---------------|
-| `cirujano.md` | Cirujano del código | Arreglar bugs tocando lo mínimo, sin reescribir archivos enteros. **El más usado del día a día.** |
-| `arquitecto-backend.md` | Arquitecto backend | Crear o modificar rutas Flask, APIs, queries SQLite, lógica de servidor. |
+| `cirujano.md` | Cirujano del código | Arreglar bugs tocando lo mínimo. **El más usado del día a día.** |
+| `arquitecto-backend.md` | Arquitecto backend | Crear o modificar rutas Flask, APIs, queries SQLite. |
 | `desarrollador-frontend.md` | Desarrollador frontend | Tocar HTML, CSS o JavaScript. |
-| `revisor-de-codigo.md` | Revisor de código | Revisar cambios antes de hacer commit. Buscar errores, código muerto, inconsistencias. |
-| `optimizador-de-datos.md` | Optimizador de datos | Cuando la app va lenta o una query tarda. Optimizar índices y consultas SQLite. |
-| `ingeniero-de-seguridad.md` | Ingeniero de seguridad | Auditar vulnerabilidades, revisar autenticación, preparar una versión para publicar. |
+| `revisor-de-codigo.md` | Revisor de código | Revisar cambios antes de hacer commit. |
+| `optimizador-de-datos.md` | Optimizador de datos | Cuando la app va lenta o una query tarda. |
+| `ingeniero-de-seguridad.md` | Ingeniero de seguridad | Auditar vulnerabilidades, revisar autenticación. |
 
 ### Cómo activar un agente
-
-Decirle al asistente (da igual si es Antigravity, Claude, Codex o Qwen):
 
 > *"Lee el archivo .agents/cirujano.md y úsalo para arreglar el bug de..."*
 

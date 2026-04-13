@@ -13,7 +13,7 @@
             max-width: 800px;
             margin: 40px auto;
             padding: 20px;
-            background: white;
+            background: var(--white);
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
@@ -97,14 +97,14 @@
     <div class="container">
         <div class="header-actions">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <a href="/configuracion" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:white; color:var(--primary); padding:7px 14px; border-radius:8px; font-weight:600; border:2px solid var(--primary); font-size:0.85rem;" onmouseover="this.style.background='var(--primary)'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='var(--primary)';">⬅️ Configuración</a>
+                <a href="/configuracion" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; background: var(--white); color:var(--primary); padding:7px 14px; border-radius:8px; font-weight:600; border:2px solid var(--primary); font-size:0.85rem;" onmouseover="this.style.background='var(--primary)'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='var(--primary)';">⬅️ Configuración</a>
                 <h1 style="margin: 0;">👥 Gestión de Usuarios</h1>
             </div>
             <button class="btn-primary" onclick="document.getElementById('newUserForm').style.display='block'">+
                 Crear Usuario</button>
         </div>
         <div id="newUserForm"
-            style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            style="display: none; background: var(--gray-100); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
             <h3>Crear Nuevo Acceso</h3>
             <form onsubmit="crearUsuario(event)">
                 <div class="form-group">

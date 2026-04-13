@@ -38,7 +38,7 @@ body {
             gap: 20px;
         }
         .month-card {
-            background: white;
+            background: var(--white);
             border-radius: 16px;
             box-shadow: var(--card-shadow);
             border: 1px solid #eef2f7;
@@ -124,7 +124,7 @@ body {
 
         @media print {
             .nav-wrapper, .page-header button { display: none !important; }
-            body { background: white; padding: 0; }
+            body { background: var(--white); padding: 0; }
             .months-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
             .month-card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
         }

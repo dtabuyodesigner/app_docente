@@ -26,7 +26,7 @@ body {
         .container {
             width: 100%;
             max-width: 1200px;
-            background: white;
+            background: var(--white);
             padding: 30px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -76,7 +76,7 @@ body {
         }
 
         .update-banner button {
-            background: white;
+            background: var(--white);
             color: #28a745;
             border: none;
             padding: 8px 20px;
@@ -87,7 +87,7 @@ body {
         }
 
         .update-banner button:hover {
-            background: #f8f9fa;
+            background: var(--gray-100);
         }
 
         /* Birthday Banner */
@@ -117,7 +117,7 @@ body {
 
         /* Stats Cards (Top row) */
         .stat-card {
-            background: white;
+            background: var(--white);
             padding: 14px 12px;
             border-radius: 14px;
             text-align: center;
@@ -151,7 +151,7 @@ body {
 
         /* Charts & Lists (Bottom Grid) */
         .chart-container {
-            background: white;
+            background: var(--white);
             padding: 20px;
             border-radius: 16px;
             border: 1px solid #eef2f7;
@@ -161,7 +161,7 @@ body {
         }
 
         .list-container {
-            background: white;
+            background: var(--white);
             padding: 20px;
             border-radius: 16px;
             border: 1px solid #eef2f7;
@@ -270,7 +270,7 @@ body {
         }
 
         .nav-btn {
-            background: white;
+            background: var(--white);
             border: 2px solid #eef2f7;
             border-radius: 12px;
             padding: 12px 8px;
@@ -289,7 +289,7 @@ body {
 
         .nav-btn:hover {
             border-color: var(--primary);
-            background: #f0f7ff;
+            background: var(--primary-light);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
@@ -384,7 +384,7 @@ body {
         }
 
         .modal {
-            background: white;
+            background: var(--white);
             padding: 25px;
             border-radius: 12px;
             width: 90%;
@@ -514,7 +514,7 @@ body {
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
                 <button onclick="applyUpdateFromBanner()"
-                    style="background:white; color:#28a745; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer;">Actualizar
+                    style="background: var(--white); color:#28a745; border:none; padding:8px 18px; border-radius:8px; font-weight:700; cursor:pointer;">Actualizar
                     ahora</button>
                 <button onclick="dismissUpdateBanner()"
                     style="background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.5); padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer;">Omitir</button>
@@ -586,7 +586,7 @@ body {
                 <span class="nav-text">Evaluar Todo</span>
             </a>
             <a href="/static/evaluacion.html#cuaderno" class="nav-btn"
-                style="border-color: #007bff; background: #f0f7ff;">
+                style="border-color: #007bff; background: var(--primary-light);">
                 <span class="nav-icon">📓</span>
                 <span class="nav-text">Cuaderno</span>
             </a>
@@ -687,7 +687,7 @@ body {
                     <div style="color: #b45309; font-style: italic;">No hay alertas activas.</div>
                 </div>
             </div>
-            <div class="list-container" style="border-left: 4px solid #3b82f6; background: #f0f7ff;">
+            <div class="list-container" style="border-left: 4px solid #3b82f6; background: var(--primary-light);">
                 <div class="section-header" style="color: #1e40af;">📅 Próximas Actividades</div>
                 <div id="activitiesList">
                     <div style="color: #1d4ed8; font-style: italic;">No hay actividades próximas.</div>
@@ -779,7 +779,7 @@ body {
                             <p style="color: #666; font-style: italic;">Cargando grupos...</p>
                         </div>
                     </div>
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                    <div style="background: var(--gray-100); padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
                         <h4 style="margin-top: 0; color:var(--primary);">➕ Crear Nuevo Grupo</h4>
                         <div style="margin-bottom: 15px;">
                             <label style="display:block; font-weight:600; margin-bottom:5px;">Etapa y Curso:</label>
@@ -899,7 +899,7 @@ body {
                     </div>
                     <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                            <thead style="background: #f8f9fa; position: sticky; top: 0;">
+                            <thead style="background: var(--gray-100); position: sticky; top: 0;">
                                 <tr>
                                     <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">
                                         Archivo</th>
@@ -1241,7 +1241,7 @@ body {
                     const btn = document.getElementById('btnEntendido');
                     if (modal && content) {
                         content.innerHTML = todayEvents.map(e => `
-                            <div style="margin: 15px 0; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+                            <div style="margin: 15px 0; display: flex; justify-content: space-between; align-items: center; background: var(--gray-100); padding: 10px; border-radius: 8px;">
                                 <span style="font-weight: 600;">✨ ${e.actividad}</span>
                                 <button onclick="marcarEventoHecho(${e.id})"
                                     style="background: var(--success); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">

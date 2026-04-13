@@ -1781,7 +1781,7 @@
             const container = document.getElementById('booksGrid');
             container.className = currentView === 'list' ? 'books-list' : 'books-grid';
             if (!books.length) {
-                container.innerHTML = `< div class="empty-state" style = "grid-column:1/-1" ><div class="icon">📭</div><p>No se encontraron libros.</p></div > `;
+                container.innerHTML = `<div class="empty-state" style="grid-column:1/-1" ><div class="icon">📭</div><p>No se encontraron libros.</p></div> `;
                 return;
             }
             container.innerHTML = books.map(b => {
@@ -1790,11 +1790,11 @@
                 const cls = agotado ? 'avail-none' : (b.cantidad_disponible <= 1 ? 'avail-low' : 'avail-ok');
                 const cardCls = agotado ? 'book-card book-card-agotado' : 'book-card';
                 const cover = b.portada && b.portada.startsWith('http')
-                    ? `< div class="book-cover" > <img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.innerHTML='📖'"></div>`
-                    : `< div class="book-cover" style = "display:flex;align-items:center;justify-content:center;font-size:2rem;background:#f8fafc;" >📖</div > `;
-                const checkbox = `< input type = "checkbox" class="book-checkbox" onchange = "toggleBookSelection(${b.id})" ${isSelected ? 'checked' : ''}> `;
+                    ? `<div class="book-cover" > <img src="${b.portada}" alt="${b.titulo}" onerror="this.parentElement.innerHTML='📖'"></div>`
+                    : `<div class="book-cover" style="display:flex;align-items:center;justify-content:center;font-size:2rem;background:#f8fafc;" >📖</div> `;
+                const checkbox = `<input type="checkbox" class="book-checkbox" onchange="toggleBookSelection(${b.id})" ${isSelected ? 'checked' : ''}> `;
                 if (currentView === 'list') {
-                    return `< div class="${cardCls}" >
+                    return `<div class="${cardCls}" >
             ${checkbox}
                         ${cover}
                         <div class="book-info">
@@ -1806,10 +1806,10 @@
                             ${!agotado ? `<button class="btn btn-success btn-sm" onclick="openPrestamoRapido(${b.id}, '${b.titulo.replace(/'/g, "\\'")}', '${b.autor ? b.autor.replace(/'/g, "\\'") : ''}')" title="Prestar Libro" style="padding: 4px 10px; font-size: .85rem;">📤 Prestar</button>` : ''}
                             <button class="btn btn-outline btn-sm" onclick="openEdit(${b.id})" title="Editar">✏️</button>
                             <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')" title="Eliminar">🗑️</button>
-                        </div >
-                    </div > `;
+                        </div>
+                    </div> `;
                 } else {
-                    return `< div class="${cardCls}" >
+                    return `<div class="${cardCls}" >
             ${checkbox}
                         ${cover}
                         <div class="book-title">${b.titulo}</div>
@@ -1822,8 +1822,8 @@
                                 <button class="btn btn-outline btn-sm" style="flex:1" onclick="openEdit(${b.id})">✏️ Editar</button>
                                 <button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteBook(${b.id},'${b.titulo.replace(/'/g, "\\'")}')">🗑️</button>
                             </div>
-                        </div >
-                    </div > `;
+                        </div>
+                    </div> `;
                 }
             }).join('');
         }
@@ -1836,8 +1836,8 @@
                 body: JSON.stringify(body)
             })).json();
             const el = document.getElementById('formAlert');
-            if (d.ok) { el.innerHTML = `< div class="alert alert-success" > ${d.mensaje}</div > `; document.getElementById('bookForm').reset(); document.getElementById('f-cantidad').value = 1; loadBooks(); loadStats(); setTimeout(() => el.innerHTML = '', 3000); }
-            else el.innerHTML = `< div class="alert alert-danger" >❌ ${d.error}</div > `;
+            if (d.ok) { el.innerHTML = `<div class="alert alert-success" > ${d.mensaje}</div> `; document.getElementById('bookForm').reset(); document.getElementById('f-cantidad').value = 1; loadBooks(); loadStats(); setTimeout(() => el.innerHTML = '', 3000); }
+            else el.innerHTML = `<div class="alert alert-danger" >❌ ${d.error}</div> `;
         }
         function openEdit(id) {
             const b = allBooks.find(x => x.id === id); if (!b) return;
@@ -1860,7 +1860,7 @@
                 body: JSON.stringify(body)
             })).json();
             if (d.ok) { closeModal('editModal'); loadBooks(); loadStats(); }
-            else document.getElementById('editAlert').innerHTML = `< div class="alert alert-danger" >❌ ${d.error}</div > `;
+            else document.getElementById('editAlert').innerHTML = `<div class="alert alert-danger" >❌ ${d.error}</div> `;
         }
         async function deleteBook(id, titulo) {
             if (!confirm(`¿Eliminar "${titulo}" ? `)) return;
@@ -1883,8 +1883,8 @@
             const btn = document.getElementById('csvBtn'); btn.textContent = '⏳ Importando...'; btn.disabled = true;
             try {
                 const d = await (await fetch('/api/libros/importar/csv', { method: 'POST', headers: { 'X-CSRFToken': await getCsrf() }, body: fd })).json();
-                let html = d.ok ? `< div class="alert alert-success" > ${d.mensaje} (${d.libros_importados} /${d.total_filas})</div > ` : ` < div class="alert alert-danger" >❌ ${d.error}</div > `;
-                if (d.ok && d.errores) html += `< div class="alert" style = "background:#fff8e1;border-left:4px solid orange;color:#7a5c00;" >⚠️ Errores: ${d.errores.join('<br>')}</div > `;
+                let html = d.ok ? `<div class="alert alert-success" > ${d.mensaje} (${d.libros_importados} /${d.total_filas})</div> ` : ` <div class="alert alert-danger" >❌ ${d.error}</div> `;
+                if (d.ok && d.errores) html += `<div class="alert" style="background:#fff8e1;border-left:4px solid orange;color:#7a5c00;" >⚠️ Errores: ${d.errores.join('<br>')}</div> `;
                 document.getElementById('csvAlert').innerHTML = html;
                 if (d.ok) { csvSelectedFile = null; document.getElementById('fileInfo').style.display = 'none'; document.getElementById('csvFile').value = ''; document.getElementById('csvBtn').style.display = 'none'; loadBooks(); loadStats(); }
             } finally { btn.textContent = '📤 Importar Libros'; btn.disabled = false; }
@@ -1916,20 +1916,20 @@
             document.getElementById('gbResults').innerHTML = '<div style="text-align:center;padding:30px;color:#888;">⏳ Buscando...</div>';
             document.getElementById('gbAlert').innerHTML = '';
             const d = await (await fetch(`/ api / libros / buscar - google ? titulo = ${encodeURIComponent(titulo)} `)).json();
-            if (!d.ok) { document.getElementById('gbAlert').innerHTML = `< div class="alert alert-danger" >❌ ${d.error}</div > `; document.getElementById('gbResults').innerHTML = ''; return; }
+            if (!d.ok) { document.getElementById('gbAlert').innerHTML = `<div class="alert alert-danger" >❌ ${d.error}</div> `; document.getElementById('gbResults').innerHTML = ''; return; }
             if (!d.resultados.length) { document.getElementById('gbResults').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Sin resultados.</p></div>'; return; }
             window._gbResults = d.resultados;
             document.getElementById('gbResults').innerHTML = d.resultados.map((b, i) => `
-            < div class="google-card" onclick = "openGbImport(${i})" >
+            <div class="google-card" onclick="openGbImport(${i})" >
                 ${b.portada ? `<img src="${b.portada}" alt="${b.titulo}">` : `<div class="g-no-img">📖</div>`}
             <div class="g-title">${b.titulo}</div>
             <div class="g-author">${b.autor || ''}</div>
             <div style="font-size:.7rem;color:#999;margin-top:3px;">${[b.editorial, b.año_publicacion].filter(Boolean).join(' · ')}</div>
-        </div > `).join('');
+        </div> `).join('');
         }
         function openGbImport(i) {
             selectedGbBook = window._gbResults[i];
-            document.getElementById('gbImportInfo').innerHTML = `< strong > ${selectedGbBook.titulo}</strong > <br><span style="color:#666;font-size:.85rem;">${selectedGbBook.autor || ''}</span>${selectedGbBook.editorial ? `<br><span style="color:#999;font-size:.8rem;">${selectedGbBook.editorial}</span>` : ''}`;
+            document.getElementById('gbImportInfo').innerHTML = `<strong > ${selectedGbBook.titulo}</strong> <br><span style="color:#666;font-size:.85rem;">${selectedGbBook.autor || ''}</span>${selectedGbBook.editorial ? `<br><span style="color:#999;font-size:.8rem;">${selectedGbBook.editorial}</span>` : ''}`;
             document.getElementById('gb-cantidad').value = 1;
             document.getElementById('gb-nivel').value = '';
             document.getElementById('gb-genero').value = '';
@@ -2108,7 +2108,7 @@
                 const epSel = document.getElementById('ep-alumno');
                 const opts = '<option value="">-- Selecciona un alumno --</option>' +
                     alumnosList.sort((a, b) => a.nombre.localeCompare(b.nombre))
-                        .map(a => `< option value = "${a.id}" > ${a.nombre}</option > `).join('');
+                        .map(a => `<option value="${a.id}"> ${a.nombre}</option>`).join('');
                 if (pSel) pSel.innerHTML = opts;
                 if (hSel) hSel.innerHTML = opts;
                 if (epSel) epSel.innerHTML = opts;
@@ -2135,7 +2135,7 @@
                 cont.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No hay préstamos activos para el filtro.</p></div>';
                 return;
             }
-            cont.innerHTML = `< table class="table" ><thead><tr><th>Alumno</th><th>Libro</th><th>Fecha</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
+            cont.innerHTML = `<table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Fecha</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
                 ${data.map(p => `<tr>
                     <td>${p.alumno_nombre}</td><td>${p.libro_titulo}</td><td>${p.fecha_prestamo}</td>
                     <td><span class="avail-badge ${p.dias_transcurridos > _plazoGlobal ? 'avail-none' : 'avail-ok'}">${p.dias_transcurridos}d</span></td>
@@ -2145,7 +2145,7 @@
                         <button class="btn btn-danger btn-sm" onclick="eliminarPrestamo(${p.id})">🗑️</button>
                     </td>
                 </tr>`).join('')}
-            </tbody></table > `;
+            </tbody></table>`;
         }
         async function _loadRetrasos() {
             try {
@@ -2168,7 +2168,7 @@
                 cont.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>¡Sin retrasos para el filtro!</p></div>';
                 return;
             }
-            cont.innerHTML = `< div class="alert alert-danger" >⚠️ ${data.length} libro(s) coinciden con la búsqueda</div >
+            cont.innerHTML = `<div class="alert alert-danger" >⚠️ ${data.length} libro(s) coinciden con la búsqueda</div>
             <table class="table"><thead><tr><th>Alumno</th><th>Libro</th><th>Desde</th><th>Días</th><th>Acciones</th></tr></thead><tbody>
                 ${data.map(p => `<tr>
                     <td>${p.nombre}</td><td>${p.titulo}</td><td>${p.fecha_prestamo}</td>
@@ -2227,7 +2227,7 @@
                 : '—';
             // Build summary bar
             let summaryHtml = `
-                < div style = "display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px;" >
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px;" >
                     <div style="background:#f0f7ff; padding: 15px; border-radius: 14px; border: 1px solid #d0e1f9; text-align: center; box-shadow: 0 4px 10px rgba(0,51,102,0.03);">
                         <div style="font-size: .65rem; color: #5c7c99; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">Total</div>
                         <div style="font-size: 1.6rem; font-weight: 800; color: #003366;">${totalLoans}</div>
@@ -2249,7 +2249,7 @@
                         <div style="font-size: .65rem; color: #dc2626; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">Media Días</div>
                         <div style="font-size: 1.6rem; font-weight: 800; color: #b91c1c;">${avgDays}</div>
                     </div>
-                </div >
+                </div>
             `;
             // Group by student
             const byAlumno = {};
@@ -2265,7 +2265,7 @@
                 const nActivos = prestamos.filter(p => p.estado !== 'devuelto').length;
                 const groupId = `${prefix} -group - ${idx} `;
                 groupsHtml += `
-            < div class="historial-group" style = "background:white; border: 1px solid #eef2f7; border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: all 0.2s;" >
+            <div class="historial-group" style="background:white; border: 1px solid #eef2f7; border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: all 0.2s;" >
                     <div onclick="toggleHistGroup('${groupId}', '${prefix}-${idx}')" 
                          style="padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-left: 5px solid ${nActivos > 0 ? '#f39c12' : '#28a745'}; background: #fff;">
                         <div style="display: flex; align-items: center; gap: 14px;">
@@ -2323,7 +2323,7 @@
                             </tbody>
                         </table>
                     </div>
-                </div >
+                </div>
             `;
             });
             cont.innerHTML = summaryHtml + groupsHtml;
@@ -2399,7 +2399,7 @@
                 _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats();
                 setTimeout(() => location.reload(), 500);
             } else {
-                document.getElementById('ep-alert').innerHTML = `< div class="alert alert-danger" >❌ ${d.error}</div > `;
+                document.getElementById('ep-alert').innerHTML = `<div class="alert alert-danger" >❌ ${d.error}</div> `;
             }
         }
         function closeEditPrest() { document.getElementById('editPrestModal').style.display = 'none'; }

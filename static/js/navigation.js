@@ -42,7 +42,7 @@ const MENU_STRUCTURE = [
         items: [
             { name: "Evaluación", icon: "📋", url: "/static/evaluacion.html" },
             { name: "Evaluar Todo", icon: "🚀", url: "/static/evaluar_todo.html" },
-            { name: "Cuaderno", icon: "📓", url: "/static/cuaderno_evaluacion.html" },
+            { name: "Cuaderno", icon: "📓", url: "/static/evaluacion.html#cuaderno" },
             { name: "Progreso", icon: "📈", url: "/static/progreso_clase.html" },
             { name: "Informes", icon: "📜", url: "/informes" }
         ]

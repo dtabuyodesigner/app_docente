@@ -569,52 +569,59 @@ def update_seguridad():
 def get_recovery_question():
     username = request.args.get("username", "").strip()
     if not username:
-        return jsonify({"ok": False, "error": "Falta el usuario"}), 400
-        
+        # Misma respuesta genérica para evitar enumeración de usuarios
+        return jsonify({"ok": True, "pregunta": "Si el usuario existe y tiene pregunta de seguridad configurada, se mostrará aquí."})
+
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT pregunta_seguridad FROM usuarios WHERE username = ?", (username,))
     usr = cur.fetchone()
-    
-    if not usr:
-        # Prevent username enumeration theoretically, but here it's fine to tell them it's wrong
-        return jsonify({"ok": False, "error": "Usuario no encontrado"}), 404
-        
-    if not usr["pregunta_seguridad"]:
-        return jsonify({"ok": False, "error": "Este usuario no tiene configurada una pregunta de seguridad. Contacta con el administrador."}), 400
-        
+
+    if not usr or not usr["pregunta_seguridad"]:
+        # Misma respuesta genérica — no revelar si el usuario existe
+        return jsonify({"ok": True, "pregunta": "Si el usuario existe y tiene pregunta de seguridad configurada, se mostrará aquí."})
+
     return jsonify({"ok": True, "pregunta": usr["pregunta_seguridad"]})
 
 @main_bp.route("/api/recover_password", methods=["POST"])
 def do_recover_password():
+    # Rate limiting para prevenir brute-force
+    ip = request.remote_addr or "unknown"
+    allowed, msg = _check_rate_limit(ip)
+    if not allowed:
+        security_logger.warning(f"Rate limit exceeded for password recovery from {ip}")
+        return jsonify({"ok": False, "error": msg}), 429
+
     data = request.json
     username = data.get("username", "").strip()
     respuesta = data.get("respuesta", "").strip()
     new_password = data.get("new_password", "").strip()
-    
+
     if not username or not respuesta or not new_password:
         return jsonify({"ok": False, "error": "Faltan datos"}), 400
-        
+
     conn = get_db()
     cur = conn.cursor()
     cur.execute("SELECT id, respuesta_seguridad_hash FROM usuarios WHERE username = ?", (username,))
     usr = cur.fetchone()
-    
+
     if not usr or not usr["respuesta_seguridad_hash"]:
-        security_logger.warning(f"Failed password recovery attempt for '{username}' (no user or no security question). IP: {request.remote_addr}")
+        security_logger.warning(f"Failed password recovery attempt for '{username}' (no user or no security question). IP: {ip}")
+        _clear_rate_limit(ip)  # No penalizar errores de validación
         return jsonify({"ok": False, "error": "No se puede recuperar la contraseña para este usuario"}), 400
-        
+
     from werkzeug.security import check_password_hash, generate_password_hash
-    
+
     if not check_password_hash(usr["respuesta_seguridad_hash"], respuesta):
-        security_logger.warning(f"Failed password recovery attempt for '{username}' (wrong answer). IP: {request.remote_addr}")
+        security_logger.warning(f"Failed password recovery attempt for '{username}' (wrong answer). IP: {ip}")
         return jsonify({"ok": False, "error": "La respuesta de seguridad es incorrecta"}), 400
-        
+
     try:
         new_hash = generate_password_hash(new_password)
         cur.execute("UPDATE usuarios SET password_hash = ? WHERE id = ?", (new_hash, usr["id"]))
         conn.commit()
-        security_logger.info(f"Password successfully recovered for '{username}'. IP: {request.remote_addr}")
+        _clear_rate_limit(ip)  # Reset tras éxito
+        security_logger.info(f"Password successfully recovered for '{username}'. IP: {ip}")
         return jsonify({"ok": True})
     except Exception as e:
         conn.rollback()

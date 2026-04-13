@@ -269,12 +269,23 @@ def gestionar_foto_alumno(alumno_id):
 
 @alumnos_bp.route("/api/alumnos/ficha/<int:alumno_id>")
 def obtener_ficha_alumno(alumno_id):
+    if not session.get('logged_in'):
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+
     conn = get_db()
     cur = conn.cursor()
 
+    # Verificar que el alumno pertenece al grupo activo del usuario
+    active_group = session.get('active_group_id')
+    if active_group:
+        cur.execute("SELECT grupo_id FROM alumnos WHERE id = ?", (alumno_id,))
+        alum = cur.fetchone()
+        if not alum or alum["grupo_id"] != active_group:
+            return jsonify({"ok": False, "error": "No tienes acceso a este alumno"}), 403
+
     cur.execute("""
         SELECT
-            fecha_nacimiento, direccion, 
+            fecha_nacimiento, direccion,
             madre_nombre, madre_telefono, madre_email,
             padre_nombre, padre_telefono, padre_email,
             observaciones_generales, personas_autorizadas

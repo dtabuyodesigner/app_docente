@@ -220,6 +220,18 @@
             margin-bottom: -1px;
         }
 
+        [data-theme="dark"] .tab-btn-eval {
+            background: #2a2a3d;
+            color: #c0c0d8;
+            border-color: #44445a;
+        }
+
+        [data-theme="dark"] .tab-btn-eval.active {
+            background: #1a1a2e;
+            color: var(--primary);
+            border-bottom: 2px solid #1a1a2e;
+        }
+
         .tab-pane-eval {
             display: none;
         }
@@ -507,7 +519,7 @@
         </div>
 
         <div class="tabs-eval"
-            style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px;">
+            style="display:flex; gap:10px; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:10px; align-items:flex-start;">
             <button class="tab-btn-eval active" onclick="showEvalTab('eval-pane', this)">📊 Evaluación</button>
             <button class="tab-btn-eval" onclick="showEvalTab('crit-pane', this)">🎯 Gestión de Criterios</button>
             <button class="tab-btn-eval" data-tab="cuaderno-pane" onclick="showEvalTab('cuaderno-pane', this)">📔
@@ -676,9 +688,9 @@
                             style="display:none; background:#dc3545; color:white; border:none; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;">
                             🗑️ Borrar seleccionados (<span id="countSeleccionados">0</span>)
                         </button>
-                        <button class="btn-success" style="background:var(--success); color:white;"
+                        <button class="btn btn-success" style="border:none; color:white !important;"
                             onclick="abrirModalImportar()">📥 Importar CSV</button>
-                        <button class="btn-primary" style="background:var(--primary); color:white;"
+                        <button class="btn btn-primary" style="border:none; color:white !important;"
                             onclick="abrirModalNuevo()">➕ Nuevo Criterio</button>
                     </div>
                 </div>
@@ -3018,7 +3030,7 @@
                         <td><input type="checkbox" class="alumno-check-cuaderno" value="${a.id}"></td>
                         <td class="sticky-col" style="cursor:pointer; color:var(--primary); font-weight:700;" onclick="cargarResumenAlumnoCuaderno(${a.id}, '${a.nombre.replace(/'/g, "\\'")}')">${a.nombre}</td>`;
                         data.criterios.forEach(c => {
-                            const level = data.evaluations[`${a.id}_${c.id}`];
+                            const level = (data.evaluaciones || {})[`${a.id}_${c.id}`];
                             let label = level || '-';
                             if (cuadernoEtapaId == "1" && level) {
                                 if (level == 1) label = "NI/PA";

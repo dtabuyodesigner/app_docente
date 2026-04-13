@@ -393,4 +393,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 13 Abril 2026 — Auditoría seguridad (15 fixes) + Frontend audit (3 fixes) + INSTRUCCIONES.md fusionado
+**Última actualización:** 13 Abril 2026 — v1.3.0: Auditoría seguridad (15 fixes) + Frontend (8 fixes) + Documentación fusionada

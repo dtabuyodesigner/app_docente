@@ -4,6 +4,47 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.3.0] — 13 Abril 2026
+### Auditoría de Seguridad Completa + Auditoría Frontend
+
+**Seguridad (15 fixes):**
+- `SECRET_KEY` obligatoria (eliminado fallback hardcodeado)
+- Restore backup externo valida esquema SQLite + integridad antes de reemplazar
+- Debug mode desactivado por defecto (`FLASK_DEBUG=true` para activar)
+- Eliminados endpoints `emergency_reset` y `exit`
+- `secure_filename` en uploads (configuración, alumnos, horario, comedor)
+- Header `Content-Security-Policy` añadido
+- `MAX_CONTENT_LENGTH` 5MB configurado
+- `SESSION_COOKIE_SECURE = True`
+- Auth middleware bypass `.csv` restringido a `/static/`
+- Error messages genéricos (no `str(e)`)
+- Rate limiting en recuperación de contraseña
+- Enumeración de usuarios prevenida
+- `requests>=2.32.2` (CVE-2024-35195)
+- Check de grupo en ficha de alumno
+
+**Frontend (8 fixes):**
+- Viewport meta añadido en 8 páginas
+- 16 bloques `:root` inline eliminados (usan variables HSL de theme.css)
+- 312 `background: white` inline → CSS variables (`var(--white)`, `var(--gray-100)`, etc.)
+- `debug.js` wrapper logging silencioso por defecto
+- `lang="es"` añadido en 4 páginas
+- Transición `*` → solo elementos interactivos (dark-mode.css)
+- `catch (e) {}` vacíos → error logging
+- CDN fallback chart.js a vendor local
+
+**Documentación:**
+- Fusionados `CLAUDE.md` + `INSTRUCCIONES.md` en archivo único
+- Eliminados `QWEN.md` y `CLAUDE.md`
+
+**Eliminados:**
+- `static/cuaderno_evaluacion.html` (integrado como pestaña en evaluacion.html)
+- Endpoints `emergency_reset` y `exit`
+
+**Archivos:** `app.py`, `routes/main.py`, `routes/admin.py`, `routes/configuracion.py`, `routes/alumnos.py`, `routes/horario.py`, `routes/comedor.py`, `requirements.txt`, `tests/conftest.py`, `static/js/debug.js`, `static/js/navigation.js`, `static/` (27 HTML), `static/css/dark-mode.css`, `VERSION`, `version.py`, `ESTADO_ACTUAL.md`, `CHANGELOG.md`, `CLAUDE.md`, `QWEN.md`
+
+---
+
 ## [v1.2.8] — 12 Abril 2026
 ### Dark mode Excursiones: botones visibles
 - Botones de acción en tarjetas de excursiones ahora legibles (fondo gris oscuro, texto blanco)

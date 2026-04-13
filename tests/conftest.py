@@ -1,6 +1,10 @@
 import pytest
 import os
 import tempfile
+
+# SECRET_KEY required for app.py
+os.environ["SECRET_KEY"] = "test-secret-key-not-for-production"
+
 from app import app as flask_app
 from utils.db import get_db
 

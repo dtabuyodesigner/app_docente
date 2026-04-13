@@ -694,6 +694,15 @@ def pdf_autorizacion(excursion_id):
             elements.append(Paragraph("• La actividad tiene coste (pendiente de confirmar importe).", s_body))
         elements.append(Spacer(1, 0.2*cm))
 
+    # Fecha límite de entrega
+    if ex["fecha_limite"]:
+        fecha_limite_larga = fmt_fecha(ex["fecha_limite"])
+        elements.append(Paragraph(
+            f"⚠️ <b>Fecha límite de entrega de la autorización: {xesc(fecha_limite_larga)}</b>",
+            s_body
+        ))
+        elements.append(Spacer(1, 0.2*cm))
+
     # Descripción (si existe)
     if ex["descripcion"]:
         elements.append(Paragraph(ex["descripcion"], s_body))

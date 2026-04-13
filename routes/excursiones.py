@@ -671,9 +671,9 @@ def pdf_autorizacion(excursion_id):
     else:
         partes.append("Próximamente")
     if grupos_str:
-        partes[0] += f", los alumnos de <b>{xesc(grupos_str)}</b>"
+        partes[0] += f", los/las alumnos/as de <b>{xesc(grupos_str)}</b>"
     else:
-        partes[0] += ", nuestros alumnos"
+        partes[0] += ", nuestros/as alumnos/as"
     if ex["destino"]:
         partes[0] += f" realizaremos una salida educativa a <b>{xesc(ex['destino'])}</b>."
     else:

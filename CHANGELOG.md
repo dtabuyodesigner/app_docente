@@ -4,6 +4,16 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.4.0] — 13 Abril 2026
+### Acceso desde móvil/tablet por WiFi local
+- Servidor escucha en `0.0.0.0` (todas las interfaces) en vez de solo localhost
+- Muestra IP local al arrancar para acceder desde otros dispositivos
+- Funciones `get_local_ip()` en `desktop.py` y `app.py`
+- `start_app.sh` también muestra la IP de red local
+- **Archivos:** `app.py`, `desktop.py`, `start_app.sh`, `VERSION`, `version.py`
+
+---
+
 ## [v1.3.1] — 13 Abril 2026
 ### Dark mode Asistencia: textos y botones legibles
 - Textos en botones de estado (Presente, Retraso, Justif., No Justif.) ahora blancos

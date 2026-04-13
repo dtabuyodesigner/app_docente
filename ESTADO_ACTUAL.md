@@ -1,8 +1,32 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.3.1`
+**Versión:** `v1.4.0`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Acceso desde móvil/tablet por WiFi local (v1.4.0)
+
+**Fecha:** 13 de Abril 2026 — 23:00
+
+### Qué se hizo
+- Servidor escucha en `0.0.0.0` (todas las interfaces) en vez de solo `127.0.0.1`
+- Muestra IP local al arrancar para acceder desde móvil/tablet
+- Funciones `get_local_ip()` en `desktop.py` y `app.py`
+- `start_app.sh` también muestra la IP de red local
+- App accesible desde cualquier dispositivo en la misma red WiFi
+
+### Cómo usar
+1. Arrancar la app con `./start_app.sh` o `desktop.py`
+2. Ver la IP que muestra (ej: `http://192.168.1.42:5000`)
+3. Abrir esa URL en el navegador del móvil/tablet conectado al mismo WiFi
+
+### Archivos modificados
+- `app.py` — bind a `0.0.0.0`, mostrar IP local
+- `desktop.py` — función `get_local_ip()`, bind a `0.0.0.0`, mostrar URLs
+- `start_app.sh` — mostrar IP de red local
+- `VERSION`, `version.py` — bump a v1.4.0
 
 ---
 
@@ -411,4 +435,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 13 Abril 2026 — v1.3.1: Dark mode asistencia completo (botones, tarjetas, encargados)
+**Última actualización:** 13 Abril 2026 — v1.4.0: Acceso móvil/tablet por WiFi local

@@ -306,4 +306,16 @@ def create_user_command(username, password, role):
 # ==============================================================================
 
 if __name__ == "__main__":
-    app.run(debug=os.getenv("FLASK_DEBUG", "false").lower() == "true", port=5000)
+    # Mostrar IP local para acceso desde otros dispositivos
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        print(f"📡 Local: http://localhost:5000")
+        print(f"📱 Red local: http://{local_ip}:5000")
+    except Exception:
+        print(f"📡 http://localhost:5000")
+
+    app.run(host='0.0.0.0', debug=os.getenv("FLASK_DEBUG", "false").lower() == "true", port=5000)

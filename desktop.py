@@ -31,24 +31,43 @@ def find_free_port():
         s.bind(('', 0))
         return s.getsockname()[1]
 
+def get_local_ip():
+    """Obtiene la IP local para acceso desde otros dispositivos de la red."""
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
 def main():
     if getattr(sys, 'frozen', False):
         bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
         os.chdir(bundle_dir)
 
     init_db_if_not_exists()
-    
+
     # Configurar autoarranque (solo Windows EXE)
     configurar_autoarranque_windows()
 
     port = find_free_port()
-    url = f"http://127.0.0.1:{port}"
+    local_ip = get_local_ip()
 
-    # 2 segundos: margen suficiente para que Flask arranque en Windows
-    # (PyInstaller necesita más tiempo que en Linux para descomprimir _MEIPASS)
-    threading.Timer(2.0, lambda: webbrowser.open(url)).start()
+    # URL local para abrir en el navegador del PC
+    url_local = f"http://127.0.0.1:{port}"
+    # URL de red para acceder desde móvil/tablet por WiFi
+    url_red = f"http://{local_ip}:{port}"
 
-    app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
+    print(f"📡 Servidor arrancado en {url_local}")
+    print(f"📱 Acceso desde móvil/tablet: {url_red}")
+
+    threading.Timer(2.0, lambda: webbrowser.open(url_local)).start()
+
+    # Escuchar en todas las interfaces (0.0.0.0) para acceso desde red local
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
     main()

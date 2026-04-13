@@ -64,6 +64,13 @@ echo "Abriendo el navegador..."
 ) &
 
 echo "Aplicación iniciada con PID $APP_PID."
+
+# Mostrar IP de red local para acceso desde móvil/tablet
+LOCAL_IP=$(hostname -I | awk '{print $1}')
+if [ -n "$LOCAL_IP" ]; then
+    echo "📱 Acceso desde móvil/tablet: http://${LOCAL_IP}:5000"
+fi
+
 echo "Puedes ver los logs en tiempo real con: tail -f app.log"
 echo "------------------------------------------"
 sleep 1

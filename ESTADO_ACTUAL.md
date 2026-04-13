@@ -1,8 +1,26 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.3.0`
-**Rama activa:** `fix/frontend-audit`
+**Versión:** `v1.3.1`
+**Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Dark mode Asistencia: textos y botones legibles (v1.3.1)
+
+**Fecha:** 13 de Abril 2026 — 22:45
+
+### Qué se hizo
+- Textos en botones "Presente", "Retraso", "Justif.", "No Justif." ahora blancos en modo oscuro
+- Botones "Encargado", "Nota", "Ver" con texto blanco y fondo oscuro
+- Tarjetas de estado con fondos oscuros adaptados (verde, naranja, azul, rojo oscuros)
+- Tarjeta "Encargado del día" con gradiente amarillo oscuro (no brillante)
+- Stat cards del dashboard con fondo oscuro y títulos legibles
+- Badge "Encargado" con fondo oscuro y texto dorado
+
+### Archivos modificados
+- `static/css/dark-mode.css` — reglas para `.btn-status`, `.btn-icon`, `.card.presente/retraso/justificada/nojustificada`, `.card.encargado-hoy`, `.stat-card`
+- `VERSION`, `version.py` — bump a v1.3.1
 
 ---
 
@@ -393,4 +411,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 13 Abril 2026 — v1.3.0: Auditoría seguridad (15 fixes) + Frontend (8 fixes) + Documentación fusionada
+**Última actualización:** 13 Abril 2026 — v1.3.1: Dark mode asistencia completo (botones, tarjetas, encargados)

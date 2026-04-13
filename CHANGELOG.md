@@ -4,6 +4,17 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.3.1] — 13 Abril 2026
+### Dark mode Asistencia: textos y botones legibles
+- Textos en botones de estado (Presente, Retraso, Justif., No Justif.) ahora blancos
+- Botones "Encargado", "Nota", "Ver" con texto blanco y fondo oscuro
+- Tarjetas de estado con fondos oscuros adaptados
+- Tarjeta "Encargado del día" con gradiente amarillo oscuro
+- Stat cards del dashboard con fondo oscuro y títulos legibles
+- **Archivos:** `static/css/dark-mode.css`, `VERSION`, `version.py`
+
+---
+
 ## [v1.3.0] — 13 Abril 2026
 ### Auditoría de Seguridad Completa + Auditoría Frontend
 

@@ -549,6 +549,21 @@ textarea,
     color: #e0e0e0 !important;
 }
 
+[data-theme="dark"] .btn-icon {
+    background: var(--gray-200) !important;
+    border-color: var(--gray-300) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-icon:hover {
+    background: var(--gray-100) !important;
+}
+
+[data-theme="dark"] .btn-icon *,
+[data-theme="dark"] .btn-icon span {
+    color: #ffffff !important;
+}
+
 /* ── Asistencia — tarjetas y textos (dark mode) ── */
 [data-theme="dark"] .stat-card {
     background: var(--gray-200) !important;

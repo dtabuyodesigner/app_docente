@@ -210,25 +210,42 @@ def cuaderno_unificado():
         # Calcular medias (esto puebla medias[alumno_id]["criterios"])
         medias = _calcular_medias_actividades(cur, alumno_ids, area_id, trimestre, area["tipo_escala"], sda_id)
 
-        # Obtener evaluaciones de actividades para mostrar en el cuaderno
+        # Obtener evaluaciones para mostrar en el cuaderno:
+        # 1) desde evaluaciones (por criterio — donde están los datos reales)
+        # 2) fallback desde evaluaciones_actividad (por actividad)
         evaluaciones = {}
-        
+        criterio_ids_act = [c["id"] for c in criterios]
+
+        if criterio_ids_act and alumno_ids:
+            crit_ph = ",".join("?" * len(criterio_ids_act))
+            alum_ph = ",".join("?" * len(alumno_ids))
+            evals_crit = cur.execute(f"""
+                SELECT alumno_id, criterio_id, nivel
+                FROM evaluaciones
+                WHERE criterio_id IN ({crit_ph})
+                  AND alumno_id IN ({alum_ph})
+                  AND area_id = ?
+                  AND trimestre = ?
+            """, criterio_ids_act + alumno_ids + [area_id, trimestre]).fetchall()
+            evaluaciones = {
+                f"{e['alumno_id']}_{e['criterio_id']}": e['nivel']
+                for e in evals_crit
+            }
+
         if actividad_ids and alumno_ids:
             act_placeholders = ",".join("?" * len(actividad_ids))
             alum_placeholders = ",".join("?" * len(alumno_ids))
-            
-            evals = cur.execute(f"""
+            evals_act = cur.execute(f"""
                 SELECT alumno_id, actividad_id, nivel
                 FROM evaluaciones_actividad
                 WHERE actividad_id IN ({act_placeholders})
                   AND alumno_id IN ({alum_placeholders})
                   AND trimestre = ?
             """, actividad_ids + alumno_ids + [trimestre]).fetchall()
-            
-            evaluaciones = {
-                f"{e['alumno_id']}_{e['actividad_id']}": e['nivel']
-                for e in evals
-            }
+            for e in evals_act:
+                key = f"{e['alumno_id']}_{e['actividad_id']}"
+                if key not in evaluaciones:
+                    evaluaciones[key] = e['nivel']
 
     elif modo == "POR_SA":
         # Obtener SDAs del área/trimestre

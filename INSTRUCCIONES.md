@@ -286,6 +286,7 @@ En la carpeta `.agents/` del proyecto hay agentes especializados. Son archivos `
 | `revisor-de-codigo.md` | Revisor de código | Revisar cambios antes de hacer commit. |
 | `optimizador-de-datos.md` | Optimizador de datos | Cuando la app va lenta o una query tarda. |
 | `ingeniero-de-seguridad.md` | Ingeniero de seguridad | Auditar vulnerabilidades, revisar autenticación. |
+| `tester-calidad.md` | Tester de Calidad | Verificar que todo funciona antes de merge a master. **Siempre antes de release.** |
 
 ### Cómo activar un agente
 

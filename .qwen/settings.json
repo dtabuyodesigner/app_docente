@@ -23,7 +23,11 @@
       "Bash(else *)",
       "Bash(fi)",
       "Bash(done)",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(venv/bin/python *)",
+      "Bash(git stash)",
+      "Bash(git stash *)",
+      "Bash(git branch *)"
     ]
   },
   "$version": 3

@@ -397,7 +397,7 @@ body {
                     const res = await fetch(url);
                     const data = await res.json();
                     areas = data.map(a => a.nombre);
-                } catch(e) {}
+                } catch(e) { console.error("Error:", e); }
             } else {
                 // Horario de profesor: áreas del usuario para el grupo seleccionado
                 const grupoObj = gruposData.find(g => g.nombre === grupoNombre);
@@ -415,14 +415,14 @@ body {
                                 .filter(a => areaIds.includes(String(a.id)) || areaIds.includes(a.id))
                                 .map(a => a.nombre);
                         }
-                    } catch(e) {}
+                    } catch(e) { console.error("Error:", e); }
                 } else {
                     // Sin grupo seleccionado, áreas del grupo activo del profesor
                     try {
                         const res = await fetch('/api/configuracion/mi_rol');
                         const data = await res.json();
                         areas = (data.area_nombres || []).map(a => a.nombre);
-                    } catch(e) {}
+                    } catch(e) { console.error("Error:", e); }
                 }
             }
 

@@ -2064,7 +2064,7 @@ body {
                 const gr = await fetch('/api/grupo_activo');
                 const gd = await gr.json();
                 grupo_id = gd.id;
-            } catch (e) {}
+            } catch (e) { console.error("Error cargando datos:", e); }
 
             const r = await fetch(`/api/evaluacion/actividades/por_actividad?actividad_id=${actividadId}&trimestre=${trimestre}&grupo_id=${grupo_id}`);
             const data = await r.json();

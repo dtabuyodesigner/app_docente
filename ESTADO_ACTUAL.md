@@ -104,6 +104,22 @@
 
 ---
 
+## ✅ Todos los pendientes resueltos
+
+**Fecha:** 13 de Abril 2026
+
+Los siguientes pendientes de QWEN.md están **confirmados como hechos**:
+
+| # | Item | Estado |
+|---|------|--------|
+| 1 | Gestión de Criterios no borra criterios | ✅ Arreglado (schema EXCLUDE) |
+| 2 | Cuaderno de Evaluación no muestra nada | ✅ Arreglado (integrado como pestaña) |
+| 3 | Actas - Firmas no muestra tutor automáticamente | ✅ Hecho |
+| 4 | Rellenador masivo Infantil en Clase de Hoy | ✅ Hecho |
+| 5 | Commit feature/fix-acta-ciclo-y-dark-mode | ✅ Hecho |
+
+---
+
 ## ✅ Dark mode Excursiones: botones de acción visibles (v1.2.8)
 
 **Fecha:** 12 de Abril 2026 — 15:45

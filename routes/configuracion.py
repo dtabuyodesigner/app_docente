@@ -25,6 +25,8 @@ def upload_logo():
     logos_dir = os.path.join(get_app_data_dir(), "uploads", "logos")
     os.makedirs(logos_dir, exist_ok=True)
 
+    from werkzeug.utils import secure_filename
+    safe_name = secure_filename(file.filename) or f"upload_{os.urandom(4).hex()}.{ext}"
     filename = f"logo_{lado}.{ext}"
     filepath = os.path.join(logos_dir, filename)
     file.save(filepath)
@@ -63,6 +65,8 @@ def upload_firma():
     logos_dir = os.path.join(get_app_data_dir(), "uploads", "logos")
     os.makedirs(logos_dir, exist_ok=True)
 
+    from werkzeug.utils import secure_filename
+    secure_filename(file.filename)  # validar, no usar
     filename = f"tutor_firma.{ext}"
     filepath = os.path.join(logos_dir, filename)
     file.save(filepath)

@@ -82,37 +82,61 @@ def restore_backup():
 def restore_external_backup():
     if 'file' not in request.files:
         return jsonify({"ok": False, "error": "No se ha proporcionado ningún archivo"}), 400
-    
+
     file = request.files['file']
     if file.filename == '':
         return jsonify({"ok": False, "error": "Nombre de archivo vacío"}), 400
-    
+
     if not file.filename.endswith('.db'):
         return jsonify({"ok": False, "error": "El archivo debe ser una base de datos (.db)"}), 400
 
-    # 1. Crear backup de seguridad antes de restaurar
-    create_backup(label="pre_restore_ext")
-    
+    import tempfile
+    import shutil
+
     try:
-        # 2. Guardar el archivo temporalmente y luego moverlo a la ruta de la BD
+        # 1. Guardar temporalmente para validar antes de reemplazar
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix='.db')
+        os.close(tmp_fd)
+        file.save(tmp_path)
+
+        # 2. Validar que es un SQLite válido con el esquema esperado
+        import sqlite3
+        conn_tmp = sqlite3.connect(tmp_path)
+        cur_tmp = conn_tmp.cursor()
+
+        # Verificar que tiene las tablas esenciales
+        cur_tmp.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = {row[0] for row in cur_tmp.fetchall()}
+        required_tables = {'usuarios', 'alumnos', 'grupos', 'areas', 'criterios', 'etapas'}
+        missing = required_tables - tables
+        if missing:
+            conn_tmp.close()
+            os.unlink(tmp_path)
+            return jsonify({"ok": False, "error": f"El archivo no es una BD válida de APP_EVALUAR. Faltan tablas: {', '.join(missing)}"}), 400
+
+        # Verificar integridad SQLite
+        cur_tmp.execute("PRAGMA integrity_check")
+        integrity = cur_tmp.fetchone()[0]
+        conn_tmp.close()
+        if integrity != "ok":
+            os.unlink(tmp_path)
+            return jsonify({"ok": False, "error": f"El archivo está corrupto: {integrity}"}), 400
+
+        # 3. Crear backup de seguridad antes de restaurar
+        create_backup(label="pre_restore_ext")
+
+        # 4. Reemplazar la BD
         db_path = get_db_path()
-        file.save(db_path)
-        
-        # 3. Verificar integridad después de restaurar
-        is_ok = check_integrity()
-        
-        if is_ok:
-            return jsonify({
-                "ok": True, 
-                "message": "Copia externa restaurada con éxito. Reinicie la aplicación."
-            })
-        else:
-            return jsonify({
-                "ok": False, 
-                "error": "El archivo restaurado parece estar corrupto o no es compatible."
-            }), 500
-            
+        shutil.move(tmp_path, db_path)
+
+        return jsonify({
+            "ok": True,
+            "message": "Copia externa restaurada con éxito. Reinicie la aplicación."
+        })
+
     except Exception as e:
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
         return jsonify({"ok": False, "error": f"Error crítico al procesar el archivo: {str(e)}"}), 500
 
 @admin_bp.route('/api/admin/integrity', methods=['GET'])

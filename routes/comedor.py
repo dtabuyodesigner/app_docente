@@ -97,6 +97,8 @@ def upload_comedor_menu():
         return jsonify({"ok": False, "error": "No selected file or month"}), 400
 
     if file:
+        from werkzeug.utils import secure_filename
+        secure_filename(file.filename)  # validar
         filename = f"menu_comedor_{mes}_{int(datetime.now().timestamp())}.jpg"
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         filepath = os.path.join(base_dir, "static", "uploads", filename)

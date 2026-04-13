@@ -425,7 +425,8 @@ def rename_grupo(grupo_id):
         return jsonify({"ok": True, "nombre": nombre_final})
     except Exception as e:
         conn.rollback()
-        return jsonify({"ok": False, "error": str(e)}), 500
+        print(f"[ERROR] Renombrar grupo: {e}")
+        return jsonify({"ok": False, "error": "Error interno al renombrar el grupo"}), 500
 
 @main_bp.route("/api/grupos/<int:grupo_id>", methods=["DELETE"])
 def delete_grupo(grupo_id):
@@ -619,56 +620,6 @@ def do_recover_password():
         conn.rollback()
         return jsonify({"ok": False, "error": "Error interno"}), 500
 
-@main_bp.route("/api/emergency_reset", methods=["POST"])
-def emergency_reset():
-    # Only allow from localhost
-    if request.remote_addr not in ["127.0.0.1", "::1"]:
-        security_logger.warning(f"Unauthorized emergency reset attempt from {request.remote_addr}")
-        return jsonify({"ok": False, "error": "No autorizado - Solo desde este equipo"}), 403
-        
-    try:
-        conn = get_db()
-        cur = conn.cursor()
-        
-        # Look for admins
-        cur.execute("SELECT id, username FROM usuarios WHERE role = 'admin' OR username IN ('admin', 'daniel')")
-        admins = cur.fetchall()
-        
-        if not admins:
-            return jsonify({"ok": False, "error": "No hay administradores en el sistema"}), 400
-            
-        from werkzeug.security import generate_password_hash
-        hashed = generate_password_hash("1234")
-        
-        for admin in admins:
-            cur.execute("UPDATE usuarios SET password_hash = ? WHERE id = ?", (hashed, admin["id"]))
-            
-        conn.commit()
-        security_logger.warning(f"EMERGENCY RESET TRIGGERED from {request.remote_addr}")
-        
-        return jsonify({"ok": True, "mensaje": "Contraseñas reseteadas a '1234'. Podrás entrar ahora mismo."})
-    except Exception as e:
-        security_logger.error(f"Error during emergency reset: {e}")
-        return jsonify({"ok": False, "error": "Error interno del servidor"}), 500
-
-@main_bp.route("/api/exit", methods=["POST"])
-
-def exit_app():
-    """Cierra el proceso del servidor (útil para modo escritorio)."""
-    # Solo permitir desde localhost para seguridad
-    if request.remote_addr not in ["127.0.0.1", "::1"]:
-        return jsonify({"ok": False, "error": "No autorizado"}), 403
-        
-    security_logger.warning("Solicitud de cierre de aplicación recibida.")
-    
-    def shutdown():
-        import time
-        import os
-        import signal
-        time.sleep(1)  # Dar tiempo a que la respuesta llegue al cliente
-        os._exit(0)
-        
-    import threading
-    threading.Thread(target=shutdown).start()
-    
-    return jsonify({"ok": True, "message": "Cerrando aplicación..."})
+# NOTA: Los endpoints emergency_reset y exit han sido eliminados por seguridad.
+# Para resetear contraseñas, usar el script scripts/recover_admin.py con autenticación previa.
+# Para cerrar la app, usar el botón de cerrar en la interfaz (si está disponible) o Ctrl+C en terminal.

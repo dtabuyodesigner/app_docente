@@ -250,6 +250,8 @@ def gestionar_foto_alumno(alumno_id):
         return jsonify({"ok": False, "error": "No selected file"}), 400
 
     if file:
+        from werkzeug.utils import secure_filename
+        safe_name = secure_filename(file.filename) or f"photo_{os.urandom(4).hex()}.jpg"
         filename = f"alumno_{alumno_id}_{int(datetime.now().timestamp())}.jpg"
         filepath = os.path.join("static", "uploads", filename)
         

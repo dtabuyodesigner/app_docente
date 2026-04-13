@@ -38,13 +38,17 @@ except ImportError:
 
 # Build app
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "dev-key-change-in-prod")
+app.secret_key = os.getenv("SECRET_KEY")
+if not app.secret_key:
+    raise RuntimeError("SECRET_KEY environment variable is required. Generate one with: python -c 'import secrets; print(secrets.token_hex(32))'")
 
 # Session configuration — expire after 24 hours of inactivity
 from datetime import timedelta
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = True  # Enable when behind HTTPS proxy
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB upload limit
 
 # Security headers
 @app.after_request
@@ -53,6 +57,7 @@ def add_security_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://www.googleapis.com; frame-src 'none'; object-src 'none'; base-uri 'self'"
     # HSTS (only effective over HTTPS; harmless on HTTP)
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     return response
@@ -234,9 +239,15 @@ def require_auth():
             request.path == '/apispec_1.json'
         )) or
         request.path in ['/login', '/logout', '/api/csrf-token', '/api/recover_password', '/api/setup', '/service-worker.js', '/manifest.json', '/static/plantilla_sda.csv'] or
-        request.path.endswith('.js') or
-        request.path.endswith('.css') or
-        request.path.endswith('.csv') or
+        request.path.startswith('/static/') and (
+            request.path.endswith('.js') or
+            request.path.endswith('.css') or
+            request.path.endswith('.png') or
+            request.path.endswith('.jpg') or
+            request.path.endswith('.svg') or
+            request.path.endswith('.ico') or
+            request.path.endswith('.csv')
+        ) or
         request.endpoint == 'static'):
         return
     
@@ -295,4 +306,4 @@ def create_user_command(username, password, role):
 # ==============================================================================
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=os.getenv("FLASK_DEBUG", "false").lower() == "true", port=5000)

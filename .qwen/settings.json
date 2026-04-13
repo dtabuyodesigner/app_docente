@@ -5,7 +5,25 @@
       "Bash(git merge *)",
       "Bash(git push *)",
       "Bash(bash *)",
-      "Bash(timeout *)"
+      "Bash(timeout *)",
+      "Bash(python3 *)",
+      "Bash(./start_app.sh)",
+      "Bash(sleep *)",
+      "Bash(curl *)",
+      "Bash(cp *)",
+      "Bash(sed *)",
+      "Bash(rm *)",
+      "Bash(pkill *)",
+      "Bash(node *)",
+      "Bash(find *)",
+      "Bash(ss *)",
+      "Bash(tar *)",
+      "Bash(do *)",
+      "Bash(then *)",
+      "Bash(else *)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(grep *)"
     ]
   },
   "$version": 3

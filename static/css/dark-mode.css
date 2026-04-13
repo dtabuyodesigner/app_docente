@@ -548,3 +548,89 @@ textarea,
 [data-theme="dark"] .btn-sm {
     color: #e0e0e0 !important;
 }
+
+/* ── Asistencia — tarjetas y textos (dark mode) ── */
+[data-theme="dark"] .stat-card {
+    background: var(--gray-200) !important;
+    border-bottom-color: var(--primary) !important;
+}
+
+[data-theme="dark"] .stat-card h4 {
+    color: #b0b0c8 !important;
+}
+
+[data-theme="dark"] .stat-card p {
+    color: var(--primary) !important;
+}
+
+[data-theme="dark"] .card-name {
+    color: #e0e0f0 !important;
+}
+
+[data-theme="dark"] .card.presente {
+    background: #1a2e1a !important;
+    border-color: var(--success) !important;
+}
+
+[data-theme="dark"] .card.retraso {
+    background: #2e1f0a !important;
+    border-color: #fd7e14 !important;
+}
+
+[data-theme="dark"] .card.justificada {
+    background: #1a2a3a !important;
+    border-color: #007bff !important;
+}
+
+[data-theme="dark"] .card.nojustificada {
+    background: #2e1a1a !important;
+    border-color: var(--danger) !important;
+}
+
+[data-theme="dark"] .card.encargado-hoy {
+    background: linear-gradient(135deg, #2e2a0a 0%, #3a3510 100%) !important;
+    border-color: #f6c000 !important;
+    box-shadow: 0 0 0 3px rgba(246, 192, 0, 0.15), 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .card.encargado-hoy .card-name {
+    color: #f0d060 !important;
+}
+
+[data-theme="dark"] .encargado-badge {
+    background: #8a7000 !important;
+    color: #f0e0a0 !important;
+}
+
+[data-theme="dark"] .card-compact.encargado-hoy {
+    background: linear-gradient(90deg, #2e2a0a 0%, var(--gray-200) 100%) !important;
+    border-left-color: #f6c000 !important;
+}
+
+[data-theme="dark"] .btn-status {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .btn-status[style*="background:#28a745"],
+[data-theme="dark"] .btn-presente {
+    background: #1a5a2a !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-status[style*="background:#fd7e14"],
+[data-theme="dark"] .btn-retraso {
+    background: #5a3010 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-status[style*="background:#007bff"],
+[data-theme="dark"] .btn-justificada {
+    background: #1a3a5a !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-status[style*="background:#dc3545"],
+[data-theme="dark"] .btn-nojustificada {
+    background: #5a1a1a !important;
+    color: #ffffff !important;
+}

@@ -198,7 +198,8 @@
             background: #f8f9fa;
             border: 1px solid #ddd;
             color: #555;
-            padding: 10px 20px;
+            padding: 6px 14px;
+            font-size: 0.82rem;
             font-weight: 600;
             border-radius: 8px 8px 0 0;
             cursor: pointer;
@@ -2987,7 +2988,7 @@
                         grupo_id = gdata.id;
                     } catch (e) { console.error('Error obteniendo grupo activo:', e); }
 
-                    let url = `/api/evaluacion/cuaderno?area_id=${areaId}&trimestre=${periodo.replace('T', '')}`;
+                    let url = `/api/evaluacion/cuaderno/cuaderno?area_id=${areaId}&trimestre=${periodo.replace('T', '')}`;
                     if (grupo_id) url += `&grupo_id=${grupo_id}`;
 
                     try {

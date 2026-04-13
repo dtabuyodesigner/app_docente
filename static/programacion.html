@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cuaderno del Tutor - Programación</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,20 +26,7 @@
             border-color: #000;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }
-        :root {
-            --primary: #003366;
-            --secondary: #007bff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --bg: #f0f2f5;
-            --text: #333;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        body {
+body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             margin: 0;
@@ -75,12 +63,12 @@
         }
         .tab-btn.active {
             color: var(--primary);
-            background: white;
+            background: var(--white);
             box-shadow: var(--shadow);
         }
         .section {
             display: none;
-            background: white;
+            background: var(--white);
             padding: 30px;
             border-radius: 15px;
             box-shadow: var(--shadow);
@@ -296,7 +284,7 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: white;
+            background: var(--white);
             padding: 15px 20px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -370,7 +358,7 @@
             display: flex;
         }
         .loading-content {
-            background: white;
+            background: var(--white);
             padding: 30px;
             border-radius: 15px;
             text-align: center;
@@ -406,7 +394,7 @@
             flex-wrap: wrap;
         }
         .btn-trim-tab {
-            background: white;
+            background: var(--white);
             color: #666;
             border: 1px solid #ddd;
             padding: 8px 16px;
@@ -433,7 +421,7 @@
             flex-wrap: wrap;
         }
         .btn-trim-tab {
-            background: white;
+            background: var(--white);
             color: #666;
             border: 1px solid #ddd;
             padding: 8px 16px;
@@ -460,7 +448,7 @@
             margin-top: 15px;
         }
         .actividad-card {
-            background: white;
+            background: var(--white);
             border: 1px solid #eaedf1;
             border-radius: 12px;
             padding: 15px;
@@ -541,6 +529,7 @@
         }
     </style>
 
+    <script src="/static/js/debug.js"></script>
     <script src="/static/js/api.js?v=1.4"></script>
     <script src="/static/js/dark-mode.js"></script>
     <script src="/static/js/shortcuts.js"></script>
@@ -588,7 +577,7 @@
                 </div>
             </div>
             <div id="calendar"
-                style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); height: 600px;">
+                style="background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); height: 600px;">
             </div>
         </div>
         <!-- SECCIÓN: DOCUMENTOS DE PROGRAMACIÓN -->
@@ -601,7 +590,7 @@
                 <em>Los archivos PDF se pueden visualizar directamente en el navegador.</em>
             </p>
             <div
-                style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                style="background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <input type="file" id="fileUpload" accept=".pdf,.doc,.docx,.odt" style="flex:1; min-width:250px;">
                     <button class="btn btn-success" onclick="uploadDoc()">📤 Subir Documento</button>
@@ -612,9 +601,9 @@
                 <!-- Lista de documentos subidos -->
             </div>
             <div id="docViewerContainer"
-                style="display:none; width:100%; height:80vh; border:1px solid #ddd; border-radius:8px; overflow:hidden; background:white; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+                style="display:none; width:100%; height:80vh; border:1px solid #ddd; border-radius:8px; overflow:hidden; background: var(--white); box-shadow:0 4px 15px rgba(0,0,0,0.1);">
                 <div
-                    style="background:#f8f9fa; padding:12px 20px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
+                    style="background: var(--gray-100); padding:12px 20px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center;">
                     <strong id="docViewerTitle" style="color:var(--primary); font-size:1.1rem;">Visualizando...</strong>
                     <button class="btn btn-danger" onclick="closeDocViewer()">✖ Cerrar</button>
                 </div>
@@ -625,7 +614,7 @@
         <div id="eventModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; position: relative;">
+                style="background: var(--white); padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; position: relative;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                     <h3 id="modalTitle" style="margin:0;">Nuevo Evento</h3>
                     <button onclick="closeModal()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
@@ -752,7 +741,7 @@
 
         <!-- Modal Evaluar Actividad desde calendario -->
         <div id="evalActividadModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1100; align-items:center; justify-content:center;">
-            <div style="background:white; border-radius:15px; width:90%; max-width:520px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 40px rgba(0,0,0,0.3); overflow:hidden;">
+            <div style="background: var(--white); border-radius:15px; width:90%; max-width:520px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 40px rgba(0,0,0,0.3); overflow:hidden;">
                 <div style="padding:20px 25px; border-bottom:1px solid #e2e8f0; background:#f8fafc;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
@@ -778,7 +767,7 @@
         <div id="saModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px;">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:700px; box-shadow:0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 90vh;">
+                style="background: var(--white); padding:30px; border-radius:15px; width:90%; max-width:700px; box-shadow:0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 90vh;">
                 <div
                     style="display:flex; justify-content:space-between; align-items:center; flex-shrink: 0; margin-bottom: 20px;">
                     <h3 id="saModalTitle" style="margin-top:0; margin-bottom:0;">Crear Situación de Aprendizaje</h3>
@@ -841,7 +830,7 @@
         <div id="scheduleActivityModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding: 20px;">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                style="background: var(--white); padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                     <h3 style="margin:0; color:var(--primary);">🗓️ Programar Actividad en Calendario</h3>
                     <button onclick="closeScheduleModal()"
@@ -850,11 +839,11 @@
                 <input type="hidden" id="schedSdaId">
                 <div style="margin-bottom:15px;">
                     <label>Situación de Aprendizaje:</label>
-                    <input type="text" id="schedSdaName" disabled style="background:#f8f9fa;">
+                    <input type="text" id="schedSdaName" disabled style="background: var(--gray-100);">
                 </div>
                 <div style="margin-bottom:15px;">
                     <label>Actividad:</label>
-                    <input type="text" id="schedActName" disabled style="background:#f8f9fa;">
+                    <input type="text" id="schedActName" disabled style="background: var(--gray-100);">
                 </div>
                 <div class="form-row">
                     <div>
@@ -881,7 +870,7 @@
         <div id="sessionsModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1001; align-items:center; justify-content:center; padding: 20px;">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:700px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
+                style="background: var(--white); padding:30px; border-radius:15px; width:90%; max-width:700px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
                 <div
                     style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-shrink: 0;">
                     <h3 style="margin:0; color:var(--primary);" id="sessionsModalTitle">🗓️ Sesiones de Actividad</h3>
@@ -891,7 +880,7 @@
                 <input type="hidden" id="sessionsActId">
                 <div style="margin-bottom:15px; flex-shrink: 0;">
                     <label>Actividad:</label>
-                    <input type="text" id="sessionsActName" disabled style="background:#f8f9fa; font-weight: bold;">
+                    <input type="text" id="sessionsActName" disabled style="background: var(--gray-100); font-weight: bold;">
                 </div>
                 <div style="overflow-y: auto; flex-grow: 1; padding-right: 10px;" id="sessionsListContainer">
                     <p style="text-align: center; color: #666;">Cargando sesiones...</p>
@@ -912,7 +901,7 @@
         <div id="importSdaModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1002; align-items:center; justify-content:center; padding: 20px;">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:800px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
+                style="background: var(--white); padding:30px; border-radius:15px; width:90%; max-width:800px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
                 <div
                     style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; flex-shrink: 0;">
                     <h3 style="margin:0; color:var(--primary);">📤 Importar Programación (CSV)</h3>
@@ -923,7 +912,7 @@
                     <div style="margin-bottom:25px;">
                         <h4 style="margin-top:0;">🚀 Importación Unificada</h4>
                         <div
-                            style="margin-bottom:15px; padding:15px; background:#f8f9fa; border-radius:10px; border:1px dashed #ccc;">
+                            style="margin-bottom:15px; padding:15px; background: var(--gray-100); border-radius:10px; border:1px dashed #ccc;">
                             <label style="display:block; margin-bottom:10px; font-weight:bold;">Subir archivo CSV
                                 unificado:</label>
                             <input type="file" id="unifiedFile" accept=".csv" style="margin-bottom:10px;">
@@ -981,13 +970,13 @@
         <div id="sdaImportModal"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1100; align-items:center; justify-content:center; padding: 20px;">
             <div
-                style="background:white; padding:30px; border-radius:15px; width:90%; max-width:650px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                style="background: var(--white); padding:30px; border-radius:15px; width:90%; max-width:650px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                     <h3 style="margin:0; color:var(--primary);">📥 Importar Situaciones de Aprendizaje (SDA)</h3>
                     <button onclick="closeImportSdaModal()"
                         style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
                 </div>
-                <div style="margin-bottom:20px; padding:20px; background:#f0f7ff; border-radius:12px; color:#1e4265; font-size:0.9rem; border-left: 5px solid var(--primary);">
+                <div style="margin-bottom:20px; padding:20px; background: var(--primary-light); border-radius:12px; color:#1e4265; font-size:0.9rem; border-left: 5px solid var(--primary);">
                     <p style="margin-top:0; font-weight: bold; color: var(--primary);">💡 Información Importante:</p>
                     <ul style="margin-bottom:0; padding-left:20px; line-height: 1.6;">
                         <li>Usa la <strong>plantilla CSV oficial</strong> para evitar errores de formato (separador obligatorio: punto y coma <code>;</code>).</li>
@@ -998,7 +987,7 @@
                 </div>
                 <div style="margin-bottom:25px;">
                     <label style="display:block; font-weight:bold; margin-bottom:10px;">Selecciona el archivo CSV:</label>
-                    <div style="display:flex; align-items:center; gap: 10px; background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #ddd;">
+                    <div style="display:flex; align-items:center; gap: 10px; background: var(--gray-100); padding: 15px; border-radius: 10px; border: 1px solid #ddd;">
                         <input type="file" id="sdaCsvFile" accept=".csv" style="flex-grow:1;">
                     </div>
                     <div style="margin-top: 10px;">
@@ -1181,7 +1170,7 @@
             areaLabel.style.cssText = 'font-weight:700; color:#1a2a3a; font-size:0.9rem; white-space:nowrap;';
             const areaSelect = document.createElement('select');
             areaSelect.id = 'curriculoAreaSelect';
-            areaSelect.style.cssText = 'border:1px solid #d0dae9; border-radius:10px; padding:8px 14px; font-size:0.9rem; color:#1a2a3a; font-weight:600; background:white; min-width:240px; cursor:pointer; outline: none; transition: border-color 0.2s;';
+            areaSelect.style.cssText = 'border:1px solid #d0dae9; border-radius:10px; padding:8px 14px; font-size:0.9rem; color:#1a2a3a; font-weight:600; background: var(--white); min-width:240px; cursor:pointer; outline: none; transition: border-color 0.2s;';
             areaSelect.onfocus = () => areaSelect.style.borderColor = 'var(--secondary)';
             areaSelect.onblur = () => areaSelect.style.borderColor = '#d0dae9';
             fullCurriculo.forEach(area => {
@@ -1236,7 +1225,7 @@
             sdasToRender.forEach(sda => {
                 const trimColor = trimColors[String(sda.trimestre)] || '#6c757d';
                 const sdaCard = document.createElement('div');
-                sdaCard.style.cssText = `background:white; border-radius:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,51,102,0.06); border:1px solid #eef2f7; border-left:5px solid ${trimColor}; overflow:hidden; transition: all 0.3s ease;`;
+                sdaCard.style.cssText = `background: var(--white); border-radius:16px; margin-bottom:20px; box-shadow:0 4px 15px rgba(0,51,102,0.06); border:1px solid #eef2f7; border-left:5px solid ${trimColor}; overflow:hidden; transition: all 0.3s ease;`;
                 // Card header
                 const cardHeader = document.createElement('div');
                 cardHeader.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:18px 24px; background:linear-gradient(to right, #ffffff, #fafcfe); border-bottom:1px solid #f0f4fa; cursor:pointer; user-select:none;';
@@ -1256,7 +1245,7 @@
                 const btnEdit = document.createElement('button');
                 btnEdit.type = 'button';
                 btnEdit.innerHTML = '⚙️ Gestionar';
-                btnEdit.style.cssText = 'font-size:0.8rem; padding:6px 14px; border:1px solid #e2e8f0; border-radius:10px; background:white; color:#4a5568; cursor:pointer; font-weight:700; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
+                btnEdit.style.cssText = 'font-size:0.8rem; padding:6px 14px; border:1px solid #e2e8f0; border-radius:10px; background: var(--white); color:#4a5568; cursor:pointer; font-weight:700; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
                 btnEdit.onmouseover = () => { btnEdit.style.background = '#f7fafc'; btnEdit.style.borderColor = '#cbd5e0'; }
                 btnEdit.onmouseout = () => { btnEdit.style.background = 'white'; btnEdit.style.borderColor = '#e2e8f0'; }
                 btnEdit.onclick = e => { e.stopPropagation(); openSaModal(sda); };
@@ -1270,7 +1259,7 @@
                 cardHeader.appendChild(headerActions);
                 // Card body
                 const cardBody = document.createElement('div');
-                cardBody.style.cssText = 'padding:24px; background: #ffffff;';
+                cardBody.style.cssText = 'padding:24px; background: var(--white);';
                 // --- 1. Competencias Específicas ---
                 if (sda.competencias && sda.competencias.length > 0) {
                     const compSection = document.createElement('div');
@@ -1305,7 +1294,7 @@
                     critList.style.cssText = 'display:flex; flex-direction:column; gap:10px;';
                     sda.criterios.forEach(c => {
                         const critItem = document.createElement('div');
-                        critItem.style.cssText = 'display:flex; gap:16px; padding:12px 16px; background:#ffffff; border-radius:12px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.02);';
+                        critItem.style.cssText = 'display:flex; gap:16px; padding:12px 16px; background: var(--white); border-radius:12px; border:1px solid #f1f5f9; box-shadow:0 1px 3px rgba(0,0,0,0.02);';
                         critItem.innerHTML = `
                             <div style="min-width:60px; font-weight:800; color:#f59e0b; font-size:0.85rem;">${c.codigo}</div>
                             <div style="font-size:0.85rem; color:#4a5568; line-height:1.5;">${c.descripcion}</div>
@@ -1326,7 +1315,7 @@
                     actList.style.cssText = 'display:flex; flex-direction:column; gap:8px;';
                     sda.actividades.forEach((a, idx) => {
                         const actRow = document.createElement('div');
-                        actRow.style.cssText = 'display:flex; align-items:flex-start; gap:12px; padding:16px; background:#ffffff; border-radius:14px; border:1px solid #eef2f7; cursor:pointer; transition:all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02);';
+                        actRow.style.cssText = 'display:flex; align-items:flex-start; gap:12px; padding:16px; background: var(--white); border-radius:14px; border:1px solid #eef2f7; cursor:pointer; transition:all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02);';
                         actRow.onmouseover = () => {
                             actRow.style.background = '#f8faff';
                             actRow.style.transform = 'translateX(5px)';
@@ -2075,7 +2064,7 @@
                 const gr = await fetch('/api/grupo_activo');
                 const gd = await gr.json();
                 grupo_id = gd.id;
-            } catch (e) {}
+            } catch (e) { console.error("Error cargando datos:", e); }
 
             const r = await fetch(`/api/evaluacion/actividades/por_actividad?actividad_id=${actividadId}&trimestre=${trimestre}&grupo_id=${grupo_id}`);
             const data = await r.json();
@@ -2585,12 +2574,12 @@
                     const list = document.getElementById('docsList');
                     list.innerHTML = '';
                     if (!docs || !docs.length) {
-                        list.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding:20px; color:#666; background:#f8f9fa; border-radius:8px;">No hay documentos subidos para este grupo.</div>';
+                        list.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding:20px; color:#666; background: var(--gray-100); border-radius:8px;">No hay documentos subidos para este grupo.</div>';
                         return;
                     }
                     docs.forEach(doc => {
                         const card = document.createElement('div');
-                        card.style.cssText = 'background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
+                        card.style.cssText = 'background: var(--white); border: 1px solid #ddd; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);';
                         const isPdf = doc.is_pdf;
                         const icon = isPdf ? '📄' : '📝';
                         let buttonsHtml = '';
@@ -2779,7 +2768,7 @@
 
     <!-- Modal: Generar SDA con IA -->
     <div id="generarSdaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
-        <div style="background:white; border-radius:16px; width:92%; max-width:980px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="background: var(--white); border-radius:16px; width:92%; max-width:980px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
             <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding:20px 24px; border-radius:16px 16px 0 0; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <h3 style="margin:0; color:white; font-size:1.1rem;">🤖 Generar SDA con IA</h3>
@@ -2801,7 +2790,7 @@
                             <strong style="font-size:0.88rem; color:#4c1d95;">Prompt 1: Generar SDA (Word)</strong>
                             <button onclick="copiarPromptPorTipo('sda_word')" style="background:#6366f1; color:white; border:none; padding:5px 10px; border-radius:7px; cursor:pointer; font-size:0.75rem;">📋 Copiar</button>
                         </div>
-                        <pre id="prompt_sda_word" style="margin:0; padding:12px; background:white; color:#334155; font-size:0.72rem; line-height:1.45; max-height:280px; overflow:auto; white-space:pre-wrap; font-family:monospace;"></pre>
+                        <pre id="prompt_sda_word" style="margin:0; padding:12px; background: var(--white); color:#334155; font-size:0.72rem; line-height:1.45; max-height:280px; overflow:auto; white-space:pre-wrap; font-family:monospace;"></pre>
                         <div style="padding:10px 12px; border-top:1px solid #ede9fe; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                             <button onclick="abrirPromptEnIA('sda_word','chatgpt')" style="padding:7px 12px; background:#10a37f; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟢 Abrir en ChatGPT</button>
                             <button onclick="abrirPromptEnIA('sda_word','claude')" style="padding:7px 12px; background:#d97706; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟠 Abrir en Claude</button>
@@ -2814,7 +2803,7 @@
                             <strong style="font-size:0.88rem; color:#1e3a8a;">Prompt 2: Convertir Word a CSV</strong>
                             <button onclick="copiarPromptPorTipo('word_csv')" style="background:#2563eb; color:white; border:none; padding:5px 10px; border-radius:7px; cursor:pointer; font-size:0.75rem;">📋 Copiar</button>
                         </div>
-                        <pre id="prompt_word_csv" style="margin:0; padding:12px; background:white; color:#334155; font-size:0.72rem; line-height:1.45; max-height:320px; overflow:auto; white-space:pre-wrap; font-family:monospace;"></pre>
+                        <pre id="prompt_word_csv" style="margin:0; padding:12px; background: var(--white); color:#334155; font-size:0.72rem; line-height:1.45; max-height:320px; overflow:auto; white-space:pre-wrap; font-family:monospace;"></pre>
                         <div style="padding:10px 12px; border-top:1px solid #dbeafe; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                             <button onclick="abrirPromptEnIA('word_csv','chatgpt')" style="padding:7px 12px; background:#10a37f; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟢 Abrir en ChatGPT</button>
                             <button onclick="abrirPromptEnIA('word_csv','claude')" style="padding:7px 12px; background:#d97706; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟠 Abrir en Claude</button>

@@ -8,17 +8,7 @@
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/dark-mode.css">
     <style>
-        :root {
-            --primary: #003366;
-            --success: #28a745;
-            --info: #17a2b8;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-        body {
+body {
             font-family: 'Inter', sans-serif;
             background: #f0f4f8;
             margin: 0;
@@ -30,7 +20,7 @@
             margin: 0 auto;
         }
         .premium-card {
-            background: white;
+            background: var(--white);
             padding: 30px;
             border-radius: 20px;
             box-shadow: var(--shadow);
@@ -149,7 +139,7 @@
             z-index: 1000;
         }
         .modal {
-            background: white;
+            background: var(--white);
             padding: 25px;
             border-radius: 15px;
             width: 90%;
@@ -168,7 +158,7 @@
                 display: block !important;
             }
             body {
-                background: white;
+                background: var(--white);
                 padding: 0;
             }
             .container {
@@ -225,6 +215,7 @@
         }
     </style>
 
+    <script src="/static/js/debug.js"></script>
     <script src="/static/js/api.js?v=1.4"></script>
     <script src="/static/js/dark-mode.js"></script>
     <script src="/static/js/shortcuts.js"></script>
@@ -356,7 +347,7 @@
                         <div style="position: relative; margin-bottom: 10px;">
                             <input type="text" placeholder="Buscar alumno..." id="search-ayuda"
                                 oninput="filterStudentLists()"
-                                style="padding-left: 35px; border-radius: 30px; background: #f8f9fa;">
+                                style="padding-left: 35px; border-radius: 30px; background: var(--gray-100);">
                             <span style="position: absolute; left: 12px; top: 10px; color: #999;">🔍</span>
                         </div>
                         <div id="list-ayuda" style="max-height: 500px; overflow-y: auto;">
@@ -388,7 +379,7 @@
                         <div style="position: relative; margin-bottom: 10px;">
                             <input type="text" placeholder="Buscar alumno..." id="search-no-ayuda"
                                 oninput="filterStudentLists()"
-                                style="padding-left: 35px; border-radius: 30px; background: #f8f9fa;">
+                                style="padding-left: 35px; border-radius: 30px; background: var(--gray-100);">
                             <span style="position: absolute; left: 12px; top: 10px; color: #999;">🔍</span>
                         </div>
                         <div id="list-sin-ayuda" style="max-height: 500px; overflow-y: auto;">
@@ -419,7 +410,7 @@
                     <div style="position: relative; margin-bottom: 20px; max-width: 400px;">
                         <input type="text" placeholder="Buscar alumno para gestionar ayuda..." id="search-gestion-ayuda"
                             oninput="renderAidManagementList()"
-                            style="padding-left: 35px; border-radius: 30px; background: #f8f9fa;">
+                            style="padding-left: 35px; border-radius: 30px; background: var(--gray-100);">
                         <span style="position: absolute; left: 12px; top: 10px; color: #999;">🔍</span>
                     </div>
                     <div id="aidManagementListContent"
@@ -532,7 +523,7 @@
                     `<span style="color:#e65100; font-size:0.65rem; background:#fff3e0; padding:2px 6px; border-radius:10px; margin-left:5px; font-weight:bold; border:1px solid #ffe0b2;">AYUDA</span>` : '';
                 return `
                 <div onclick="selectStudent(${a.id})" class="student-item" 
-                     style="padding:12px 15px; cursor:pointer; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; ${isActive ? 'background:#eef2f7; border-left:4px solid var(--primary);' : 'background:white;'}">
+                     style="padding:12px 15px; cursor:pointer; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; ${isActive ? 'background:#eef2f7; border-left:4px solid var(--primary);' : 'background: var(--white);'}">
                     <div style="flex:1; overflow:hidden;">
                         <div style="font-weight: 600; color: ${isActive ? 'var(--primary)' : '#444'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; display:flex; align-items:center;">
                             ${a.nombre} ${aidBadge}
@@ -664,7 +655,7 @@
                 const q = normalizeString(document.getElementById('search-gestion-ayuda').value);
                 const filtered = currentStudents.filter(a => normalizeString(a.nombre).includes(q));
                 listCont.innerHTML = filtered.map(a => `
-                    <div style="padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; background: white; transition: background 0.2s;">
+                    <div style="padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; background: var(--white); transition: background 0.2s;">
                         <input type="checkbox" id="aid-gestion-check-${a.id}" ${a.tiene_ayuda_material ? 'checked' : ''} 
                                onchange="toggleAidStatusInView(${a.id}, this.checked)">
                         <label for="aid-gestion-check-${a.id}" style="flex:1; cursor: pointer; font-weight: 500; font-size: 1rem; color: #333;">${a.nombre}</label>

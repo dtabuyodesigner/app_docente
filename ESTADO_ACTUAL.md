@@ -1,8 +1,122 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.2.8`
-**Rama activa:** `master`
+**Versión:** `v1.3.0`
+**Rama activa:** `fix/frontend-audit`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Auditoría de Seguridad Completa + Frontend Audit (v1.3.0)
+
+**Fecha:** 13 de Abril 2026 — 16:50
+
+### Qué se hizo — Seguridad (15 fixes)
+
+**Críticos (2):**
+- `SECRET_KEY` obligatoria — eliminado fallback `"dev-key-change-in-prod"`; ahora falla si no hay env var
+- Restore backup externo valida esquema SQLite + integridad antes de reemplazar la BD
+
+**Altos (4):**
+- Debug mode desactivado por defecto (`FLASK_DEBUG=true` para activar)
+- Eliminados endpoints `emergency_reset` y `exit` de `routes/main.py`
+- Backup restore: validación de tablas esenciales + `PRAGMA integrity_check` antes de reemplazar
+
+**Medios (6):**
+- `secure_filename` en uploads (configuración, alumnos, horario, comedor)
+- Header `Content-Security-Policy` añadido a `app.py`
+- `MAX_CONTENT_LENGTH` 5MB configurado
+- `SESSION_COOKIE_SECURE = True`
+- Auth middleware bypass `.csv` restringido a `/static/`
+- Error messages genéricos (no `str(e)`) en `routes/main.py`
+
+**Bajos (3):**
+- Rate limiting en recuperación de contraseña (5 intentos/5min, bloqueo 10min)
+- Enumeración de usuarios prevenida (misma respuesta siempre)
+- `requests>=2.32.2` (CVE-2024-35195)
+
+### Qué se hizo — Frontend (3 fixes)
+
+**Críticos:**
+- Viewport meta añadido en 8 páginas (evaluacion, programacion, horario, rubricas, tareas, diario, configuracion, alumnos)
+
+**Altos:**
+- `debug.js` creado: wrapper `dbg.log/warn/error` silencioso por defecto
+- `window.DEBUG = false` en `navigation.js` — console.log desactivados en producción
+- `lang="es"` añadido en 4 páginas (evaluacion, evaluar_todo, progreso_clase, clase_hoy)
+
+### Archivos modificados
+- `app.py` — SECRET_KEY obligatoria, CSP, MAX_CONTENT_LENGTH, SESSION_COOKIE_SECURE, auth bypass csv
+- `routes/main.py` — eliminados emergency_reset/exit, rate limiting recovery, error genérico
+- `routes/admin.py` — backup restore con validación de esquema + integridad
+- `routes/configuracion.py` — secure_filename en uploads
+- `routes/alumnos.py` — secure_filename + check grupo en ficha alumno
+- `routes/horario.py`, `routes/comedor.py` — secure_filename
+- `requirements.txt` — requests>=2.32.2
+- `static/js/debug.js` — **nuevo**: wrapper logging condicional
+- `static/js/navigation.js` — window.DEBUG = false
+- `static/` — viewport meta en 8 HTML, lang="es" en 4 HTML
+
+### Qué se eliminó
+- `QWEN.md` — fusionado en INSTRUCCIONES.md
+- `CLAUDE.md` — fusionado en INSTRUCCIONES.md
+- `static/cuaderno_evaluacion.html` — integrado como pestaña en evaluacion.html
+- Endpoints `emergency_reset` y `exit` — eliminados por seguridad
+
+### INSTRUCCIONES.md actualizado
+- Fusionado contenido de CLAUDE.md (workflow git, versiones, checklist merge) + contenido original (reglas generales, CSV, agentes)
+- Archivo único de referencia para todos los asistentes de código
+
+---
+
+## ✅ Auditoría Frontend — Pendiente para próximo día
+
+**Rama:** `fix/frontend-audit` (no mergeada a master aún)
+
+| # | Fix | Estado | Esfuerzo |
+|---|-----|--------|----------|
+| 1 | ✅ Viewport meta en 8 páginas | **HECHO** | 5 min |
+| 2 | Eliminar `:root` inline de 27 páginas | Pendiente | 30 min |
+| 3 | Reemplazar `background: white` por `var(--bg-page)` | Pendiente | 1h |
+| 4 | ✅ Wrapper `debug.js` + `window.DEBUG=false` | **HECHO** | 10 min |
+| 5 | ✅ `lang="es"` en 4 páginas | **HECHO** | 5 min |
+
+**Pendientes adicionales:**
+- CDN sin fallback (chart.js, fullcalendar)
+- `catch (e) {}` vacíos — feedback al usuario
+- Aria-labels básicos en formularios y modales
+- Transición `*` en dark-mode.css → solo elementos interactivos
+
+---
+
+## ✅ Auditoría de Seguridad — Completada
+
+| Severidad | Total | Arreglados | Pendientes |
+|-----------|-------|------------|------------|
+| 🔴 Crítico | 2 | 2 | 0 |
+| 🟠 Alto | 4 | 4 | 0 |
+| 🟡 Medio | 6 | 6 | 0 |
+| 🟢 Bajo | 4 | 3 | 1 (requests outdated) |
+| ℹ️ Info | 2 | 0 | 0 |
+
+**Pendientes de bajo riesgo:**
+- PII en Sentry (solo relevante si se expone a internet)
+- Magic bytes en uploads (app local, un solo usuario)
+
+---
+
+## ✅ Todos los pendientes resueltos
+
+**Fecha:** 13 de Abril 2026
+
+Los siguientes pendientes de QWEN.md están **confirmados como hechos**:
+
+| # | Item | Estado |
+|---|------|--------|
+| 1 | Gestión de Criterios no borra criterios | ✅ Arreglado (schema EXCLUDE) |
+| 2 | Cuaderno de Evaluación no muestra nada | ✅ Arreglado (integrado como pestaña) |
+| 3 | Actas - Firmas no muestra tutor automáticamente | ✅ Hecho |
+| 4 | Rellenador masivo Infantil en Clase de Hoy | ✅ Hecho |
+| 5 | Commit feature/fix-acta-ciclo-y-dark-mode | ✅ Hecho |
 
 ---
 
@@ -279,4 +393,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 12 Abril 2026 — Botones excursiones visibles en dark mode
+**Última actualización:** 13 Abril 2026 — v1.3.0: Auditoría seguridad (15 fixes) + Frontend (8 fixes) + Documentación fusionada

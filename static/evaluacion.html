@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cuaderno de Evaluación</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,21 +11,7 @@
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/dark-mode.css">
     <style>
-        :root {
-            --primary: #003366;
-            --secondary: #007bff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --bg: #f0f2f5;
-            --text: #333;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        body {
+body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             margin: 0;
@@ -47,7 +34,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            background: var(--white);
             margin-top: 20px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
@@ -60,7 +47,7 @@
         }
 
         th {
-            background: #f8f9fa;
+            background: var(--gray-100);
             font-weight: bold;
         }
 
@@ -69,7 +56,7 @@
             margin: 2px;
             cursor: pointer;
             border: 1px solid #ccc;
-            background: #fff;
+            background: var(--white);
             border-radius: 4px;
             transition: all 0.2s;
         }
@@ -147,7 +134,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: white;
+            background: var(--white);
             color: var(--primary);
             padding: 10px 18px;
             border-radius: 12px;
@@ -195,7 +182,7 @@
 
         /* Tabs */
         .tab-btn-eval {
-            background: #f8f9fa;
+            background: var(--gray-100);
             border: 1px solid #ddd;
             color: #555;
             padding: 6px 14px;
@@ -212,7 +199,7 @@
         }
 
         .tab-btn-eval.active {
-            background: white;
+            background: var(--white);
             border-bottom: 2px solid white;
             color: var(--primary);
             position: relative;
@@ -279,7 +266,7 @@
         .eval-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            background: var(--white);
         }
 
         .eval-table th {
@@ -303,7 +290,7 @@
             padding: 8px 15px;
             text-align: left;
             font-weight: 600;
-            background: #f8f9fa;
+            background: var(--gray-100);
             position: sticky;
             left: 0;
             z-index: 5;
@@ -346,7 +333,7 @@
             font-weight: 800;
             cursor: pointer;
             border: 2px solid #e0e0e0;
-            background: #fff;
+            background: var(--white);
             color: #aaa;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
@@ -384,7 +371,7 @@
 
         /* === CUADERNO DE EVALUACIÓN === */
         .cuaderno-table-container {
-            background: white;
+            background: var(--white);
             border-radius: 15px;
             overflow: auto;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -416,7 +403,7 @@
         .cuaderno-table-container .sticky-col {
             position: sticky;
             left: 0;
-            background: white;
+            background: var(--white);
             z-index: 5;
             min-width: 200px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
@@ -473,7 +460,7 @@
         }
 
         #cuaderno-eval-modal .modal-content {
-            background: white;
+            background: var(--white);
             padding: 30px;
             border-radius: 20px;
             width: 350px;
@@ -496,6 +483,7 @@
         }
     </style>
 
+    <script src="/static/js/debug.js"></script>
     <script src="/static/js/api.js?v=1.4"></script>
     <script src="/static/js/dark-mode.js"></script>
     <script src="/static/js/shortcuts.js"></script>
@@ -540,7 +528,7 @@
                     </div>
                 </div>
                 <div id="filtrosGlobales"
-                    style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:15px; align-items:center; background:#fff; padding:15px; border-radius:8px; border:1px solid #ddd; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:15px; align-items:center; background: var(--white); padding:15px; border-radius:8px; border:1px solid #ddd; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
                     <label id="labelAlumno"
                         style="display:flex;align-items:center;gap:5px;margin:0;white-space:nowrap;">Alumno:
                         <select id="alumno"
@@ -574,7 +562,7 @@
                     </label>
                 </div>
                 <div
-                    style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap; align-items:center; background:#fff; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                    style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap; align-items:center; background: var(--white); padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
                     <!-- Vistas y Navegación principal -->
                     <div style="display:flex; gap:8px;">
                         <button id="btnModoTablaToggle" onclick="toggleModoTabla()"
@@ -615,7 +603,7 @@
                             Ver Resumen Actividades</button>
 
                         <button onclick="limpiarTodos()"
-                            style="background:#fff; color:#ef4444; border:1px solid #fee2e2; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;">🗑️
+                            style="background: var(--white); color:#ef4444; border:1px solid #fee2e2; border-radius:8px; padding:8px 14px; font-weight:600; font-size:0.85rem; cursor:pointer;">🗑️
                             Limpiar Visibles</button>
                     </div>
                     <div style="flex:1;"></div>
@@ -653,7 +641,7 @@
                 <div style="margin-top:30px; border-top:2px solid #ddd; padding-top:15px;">
                     <h3>📋 Resumen por Alumno</h3>
                     <div id="resumenAlumno"
-                        style="background:#fff; padding:15px; border:1px solid #ccc; border-radius:5px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                        style="background: var(--white); padding:15px; border:1px solid #ccc; border-radius:5px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
                         <em>Selecciona un alumno para ver su resultado en cada área.</em>
                     </div>
                 </div>
@@ -666,7 +654,7 @@
                 <div class="toolbar"
                     style="display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
                     <div class="filters"
-                        style="display:flex; gap:15px; background:white; padding:15px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); flex:1; min-width:300px;">
+                        style="display:flex; gap:15px; background: var(--white); padding:15px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); flex:1; min-width:300px;">
                         <div style="display:flex; flex-direction:column; gap:5px; min-width:160px;">
                             <label style="font-size:0.85rem; font-weight:600; color:#555;">Filtrar por Etapa:</label>
                             <select id="filterEtapa" onchange="filtrarEtapaCrit(this.value)">
@@ -721,7 +709,7 @@
             <div id="modalCriterio" class="modal"
                 style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div class="modal-content"
-                    style="background:white; padding:30px; border-radius:12px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                    style="background: var(--white); padding:30px; border-radius:12px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                     <h3 id="modalCritTitle">Nuevo Criterio</h3>
                     <form id="criterioForm" onsubmit="guardarCriterioConfig(event)">
                         <input type="hidden" id="critId">
@@ -772,7 +760,7 @@
             <div id="modalImportar" class="modal"
                 style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div class="modal-content"
-                    style="background:white; padding:30px; border-radius:12px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                    style="background: var(--white); padding:30px; border-radius:12px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <h3 style="margin:0;">📥 Importar Criterios desde CSV</h3>
                         <button onclick="descargarPlantilla()"
@@ -804,7 +792,7 @@
                                 style="max-height:150px; overflow-y:auto; border:1px solid #ddd; padding:10px; font-size:0.85rem; background:#fffafb;">
                             </div>
                             <button id="btnDownloadErrors" onclick="descargarErroresCSV()"
-                                style="margin-top:10px; background:white; color:var(--danger); border-color:var(--danger); width:100%;">📥
+                                style="margin-top:10px; background: var(--white); color:var(--danger); border-color:var(--danger); width:100%;">📥
                                 Descargar reporte de errores</button>
                         </div>
                         <div style="display:flex; justify-content:flex-end;">
@@ -818,7 +806,7 @@
             <div id="modalModo" class="modal"
                 style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div class="modal-content"
-                    style="background:white; padding:30px; border-radius:12px; width:90%; max-width:480px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                    style="background: var(--white); padding:30px; border-radius:12px; width:90%; max-width:480px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                     <h3 style="margin:0 0 10px 0;">⚙️ Modo de Evaluación del Área</h3>
                     <p style="font-size:0.9rem; color:#666; margin-bottom:20px;">Elige cómo se registran las notas en
                         esta
@@ -875,7 +863,7 @@
             <div id="modalPeriodo" class="modal"
                 style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
                 <div class="modal-content"
-                    style="background:white; padding:30px; border-radius:12px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+                    style="background: var(--white); padding:30px; border-radius:12px; width:90%; max-width:600px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
                     <h3 style="margin:0 0 15px 0;">🎯 Seleccionar Criterios para el Periodo</h3>
                     <p style="font-size:0.9rem; color:#666; margin-bottom:15px;">Selecciona los criterios que se
                         evaluarán
@@ -2062,7 +2050,7 @@
                         }
                         criterios.forEach(c => {
                             let btn = document.createElement('button');
-                            btn.style.cssText = 'display:block;width:100%;text-align:left;padding:12px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px;background:#f8f9fa;cursor:pointer;';
+                            btn.style.cssText = 'display:block;width:100%;text-align:left;padding:12px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px;background: var(--gray-100);cursor:pointer;';
                             btn.innerHTML = `<strong style="color:var(--primary);">${c.codigo}</strong>: ${c.descripcion}`;
                             btn.onclick = () => vincularCriterioExtra(c.id);
                             btn.onmouseover = () => btn.style.background = '#e2e6ea';
@@ -2903,7 +2891,7 @@
                     });
 
                     for (const [sdaId, sdaData] of Object.entries(sdaMap)) {
-                        html += `<div style="background:#f8f9fa; padding:12px; border-radius:8px; margin-bottom:15px; border-left:4px solid var(--secondary);">`;
+                        html += `<div style="background: var(--gray-100); padding:12px; border-radius:8px; margin-bottom:15px; border-left:4px solid var(--secondary);">`;
                         html += `<strong style="color:var(--primary);">📁 ${sdaData.nombre}</strong>`;
 
                         sdaData.actividades.forEach((act, idx) => {
@@ -2911,7 +2899,7 @@
                             const nota = nivel !== '-' ? nivel_a_nota(nivel, data.area.tipo_escala) : '-';
                             const notaStr = nota !== '-' ? nota.toFixed(2) : '-';
 
-                            html += `<div style="margin:10px 0 10px 20px; padding:8px; background:white; border-radius:6px;">`;
+                            html += `<div style="margin:10px 0 10px 20px; padding:8px; background: var(--white); border-radius:6px;">`;
                             html += `<div style="display:flex; justify-content:space-between; align-items:center;">`;
                             html += `<span><strong>⚡ ${idx + 1}. ${act.nombre}</strong></span>`;
                             html += `<span style="background:${nivel !== '-' ? '#dcfce7' : '#f3f4f6'}; padding:4px 10px; border-radius:4px; font-weight:bold;">
@@ -2957,7 +2945,7 @@
                     modal.id = 'modalResumenActividades';
                     modal.style.cssText = 'display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;';
                     modal.innerHTML = `
-                    <div style="background:white; padding:30px; border-radius:15px; width:90%; max-width:800px; max-height:90vh; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+                    <div style="background: var(--white); padding:30px; border-radius:15px; width:90%; max-width:800px; max-height:90vh; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                             <h3 style="margin:0; color:var(--primary);">📊 Resumen de Actividades</h3>
                             <button onclick="document.getElementById('modalResumenActividades').remove()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
@@ -3098,7 +3086,7 @@
                     if (!resDiv) {
                         resDiv = document.createElement('div');
                         resDiv.id = 'resumen-alumno-cuaderno';
-                        resDiv.style = 'margin-top:30px; background:white; padding:25px; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.05); border:1px solid #e2e8f0;';
+                        resDiv.style = 'margin-top:30px; background: var(--white); padding:25px; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.05); border:1px solid #e2e8f0;';
                         document.getElementById('cuaderno-pane').appendChild(resDiv);
                     }
                     resDiv.innerHTML = `<h3 style="color:var(--primary); margin:0 0 15px 0;">📊 Resumen de ${nombre}</h3><div id="resumen-content-cuaderno">Cargando...</div>`;
@@ -3206,7 +3194,7 @@
                 </div>
 
                 <div
-                    style="display:flex; gap:12px; margin-bottom:20px; background:white; padding:15px 20px; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,0.05); align-items:center; flex-wrap:wrap;">
+                    style="display:flex; gap:12px; margin-bottom:20px; background: var(--white); padding:15px 20px; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,0.05); align-items:center; flex-wrap:wrap;">
                     <select id="cuaderno-etapa-select" onchange="cargarAreasCuaderno()">
                         <option value="">Selecciona Etapa</option>
                     </select>

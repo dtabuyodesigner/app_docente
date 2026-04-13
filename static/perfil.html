@@ -5,7 +5,7 @@
     <title>📘 Perfil del Alumno</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="this.onerror=null;this.src='/static/js/vendor/chart.js'"></script>
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/dark-mode.css">
     <style>
@@ -102,7 +102,7 @@
         }
         /* Right Column (Tabs/Content) */
         .main-content {
-            background: white;
+            background: var(--white);
             border-radius: 16px;
         }
         .tab-box {
@@ -174,7 +174,7 @@
             border: 1px solid #eee;
             border-radius: 8px;
             margin-bottom: 10px;
-            background: white;
+            background: var(--white);
         }
         .historial-item .meta {
             font-size: 0.8rem;

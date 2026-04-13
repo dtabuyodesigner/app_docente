@@ -3,6 +3,9 @@
  * Dynamically generates the navbar for all pages.
  */
 
+// Debug logging — set to true in development to see logs
+window.DEBUG = false;
+
 const MENU_STRUCTURE = [
     {
         category: "Gestión",

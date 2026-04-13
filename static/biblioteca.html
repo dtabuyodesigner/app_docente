@@ -8,23 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/dark-mode.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="this.onerror=null;this.src='/static/js/vendor/chart.js'"></script>
     <style>
-        :root {
-            --primary: #003366;
-            --success: #28a745;
-            --danger: #dc3545;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-        }
-
-        * {
+* {
             box-sizing: border-box;
         }
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #f0f2f5;
+            background: var(--gray-200);
             margin: 0;
             padding: 20px;
             color: #343a40;
@@ -36,7 +28,7 @@
         }
 
         .premium-card {
-            background: white;
+            background: var(--white);
             padding: 30px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
@@ -196,7 +188,7 @@
         }
 
         .btn-outline {
-            background: white;
+            background: var(--white);
             border: 2px solid #ddd;
             color: #555;
         }
@@ -273,7 +265,7 @@
         .view-btn {
             padding: 8px 10px;
             border: 2px solid #ddd;
-            background: white;
+            background: var(--white);
             border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
@@ -292,7 +284,7 @@
             border-radius: 12px;
             padding: 15px;
             transition: box-shadow .2s;
-            background: white;
+            background: var(--white);
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -388,7 +380,7 @@
         .pst-tab-pill {
             padding: 8px 18px;
             border: 2px solid #e0e6ef;
-            background: white;
+            background: var(--white);
             border-radius: 30px;
             cursor: pointer;
             font-weight: 600;
@@ -430,7 +422,7 @@
         }
 
         .modal {
-            background: white;
+            background: var(--white);
             border-radius: 16px;
             padding: 25px;
             width: 100%;
@@ -567,7 +559,7 @@
         }
 
         .code-block {
-            background: #f8f9fa;
+            background: var(--gray-100);
             padding: 12px;
             border-radius: 8px;
             font-family: monospace;
@@ -788,7 +780,7 @@
             </div>
             <!-- Added "Recordar grupo y alumno" checkbox near loans -->
             <div id="loan-context-options"
-                style="margin-top:20px; display:none; align-items:center; gap:8px; background:#f0f7ff; padding:10px 15px; border-radius:10px; border:1px solid #d0e1f9;">
+                style="margin-top:20px; display:none; align-items:center; gap:8px; background: var(--primary-light); padding:10px 15px; border-radius:10px; border:1px solid #d0e1f9;">
                 <input type="checkbox" id="keep-student" style="width:16px; height:16px;">
                 <label for="keep-student"
                     style="font-size:.85rem; font-weight:600; color:#003366; cursor:pointer;">Recordar grupo y alumno
@@ -805,7 +797,7 @@
                 </div>
                 <!-- Vertical Bar Chart -->
                 <div
-                    style="background:white;padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
+                    style="background: var(--white);padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
                     <h3
                         style="margin-top:0;color:var(--primary);font-size:1.1rem;display:flex;align-items:center;gap:8px;">
                         📊 Lectómetro — Libros devueltos por alumno</h3>
@@ -817,7 +809,7 @@
                 </div>
                 <!-- Tabla detalle -->
                 <div
-                    style="background:white;padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
+                    style="background: var(--white);padding:20px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 4px 12px rgba(0,0,0,.04);">
                     <h3 style="margin-top:0;color:var(--primary);font-size:1.1rem;">📋 Detalle por alumno</h3>
                     <div id="rankingTabla" style="overflow-x:auto;"></div>
                 </div>
@@ -827,7 +819,7 @@
         <!-- Tab Historial -->
         <div id="tab-historial" class="tab-panel">
             <div
-                style="background:white;padding:30px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 10px 30px rgba(0,0,0,.05); max-width: 900px; margin: 0 auto;">
+                style="background: var(--white);padding:30px;border-radius:18px;border:1px solid #eef2f7;box-shadow:0 10px 30px rgba(0,0,0,.05); max-width: 900px; margin: 0 auto;">
                 <h3
                     style="margin-top:0;color:var(--primary);font-size:1.5rem;display:flex;align-items:center;gap:12px; margin-bottom: 25px;">
                     📜 Historial General de Préstamos</h3>
@@ -879,7 +871,7 @@
                         <span id="selectionCount">0 seleccionados</span>
                     </div>
                     <button class="btn btn-danger btn-sm" onclick="deleteSelectedBooks()"
-                        style="background:#fff; color:var(--danger); border:none; padding: 6px 12px; font-size: .85rem;">🗑️
+                        style="background: var(--white); color:var(--danger); border:none; padding: 6px 12px; font-size: .85rem;">🗑️
                         Eliminar seleccionados</button>
                 </div>
                 <div class="toolbar">
@@ -1127,7 +1119,7 @@
                         </div>
                         <input type="hidden" id="p-alumno">
                         <div id="p-alumno-results"
-                            style="background:white;border-radius:0 0 10px 10px;max-height:160px;overflow-y:auto;display:none;position:absolute;width:100%;z-index:100;box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            style="background: var(--white);border-radius:0 0 10px 10px;max-height:160px;overflow-y:auto;display:none;position:absolute;width:100%;z-index:100;box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                         </div>
                     </div>
                     <div>
@@ -1151,7 +1143,7 @@
                     </div>
                     <input type="hidden" id="p-libro">
                     <div id="p-libro-results"
-                        style="background:white;border-radius:0 0 10px 10px;max-height:160px;overflow-y:auto;display:none;">
+                        style="background: var(--white);border-radius:0 0 10px 10px;max-height:160px;overflow-y:auto;display:none;">
                     </div>
                     <div id="p-libro-selected" style="margin-top:8px;display:none;">
                         <div
@@ -1161,14 +1153,14 @@
                     </div>
                 </div>
                 <button onclick="registrarPrestamo()"
-                    style="background:white;color:#003366;font-weight:800;font-size:.95rem;padding:10px 26px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,.2);">
+                    style="background: var(--white);color:#003366;font-weight:800;font-size:.95rem;padding:10px 26px;border:none;border-radius:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,.2);">
                     ✅ Registrar Préstamo
                 </button>
             </div>
             <!-- STATS ROW -->
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;">
                 <div
-                    style="background:white;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+                    style="background: var(--white);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
                     <div
                         style="width:44px;height:44px;background:#e8f5e9;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
                         📖</div>
@@ -1181,7 +1173,7 @@
                     </div>
                 </div>
                 <div
-                    style="background:white;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+                    style="background: var(--white);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
                     <div
                         style="width:44px;height:44px;background:#ffebee;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
                         ⚠️</div>
@@ -1197,7 +1189,7 @@
                     </div>
                 </div>
                 <div
-                    style="background:white;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
+                    style="background: var(--white);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px;border:1px solid #eef2f7;box-shadow:0 2px 8px rgba(0,0,0,.04);">
                     <div
                         style="width:44px;height:44px;background:#e3f2fd;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">
                         📜</div>
@@ -1212,7 +1204,7 @@
             </div>
             <!-- Config plazo -->
             <div
-                style="background:#f8f9fa;border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;border:1px solid #e0e0e0;flex-wrap:wrap;">
+                style="background: var(--gray-100);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;border:1px solid #e0e0e0;flex-wrap:wrap;">
                 <span>⏱️</span>
                 <label style="font-weight:600;color:#003366;margin:0;">Plazo máximo:</label>
                 <select id="plazo-dias" onchange="guardarPlazo(this.value)"
@@ -1485,7 +1477,7 @@
                             const pendCount = i.diplomas_ganados - i.diplomas_entregados;
                             const hito = (i.diplomas_entregados + 1) * 5; // Milestone for the NEXT diploma
                             return `
-                                <div style="background:white; border:1px solid #f6c90e; border-radius:12px; padding:12px 18px; display:flex; align-items:center; gap:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                                <div style="background: var(--white); border:1px solid #f6c90e; border-radius:12px; padding:12px 18px; display:flex; align-items:center; gap:12px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
                                     <div style="background:#fffbea; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">🎓</div>
                                     <div style="flex:1;">
                                         <div style="font-weight:800; color:#003366; font-size:1rem;">${i.nombre}</div>
@@ -1579,8 +1571,8 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Great+Vibes&family=Montserrat:wght@400;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Montserrat', sans-serif; background:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; }
-  .diploma { width:100%; max-width:750px; aspect-ratio:210/297; border:25px double #c8a000; border-radius:12px; padding:25px 30px; text-align:center; background:#fff; position:relative; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
+  body { font-family: 'Montserrat', sans-serif; background: var(--white); display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; }
+  .diploma { width:100%; max-width:750px; aspect-ratio:210/297; border:25px double #c8a000; border-radius:12px; padding:25px 30px; text-align:center; background: var(--white); position:relative; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
   .decor { position:absolute; font-size:4rem; color:rgba(200,160,0,0.12); z-index:0; }
   .decor-tl { top:20px; left:20px; } .decor-tr { top:20px; right:20px; } .decor-bl { bottom:20px; left:20px; } .decor-br { bottom:20px; right:20px; }
   .content { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; }
@@ -1599,7 +1591,7 @@
   .sign-box { border-top:2px solid #ccc; width:180px; padding-top:6px; font-size:0.85rem; color:#777; }
   @media print {
     @page { size: A4 portrait; margin:0.8cm; }
-    html, body { margin:0 !important; padding:0 !important; background:white !important; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; overflow:hidden !important; }
+    html, body { margin:0 !important; padding:0 !important; background: var(--white) !important; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; overflow:hidden !important; }
     body { display:block !important; padding:0 !important; }
     .diploma {
       box-shadow:none !important;
@@ -1975,8 +1967,8 @@
                 const grupos = await r.json();
                 const selG = document.getElementById('p-grupo');
                 const prevVal = selG.value; // Guardar valor previo
-                selG.innerHTML = '<option value="" style="color:#333;background:white;">-- Selecciona un grupo --</option>' +
-                    grupos.map(g => `<option value="${g.id}" style="color:#333;background:white;">${g.nombre}</option>`).join('');
+                selG.innerHTML = '<option value="" style="color:#333;background: var(--white);">-- Selecciona un grupo --</option>' +
+                    grupos.map(g => `<option value="${g.id}" style="color:#333;background: var(--white);">${g.nombre}</option>`).join('');
 
                 // Restaurar valor previo si existe y es válido
                 if (prevVal && grupos.some(g => g.id == prevVal)) {
@@ -2228,7 +2220,7 @@
             // Build summary bar
             let summaryHtml = `
                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 25px;" >
-                    <div style="background:#f0f7ff; padding: 15px; border-radius: 14px; border: 1px solid #d0e1f9; text-align: center; box-shadow: 0 4px 10px rgba(0,51,102,0.03);">
+                    <div style="background: var(--primary-light); padding: 15px; border-radius: 14px; border: 1px solid #d0e1f9; text-align: center; box-shadow: 0 4px 10px rgba(0,51,102,0.03);">
                         <div style="font-size: .65rem; color: #5c7c99; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">Total</div>
                         <div style="font-size: 1.6rem; font-weight: 800; color: #003366;">${totalLoans}</div>
                     </div>
@@ -2265,9 +2257,9 @@
                 const nActivos = prestamos.filter(p => p.estado !== 'devuelto').length;
                 const groupId = `${prefix} -group - ${idx} `;
                 groupsHtml += `
-            <div class="historial-group" style="background:white; border: 1px solid #eef2f7; border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: all 0.2s;" >
+            <div class="historial-group" style="background: var(--white); border: 1px solid #eef2f7; border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: all 0.2s;" >
                     <div onclick="toggleHistGroup('${groupId}', '${prefix}-${idx}')" 
-                         style="padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-left: 5px solid ${nActivos > 0 ? '#f39c12' : '#28a745'}; background: #fff;">
+                         style="padding: 16px 20px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-left: 5px solid ${nActivos > 0 ? '#f39c12' : '#28a745'}; background: var(--white);">
                         <div style="display: flex; align-items: center; gap: 14px;">
                             <span id="${groupId}-arrow" style="font-size: .8rem; color: #94a3b8; transition: transform 0.2s;">▶</span>
                             <div>

@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Horario</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -9,17 +10,7 @@
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/dark-mode.css">
     <style>
-        :root {
-            --primary: #003366;
-            --secondary: #007bff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --bg: #f0f2f5;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        body {
+body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             margin: 0;
@@ -53,7 +44,7 @@
         }
         .section {
             display: none;
-            background: white;
+            background: var(--white);
             padding: 10px;
             border-radius: 12px;
             box-shadow: var(--shadow);
@@ -72,7 +63,7 @@
         .header-cell,
         .time-cell,
         .slot-cell {
-            background: white;
+            background: var(--white);
             padding: 6px;
             text-align: center;
         }
@@ -82,7 +73,7 @@
             font-weight: bold;
         }
         .time-cell {
-            background: #f8f9fa;
+            background: var(--gray-100);
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -133,7 +124,7 @@
             z-index: 1000;
         }
         .modal-content {
-            background: white;
+            background: var(--white);
             padding: 20px;
             border-radius: 10px;
             width: 300px;
@@ -186,7 +177,7 @@
                 display: none !important;
             }
             body {
-                background: white;
+                background: var(--white);
                 padding: 0;
             }
             .container {
@@ -216,7 +207,7 @@
             .slot-cell {
                 border: 1px solid #000;
                 color: black !important;
-                background: white !important;
+                background: var(--white) !important;
             }
             .subject {
                 color: black !important;
@@ -406,7 +397,7 @@
                     const res = await fetch(url);
                     const data = await res.json();
                     areas = data.map(a => a.nombre);
-                } catch(e) {}
+                } catch(e) { console.error("Error:", e); }
             } else {
                 // Horario de profesor: áreas del usuario para el grupo seleccionado
                 const grupoObj = gruposData.find(g => g.nombre === grupoNombre);
@@ -424,14 +415,14 @@
                                 .filter(a => areaIds.includes(String(a.id)) || areaIds.includes(a.id))
                                 .map(a => a.nombre);
                         }
-                    } catch(e) {}
+                    } catch(e) { console.error("Error:", e); }
                 } else {
                     // Sin grupo seleccionado, áreas del grupo activo del profesor
                     try {
                         const res = await fetch('/api/configuracion/mi_rol');
                         const data = await res.json();
                         areas = (data.area_nombres || []).map(a => a.nombre);
-                    } catch(e) {}
+                    } catch(e) { console.error("Error:", e); }
                 }
             }
 

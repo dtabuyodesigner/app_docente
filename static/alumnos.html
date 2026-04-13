@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alumnos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -9,20 +10,7 @@
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/dark-mode.css">
     <style>
-        :root {
-            --primary: #003366;
-            --secondary: #007bff;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --info: #17a2b8;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --bg: #f0f2f5;
-            --text: #333;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        body {
+body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             margin: 0;
@@ -49,7 +37,7 @@
         }
         /* ===== LISTADO ===== */
         .lista {
-            background: white;
+            background: var(--white);
             border-radius: 12px;
             padding: 10px;
             height: calc(100vh - 160px);
@@ -84,7 +72,7 @@
         }
         /* ===== FICHA ===== */
         .ficha {
-            background: white;
+            background: var(--white);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
@@ -118,7 +106,7 @@
             align-items: center;
         }
         .modal {
-            background: white;
+            background: var(--white);
             padding: 25px;
             border-radius: 12px;
             width: 90%;
@@ -139,7 +127,7 @@
             }
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="this.onerror=null;this.src='/static/js/vendor/chart.js'"></script>
 
     <script src="/static/js/api.js?v=1.6"></script>
     <script src="/static/js/dark-mode.js"></script>
@@ -172,21 +160,21 @@
                     ➕ Nuevo Alumno
                 </button>
                 <button onclick="descargarPlantilla()"
-                    style="background:white; border:1px solid #ddd; padding:10px 15px; border-radius:8px; cursor:pointer;">
+                    style="background: var(--white); border:1px solid #ddd; padding:10px 15px; border-radius:8px; cursor:pointer;">
                     📄 Plantilla CSV
                 </button>
                 <button onclick="document.getElementById('csvInput').click()"
-                    style="background:white; border:1px solid #ddd; padding:10px 15px; border-radius:8px; cursor:pointer;">
+                    style="background: var(--white); border:1px solid #ddd; padding:10px 15px; border-radius:8px; cursor:pointer;">
                     📤 Importar CSV
                 </button>
                 <input type="file" id="csvInput" hidden accept=".csv" onchange="importarCSV(this)">
                 <div style="flex-grow: 1;"></div>
                 <button onclick="exportarData('json')"
-                    style="background:#f8f9fa; border:1px solid #ddd; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">
+                    style="background: var(--gray-100); border:1px solid #ddd; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">
                     📥 Exportar JSON
                 </button>
                 <button onclick="exportarData('csv')"
-                    style="background:#f8f9fa; border:1px solid #ddd; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">
+                    style="background: var(--gray-100); border:1px solid #ddd; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:0.85rem;">
                     📥 Exportar CSV
                 </button>
             </div>
@@ -342,7 +330,7 @@
         <div id="modalAlumno"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
             <div
-                style="background:white; padding:25px; border-radius:12px; width:600px; max-width:95%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow);">
+                style="background: var(--white); padding:25px; border-radius:12px; width:600px; max-width:95%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow);">
                 <h3 id="modalTitulo"
                     style="margin-top:0; color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px;">
                     Nuevo Alumno</h3>
@@ -408,7 +396,7 @@
                             style="width:100%; height:60px; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box; font-family: inherit;"></textarea>
                     </div>
                     <div
-                        style="grid-column: span 2; background:#f8f9fa; padding:15px; border-radius:8px; border: 1px solid #eef2f7;">
+                        style="grid-column: span 2; background: var(--gray-100); padding:15px; border-radius:8px; border: 1px solid #eef2f7;">
                         <label style="font-weight:bold; display:block; margin-bottom:10px;">🍽️ Días de Comedor:</label>
                         <div style="display:flex; justify-content: space-between; align-items: center;">
                             <div style="display:flex; gap:12px;">
@@ -430,7 +418,7 @@
                 <div
                     style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px; border-top: 2px solid #eee; padding-top: 20px;">
                     <button onclick="cerrarModal()"
-                        style="background:#f0f2f5; color:#666; border:none; border-radius:8px; font-weight:600; padding: 10px 20px;">Cancelar</button>
+                        style="background: var(--gray-200); color:#666; border:none; border-radius:8px; font-weight:600; padding: 10px 20px;">Cancelar</button>
                     <button onclick="guardarAlumnoModal()"
                         style="background:var(--primary); color:white; border:none; border-radius:8px; font-weight:600; padding: 10px 25px; box-shadow: 0 4px 6px rgba(0,51,102,0.2);">
                         💾 Guardar Alumno
@@ -611,7 +599,7 @@
                     }
                     cont.innerHTML = `
                         <table style="width:100%; border-collapse:collapse; font-size:.9rem;">
-                            <thead><tr style="background:#f8f9fa;">
+                            <thead><tr style="background: var(--gray-100);">
                                 <th style="padding:10px; text-align:left; color:#003366;">Libro</th>
                                 <th style="padding:10px; text-align:left; color:#003366;">Préstamo</th>
                                 <th style="padding:10px; text-align:left; color:#003366;">Devolución</th>

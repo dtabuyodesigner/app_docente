@@ -43,6 +43,16 @@
     --gray-500: #adb5bd;
     --gray-600: #6c757d;
 
+    /* Aliases de compatibilidad (antes definidos en :root inline) */
+    --bg: #f0f4f8;
+    --card-bg: #ffffff;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    --text: #333333;
+    --text-main: #1a1a1a;
+    --excursion-color: #1976d2;
+    --salida-color: #388e3c;
+
     /* Spacing */
     --space-xs: 0.25rem;
     --space-sm: 0.5rem;

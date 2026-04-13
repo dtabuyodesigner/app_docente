@@ -18,6 +18,16 @@
     --gray-200: #33334d;
     --gray-300: #44445a;
     --gray-400: #55556b;
+
+    /* --- Aliases de compatibilidad --- */
+    --bg: #121220;
+    --card-bg: #1a1a2e;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    --text: #e0e0e0;
+    --text-main: #f0f0f0;
+    --excursion-color: #5dade2;
+    --salida-color: #2ecc71;
     --gray-500: #8888a0;
     --gray-600: #aaaabe;
 

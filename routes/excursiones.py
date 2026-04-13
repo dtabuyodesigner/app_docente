@@ -572,8 +572,18 @@ def pdf_autorizacion(excursion_id):
     # grupos_extra: puede contener varios grupos separados por comas escritos a mano
     grupos_extra_val = (ex["grupos_extra"] or "").strip()
     if grupos_extra_val:
-        nombres_grupos.append(grupos_extra_val)
-    grupos_str = ", ".join(nombres_grupos) if nombres_grupos else ""
+        extras = [g.strip() for g in grupos_extra_val.split(",") if g.strip()]
+        nombres_grupos.extend(extras)
+
+    # Formato de lista español: "A", "A y B", "A, B y C"
+    def fmt_grupos(gs):
+        if not gs:
+            return ""
+        if len(gs) == 1:
+            return gs[0]
+        return ", ".join(gs[:-1]) + " y " + gs[-1]
+
+    grupos_str = fmt_grupos(nombres_grupos)
 
     # Formatear fecha
     def fmt_fecha(iso):

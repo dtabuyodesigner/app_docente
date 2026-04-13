@@ -3,7 +3,7 @@
 > Este archivo es para TODOS los asistentes de código: Antigravity, Claude, Codex, Qwen o cualquier otro. Léelo siempre antes de empezar a trabajar en este proyecto.
 
 ## Reglas generales
-
+- Da siempre respuestas en español
 - Piensa antes de actuar. Lee los archivos existentes antes de escribir código.
 - Sé conciso en la salida pero exhaustivo en el razonamiento.
 - Prefiere editar archivos a reescribirlos enteros.

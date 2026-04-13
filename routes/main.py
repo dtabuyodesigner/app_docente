@@ -9,6 +9,28 @@ from flask_wtf.csrf import validate_csrf, ValidationError as CSRFValidationError
 main_bp = Blueprint('main', __name__)
 security_logger = get_security_logger()
 
+
+def get_local_ip():
+    """Obtiene la IP local para acceso desde otros dispositivos de la red."""
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+
+@main_bp.route("/api/local-ip")
+def api_local_ip():
+    """Devuelve la IP local y la URL de acceso para móviles/tablets."""
+    ip = get_local_ip()
+    port = request.host.split(":")[-1] if ":" in request.host else "5000"
+    return jsonify({"ip": ip, "url": f"http://{ip}:{port}"})
+
+
 # ─── RATE LIMITING SIMPLE PARA LOGIN ─────────────────────────────────────────
 # Diccionario en memoria: IP -> lista de timestamps de intentos fallidos
 _login_attempts = {}

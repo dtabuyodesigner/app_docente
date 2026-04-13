@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/dark-mode.css">
     <style>
-body {
+        body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: #f0f4f8;
             margin: 0;
@@ -680,6 +680,19 @@ body {
                 <p id="statsAutoSalidas" style="color: #0e7490;">-</p>
                 <div style="font-size: 0.7rem; color: #155e75; opacity: 0.8;">Salidas al entorno</div>
             </div>
+            <!-- Acceso Móvil con QR -->
+            <div class="stat-card"
+                style="border-top: 4px solid #10b981; background: #ecfdf5; grid-column: span 2; cursor: pointer; position: relative;"
+                onclick="toggleMobileQR()">
+                <h4 style="color: #065f46; display: flex; align-items: center; gap: 8px;">
+                    📱 Acceso desde Móvil <span style="font-size: 0.75rem; font-weight: normal; color: #047857;">(tocar
+                        para ver QR)</span>
+                </h4>
+                <p id="mobileUrl" style="color: #059669; font-size: 0.85rem; margin: 5px 0;">Cargando URL...</p>
+                <div id="mobileQR" style="display: none; margin-top: 10px; text-align: center;">
+                    <img id="qrImage" src="" alt="QR Code" style="width: 180px; height: 180px; border-radius: 8px;">
+                </div>
+            </div>
             <!-- Priority Lists Row (Moved Up) -->
             <div class="list-container" style="border-left: 4px solid #f59e0b; background: #fffcf0;">
                 <div class="section-header" style="color: #92400e;">🔔 Avisos Importantes</div>
@@ -779,7 +792,8 @@ body {
                             <p style="color: #666; font-style: italic;">Cargando grupos...</p>
                         </div>
                     </div>
-                    <div style="background: var(--gray-100); padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                    <div
+                        style="background: var(--gray-100); padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
                         <h4 style="margin-top: 0; color:var(--primary);">➕ Crear Nuevo Grupo</h4>
                         <div style="margin-bottom: 15px;">
                             <label style="display:block; font-weight:600; margin-bottom:5px;">Etapa y Curso:</label>
@@ -1143,6 +1157,34 @@ body {
                 }
             } catch (e) {
                 console.error('Error cargando resumen anual autorizaciones:', e);
+            }
+        }
+
+        // ── QR para acceso móvil ──
+        async function loadMobileQR() {
+            try {
+                const res = await fetch('/api/local-ip');
+                const data = await res.json();
+                const url = data.url || 'http://localhost:5000';
+                const el = document.getElementById('mobileUrl');
+                if (el) el.textContent = url;
+            } catch (e) {
+                console.error('Error cargando URL móvil:', e);
+            }
+        }
+
+        function toggleMobileQR() {
+            const qrDiv = document.getElementById('mobileQR');
+            const url = document.getElementById('mobileUrl').textContent;
+            const img = document.getElementById('qrImage');
+
+            if (qrDiv.style.display === 'none' || !qrDiv.style.display) {
+                if (!img.src || img.src === '') {
+                    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+                }
+                qrDiv.style.display = 'block';
+            } else {
+                qrDiv.style.display = 'none';
             }
         }
 
@@ -1633,6 +1675,7 @@ body {
 
         document.addEventListener('DOMContentLoaded', async () => {
             loadDashboard();
+            loadMobileQR();
             await checkIntegrity();
             // Mostrar versión de la app
             fetch('/api/admin/version').then(r => r.json()).then(d => {

@@ -1,8 +1,31 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.4.0`
+**Versión:** `v1.4.1`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ QR para acceso móvil desde el Dashboard (v1.4.1)
+
+**Fecha:** 13 de Abril 2026 — 23:15
+
+### Qué se hizo
+- Nueva tarjeta "Acceso desde Móvil" en el Dashboard con URL de red local
+- Al tocar la tarjeta se despliega un código QR (generado con API de qrserver.com)
+- El móvil escanea el QR y abre la app directamente en el navegador
+- Endpoint `/api/local-ip` devuelve la IP y URL de acceso
+
+### Cómo usar
+1. Abrir el Dashboard en el PC
+2. Tocar la tarjeta verde "📱 Acceso desde Móvil"
+3. Se muestra el QR con la URL de red local
+4. Escanear con el móvil para abrir la app
+
+### Archivos modificados
+- `routes/main.py` — endpoint `/api/local-ip`
+- `static/index.html` — tarjeta QR con toggle
+- `VERSION`, `version.py` — bump a v1.4.1
 
 ---
 

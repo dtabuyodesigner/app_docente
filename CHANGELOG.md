@@ -4,6 +4,15 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.4.1] — 13 Abril 2026
+### QR para acceso móvil desde el Dashboard
+- Nueva tarjeta "Acceso desde Móvil" en el Dashboard con URL de red local
+- Al tocar la tarjeta se muestra un código QR generado con la API de qrserver.com
+- El móvil escanea el QR y abre la app directamente en el navegador
+- **Archivos:** `routes/main.py`, `static/index.html`, `VERSION`, `version.py`
+
+---
+
 ## [v1.4.0] — 13 Abril 2026
 ### Acceso desde móvil/tablet por WiFi local
 - Servidor escucha en `0.0.0.0` (todas las interfaces) en vez de solo localhost

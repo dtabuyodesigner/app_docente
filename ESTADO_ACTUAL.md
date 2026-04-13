@@ -97,6 +97,20 @@
 
 ---
 
+## ✅ Fix PDF autorización — formato de grupos (v1.2.3)
+
+**Fecha:** 11 de Abril 2026 — 18:45
+
+### Qué se hizo
+- `grupos_extra` del campo libre ahora se divide por comas en grupos individuales antes de formatear
+- Lista de grupos con formato español: "A y B" para 2 grupos, "A, B y C" para 3 o más
+- Rama: `fix/pdf-grupos-formato` → merge a `master`
+
+### Archivos modificados
+- `routes/excursiones.py` — función `fmt_grupos()` y split de `grupos_extra`
+
+---
+
 ## ✅ Accesos rápidos Excursiones y Autorizaciones (v1.2.2)
 
 **Fecha:** 11 de Abril 2026 — 18:30

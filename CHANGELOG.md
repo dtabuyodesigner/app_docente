@@ -52,6 +52,14 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.2.3] — 11 Abril 2026
+### Fix PDF autorización — formato de grupos
+- `grupos_extra` dividido por comas en grupos individuales
+- Formato de lista español: "A y B" / "A, B y C"
+- **Archivos:** `routes/excursiones.py`
+
+---
+
 ## [v1.2.2] — 11 Abril 2026
 ### Accesos rápidos Excursiones y Autorizaciones
 - Tarjetas 🚌 Excursiones y ✍️ Autorizaciones añadidas al grid del Panel de Control, tras Horario

@@ -31,6 +31,25 @@ def api_local_ip():
     return jsonify({"ip": ip, "url": f"http://{ip}:{port}"})
 
 
+@main_bp.route("/api/qr-code")
+def api_qr_code():
+    """Genera un QR code PNG de la URL local para acceso desde móviles."""
+    import qrcode
+    import io
+    from flask import send_file
+    ip = get_local_ip()
+    port = request.host.split(":")[-1] if ":" in request.host else "5000"
+    url = f"http://{ip}:{port}"
+    qr = qrcode.QRCode(box_size=6, border=3)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return send_file(buf, mimetype="image/png")
+
+
 # ─── RATE LIMITING SIMPLE PARA LOGIN ─────────────────────────────────────────
 # Diccionario en memoria: IP -> lista de timestamps de intentos fallidos
 _login_attempts = {}

@@ -4,6 +4,15 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.4.2] — 14 Abril 2026
+### QR local sin APIs externas + fix CSRF en móvil
+- QR generado en el navegador con `qrcode.min.js` vendorizado (sin internet)
+- Endpoint `/api/qr-code` server-side con Python `qrcode[pil]`
+- Fix: `SESSION_COOKIE_SECURE = False` — la cookie de sesión ya se envía por HTTP local, eliminando el error "token CSRF inválido" en móvil
+- **Archivos:** `static/index.html`, `static/js/vendor/qrcode.min.js`, `routes/main.py`, `app.py`, `requirements.txt`, `VERSION`, `version.py`
+
+---
+
 ## [v1.4.1] — 13 Abril 2026
 ### QR para acceso móvil desde el Dashboard
 - Nueva tarjeta "Acceso desde Móvil" en el Dashboard con URL de red local

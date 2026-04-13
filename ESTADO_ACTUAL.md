@@ -1,8 +1,28 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.4.1`
+**Versión:** `v1.4.2`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ QR local sin APIs externas + fix CSRF en móvil (v1.4.2)
+
+**Fecha:** 14 de Abril 2026 — 01:00
+
+### Qué se hizo
+- QR generado en el navegador con librería local `qrcode.min.js` (sin depender de qrserver.com ni chart.googleapis.com)
+- Endpoint `/api/qr-code` en el servidor como alternativa (Python `qrcode[pil]`)
+- Fix CSRF inválido en móvil: `SESSION_COOKIE_SECURE = False` para conexiones HTTP locales
+- Añadido `qrcode[pil]` a `requirements.txt`
+
+### Archivos modificados
+- `static/index.html` — QR con canvas local, carga `qrcode.min.js`
+- `static/js/vendor/qrcode.min.js` — librería QR vendorizada
+- `routes/main.py` — endpoint `/api/qr-code` (generación server-side)
+- `app.py` — `SESSION_COOKIE_SECURE = False`
+- `requirements.txt` — añadido `qrcode[pil]>=8.0`
+- `VERSION`, `version.py` — bump a v1.4.2
 
 ---
 

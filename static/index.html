@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="/static/js/vendor/chart.js"></script>
+    <script src="/static/js/vendor/qrcode.min.js"></script>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#003366">
     <link rel="stylesheet" href="/static/css/theme.css">
@@ -690,7 +691,7 @@
                 </h4>
                 <p id="mobileUrl" style="color: #059669; font-size: 0.85rem; margin: 5px 0;">Cargando URL...</p>
                 <div id="mobileQR" style="display: none; margin-top: 10px; text-align: center;">
-                    <img id="qrImage" src="" alt="QR Code" style="width: 180px; height: 180px; border-radius: 8px;">
+                    <canvas id="qrCanvas" style="border-radius: 8px; display: block; margin: 0 auto;"></canvas>
                 </div>
             </div>
             <!-- Priority Lists Row (Moved Up) -->
@@ -1176,13 +1177,21 @@
         function toggleMobileQR() {
             const qrDiv = document.getElementById('mobileQR');
             const url = document.getElementById('mobileUrl').textContent;
-            const img = document.getElementById('qrImage');
 
             if (qrDiv.style.display === 'none' || !qrDiv.style.display) {
-                if (!img.src || img.src === '') {
-                    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
-                }
                 qrDiv.style.display = 'block';
+                const canvas = document.getElementById('qrCanvas');
+                if (canvas && typeof QRCode !== 'undefined') {
+                    QRCode.toCanvas(canvas, url, { width: 180, margin: 2 }, function (err) {
+                        if (err) {
+                            qrDiv.innerHTML = `
+                                <div style="background:#f0fdf4; padding:12px; border-radius:8px; text-align:center;">
+                                    <p style="color:#059669; font-size:0.8rem; margin-bottom:8px;">Escribe en el navegador del móvil:</p>
+                                    <p style="background:#fff; padding:8px; border-radius:6px; font-family:monospace; font-size:0.85rem; color:#0284c7; word-break:break-all; border:1px solid #a7f3d0;">${url}</p>
+                                </div>`;
+                        }
+                    });
+                }
             } else {
                 qrDiv.style.display = 'none';
             }

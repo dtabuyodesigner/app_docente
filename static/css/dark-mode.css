@@ -609,6 +609,13 @@ textarea,
 
 [data-theme="dark"] .btn-status {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-status span,
+[data-theme="dark"] .btn-status i,
+[data-theme="dark"] .btn-status svg {
+    color: #ffffff !important;
 }
 
 [data-theme="dark"] .btn-status[style*="background:#28a745"],

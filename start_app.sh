@@ -9,6 +9,9 @@ echo "------------------------------------------"
 
 cd "$PROJECT_DIR" || exit
 
+# SECRET_KEY para sesiones — generada una vez, no cambiar en producción
+export SECRET_KEY="032e62aa45336c139df941541738fd60f56e914a5a835eb9352466cb5161530a"
+
 # Activar el entorno virtual
 if [ -d "venv" ]; then
     source venv/bin/activate

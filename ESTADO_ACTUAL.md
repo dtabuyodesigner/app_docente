@@ -1,8 +1,30 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.4.3`
+**Versión:** `v1.5.0`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Fotos en notas del Diario (v1.5.0)
+
+**Fecha:** 14 de Abril 2026 — 09:30
+
+### Qué se hizo
+- Botón 📷 en cada nota del Diario para adjuntar una foto
+- En móvil abre la cámara directamente; en PC abre el explorador de archivos
+- La foto se sube al instante y se muestra como miniatura con botón de borrar
+- Al tocar la miniatura se abre en pantalla completa
+- Las fotos también se ven en la vista previa del historial del alumno (👁️)
+- Nueva columna `foto TEXT` en tabla `observaciones` (migración automática)
+- Fotos guardadas en `AppData/uploads/notas/`
+
+### Archivos modificados
+- `utils/db.py` — migración `observaciones.foto`
+- `routes/observaciones.py` — endpoints `POST /api/observaciones/foto` y `DELETE /api/observaciones/foto/<id>`, `obtener_observaciones_dia` y `ver_observaciones` devuelven foto
+- `routes/informes.py` — `preview_diario` devuelve foto
+- `static/diario.html` — botón 📷, upload, thumbnail, viewer, preview con fotos
+- `VERSION`, `version.py` — bump a v1.5.0
 
 ---
 
@@ -502,4 +524,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 14 Abril 2026 — v1.4.3: Autoarranque Linux (systemd) + QR local + fix CSRF móvil
+**Última actualización:** 14 Abril 2026 — v1.5.0: Fotos en notas del Diario

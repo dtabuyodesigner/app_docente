@@ -4,6 +4,18 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.5.0] — 14 Abril 2026
+### Fotos en notas del Diario
+- Botón 📷 en cada nota del Diario para adjuntar foto desde cámara o archivo
+- Upload inmediato con preview en miniatura y ampliación al tocar
+- Botón de borrar foto (si hay texto se mantiene la nota, si no se borra todo)
+- Fotos visibles también en el panel de historial del alumno (👁️)
+- Migración automática: `ALTER TABLE observaciones ADD COLUMN foto TEXT`
+- Fotos guardadas en `AppData/uploads/notas/`
+- **Archivos:** `utils/db.py`, `routes/observaciones.py`, `routes/informes.py`, `static/diario.html`, `VERSION`, `version.py`
+
+---
+
 ## [v1.4.3] — 14 Abril 2026
 ### Autoarranque en Linux con systemd
 - Servicio systemd de usuario que arranca el servidor al iniciar sesión en el portátil

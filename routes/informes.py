@@ -980,7 +980,7 @@ def informe_preview_diario(alumno_id):
     nombre_alumno = row_alumno["nombre"]
 
     cur.execute("""
-        SELECT o.id, o.fecha, o.texto, ar.nombre as area_nombre
+        SELECT o.id, o.fecha, o.texto, o.foto, ar.nombre as area_nombre
         FROM observaciones o
         LEFT JOIN areas ar ON o.area_id = ar.id
         WHERE o.alumno_id = ?
@@ -996,6 +996,7 @@ def informe_preview_diario(alumno_id):
         grouped[fecha].append({
             "id": r["id"],
             "texto": r["texto"],
+            "foto": r["foto"] or "",
             "area": r["area_nombre"] or "General"
         })
     

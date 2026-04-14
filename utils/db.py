@@ -317,6 +317,7 @@ def run_migrations():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
         )""", "tabla autorizaciones_alumno"),
+        ("ALTER TABLE observaciones ADD COLUMN foto TEXT", "observaciones.foto"),
     ]
 
     for sql, name in migrations:

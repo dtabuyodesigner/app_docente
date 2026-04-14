@@ -453,7 +453,7 @@ Los siguientes pendientes de QWEN.md están **confirmados como hechos**:
 | 6 | 🟡 MEDIUM | **IDOR Informe alumno**: acceso a PDF de cualquier alumno sin verificar tutoría | `routes/informes.py` | Verificar que el alumno pertenece a grupo del profesor |
 | 7 | 🟢 LOW | **SECRET_KEY fallback hardcodeado** ("dev-key-change-in-prod") | `app.py` | Log warning si no hay SECRET_KEY en .env; considerar fallar si no existe |
 | 8 | 🟢 LOW | **File upload sin validación de magic bytes**: solo se valida extensión, no contenido real | `routes/configuracion.py` | Validar magic bytes de imagen (PNG/JPG/GIF/WebP) |
-| 9 | 🟢 LOW | **PII en Sentry**: `send_default_pii=True` envía datos de sesión a Sentry | `app.py` | Poner a `False` o eliminar si Sentry no es necesario |
+| 9 | ✅ RESUELTO | ~~**PII en Sentry**: `send_default_pii=True`~~ | `app.py` | Cambiado a `False` |
 | 10 | 🟢 LOW | **Debug print() en producción**: `_sync_auto_to_excursion` tiene prints de debug | `routes/excursiones.py` | Reemplazar por `security_logger.info()` |
 
 ### Backlog de mejoras
@@ -502,4 +502,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 13 Abril 2026 — v1.4.0: Acceso móvil/tablet por WiFi local
+**Última actualización:** 14 Abril 2026 — v1.4.3: Autoarranque Linux (systemd) + QR local + fix CSRF móvil

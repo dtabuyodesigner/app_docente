@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,9 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/theme.css">
     <link rel="stylesheet" href="/static/css/dark-mode.css">
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet' />
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/es.js'></script>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css' rel='stylesheet'
+        onerror="this.onerror=null;this.href='/static/css/vendor/fullcalendar.min.css'" />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js'
+        onerror="this.onerror=null;this.src='/static/js/vendor/fullcalendar.min.js'"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/locales/es.js'
+        onerror="this.onerror=null;this.src='/static/js/vendor/fullcalendar-es.js'"></script>
     <style>
         .btn-type {
             padding: 8px 15px;
@@ -22,21 +26,25 @@
             font-weight: bold;
             background: #eee;
         }
+
         .btn-type.active {
             border-color: #000;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }
-body {
+
+        body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             margin: 0;
             padding: 20px;
             color: var(--dark);
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
         /* Tab System */
         .tabs {
             display: flex;
@@ -46,6 +54,7 @@ body {
             padding-bottom: 10px;
             overflow-x: auto;
         }
+
         .tab-btn {
             background: none;
             border: none;
@@ -58,14 +67,17 @@ body {
             transition: all 0.2s;
             white-space: nowrap;
         }
+
         .tab-btn:hover {
             background: #e2e6ea;
         }
+
         .tab-btn.active {
             color: var(--primary);
             background: var(--white);
             box-shadow: var(--shadow);
         }
+
         .section {
             display: none;
             background: var(--white);
@@ -73,20 +85,24 @@ body {
             border-radius: 15px;
             box-shadow: var(--shadow);
         }
+
         .section.active {
             display: block;
             animation: fadeIn 0.3s ease;
         }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
+
         h2 {
             margin-top: 0;
             color: var(--primary);
@@ -94,6 +110,7 @@ body {
             align-items: center;
             gap: 10px;
         }
+
         /* Form elements */
         .form-row {
             display: grid;
@@ -101,6 +118,7 @@ body {
             gap: 20px;
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             font-weight: 700;
@@ -108,6 +126,7 @@ body {
             color: #555;
             font-size: 0.9rem;
         }
+
         input,
         select,
         textarea {
@@ -120,16 +139,19 @@ body {
             transition: border-color 0.2s;
             font-family: inherit;
         }
+
         input:focus,
         select:focus,
         textarea:focus {
             outline: none;
             border-color: var(--secondary);
         }
+
         textarea {
             height: 120px;
             resize: vertical;
         }
+
         .btn {
             background: var(--secondary);
             color: white;
@@ -143,35 +165,43 @@ body {
             align-items: center;
             gap: 8px;
         }
+
         .btn:hover {
             filter: brightness(1.1);
             transform: translateY(-1px);
         }
+
         .btn-success {
             background: var(--success);
         }
+
         .btn-danger {
             background: var(--danger);
             padding: 8px 15px;
             font-size: 0.8rem;
         }
+
         .btn-info {
             background: var(--info);
         }
+
         /* Bug 12: Tooltip and long text in calendar */
         .fc-event-title {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         .fc-event:hover {
             z-index: 50;
             cursor: pointer;
         }
+
         /* Timeline & List */
         .timeline {
             margin-top: 30px;
         }
+
         .card-plan {
             background: #f8fbff;
             border-left: 5px solid var(--secondary);
@@ -182,6 +212,7 @@ body {
             border-left-width: 5px;
             position: relative;
         }
+
         .card-date {
             font-weight: 800;
             color: var(--primary);
@@ -190,16 +221,19 @@ body {
             align-items: center;
             justify-content: space-between;
         }
+
         .card-sda {
             font-size: 0.9rem;
             color: #7f8c8d;
             font-style: italic;
             margin-bottom: 10px;
         }
+
         .card-desc {
             line-height: 1.6;
             white-space: pre-wrap;
         }
+
         /* Curricular Viewer */
         .area-container {
             margin-bottom: 30px;
@@ -207,6 +241,7 @@ body {
             border-radius: 12px;
             overflow: hidden;
         }
+
         .area-header {
             background: #e9ecef;
             padding: 15px 20px;
@@ -214,25 +249,31 @@ body {
             color: var(--primary);
             font-size: 1.2rem;
         }
+
         .sda-item {
             padding: 15px 20px;
             border-bottom: 1px solid #f0f0f0;
         }
+
         .sda-item:last-child {
             border-bottom: none;
         }
+
         .criteria-list {
             margin-top: 10px;
             padding-left: 20px;
             font-size: 0.9rem;
         }
+
         .criteria-item {
             margin-bottom: 5px;
             color: #555;
         }
+
         .criteria-item strong {
             color: var(--primary);
         }
+
         .activity-badge {
             background: #e7f3fe;
             color: #1e4265;
@@ -243,6 +284,7 @@ body {
             margin-right: 5px;
             border: 1px solid #bde0fe;
         }
+
         /* Import Section */
         .info-box {
             background: #e7f3fe;
@@ -252,22 +294,26 @@ body {
             font-size: 0.9rem;
             color: #1e4265;
         }
+
         #csvData,
         #csvActData {
             font-family: 'Courier New', monospace;
             height: 200px;
         }
+
         .status-msg {
             margin-top: 15px;
             padding: 12px;
             border-radius: 8px;
             display: none;
         }
+
         .template-links {
             margin-bottom: 20px;
             display: flex;
             gap: 15px;
         }
+
         .template-links a {
             text-decoration: none;
             color: var(--info);
@@ -276,9 +322,11 @@ body {
             align-items: center;
             gap: 5px;
         }
+
         .template-links a:hover {
             text-decoration: underline;
         }
+
         /* Toast Notifications */
         .toast {
             position: fixed;
@@ -295,35 +343,43 @@ body {
             animation: slideIn 0.3s ease;
             min-width: 250px;
         }
+
         .toast.success {
             border-left: 4px solid var(--success);
         }
+
         .toast.error {
             border-left: 4px solid var(--danger);
         }
+
         .toast.info {
             border-left: 4px solid var(--info);
         }
+
         @keyframes slideIn {
             from {
                 transform: translateX(400px);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
             }
         }
+
         @keyframes slideOut {
             from {
                 transform: translateX(0);
                 opacity: 1;
             }
+
             to {
                 transform: translateX(400px);
                 opacity: 0;
             }
         }
+
         /* Loading Spinner */
         .spinner {
             border: 3px solid #f3f3f3;
@@ -334,14 +390,17 @@ body {
             animation: spin 1s linear infinite;
             display: inline-block;
         }
+
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
             }
+
             100% {
                 transform: rotate(360deg);
             }
         }
+
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -354,9 +413,11 @@ body {
             justify-content: center;
             z-index: 9999;
         }
+
         .loading-overlay.active {
             display: flex;
         }
+
         .loading-content {
             background: var(--white);
             padding: 30px;
@@ -364,12 +425,14 @@ body {
             text-align: center;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
+
         .loading-content .spinner {
             width: 40px;
             height: 40px;
             border-width: 4px;
             margin-bottom: 15px;
         }
+
         /* Responsive Modal */
         @media (max-width: 600px) {
             #eventModal>div {
@@ -377,9 +440,11 @@ body {
                 max-width: none !important;
                 padding: 20px !important;
             }
+
             .form-row {
                 grid-template-columns: 1fr !important;
             }
+
             .toast {
                 bottom: 20px;
                 right: 20px;
@@ -387,12 +452,14 @@ body {
                 min-width: auto;
             }
         }
+
         .trimestre-filters {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
+
         .btn-trim-tab {
             background: var(--white);
             color: #666;
@@ -404,22 +471,26 @@ body {
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .btn-trim-tab:hover {
             border-color: var(--secondary);
             color: var(--secondary);
         }
+
         .btn-trim-tab.active {
             background: var(--secondary);
             color: white;
             border-color: var(--secondary);
             box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
         }
+
         .trimestre-filters {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
+
         .btn-trim-tab {
             background: var(--white);
             color: #666;
@@ -431,22 +502,26 @@ body {
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .btn-trim-tab:hover {
             border-color: var(--secondary);
             color: var(--secondary);
         }
+
         .btn-trim-tab.active {
             background: var(--secondary);
             color: white;
             border-color: var(--secondary);
             box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
         }
+
         .actividades-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 15px;
             margin-top: 15px;
         }
+
         .actividad-card {
             background: var(--white);
             border: 1px solid #eaedf1;
@@ -460,22 +535,26 @@ body {
             gap: 8px;
             position: relative;
         }
+
         .actividad-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
             border-color: #d1d9e6;
         }
+
         .act-card-date {
             font-size: 0.8rem;
             color: #888;
             font-weight: 600;
         }
+
         .act-card-title {
             font-size: 1.05rem;
             color: var(--primary);
             font-weight: 800;
             line-height: 1.3;
         }
+
         .act-card-sesiones {
             align-self: flex-start;
             background: #f0f4f8;
@@ -487,6 +566,7 @@ body {
             margin-top: auto;
             position: relative;
         }
+
         /* Custom Tooltip */
         .custom-tooltip[data-tooltip]:hover::after {
             content: attr(data-tooltip);
@@ -509,6 +589,7 @@ body {
             font-weight: normal;
             text-align: left;
         }
+
         .custom-tooltip[data-tooltip]:hover::before {
             content: "";
             position: absolute;
@@ -521,6 +602,7 @@ body {
             z-index: 9999;
             pointer-events: none;
         }
+
         .actividad-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
@@ -536,10 +618,11 @@ body {
     <script src="/static/js/navigation.js?v=1.6"></script>
     <script src="/static/js/global_groups.js?v=1.4"></script>
 </head>
+
 <body>
     <div class="container">
         <!-- Unified Navigation injected by navigation.js -->
-        
+
         <!-- Tabs de Sección Docencia -->
         <div class="section-tabs">
             <a href="/diario" class="section-tab-btn">📖 Diario</a>
@@ -548,7 +631,7 @@ body {
             <a href="/rubricas" class="section-tab-btn">📊 Rúbricas</a>
             <a href="/tareas" class="section-tab-btn">📝 Tareas</a>
         </div>
-        
+
         <div class="premium-card"
             style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 15px;">
@@ -617,7 +700,8 @@ body {
                 style="background: var(--white); padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; position: relative;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                     <h3 id="modalTitle" style="margin:0;">Nuevo Evento</h3>
-                    <button onclick="closeModal()" style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                    <button onclick="closeModal()"
+                        style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
                 </div>
                 <input type="hidden" id="eventId">
                 <div style="margin-bottom:15px; display:flex; gap:15px;">
@@ -632,24 +716,94 @@ body {
                                 <div style="display:flex; gap:5px; align-items:center;">
                                     <select id="eventHour" style="width:70px; padding:8px;">
                                         <option value="">--</option>
-                                        <option value="00">00</option><option value="01">01</option><option value="02">02</option>
-                                        <option value="03">03</option><option value="04">04</option><option value="05">05</option>
-                                        <option value="06">06</option><option value="07">07</option><option value="08">08</option>
-                                        <option value="09">09</option><option value="10">10</option><option value="11">11</option>
-                                        <option value="12">12</option><option value="13">13</option><option value="14">14</option>
-                                        <option value="15">15</option><option value="16">16</option><option value="17">17</option>
-                                        <option value="18">18</option><option value="19">19</option><option value="20">20</option>
-                                        <option value="21">21</option><option value="22">22</option><option value="23">23</option>
+                                        <option value="00">00</option>
+                                        <option value="01">01</option>
+                                        <option value="02">02</option>
+                                        <option value="03">03</option>
+                                        <option value="04">04</option>
+                                        <option value="05">05</option>
+                                        <option value="06">06</option>
+                                        <option value="07">07</option>
+                                        <option value="08">08</option>
+                                        <option value="09">09</option>
+                                        <option value="10">10</option>
+                                        <option value="11">11</option>
+                                        <option value="12">12</option>
+                                        <option value="13">13</option>
+                                        <option value="14">14</option>
+                                        <option value="15">15</option>
+                                        <option value="16">16</option>
+                                        <option value="17">17</option>
+                                        <option value="18">18</option>
+                                        <option value="19">19</option>
+                                        <option value="20">20</option>
+                                        <option value="21">21</option>
+                                        <option value="22">22</option>
+                                        <option value="23">23</option>
                                     </select>
                                     <span>:</span>
                                     <select id="eventMinute" style="width:70px; padding:8px;">
                                         <!-- Will be populated via JS for brevity in HTML if needed, but keeping static for now -->
-                                        <option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option>
-                                        <option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
-                                        <option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option>
-                                        <option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option>
-                                        <option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option>
-                                        <option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
+                                        <option value="00">00</option>
+                                        <option value="01">01</option>
+                                        <option value="02">02</option>
+                                        <option value="03">03</option>
+                                        <option value="04">04</option>
+                                        <option value="05">05</option>
+                                        <option value="06">06</option>
+                                        <option value="07">07</option>
+                                        <option value="08">08</option>
+                                        <option value="09">09</option>
+                                        <option value="10">10</option>
+                                        <option value="11">11</option>
+                                        <option value="12">12</option>
+                                        <option value="13">13</option>
+                                        <option value="14">14</option>
+                                        <option value="15">15</option>
+                                        <option value="16">16</option>
+                                        <option value="17">17</option>
+                                        <option value="18">18</option>
+                                        <option value="19">19</option>
+                                        <option value="20">20</option>
+                                        <option value="21">21</option>
+                                        <option value="22">22</option>
+                                        <option value="23">23</option>
+                                        <option value="24">24</option>
+                                        <option value="25">25</option>
+                                        <option value="26">26</option>
+                                        <option value="27">27</option>
+                                        <option value="28">28</option>
+                                        <option value="29">29</option>
+                                        <option value="30">30</option>
+                                        <option value="31">31</option>
+                                        <option value="32">32</option>
+                                        <option value="33">33</option>
+                                        <option value="34">34</option>
+                                        <option value="35">35</option>
+                                        <option value="36">36</option>
+                                        <option value="37">37</option>
+                                        <option value="38">38</option>
+                                        <option value="39">39</option>
+                                        <option value="40">40</option>
+                                        <option value="41">41</option>
+                                        <option value="42">42</option>
+                                        <option value="43">43</option>
+                                        <option value="44">44</option>
+                                        <option value="45">45</option>
+                                        <option value="46">46</option>
+                                        <option value="47">47</option>
+                                        <option value="48">48</option>
+                                        <option value="49">49</option>
+                                        <option value="50">50</option>
+                                        <option value="51">51</option>
+                                        <option value="52">52</option>
+                                        <option value="53">53</option>
+                                        <option value="54">54</option>
+                                        <option value="55">55</option>
+                                        <option value="56">56</option>
+                                        <option value="57">57</option>
+                                        <option value="58">58</option>
+                                        <option value="59">59</option>
                                     </select>
                                 </div>
                             </div>
@@ -658,23 +812,93 @@ body {
                                 <div style="display:flex; gap:5px; align-items:center;">
                                     <select id="eventEndHour" style="width:70px; padding:8px;">
                                         <option value="">--</option>
-                                        <option value="00">00</option><option value="01">01</option><option value="02">02</option>
-                                        <option value="03">03</option><option value="04">04</option><option value="05">05</option>
-                                        <option value="06">06</option><option value="07">07</option><option value="08">08</option>
-                                        <option value="09">09</option><option value="10">10</option><option value="11">11</option>
-                                        <option value="12">12</option><option value="13">13</option><option value="14">14</option>
-                                        <option value="15">15</option><option value="16">16</option><option value="17">17</option>
-                                        <option value="18">18</option><option value="19">19</option><option value="20">20</option>
-                                        <option value="21">21</option><option value="22">22</option><option value="23">23</option>
+                                        <option value="00">00</option>
+                                        <option value="01">01</option>
+                                        <option value="02">02</option>
+                                        <option value="03">03</option>
+                                        <option value="04">04</option>
+                                        <option value="05">05</option>
+                                        <option value="06">06</option>
+                                        <option value="07">07</option>
+                                        <option value="08">08</option>
+                                        <option value="09">09</option>
+                                        <option value="10">10</option>
+                                        <option value="11">11</option>
+                                        <option value="12">12</option>
+                                        <option value="13">13</option>
+                                        <option value="14">14</option>
+                                        <option value="15">15</option>
+                                        <option value="16">16</option>
+                                        <option value="17">17</option>
+                                        <option value="18">18</option>
+                                        <option value="19">19</option>
+                                        <option value="20">20</option>
+                                        <option value="21">21</option>
+                                        <option value="22">22</option>
+                                        <option value="23">23</option>
                                     </select>
                                     <span>:</span>
                                     <select id="eventEndMinute" style="width:70px; padding:8px;">
-                                        <option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option>
-                                        <option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option>
-                                        <option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option>
-                                        <option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option>
-                                        <option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option>
-                                        <option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
+                                        <option value="00">00</option>
+                                        <option value="01">01</option>
+                                        <option value="02">02</option>
+                                        <option value="03">03</option>
+                                        <option value="04">04</option>
+                                        <option value="05">05</option>
+                                        <option value="06">06</option>
+                                        <option value="07">07</option>
+                                        <option value="08">08</option>
+                                        <option value="09">09</option>
+                                        <option value="10">10</option>
+                                        <option value="11">11</option>
+                                        <option value="12">12</option>
+                                        <option value="13">13</option>
+                                        <option value="14">14</option>
+                                        <option value="15">15</option>
+                                        <option value="16">16</option>
+                                        <option value="17">17</option>
+                                        <option value="18">18</option>
+                                        <option value="19">19</option>
+                                        <option value="20">20</option>
+                                        <option value="21">21</option>
+                                        <option value="22">22</option>
+                                        <option value="23">23</option>
+                                        <option value="24">24</option>
+                                        <option value="25">25</option>
+                                        <option value="26">26</option>
+                                        <option value="27">27</option>
+                                        <option value="28">28</option>
+                                        <option value="29">29</option>
+                                        <option value="30">30</option>
+                                        <option value="31">31</option>
+                                        <option value="32">32</option>
+                                        <option value="33">33</option>
+                                        <option value="34">34</option>
+                                        <option value="35">35</option>
+                                        <option value="36">36</option>
+                                        <option value="37">37</option>
+                                        <option value="38">38</option>
+                                        <option value="39">39</option>
+                                        <option value="40">40</option>
+                                        <option value="41">41</option>
+                                        <option value="42">42</option>
+                                        <option value="43">43</option>
+                                        <option value="44">44</option>
+                                        <option value="45">45</option>
+                                        <option value="46">46</option>
+                                        <option value="47">47</option>
+                                        <option value="48">48</option>
+                                        <option value="49">49</option>
+                                        <option value="50">50</option>
+                                        <option value="51">51</option>
+                                        <option value="52">52</option>
+                                        <option value="53">53</option>
+                                        <option value="54">54</option>
+                                        <option value="55">55</option>
+                                        <option value="56">56</option>
+                                        <option value="57">57</option>
+                                        <option value="58">58</option>
+                                        <option value="59">59</option>
                                     </select>
                                 </div>
                             </div>
@@ -708,12 +932,15 @@ body {
                 </div>
                 <div style="margin-bottom:15px;">
                     <label>Actividad / Título:</label>
-                    <input type="text" id="eventActivity" placeholder="Ej: Repaso de Matemáticas" oninput="buscarCriterio()">
-                    <div id="suggestionInfo" style="display:none; color: #28a745; font-size: 0.8rem; margin-top: 4px; font-weight: 600;">
+                    <input type="text" id="eventActivity" placeholder="Ej: Repaso de Matemáticas"
+                        oninput="buscarCriterio()">
+                    <div id="suggestionInfo"
+                        style="display:none; color: #28a745; font-size: 0.8rem; margin-top: 4px; font-weight: 600;">
                         💡 Sugerencia encontrada
                     </div>
                 </div>
-                <div style="margin-bottom:15px; display:flex; gap:15px; align-items:center; background:#f0f8ff; padding:10px; border-radius:10px;">
+                <div
+                    style="margin-bottom:15px; display:flex; gap:15px; align-items:center; background:#f0f8ff; padding:10px; border-radius:10px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <input type="checkbox" id="eventEvaluable" style="width:20px; height:20px; cursor:pointer;">
                         <label for="eventEvaluable" style="margin-bottom:0; cursor:pointer;">⭐ Evaluable</label>
@@ -729,10 +956,14 @@ body {
                     <textarea id="eventObs" style="height:80px;"></textarea>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-top:20px; flex-wrap:wrap; gap:8px;">
-                    <button class="btn btn-danger" id="btnDelete" style="display:none;" onclick="deleteEvent()">🗑️ Borrar</button>
+                    <button class="btn btn-danger" id="btnDelete" style="display:none;" onclick="deleteEvent()">🗑️
+                        Borrar</button>
                     <div style="display:flex; gap:8px; align-items:center;">
-                        <button id="btnEvalActividad" style="display:none; background:#10b981; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:600; cursor:pointer;" onclick="abrirEvalActividad()">🏃 Evaluar alumnos</button>
-                        <button class="btn" onclick="closeModal()" style="background:#ccc; color:#333;">Cancelar</button>
+                        <button id="btnEvalActividad"
+                            style="display:none; background:#10b981; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:600; cursor:pointer;"
+                            onclick="abrirEvalActividad()">🏃 Evaluar alumnos</button>
+                        <button class="btn" onclick="closeModal()"
+                            style="background:#ccc; color:#333;">Cancelar</button>
                         <button id="btnSaveEvent" class="btn btn-success" onclick="saveEvent()">💾 Guardar</button>
                     </div>
                 </div>
@@ -740,8 +971,10 @@ body {
         </div>
 
         <!-- Modal Evaluar Actividad desde calendario -->
-        <div id="evalActividadModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1100; align-items:center; justify-content:center;">
-            <div style="background: var(--white); border-radius:15px; width:90%; max-width:520px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 40px rgba(0,0,0,0.3); overflow:hidden;">
+        <div id="evalActividadModal"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1100; align-items:center; justify-content:center;">
+            <div
+                style="background: var(--white); border-radius:15px; width:90%; max-width:520px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 20px 40px rgba(0,0,0,0.3); overflow:hidden;">
                 <div style="padding:20px 25px; border-bottom:1px solid #e2e8f0; background:#f8fafc;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
@@ -752,7 +985,8 @@ body {
                             style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8;">✕</button>
                     </div>
                 </div>
-                <div style="padding:15px 25px; border-bottom:1px solid #e2e8f0; background:#fffbeb; font-size:0.82rem; color:#92400e;" id="evalActGuia">
+                <div style="padding:15px 25px; border-bottom:1px solid #e2e8f0; background:#fffbeb; font-size:0.82rem; color:#92400e;"
+                    id="evalActGuia">
                     Asigna un nivel a cada alumno. La nota del criterio se calcula automáticamente.
                 </div>
                 <div id="evalActList" style="overflow-y:auto; flex:1; padding:10px 15px;"></div>
@@ -880,7 +1114,8 @@ body {
                 <input type="hidden" id="sessionsActId">
                 <div style="margin-bottom:15px; flex-shrink: 0;">
                     <label>Actividad:</label>
-                    <input type="text" id="sessionsActName" disabled style="background: var(--gray-100); font-weight: bold;">
+                    <input type="text" id="sessionsActName" disabled
+                        style="background: var(--gray-100); font-weight: bold;">
                 </div>
                 <div style="overflow-y: auto; flex-grow: 1; padding-right: 10px;" id="sessionsListContainer">
                     <p style="text-align: center; color: #666;">Cargando sesiones...</p>
@@ -956,10 +1191,12 @@ body {
                     <button class="btn btn-success" onclick="openSaModal()"
                         style="padding: 6px 10px; font-size: 0.75rem;">➕ Nueva SA (Manual)</button>
                     <button onclick="openGenerarSdaModal()"
-                        style="padding: 6px 10px; font-size: 0.75rem; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🤖 Generar SDA con IA</button>
+                        style="padding: 6px 10px; font-size: 0.75rem; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">🤖
+                        Generar SDA con IA</button>
                 </div>
                 <p style="margin:0; font-size:0.78rem; color:#6b7280; line-height:1.5;">
-                    Plantilla oficial: usa esta descarga como base. Pide a la IA que borre todos los datos y deje solo cabeceras antes de rellenar.
+                    Plantilla oficial: usa esta descarga como base. Pide a la IA que borre todos los datos y deje solo
+                    cabeceras antes de rellenar.
                 </p>
             </div>
             <div id="curriculoList">
@@ -976,29 +1213,40 @@ body {
                     <button onclick="closeImportSdaModal()"
                         style="border:none; background:none; font-size:1.5rem; cursor:pointer;">&times;</button>
                 </div>
-                <div style="margin-bottom:20px; padding:20px; background: var(--primary-light); border-radius:12px; color:#1e4265; font-size:0.9rem; border-left: 5px solid var(--primary);">
+                <div
+                    style="margin-bottom:20px; padding:20px; background: var(--primary-light); border-radius:12px; color:#1e4265; font-size:0.9rem; border-left: 5px solid var(--primary);">
                     <p style="margin-top:0; font-weight: bold; color: var(--primary);">💡 Información Importante:</p>
                     <ul style="margin-bottom:0; padding-left:20px; line-height: 1.6;">
-                        <li>Usa la <strong>plantilla CSV oficial</strong> para evitar errores de formato (separador obligatorio: punto y coma <code>;</code>).</li>
+                        <li>Usa la <strong>plantilla CSV oficial</strong> para evitar errores de formato (separador
+                            obligatorio: punto y coma <code>;</code>).</li>
                         <li>El sistema detectará automáticamente el Área y la Etapa. Si no existen, las creará.</li>
-                        <li><strong>Automatización</strong>: Se crearán las SDA, Actividades, Sesiones de clase y se activarán los Criterios para la evaluación del trimestre seleccionado.</li>
+                        <li><strong>Automatización</strong>: Se crearán las SDA, Actividades, Sesiones de clase y se
+                            activarán los Criterios para la evaluación del trimestre seleccionado.</li>
                         <li>Si vuelves a importar la misma SDA (mismo ID), los datos se actualizarán.</li>
                     </ul>
                 </div>
                 <div style="margin-bottom:25px;">
-                    <label style="display:block; font-weight:bold; margin-bottom:10px;">Selecciona el archivo CSV:</label>
-                    <div style="display:flex; align-items:center; gap: 10px; background: var(--gray-100); padding: 15px; border-radius: 10px; border: 1px solid #ddd;">
+                    <label style="display:block; font-weight:bold; margin-bottom:10px;">Selecciona el archivo
+                        CSV:</label>
+                    <div
+                        style="display:flex; align-items:center; gap: 10px; background: var(--gray-100); padding: 15px; border-radius: 10px; border: 1px solid #ddd;">
                         <input type="file" id="sdaCsvFile" accept=".csv" style="flex-grow:1;">
                     </div>
                     <div style="margin-top: 10px;">
-                        <a href="/static/plantilla_sda.csv" download="plantilla_sda.csv" style="font-size: 0.8rem; color: var(--primary); text-decoration: none;">📥 Descargar plantilla de ejemplo</a>
+                        <a href="/static/plantilla_sda.csv" download="plantilla_sda.csv"
+                            style="font-size: 0.8rem; color: var(--primary); text-decoration: none;">📥 Descargar
+                            plantilla de ejemplo</a>
                     </div>
                 </div>
-                <div id="sdaImportStatus" style="display:none; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.9rem; line-height: 1.5;">
+                <div id="sdaImportStatus"
+                    style="display:none; padding:15px; border-radius:10px; margin-bottom:20px; font-size:0.9rem; line-height: 1.5;">
                 </div>
-                <div style="display:flex; justify-content:flex-end; gap:12px; border-top: 1px solid #eee; padding-top: 20px;">
-                    <button class="btn" onclick="closeImportSdaModal()" style="background:#eee; color:#666; border: 1px solid #ddd;">Cancelar</button>
-                    <button class="btn btn-primary" id="btnDoImportSda" onclick="uploadSdaCsv()" style="padding: 10px 25px; font-weight: bold;">🚀 Empezar Importación</button>
+                <div
+                    style="display:flex; justify-content:flex-end; gap:12px; border-top: 1px solid #eee; padding-top: 20px;">
+                    <button class="btn" onclick="closeImportSdaModal()"
+                        style="background:#eee; color:#666; border: 1px solid #ddd;">Cancelar</button>
+                    <button class="btn btn-primary" id="btnDoImportSda" onclick="uploadSdaCsv()"
+                        style="padding: 10px 25px; font-weight: bold;">🚀 Empezar Importación</button>
                 </div>
             </div>
         </div>
@@ -1409,7 +1657,7 @@ body {
                 btnDelete.style.display = 'block';
                 document.getElementById('saId').value = sdaObj.id;
                 document.getElementById('saNombre').value = sdaObj.nombre;
-                
+
                 // Set area value after fetch
                 if (sdaObj.area_id) {
                     saAreaSelect.value = sdaObj.area_id;
@@ -1422,7 +1670,7 @@ body {
                         }
                     }
                 }
-                
+
                 document.getElementById('saTrimestre').value = sdaObj.trimestre || 1;
                 if (sdaObj.competencias && sdaObj.competencias.length > 0) {
                     sdaObj.competencias.forEach(c => addCompetenciaRow(c.codigo, c.descripcion));
@@ -1582,16 +1830,16 @@ body {
                 const act_nombre = row.querySelector('.act-nombre').value.trim();
                 const desc = row.querySelector('.act-desc').value.trim();
                 const sesiones = parseInt(row.querySelector('.act-sesiones').value) || 1;
-                
+
                 const criterio_codigos = [];
                 row.querySelectorAll('.act-criterios-checklist input:checked').forEach(cb => {
                     criterio_codigos.push(cb.value);
                 });
 
-                if (act_nombre) actividades.push({ 
-                    id: act_id, 
-                    nombre: act_nombre, 
-                    descripcion: desc, 
+                if (act_nombre) actividades.push({
+                    id: act_id,
+                    nombre: act_nombre,
+                    descripcion: desc,
                     sesiones,
                     criterio_codigos: criterio_codigos
                 });
@@ -1674,7 +1922,7 @@ body {
                 },
                 editable: true,
                 events: '/api/programacion',
-                eventDidMount: function(info) {
+                eventDidMount: function (info) {
                     // Tooltip enriquecido
                     const ep = info.event.extendedProps;
                     let tooltip = info.event.title;
@@ -1853,7 +2101,7 @@ body {
                 let title = event.title;
                 let rangeMatched = title.match(/^\[(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})\]\s*(.*)/);
                 let singleMatched = title.match(/^\[(\d{1,2}):(\d{2})\]\s*(.*)/);
-                
+
                 if (rangeMatched) {
                     let h1 = rangeMatched[1];
                     let m1 = rangeMatched[2];
@@ -1954,11 +2202,11 @@ body {
             }
             modal.style.display = 'flex';
         }
-        document.getElementById('eventEvaluable').addEventListener('change', function() {
+        document.getElementById('eventEvaluable').addEventListener('change', function () {
             const critSelect = document.getElementById('eventCriterio');
             critSelect.style.display = this.checked ? 'block' : 'none';
         });
-        document.getElementById('eventSda').addEventListener('change', function() {
+        document.getElementById('eventSda').addEventListener('change', function () {
             cargarCriteriosParaEvento(this.value);
         });
         async function cargarCriteriosParaEvento(sdaId, preselectedId = null) {
@@ -2045,7 +2293,7 @@ body {
             if (!fechaStr) return 2;
             const m = new Date(fechaStr).getMonth() + 1; // 1-12
             if (m >= 9 && m <= 12) return 1;
-            if (m >= 1 && m <= 3)  return 2;
+            if (m >= 1 && m <= 3) return 2;
             return 3;
         }
 
@@ -2090,10 +2338,10 @@ body {
             const container = document.getElementById('evalActList');
             const maxN = esInfantil ? 3 : 4;
             const labels = esInfantil
-                ? (isPama ? ['PA','AD','MA'] : ['NI','EP','CO'])
-                : ['1','2','3','4'];
-            const colors = ['#fee2e2','#fef3c7','#dcfce7','#e0e7ff'];
-            const borderColors = ['#ef4444','#f59e0b','#10b981','#6366f1'];
+                ? (isPama ? ['PA', 'AD', 'MA'] : ['NI', 'EP', 'CO'])
+                : ['1', '2', '3', '4'];
+            const colors = ['#fee2e2', '#fef3c7', '#dcfce7', '#e0e7ff'];
+            const borderColors = ['#ef4444', '#f59e0b', '#10b981', '#6366f1'];
 
             container.innerHTML = alumnos.map(a => {
                 const dots = labels.slice(0, maxN).map((lbl, i) => {
@@ -2132,10 +2380,10 @@ body {
                 const container = document.getElementById(`dots-act-${alumnoId}`);
                 const esInfantil = (escala || '').startsWith('INFANTIL_');
                 const isPama = escala === 'INFANTIL_PA_A_MA';
-                const labels = esInfantil ? (isPama ? ['PA','AD','MA'] : ['NI','EP','CO']) : ['1','2','3','4'];
+                const labels = esInfantil ? (isPama ? ['PA', 'AD', 'MA'] : ['NI', 'EP', 'CO']) : ['1', '2', '3', '4'];
                 const maxN = esInfantil ? 3 : 4;
-                const colors = ['#fee2e2','#fef3c7','#dcfce7','#e0e7ff'];
-                const borderColors = ['#ef4444','#f59e0b','#10b981','#6366f1'];
+                const colors = ['#fee2e2', '#fef3c7', '#dcfce7', '#e0e7ff'];
+                const borderColors = ['#ef4444', '#f59e0b', '#10b981', '#6366f1'];
                 if (container) {
                     container.innerHTML = labels.slice(0, maxN).map((lbl, i) => {
                         const n = i + 1;
@@ -2705,16 +2953,16 @@ body {
                 method: 'POST',
                 body: formData
             })
-            .then(r => r.json())
-            .then(res => {
-                btn.disabled = false;
-                btn.innerHTML = '🚀 Empezar Importación';
-                statusDiv.style.display = 'block';
-                if (res.ok) {
-                    statusDiv.style.backgroundColor = '#d4edda';
-                    statusDiv.style.color = '#155724';
-                    statusDiv.style.border = '1px solid #c3e6cb';
-                    statusDiv.innerHTML = `
+                .then(r => r.json())
+                .then(res => {
+                    btn.disabled = false;
+                    btn.innerHTML = '🚀 Empezar Importación';
+                    statusDiv.style.display = 'block';
+                    if (res.ok) {
+                        statusDiv.style.backgroundColor = '#d4edda';
+                        statusDiv.style.color = '#155724';
+                        statusDiv.style.border = '1px solid #c3e6cb';
+                        statusDiv.innerHTML = `
                         <strong>✅ Importación completada con éxito</strong><br>
                         <ul style="margin: 10px 0 0 20px; padding: 0;">
                             <li>Situaciones de Aprendizaje (SDA): ${res.stats.sda}</li>
@@ -2725,34 +2973,34 @@ body {
                         ${res.stats.errores > 0 ? `<p style="margin:10px 0 0 0; color:#856404;">⚠️ Se saltaron ${res.stats.errores} filas por errores de formato.</p>` : ''}
                         <p style="margin:10px 0 0 0; font-size:0.8rem;">La vista del currículo se actualizará al cerrar.</p>
                     `;
-                    showToast('Importación finalizada', 'success');
-                    loadCurriculo(); 
-                } else {
-                    statusDiv.style.backgroundColor = '#f8d7da';
-                    statusDiv.style.color = '#721c24';
-                    statusDiv.style.border = '1px solid #f5c6cb';
-                    statusDiv.innerHTML = `<strong>❌ Error:</strong> ${res.error}`;
-                    showToast('Error en la importación', 'error');
-                }
-            })
-            .catch(err => {
-                btn.disabled = false;
-                btn.innerHTML = '🚀 Empezar Importación';
-                showToast('Error en la conexión con el servidor', 'error');
-            });
+                        showToast('Importación finalizada', 'success');
+                        loadCurriculo();
+                    } else {
+                        statusDiv.style.backgroundColor = '#f8d7da';
+                        statusDiv.style.color = '#721c24';
+                        statusDiv.style.border = '1px solid #f5c6cb';
+                        statusDiv.innerHTML = `<strong>❌ Error:</strong> ${res.error}`;
+                        showToast('Error en la importación', 'error');
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = '🚀 Empezar Importación';
+                    showToast('Error en la conexión con el servidor', 'error');
+                });
         }
         // Init
         loadInitialData();
 
         // Handle Escape key to close modal
-        window.addEventListener('keydown', function(event) {
+        window.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 const modal = document.getElementById('eventModal');
                 if (modal && modal.style.display === 'flex') {
                     closeModal();
                 }
                 const importModal = document.getElementById('sdaImportModal');
-                 if (importModal && importModal.style.display === 'flex') {
+                if (importModal && importModal.style.display === 'flex') {
                     closeImportSdaModal();
                 }
             }
@@ -2767,18 +3015,24 @@ body {
     </div>
 
     <!-- Modal: Generar SDA con IA -->
-    <div id="generarSdaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
-        <div style="background: var(--white); border-radius:16px; width:92%; max-width:980px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding:20px 24px; border-radius:16px 16px 0 0; display:flex; justify-content:space-between; align-items:center;">
+    <div id="generarSdaModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; padding:20px;">
+        <div
+            style="background: var(--white); border-radius:16px; width:92%; max-width:980px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div
+                style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding:20px 24px; border-radius:16px 16px 0 0; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <h3 style="margin:0; color:white; font-size:1.1rem;">🤖 Generar SDA con IA</h3>
-                    <p style="margin:4px 0 0; color:rgba(255,255,255,0.85); font-size:0.8rem;">Dos prompts listos: crear SDA (Word) y convertir Word a CSV compatible</p>
+                    <p style="margin:4px 0 0; color:rgba(255,255,255,0.85); font-size:0.8rem;">Dos prompts listos: crear
+                        SDA (Word) y convertir Word a CSV compatible</p>
                 </div>
-                <button onclick="closeGenerarSdaModal()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:32px; height:32px; border-radius:50%; font-size:1.2rem; cursor:pointer;">&times;</button>
+                <button onclick="closeGenerarSdaModal()"
+                    style="background:rgba(255,255,255,0.2); border:none; color:white; width:32px; height:32px; border-radius:50%; font-size:1.2rem; cursor:pointer;">&times;</button>
             </div>
 
             <div style="padding:20px 24px 24px;">
-                <div style="margin-bottom:18px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:0.8rem; color:#475569; line-height:1.5;">
+                <div
+                    style="margin-bottom:18px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:0.8rem; color:#475569; line-height:1.5;">
                     1) Descarga la plantilla oficial y compártela con la IA.
                     2) Indícale: "borra todos los datos y deja solo cabeceras antes de rellenar".
                     3) Usa el segundo prompt para convertir el Word a CSV listo para importar.
@@ -2786,41 +3040,64 @@ body {
 
                 <div style="display:grid; grid-template-columns:1fr; gap:16px;">
                     <div style="border:1px solid #ddd6fe; border-radius:12px; overflow:hidden;">
-                        <div style="background:#f5f3ff; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                        <div
+                            style="background:#f5f3ff; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
                             <strong style="font-size:0.88rem; color:#4c1d95;">Prompt 1: Generar SDA (Word)</strong>
-                            <button onclick="copiarPromptPorTipo('sda_word')" style="background:#6366f1; color:white; border:none; padding:5px 10px; border-radius:7px; cursor:pointer; font-size:0.75rem;">📋 Copiar</button>
+                            <button onclick="copiarPromptPorTipo('sda_word')"
+                                style="background:#6366f1; color:white; border:none; padding:5px 10px; border-radius:7px; cursor:pointer; font-size:0.75rem;">📋
+                                Copiar</button>
                         </div>
-                        <pre id="prompt_sda_word" style="margin:0; padding:12px; background: var(--white); color:#334155; font-size:0.72rem; line-height:1.45; max-height:280px; overflow:auto; white-space:pre-wrap; font-family:monospace;"></pre>
-                        <div style="padding:10px 12px; border-top:1px solid #ede9fe; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-                            <button onclick="abrirPromptEnIA('sda_word','chatgpt')" style="padding:7px 12px; background:#10a37f; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟢 Abrir en ChatGPT</button>
-                            <button onclick="abrirPromptEnIA('sda_word','claude')" style="padding:7px 12px; background:#d97706; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟠 Abrir en Claude</button>
-                            <button onclick="abrirPromptEnIA('sda_word','gemini')" style="padding:7px 12px; background:#1a73e8; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🔵 Abrir en Gemini</button>
+                        <pre id="prompt_sda_word"
+                            style="margin:0; padding:12px; background: var(--white); color:#334155; font-size:0.72rem; line-height:1.45; max-height:280px; overflow:auto; white-space:pre-wrap; font-family:monospace;"></pre>
+                        <div
+                            style="padding:10px 12px; border-top:1px solid #ede9fe; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                            <button onclick="abrirPromptEnIA('sda_word','chatgpt')"
+                                style="padding:7px 12px; background:#10a37f; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟢
+                                Abrir en ChatGPT</button>
+                            <button onclick="abrirPromptEnIA('sda_word','claude')"
+                                style="padding:7px 12px; background:#d97706; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟠
+                                Abrir en Claude</button>
+                            <button onclick="abrirPromptEnIA('sda_word','gemini')"
+                                style="padding:7px 12px; background:#1a73e8; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🔵
+                                Abrir en Gemini</button>
                         </div>
                     </div>
 
                     <div style="border:1px solid #bfdbfe; border-radius:12px; overflow:hidden;">
-                        <div style="background:#eff6ff; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                        <div
+                            style="background:#eff6ff; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
                             <strong style="font-size:0.88rem; color:#1e3a8a;">Prompt 2: Convertir Word a CSV</strong>
-                            <button onclick="copiarPromptPorTipo('word_csv')" style="background:#2563eb; color:white; border:none; padding:5px 10px; border-radius:7px; cursor:pointer; font-size:0.75rem;">📋 Copiar</button>
+                            <button onclick="copiarPromptPorTipo('word_csv')"
+                                style="background:#2563eb; color:white; border:none; padding:5px 10px; border-radius:7px; cursor:pointer; font-size:0.75rem;">📋
+                                Copiar</button>
                         </div>
-                        <pre id="prompt_word_csv" style="margin:0; padding:12px; background: var(--white); color:#334155; font-size:0.72rem; line-height:1.45; max-height:320px; overflow:auto; white-space:pre-wrap; font-family:monospace;"></pre>
-                        <div style="padding:10px 12px; border-top:1px solid #dbeafe; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-                            <button onclick="abrirPromptEnIA('word_csv','chatgpt')" style="padding:7px 12px; background:#10a37f; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟢 Abrir en ChatGPT</button>
-                            <button onclick="abrirPromptEnIA('word_csv','claude')" style="padding:7px 12px; background:#d97706; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟠 Abrir en Claude</button>
-                            <button onclick="abrirPromptEnIA('word_csv','gemini')" style="padding:7px 12px; background:#1a73e8; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🔵 Abrir en Gemini</button>
+                        <pre id="prompt_word_csv"
+                            style="margin:0; padding:12px; background: var(--white); color:#334155; font-size:0.72rem; line-height:1.45; max-height:320px; overflow:auto; white-space:pre-wrap; font-family:monospace;"></pre>
+                        <div
+                            style="padding:10px 12px; border-top:1px solid #dbeafe; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                            <button onclick="abrirPromptEnIA('word_csv','chatgpt')"
+                                style="padding:7px 12px; background:#10a37f; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟢
+                                Abrir en ChatGPT</button>
+                            <button onclick="abrirPromptEnIA('word_csv','claude')"
+                                style="padding:7px 12px; background:#d97706; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🟠
+                                Abrir en Claude</button>
+                            <button onclick="abrirPromptEnIA('word_csv','gemini')"
+                                style="padding:7px 12px; background:#1a73e8; color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.78rem; font-weight:600;">🔵
+                                Abrir en Gemini</button>
                         </div>
                     </div>
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; margin-top:14px;">
-                    <button onclick="closeGenerarSdaModal()" style="padding:8px 16px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px; cursor:pointer; font-size:0.85rem; color:#374151;">Cerrar</button>
+                    <button onclick="closeGenerarSdaModal()"
+                        style="padding:8px 16px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px; cursor:pointer; font-size:0.85rem; color:#374151;">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-    const PROMPT_SDA_WORD = `Genera una Situación de Aprendizaje (SDA) completa para Educación Primaria siguiendo EXACTAMENTE esta estructura:
+        const PROMPT_SDA_WORD = `Genera una Situación de Aprendizaje (SDA) completa para Educación Primaria siguiendo EXACTAMENTE esta estructura:
 
 FORMATO OBLIGATORIO:
 
@@ -2862,7 +3139,7 @@ IMPORTANTE:
 
 Devuélvelo listo para copiar en Word, bien organizado y limpio.`;
 
-    const PROMPT_WORD_CSV = `Voy a darte una Situación de Aprendizaje (SDA) en formato texto.
+        const PROMPT_WORD_CSV = `Voy a darte una Situación de Aprendizaje (SDA) en formato texto.
 
 Quiero que la conviertas en un CSV EXACTAMENTE compatible con mi aplicación.
 
@@ -2918,39 +3195,40 @@ Devuélveme directamente el CSV completo listo para descargar o copiar.
 
 Antes de generar el CSV final, usa la plantilla oficial y borra todos los datos de ejemplo dejando solo las cabeceras.`;
 
-    function openGenerarSdaModal() {
-        document.getElementById('prompt_sda_word').textContent = PROMPT_SDA_WORD;
-        document.getElementById('prompt_word_csv').textContent = PROMPT_WORD_CSV;
-        document.getElementById('generarSdaModal').style.display = 'flex';
-    }
+        function openGenerarSdaModal() {
+            document.getElementById('prompt_sda_word').textContent = PROMPT_SDA_WORD;
+            document.getElementById('prompt_word_csv').textContent = PROMPT_WORD_CSV;
+            document.getElementById('generarSdaModal').style.display = 'flex';
+        }
 
-    function closeGenerarSdaModal() {
-        document.getElementById('generarSdaModal').style.display = 'none';
-    }
+        function closeGenerarSdaModal() {
+            document.getElementById('generarSdaModal').style.display = 'none';
+        }
 
-    function getPromptByType(tipo) {
-        if (tipo === 'sda_word') return PROMPT_SDA_WORD;
-        if (tipo === 'word_csv') return PROMPT_WORD_CSV;
-        return '';
-    }
+        function getPromptByType(tipo) {
+            if (tipo === 'sda_word') return PROMPT_SDA_WORD;
+            if (tipo === 'word_csv') return PROMPT_WORD_CSV;
+            return '';
+        }
 
-    function copiarPromptPorTipo(tipo) {
-        const texto = getPromptByType(tipo);
-        navigator.clipboard.writeText(texto).then(() => {
-            showToast('Prompt copiado al portapapeles', 'success');
-        });
-    }
+        function copiarPromptPorTipo(tipo) {
+            const texto = getPromptByType(tipo);
+            navigator.clipboard.writeText(texto).then(() => {
+                showToast('Prompt copiado al portapapeles', 'success');
+            });
+        }
 
-    function abrirPromptEnIA(tipo, ia) {
-        const prompt = getPromptByType(tipo);
-        const encoded = encodeURIComponent(prompt);
-        const urls = {
-            claude: `https://claude.ai/new?q=${encoded}`,
-            chatgpt: `https://chatgpt.com/?q=${encoded}`,
-            gemini: `https://gemini.google.com/app?q=${encoded}`
-        };
-        window.open(urls[ia], '_blank');
-    }
+        function abrirPromptEnIA(tipo, ia) {
+            const prompt = getPromptByType(tipo);
+            const encoded = encodeURIComponent(prompt);
+            const urls = {
+                claude: `https://claude.ai/new?q=${encoded}`,
+                chatgpt: `https://chatgpt.com/?q=${encoded}`,
+                gemini: `https://gemini.google.com/app?q=${encoded}`
+            };
+            window.open(urls[ia], '_blank');
+        }
     </script>
 </body>
+
 </html>

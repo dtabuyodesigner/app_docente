@@ -1,0 +1,14 @@
+[Unit]
+Description=Cuaderno del Tutor — servidor Flask
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documentos/APP_EVALUAR
+Environment=SECRET_KEY=032e62aa45336c139df941541738fd60f56e914a5a835eb9352466cb5161530a
+ExecStart=%h/Documentos/APP_EVALUAR/venv/bin/python desktop.py --no-browser
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

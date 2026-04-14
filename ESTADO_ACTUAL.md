@@ -1,8 +1,32 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.4.2`
+**Versión:** `v1.4.3`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Autoarranque en Linux con systemd (v1.4.3)
+
+**Fecha:** 14 de Abril 2026 — 01:30
+
+### Qué se hizo
+- Servicio systemd de usuario (`cuadernodeltutor.service`) que arranca el servidor automáticamente al iniciar sesión
+- Script `install_autostart_linux.sh` — instala el servicio con un solo comando
+- `desktop.py` acepta `--no-browser` para usarse como servicio sin abrir el navegador
+- `cuadernodeltutor.sh` actualizado: si el servidor ya corre, solo abre el navegador; si no, lo arranca
+
+### Cómo instalar el autoarranque
+```bash
+bash install_autostart_linux.sh
+```
+
+### Archivos modificados/creados
+- `desktop.py` — flag `--no-browser`
+- `cuadernodeltutor.service` — archivo de servicio systemd
+- `install_autostart_linux.sh` — script de instalación
+- `cuadernodeltutor.sh` — detecta si el servidor ya está corriendo
+- `VERSION`, `version.py` — bump a v1.4.3
 
 ---
 

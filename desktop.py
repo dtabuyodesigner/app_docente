@@ -2,6 +2,7 @@ import os
 import sys
 import threading
 import webbrowser
+import argparse
 from app import app
 from utils.db import init_db_if_not_exists
 
@@ -11,14 +12,14 @@ def configurar_autoarranque_windows():
         return
     if not getattr(sys, 'frozen', False):
         return
-        
+
     import winreg
     try:
         # HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
         key = winreg.HKEY_CURRENT_USER
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
         exe_path = sys.executable
-        
+
         with winreg.OpenKey(key, key_path, 0, winreg.KEY_SET_VALUE) as reg_key:
             winreg.SetValueEx(reg_key, "CuadernoDelTutor", 0, winreg.REG_SZ, exe_path)
     except Exception as e:
@@ -44,6 +45,10 @@ def get_local_ip():
         return "127.0.0.1"
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--no-browser', action='store_true', help='No abrir el navegador al arrancar')
+    args = parser.parse_args()
+
     if getattr(sys, 'frozen', False):
         bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
         os.chdir(bundle_dir)
@@ -56,15 +61,14 @@ def main():
     port = find_free_port()
     local_ip = get_local_ip()
 
-    # URL local para abrir en el navegador del PC
     url_local = f"http://127.0.0.1:{port}"
-    # URL de red para acceder desde móvil/tablet por WiFi
     url_red = f"http://{local_ip}:{port}"
 
     print(f"📡 Servidor arrancado en {url_local}")
     print(f"📱 Acceso desde móvil/tablet: {url_red}")
 
-    threading.Timer(2.0, lambda: webbrowser.open(url_local)).start()
+    if not args.no_browser:
+        threading.Timer(2.0, lambda: webbrowser.open(url_local)).start()
 
     # Escuchar en todas las interfaces (0.0.0.0) para acceso desde red local
     app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)

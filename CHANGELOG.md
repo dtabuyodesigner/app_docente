@@ -4,6 +4,16 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.4.3] — 14 Abril 2026
+### Autoarranque en Linux con systemd
+- Servicio systemd de usuario que arranca el servidor al iniciar sesión en el portátil
+- `desktop.py --no-browser` para modo servicio sin abrir ventana de navegador
+- `install_autostart_linux.sh` instala y habilita el servicio con un comando
+- `cuadernodeltutor.sh` detecta si el servidor ya está corriendo y solo abre el navegador
+- **Archivos:** `desktop.py`, `cuadernodeltutor.service`, `install_autostart_linux.sh`, `cuadernodeltutor.sh`, `VERSION`, `version.py`
+
+---
+
 ## [v1.4.2] — 14 Abril 2026
 ### QR local sin APIs externas + fix CSRF en móvil
 - QR generado en el navegador con `qrcode.min.js` vendorizado (sin internet)

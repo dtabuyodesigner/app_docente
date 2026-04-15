@@ -783,6 +783,205 @@ def pdf_autorizacion(excursion_id):
                      as_attachment=True, download_name=nombre_archivo)
 
 
+@excursiones_bp.route("/api/excursiones/<int:excursion_id>/pdf-listado")
+def pdf_listado(excursion_id):
+    """Genera PDF de listado de asistencia y pagos de una excursion."""
+    from flask import send_file
+    from utils.db import get_app_data_dir
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
+                                    Table, TableStyle, HRFlowable)
+    from reportlab.platypus import Image as RLImage
+    import os
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    ex = cur.execute("SELECT * FROM excursiones WHERE id=?", (excursion_id,)).fetchone()
+    if not ex:
+        return jsonify({"ok": False, "error": "No encontrada"}), 404
+
+    cur.execute("SELECT clave, valor FROM config WHERE clave LIKE 'logo_%' OR clave IN ('nombre_centro','curso_escolar')")
+    cfg = {r["clave"]: r["valor"] for r in cur.fetchall()}
+    uploads_dir = os.path.join(get_app_data_dir(), "uploads")
+    nombre_centro = cfg.get("nombre_centro", "")
+    curso_escolar = cfg.get("curso_escolar", "")
+
+    alumnos = cur.execute("""
+        SELECT ea.*, a.nombre FROM excursion_alumnos ea
+        JOIN alumnos a ON a.id = ea.alumno_id
+        WHERE ea.excursion_id = ? ORDER BY a.nombre
+    """, (excursion_id,)).fetchall()
+    alumnos = [dict(a) for a in alumnos]
+
+    van = [a for a in alumnos if (a.get("estado_auto") == "autorizado" or a.get("autorizado") == 1)]
+    no_van = [a for a in alumnos if a not in van]
+    pagados_count = sum(1 for a in van if a.get("pagado"))
+    coste = float(ex["coste"]) if ex["coste"] else 0.0
+    recaudado = pagados_count * coste
+
+    grupo_ids = json.loads(ex["grupo_ids"] or "[]")
+    nombres_grupos = []
+    if grupo_ids:
+        ph = ",".join("?" * len(grupo_ids))
+        rows_g = cur.execute(f"SELECT nombre FROM grupos WHERE id IN ({ph})", grupo_ids).fetchall()
+        nombres_grupos = [r["nombre"] for r in rows_g]
+    if (ex["grupos_extra"] or "").strip():
+        nombres_grupos.extend([g.strip() for g in ex["grupos_extra"].split(",") if g.strip()])
+
+    def fmt_grupos(gs):
+        if not gs: return ""
+        if len(gs) == 1: return gs[0]
+        return ", ".join(gs[:-1]) + " y " + gs[-1]
+
+    def fmt_fecha(iso):
+        if not iso: return ""
+        try:
+            p = iso.split("-")
+            meses = ['enero','febrero','marzo','abril','mayo','junio',
+                     'julio','agosto','septiembre','octubre','noviembre','diciembre']
+            return f"{p[2]} de {meses[int(p[1])-1]} de {p[0]}"
+        except Exception:
+            return iso
+
+    def xesc(txt):
+        return (txt or "").replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            leftMargin=2*cm, rightMargin=2*cm,
+                            topMargin=1.5*cm, bottomMargin=2*cm)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    s_title   = ParagraphStyle('LT', parent=styles['Normal'], fontSize=14, fontName='Helvetica-Bold', alignment=1, spaceAfter=4, leading=18)
+    s_section = ParagraphStyle('LS', parent=styles['Normal'], fontSize=11, fontName='Helvetica-Bold', spaceAfter=6, textColor=colors.HexColor('#003366'))
+    s_small   = ParagraphStyle('LSm', parent=styles['Normal'], fontSize=9, textColor=colors.grey)
+    s_center  = ParagraphStyle('LC', parent=styles['Normal'], fontSize=10, alignment=1)
+
+    def make_logo(lado):
+        fn = cfg.get(f"logo_{lado}_filename")
+        if fn:
+            p = os.path.join(uploads_dir, fn)
+            if os.path.exists(p):
+                try: return RLImage(p, width=3*cm, height=2*cm)
+                except Exception: pass
+        return Paragraph(" ", styles['Normal'])
+
+    centro_txt = f"<b>{xesc(nombre_centro)}</b>"
+    if curso_escolar:
+        centro_txt += f"<br/>Curso {xesc(curso_escolar)}"
+    col_centro = Paragraph(centro_txt, ParagraphStyle('hdr', parent=styles['Normal'],
+                           alignment=1, fontSize=11, fontName='Helvetica-Bold', leading=16))
+    hdr = Table([[make_logo("izda"), col_centro, make_logo("dcha")]], colWidths=[4*cm, 9*cm, 4*cm])
+    hdr.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'MIDDLE'),('ALIGN',(1,0),(1,0),'CENTER')]))
+    elements += [hdr, Spacer(1,0.4*cm),
+                 HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#003366')),
+                 Spacer(1,0.3*cm)]
+
+    tipo_label = {"excursion":"EXCURSION","salida":"SALIDA EDUCATIVA","visita":"VISITA","evento":"EVENTO"}.get(ex["tipo"],"ACTIVIDAD")
+    elements.append(Paragraph(f"LISTADO — {tipo_label}", s_title))
+    elements.append(Paragraph(xesc(ex["titulo"]), s_title))
+    elements.append(Spacer(1, 0.3*cm))
+
+    info_rows = []
+    if ex["fecha"]:      info_rows.append(["Fecha:", fmt_fecha(ex["fecha"])])
+    if ex["destino"]:    info_rows.append(["Destino:", xesc(ex["destino"])])
+    grupos_str = fmt_grupos(nombres_grupos)
+    if grupos_str:       info_rows.append(["Grupos:", xesc(grupos_str)])
+    if ex["hora_salida"]:  info_rows.append(["Hora salida:", f"{ex['hora_salida']} h"])
+    if ex["hora_regreso"]: info_rows.append(["Hora regreso:", f"{ex['hora_regreso']} h"])
+    if ex["coste"]:      info_rows.append(["Coste/alumno:", f"{coste:.2f} EUR"])
+    if info_rows:
+        ti = Table(info_rows, colWidths=[4*cm, 13*cm])
+        ti.setStyle(TableStyle([('FONTNAME',(0,0),(0,-1),'Helvetica-Bold'),('FONTSIZE',(0,0),(-1,-1),10),
+                                ('BOTTOMPADDING',(0,0),(-1,-1),4),('TOPPADDING',(0,0),(-1,-1),2),('VALIGN',(0,0),(-1,-1),'TOP')]))
+        elements += [ti, Spacer(1,0.3*cm)]
+
+    elements += [HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#cbd5e1')), Spacer(1,0.2*cm)]
+
+    res_row = [Paragraph(f"<b>Van: {len(van)}</b>", s_center),
+               Paragraph(f"<b>No van: {len(no_van)}</b>", s_center),
+               Paragraph(f"<b>Pagados: {pagados_count}</b>", s_center)]
+    res_data = [res_row]
+    if coste > 0:
+        res_data.append([Paragraph("",s_center), Paragraph("",s_center),
+                         Paragraph(f"<b>Recaudado: {recaudado:.2f} EUR</b>",
+                                   ParagraphStyle('R', parent=styles['Normal'], alignment=1,
+                                                  fontSize=11, fontName='Helvetica-Bold',
+                                                  textColor=colors.HexColor('#065f46')))])
+    tr = Table(res_data, colWidths=[5.67*cm,5.67*cm,5.66*cm])
+    tr.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#f0f9ff')),
+                             ('BOX',(0,0),(-1,-1),1,colors.HexColor('#93c5fd')),
+                             ('INNERGRID',(0,0),(-1,-1),0.5,colors.HexColor('#bfdbfe')),
+                             ('ALIGN',(0,0),(-1,-1),'CENTER'),('VALIGN',(0,0),(-1,-1),'MIDDLE'),
+                             ('TOPPADDING',(0,0),(-1,-1),8),('BOTTOMPADDING',(0,0),(-1,-1),8)]))
+    elements += [tr, Spacer(1,0.5*cm)]
+
+    def tabla_alumnos(lista, mostrar_pago, mostrar_auto):
+        if not lista: return None
+        cabecera = ["Nombre"]
+        if mostrar_auto: cabecera.append("Autorizacion")
+        if mostrar_pago: cabecera.append("Pago")
+        n_cols = len(cabecera)
+        if n_cols == 1:   cw = [17*cm]
+        elif n_cols == 2: cw = [12*cm, 5*cm]
+        else:             cw = [10*cm, 3.5*cm, 3.5*cm]
+        rows = [cabecera]
+        for a in lista:
+            fila = [a["nombre"]]
+            if mostrar_auto:
+                estado = a.get("estado_auto") or ("autorizado" if a.get("autorizado") else "pendiente")
+                fila.append({"autorizado":"Autorizado","no_autoriza":"No autoriza","pendiente":"Pendiente"}.get(estado, estado))
+            if mostrar_pago:
+                fila.append("Pagado" if a.get("pagado") else "Pendiente")
+            rows.append(fila)
+        tbl = Table(rows, colWidths=cw, repeatRows=1)
+        st = TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#003366')),
+                         ('TEXTCOLOR',(0,0),(-1,0),colors.white),
+                         ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
+                         ('FONTSIZE',(0,0),(-1,-1),9),
+                         ('ALIGN',(1,0),(-1,-1),'CENTER'),('ALIGN',(0,0),(0,-1),'LEFT'),
+                         ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
+                         ('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5),
+                         ('LEFTPADDING',(0,0),(0,-1),8),
+                         ('GRID',(0,0),(-1,-1),0.5,colors.HexColor('#e2e8f0'))])
+        for i in range(1, len(rows)):
+            st.add('BACKGROUND',(0,i),(-1,i), colors.HexColor('#f8fafc') if i%2==0 else colors.white)
+        tbl.setStyle(st)
+        return tbl
+
+    elements.append(Paragraph(f"ALUMNOS QUE VAN ({len(van)})", s_section))
+    if van:
+        t = tabla_alumnos(van, bool(ex["requiere_pago"]), bool(ex["requiere_autorizacion"]))
+        if t: elements.append(t)
+    else:
+        elements.append(Paragraph("- Ningun alumno autorizado -", s_small))
+    elements.append(Spacer(1, 0.6*cm))
+
+    elements.append(Paragraph(f"ALUMNOS QUE NO VAN ({len(no_van)})", s_section))
+    if no_van:
+        t2 = tabla_alumnos(no_van, False, bool(ex["requiere_autorizacion"]))
+        if t2: elements.append(t2)
+    else:
+        elements.append(Paragraph("- Todos los alumnos van -", s_small))
+
+    from datetime import date as _date
+    elements += [Spacer(1,0.8*cm),
+                 HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#cbd5e1')),
+                 Spacer(1,0.15*cm),
+                 Paragraph(f"Generado el {_date.today().strftime('%d/%m/%Y')}", s_small)]
+
+    doc.build(elements)
+    buffer.seek(0)
+    nombre_archivo = f"listado_{ex['titulo'][:30].replace(' ','_')}.pdf"
+    return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=nombre_archivo)
+
+
 @excursiones_bp.route("/api/grupos/todos")
 def api_grupos_todos():
     """Devuelve todos los grupos del centro (para excursiones multi-grupo)."""

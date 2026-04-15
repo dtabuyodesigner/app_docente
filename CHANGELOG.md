@@ -4,6 +4,16 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.5.1] — 15 Abril 2026
+### Excursiones — Listado PDF e importe recaudado
+- Nuevo PDF "Listado" (`/api/excursiones/<id>/pdf-listado`): datos de la excursión, alumnos que van/no van con estado autorización y pago, total recaudado
+- Botón 📋 Listado en tarjetas y panel de detalle
+- Pill 💰 recaudado en tarjetas y stats del detalle (nº pagados × coste)
+- Tarjetas más anchas (minmax 360px) para que quepan todos los botones
+- **Archivos:** `routes/excursiones.py`, `static/excursiones.html`, `VERSION`, `version.py`
+
+---
+
 ## [v1.5.0] — 14 Abril 2026
 ### Fotos en notas del Diario
 - Botón 📷 en cada nota del Diario para adjuntar foto desde cámara o archivo

@@ -1,8 +1,24 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.5.0`
+**Versión:** `v1.5.1`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Excursiones — Listado PDF e importe recaudado (v1.5.1)
+
+**Fecha:** 15 de Abril 2026 — 10:15
+
+### Qué se hizo
+- Nuevo PDF "Listado" por excursión: datos de la excursión, tabla de alumnos que van (con estado de autorización y pago), tabla de alumnos que no van, y total recaudado
+- Botón 📋 Listado en cada tarjeta de excursión y en el panel de detalle
+- Importe recaudado visible en la app: pill verde en las tarjetas y en la barra de stats del detalle (calculado como nº pagados × coste)
+- Tarjetas de excursión más anchas (minmax 360px) para acomodar los botones correctamente
+
+### Archivos modificados
+- `routes/excursiones.py` — nuevo endpoint `/api/excursiones/<id>/pdf-listado`
+- `static/excursiones.html` — botón Listado, pill recaudado en tarjetas y detalle, grid más ancho
 
 ---
 

@@ -61,7 +61,7 @@ body {
         /* ── Grid de cards ── */
         .excursiones-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
             gap: 18px;
         }
         .excursion-card {
@@ -130,9 +130,10 @@ body {
         .card-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 8px;
+            gap: 6px;
             padding: 10px 16px;
             border-top: 1px solid #f1f5f9;
+            flex-wrap: wrap;
         }
         .btn-sm {
             padding: 5px 12px;
@@ -458,6 +459,7 @@ body {
             <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
                 <button class="btn-sm btn-outline" onclick="editarExcursionActual()" style="font-size:0.78rem;">✏️ Editar</button>
                 <button class="btn-sm btn-outline" id="btn-pdf-detalle" onclick="descargarPdf(_excursionActual?.id)" style="font-size:0.78rem;">📄 Autorización</button>
+                <button class="btn-sm btn-outline" id="btn-listado-detalle" onclick="descargarListado(_excursionActual?.id)" style="font-size:0.78rem;">📋 Listado</button>
                 <button class="btn-sm" onclick="cerrarDetalle()" style="background:#f1f5f9; color:#374151; border:none; border-radius:8px; padding:6px 12px; cursor:pointer;">✕</button>
             </div>
         </div>
@@ -586,6 +588,10 @@ function renderGrid() {
             const clsPago = pagados >= total && total > 0 ? 'ok' : (pagados < total ? 'warn' : '');
             const importe = ex.coste ? ` (${parseFloat(ex.coste).toFixed(2)}€)` : '';
             pills += `<div class="progress-pill ${clsPago}">💶 ${pagados}/${total} pagados${importe}</div>`;
+            if (ex.coste && pagados > 0) {
+                const recaudado = (pagados * parseFloat(ex.coste)).toFixed(2);
+                pills += `<div class="progress-pill ok" style="border-color:#6ee7b7; background:#ecfdf5; color:#065f46;">💰 ${recaudado}€ recaudados</div>`;
+            }
         }
         if (!ex.requiere_autorizacion && !ex.requiere_pago) {
             pills = `<div class="progress-pill ok">📋 ${total} alumnos</div>`;
@@ -619,11 +625,12 @@ function renderGrid() {
                 <div class="progress-row">${pills}</div>
             </div>
             <div class="card-actions" onclick="event.stopPropagation()">
-                <button class="btn-sm btn-outline" onclick="editarExcursion(${ex.id})">✏️ Editar</button>
-                <button class="btn-sm btn-outline" onclick="descargarPdf(${ex.id})" title="Descargar autorización para imprimir">📄 Autorización</button>
-                <button class="btn-sm btn-outline" onclick="toggleEstado(${ex.id}, '${ex.estado}')">
+                <button class="btn-sm btn-outline" onclick="editarExcursion(${ex.id})" style="font-size:0.78rem;">✏️ Editar</button>
+                <button class="btn-sm btn-outline" onclick="descargarPdf(${ex.id})" title="Descargar autorización para imprimir" style="font-size:0.78rem;">📄 Autorización</button>
+                <button class="btn-sm btn-outline" onclick="toggleEstado(${ex.id}, '${ex.estado}')" style="font-size:0.78rem;">
                     ${ex.estado === 'activa' ? '🔒 Cerrar' : '🔓 Reabrir'}
                 </button>
+                <button class="btn-sm btn-outline" onclick="descargarListado(${ex.id})" title="Descargar listado de asistencia y pagos" style="font-size:0.78rem;">📋 Listado</button>
                 <button class="btn-sm btn-danger" onclick="eliminarExcursion(${ex.id})">🗑️</button>
             </div>
         </div>`;
@@ -855,6 +862,10 @@ function renderDetalleStats(ex) {
         const cls = pagados === total && total > 0 ? 'color:#1d4ed8' : 'color:#991b1b';
         const importe = ex.coste ? ` · ${parseFloat(ex.coste).toFixed(2)}€` : '';
         html += `<div class="stat-pill" style="${cls}"><span>💶</span> ${pagados}/${total} pagados${importe}</div>`;
+        if (ex.coste) {
+            const recaudado = (pagados * parseFloat(ex.coste)).toFixed(2);
+            html += `<div class="stat-pill" style="color:#065f46; background:#d1fae5; border-radius:8px; padding:4px 10px;"><span>💰</span> ${recaudado}€ recaudados</div>`;
+        }
     }
     document.getElementById('detalle-stats').innerHTML = html;
 }
@@ -1023,6 +1034,11 @@ async function toggleAutoEstado(alumnoId, estadoActual) {
 function descargarPdf(id) {
     if (!id) return;
     window.open(`/api/excursiones/${id}/pdf-autorizacion`, '_blank');
+}
+
+function descargarListado(id) {
+    if (!id) return;
+    window.open(`/api/excursiones/${id}/pdf-listado`, '_blank');
 }
 
 // ─── Utilidades ───────────────────────────────────────────

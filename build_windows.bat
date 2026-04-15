@@ -56,6 +56,15 @@ if exist dist\ (
 )
 echo.
 
+REM ── Garantizar SECRET_KEY para el build ──────────────────────────────────
+REM    PyInstaller importa app.py durante el analisis y necesita SECRET_KEY.
+REM    En runtime, desktop.py llama a ensure_secret_key() antes de importar app.
+if not defined SECRET_KEY (
+    set "SECRET_KEY=pyinstaller-build-placeholder-not-used-at-runtime"
+    echo [INFO] SECRET_KEY no definida. Usando placeholder solo para el build.
+)
+echo.
+
 REM ── Ejecutar PyInstaller ──────────────────────────────────────────────────
 echo Ejecutando PyInstaller...
 python -m PyInstaller --clean CuadernoDelTutor.spec

@@ -40,7 +40,27 @@ except ImportError:
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 if not app.secret_key:
-    raise RuntimeError("SECRET_KEY environment variable is required. Generate one with: python -c 'import secrets; print(secrets.token_hex(32))'")
+    import sys as _sys
+    if getattr(_sys, 'frozen', False):
+        # Modo EXE (PyInstaller): lee o genera clave persistente en AppData.
+        # desktop.py llama a ensure_secret_key() antes de importar app, pero
+        # este bloque actúa como red de seguridad si el orden falla.
+        import secrets as _sec
+        from utils.db import get_app_data_dir
+        _key_path = os.path.join(get_app_data_dir(), "secret_key.txt")
+        try:
+            if os.path.exists(_key_path):
+                app.secret_key = open(_key_path, encoding="utf-8").read().strip()
+        except Exception:
+            pass
+        if not app.secret_key:
+            app.secret_key = _sec.token_hex(32)
+            try:
+                open(_key_path, "w", encoding="utf-8").write(app.secret_key)
+            except Exception:
+                pass
+    else:
+        raise RuntimeError("SECRET_KEY environment variable is required. Generate one with: python -c 'import secrets; print(secrets.token_hex(32))'")
 
 # Session configuration — expire after 24 hours of inactivity
 from datetime import timedelta

@@ -4,10 +4,40 @@ import threading
 import webbrowser
 import argparse
 import socket
-from app import app
+import secrets
 from utils.db import init_db_if_not_exists
 
 DEFAULT_PORT = 5000
+
+def ensure_secret_key():
+    """
+    Garantiza SECRET_KEY para ejecución desktop/EXE.
+    Si no existe en entorno/.env, la crea y la persiste en AppData.
+    """
+    if os.getenv("SECRET_KEY"):
+        return
+
+    from utils.db import get_app_data_dir
+    app_data_dir = get_app_data_dir()
+    key_path = os.path.join(app_data_dir, "secret_key.txt")
+
+    if os.path.exists(key_path):
+        try:
+            with open(key_path, "r", encoding="utf-8") as f:
+                saved_key = f.read().strip()
+            if saved_key:
+                os.environ["SECRET_KEY"] = saved_key
+                return
+        except Exception as e:
+            print(f"Error leyendo SECRET_KEY persistida: {e}")
+
+    generated_key = secrets.token_hex(32)
+    os.environ["SECRET_KEY"] = generated_key
+    try:
+        with open(key_path, "w", encoding="utf-8") as f:
+            f.write(generated_key)
+    except Exception as e:
+        print(f"Aviso: no se pudo persistir SECRET_KEY en disco: {e}")
 
 def configurar_autoarranque_windows():
     """Registra la aplicación en el arranque de Windows (solo cuando es el .exe compilado)."""
@@ -64,6 +94,9 @@ def main():
     if getattr(sys, 'frozen', False):
         bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
         os.chdir(bundle_dir)
+
+    ensure_secret_key()
+    from app import app
 
     init_db_if_not_exists()
     configurar_autoarranque_windows()

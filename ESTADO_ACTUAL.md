@@ -1,8 +1,40 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.5.0`
+**Versión:** `v1.5.2`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Dashboard — Rendimiento Académico: excluir notas NULL y calcular trimestre por fecha (v1.5.2)
+
+**Fecha:** 15 de Abril 2026 — 10:20
+
+### Qué se hizo
+- El gráfico de Rendimiento Académico mostraba todas las áreas como "Sobresaliente" cuando había evaluaciones con `nota = NULL` en el trimestre actual
+- Se calculaba el "trimestre actual" buscando el máximo trimestre con datos en BD, en vez de por la fecha real del calendario
+- Ahora el trimestre se calcula por fecha: Sep-Dic=T1, Ene-Mar=T2, Abr-Jun=T3
+- Se excluyen evaluaciones con `nota IS NULL` en todas las queries del dashboard (distribución de notas, alertas de suspensos)
+- Las áreas sin evaluaciones con nota real en el trimestre actual ya no aparecen en el gráfico
+
+### Archivos modificados
+- `routes/dashboard.py` — cálculo de trimestre por fecha, exclusión de notas NULL en distribución y alertas
+
+---
+
+## ✅ Excursiones — Listado PDF e importe recaudado (v1.5.1)
+
+**Fecha:** 15 de Abril 2026 — 10:15
+
+### Qué se hizo
+- Nuevo PDF "Listado" por excursión: datos de la excursión, tabla de alumnos que van (con estado de autorización y pago), tabla de alumnos que no van, y total recaudado
+- Botón 📋 Listado en cada tarjeta de excursión y en el panel de detalle
+- Importe recaudado visible en la app: pill verde en las tarjetas y en la barra de stats del detalle (calculado como nº pagados × coste)
+- Tarjetas de excursión más anchas (minmax 360px) para acomodar los botones correctamente
+
+### Archivos modificados
+- `routes/excursiones.py` — nuevo endpoint `/api/excursiones/<id>/pdf-listado`
+- `static/excursiones.html` — botón Listado, pill recaudado en tarjetas y detalle, grid más ancho
 
 ---
 
@@ -524,4 +556,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 14 Abril 2026 — v1.5.0: Fotos en notas del Diario
+**Última actualización:** 15 Abril 2026 — v1.5.2: Dashboard fix rendimiento académico con notas NULL

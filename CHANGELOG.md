@@ -4,6 +4,26 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.5.2] — 15 Abril 2026
+### Dashboard: Rendimiento Académico — fix notas NULL y cálculo de trimestre
+- El gráfico mostraba todas las áreas como "Sobresaliente" al haber evaluaciones con `nota = NULL` en el trimestre actual
+- El "trimestre actual" se calculaba buscando el máximo trimestre con datos en BD, no por la fecha real del calendario
+- Ahora el trimestre se calcula por fecha: Sep-Dic=T1, Ene-Mar=T2, Abr-Jun=T3
+- Se excluyen evaluaciones con `nota IS NULL` en distribución de notas y alertas de suspensos
+- **Archivos:** `routes/dashboard.py`, `VERSION`, `version.py`
+
+---
+
+## [v1.5.1] — 15 Abril 2026
+### Excursiones — Listado PDF e importe recaudado
+- Nuevo PDF "Listado" (`/api/excursiones/<id>/pdf-listado`): datos de la excursión, alumnos que van/no van con estado autorización y pago, total recaudado
+- Botón 📋 Listado en tarjetas y panel de detalle
+- Pill 💰 recaudado en tarjetas y stats del detalle (nº pagados × coste)
+- Tarjetas más anchas (minmax 360px) para que quepan todos los botones
+- **Archivos:** `routes/excursiones.py`, `static/excursiones.html`, `VERSION`, `version.py`
+
+---
+
 ## [v1.5.0] — 14 Abril 2026
 ### Fotos en notas del Diario
 - Botón 📷 en cada nota del Diario para adjuntar foto desde cámara o archivo

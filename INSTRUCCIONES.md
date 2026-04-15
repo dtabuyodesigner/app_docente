@@ -26,6 +26,22 @@ Aplicación web de gestión docente ("Cuaderno del Tutor") en Flask + SQLite + p
 - **DB personal:** fuera del proyecto, en `~/.cuadernodeltutor/app_evaluar.db`
 - **Distribución:** ZIP con `.exe` (PyInstaller) o futuro instalador Inno Setup
 
+### Recordatorio CRITICO para builds Windows
+
+El error `SECRET_KEY environment variable is required` ha ocurrido en varias entregas reales. La solución está implementada en tres capas — **no romper ninguna**:
+
+| Capa | Archivo | Qué hace |
+|------|---------|----------|
+| 1 | `build_windows.bat` | Pone `SECRET_KEY=placeholder` antes de PyInstaller para que el análisis de imports no falle |
+| 2 | `desktop.py` → `ensure_secret_key()` | Lee o genera la clave persistente en `AppData\CuadernoDelTutor\secret_key.txt` **antes** de hacer `from app import app` |
+| 3 | `app.py` | Si en modo EXE (`sys.frozen`) llega sin clave en entorno, lee directamente de `AppData\secret_key.txt` como red de seguridad final |
+
+Reglas:
+- Nunca asumir que `.env` viaja en el ZIP del EXE. El `.env` del repo solo tiene `SENTRY_DSN`.
+- Si reaparece el error, verificar que las tres capas están en el repo de GitHub (no solo en local).
+- **CRÍTICO:** `instalar_todo_1click.bat` clona desde GitHub. Un arreglo que no se haya hecho `push` no llega a Pilar.
+- Si se regenera el EXE, probar arranque en Windows físico antes de entregar.
+
 ---
 
 ## Convenciones del proyecto
@@ -271,6 +287,9 @@ print(f"OK: {len(rows)} filas válidas")
 | `routes/` | Un archivo por módulo |
 | `static/` | HTML, CSS, JS del frontend |
 | `data/` | CSVs de importación/exportación |
+| `instalar_todo_1click.bat` | Instalador 1 clic para Pilar (Git + Python + clone + build + acceso directo) |
+| `build_windows.bat` | Genera el EXE con PyInstaller |
+| `desktop.py` | Punto de entrada del EXE: gestiona SECRET_KEY, puerto y apertura del navegador |
 
 ---
 

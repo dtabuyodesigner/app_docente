@@ -1,8 +1,24 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.5.1`
+**Versión:** `v1.5.2`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Dashboard — Rendimiento Académico: excluir notas NULL y calcular trimestre por fecha (v1.5.2)
+
+**Fecha:** 15 de Abril 2026 — 10:20
+
+### Qué se hizo
+- El gráfico de Rendimiento Académico mostraba todas las áreas como "Sobresaliente" cuando había evaluaciones con `nota = NULL` en el trimestre actual
+- Se calculaba el "trimestre actual" buscando el máximo trimestre con datos en BD, en vez de por la fecha real del calendario
+- Ahora el trimestre se calcula por fecha: Sep-Dic=T1, Ene-Mar=T2, Abr-Jun=T3
+- Se excluyen evaluaciones con `nota IS NULL` en todas las queries del dashboard (distribución de notas, alertas de suspensos)
+- Las áreas sin evaluaciones con nota real en el trimestre actual ya no aparecen en el gráfico
+
+### Archivos modificados
+- `routes/dashboard.py` — cálculo de trimestre por fecha, exclusión de notas NULL en distribución y alertas
 
 ---
 
@@ -540,4 +556,4 @@ python -m pytest tests/
 
 ---
 
-**Última actualización:** 14 Abril 2026 — v1.5.0: Fotos en notas del Diario
+**Última actualización:** 15 Abril 2026 — v1.5.2: Dashboard fix rendimiento académico con notas NULL

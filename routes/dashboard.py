@@ -93,20 +93,18 @@ def dashboard_resumen():
                     })
 
         # 4. Media Clase
-        # Buscar el último trimestre en evaluaciones estándar
-        cur.execute("SELECT MAX(e.trimestre) FROM evaluaciones e JOIN alumnos a ON a.id=e.alumno_id WHERE a.grupo_id=?", (grupo_id,))
-        row_eval = cur.fetchone()
-        tri_eval = row_eval[0] if row_eval and row_eval[0] else 1
-        
-        # Buscar el último periodo en evaluación por criterios (formato T1, T2, T3)
-        cur.execute("SELECT MAX(CAST(SUBSTR(ec.periodo, 2) AS INTEGER)) FROM evaluacion_criterios ec JOIN alumnos a ON a.id=ec.alumno_id WHERE a.grupo_id=?", (grupo_id,))
-        row_crit = cur.fetchone()
-        tri_crit = row_crit[0] if row_crit and row_crit[0] else 1
-        
-        ultimo_tri = max(tri_eval, tri_crit)
-        res["trimestre_actual"] = ultimo_tri
-        
-        cur.execute("SELECT AVG(e.nota) FROM evaluaciones e JOIN alumnos a ON a.id=e.alumno_id WHERE e.trimestre = ? AND a.grupo_id=?", (ultimo_tri, grupo_id))
+        # Calcular el trimestre actual según la fecha del calendario escolar
+        mes_actual_num = date.today().month
+        if mes_actual_num in (9, 10, 11, 12):
+            trimestre_actual = 1
+        elif mes_actual_num in (1, 2, 3):
+            trimestre_actual = 2
+        else:  # 4, 5, 6
+            trimestre_actual = 3
+
+        res["trimestre_actual"] = trimestre_actual
+
+        cur.execute("SELECT AVG(e.nota) FROM evaluaciones e JOIN alumnos a ON a.id=e.alumno_id WHERE e.trimestre = ? AND a.grupo_id=?", (trimestre_actual, grupo_id))
         row_media = cur.fetchone()
         res["media_clase"] = round(row_media[0], 2) if row_media and row_media[0] else 0
 
@@ -129,50 +127,52 @@ def dashboard_resumen():
             })
 
         # 6. Distribución de notas
-        # Mostrar todas las áreas activas que tengan datos (ya sea por criterios o estándar)
+        # Mostrar solo áreas que tengan datos con nota real en el trimestre actual
         cur.execute("""
-            SELECT DISTINCT a.id, a.nombre, a.tipo_escala, a.modo_evaluacion 
+            SELECT DISTINCT a.id, a.nombre, a.tipo_escala, a.modo_evaluacion
             FROM areas a
             WHERE a.activa = 1 AND (
                 EXISTS (
-                    SELECT 1 FROM evaluaciones ev 
-                    JOIN alumnos al ON al.id = ev.alumno_id 
+                    SELECT 1 FROM evaluaciones ev
+                    JOIN alumnos al ON al.id = ev.alumno_id
                     WHERE ev.area_id = a.id AND al.grupo_id = ? AND al.deleted_at IS NULL
+                      AND ev.trimestre = ? AND ev.nota IS NOT NULL
                 )
                 OR EXISTS (
                     SELECT 1 FROM evaluacion_criterios ec
                     JOIN criterios c ON c.id = ec.criterio_id
                     JOIN alumnos al ON al.id = ec.alumno_id
                     WHERE c.area_id = a.id AND al.grupo_id = ? AND al.deleted_at IS NULL
+                      AND ec.periodo = ?
                 )
             )
-        """, (grupo_id, grupo_id))
+        """, (grupo_id, trimestre_actual, grupo_id, f"T{trimestre_actual}"))
         areas_con_datos = cur.fetchall()
         for area in areas_con_datos:
             area_id = area['id']
             area_nombre = area['nombre']
             tipo_escala = area['tipo_escala']
             dist = {}
-            
+
             # Mapeo según escala
             if (tipo_escala and tipo_escala.startswith("INFANTIL_")):
                 mapping_sql = "CASE WHEN ec.nivel = 1 THEN 'NI' WHEN ec.nivel = 2 THEN 'EP' WHEN ec.nivel = 3 THEN 'C' ELSE '?' END"
             else:
                 mapping_sql = "CASE WHEN ec.nivel = 1 THEN 'Insuficiente' WHEN ec.nivel = 2 THEN 'Suficiente/Bien' WHEN ec.nivel = 3 THEN 'Notable' WHEN ec.nivel = 4 THEN 'Sobresaliente' ELSE '?' END"
-            
+
             # 1. Probar por CRITERIOS (más probable en Infantil o Primaria avanzada)
             cur.execute(f"""
                 SELECT {mapping_sql} as rango, COUNT(*) as count
                 FROM (
-                    SELECT ec.alumno_id, ROUND(AVG(ec.nivel)) as nivel 
-                    FROM evaluacion_criterios ec 
-                    JOIN criterios c ON c.id = ec.criterio_id 
-                    JOIN alumnos a ON a.id = ec.alumno_id 
-                    WHERE c.area_id = ? AND a.grupo_id = ? AND ec.periodo = ? 
+                    SELECT ec.alumno_id, ROUND(AVG(ec.nivel)) as nivel
+                    FROM evaluacion_criterios ec
+                    JOIN criterios c ON c.id = ec.criterio_id
+                    JOIN alumnos a ON a.id = ec.alumno_id
+                    WHERE c.area_id = ? AND a.grupo_id = ? AND ec.periodo = ?
                     GROUP BY ec.alumno_id
                 ) ec GROUP BY rango
-            """, (area_id, grupo_id, f"T{ultimo_tri}"))
-            
+            """, (area_id, grupo_id, f"T{trimestre_actual}"))
+
             rows_crit = cur.fetchall()
             if rows_crit:
                 for r in rows_crit: dist[r['rango']] = r['count']
@@ -181,22 +181,22 @@ def dashboard_resumen():
                 cur.execute("""
                     SELECT CASE WHEN e.nota < 5 THEN 'Insuficiente' WHEN e.nota < 7 THEN 'Suficiente/Bien' WHEN e.nota < 9 THEN 'Notable' ELSE 'Sobresaliente' END as rango, COUNT(*) as count
                     FROM (
-                        SELECT e.alumno_id, AVG(e.nota) as nota 
-                        FROM evaluaciones e 
-                        JOIN alumnos a ON a.id = e.alumno_id 
-                        WHERE e.trimestre = ? AND a.grupo_id = ? AND e.area_id = ? 
+                        SELECT e.alumno_id, AVG(e.nota) as nota
+                        FROM evaluaciones e
+                        JOIN alumnos a ON a.id = e.alumno_id
+                        WHERE e.trimestre = ? AND a.grupo_id = ? AND e.area_id = ? AND e.nota IS NOT NULL
                         GROUP BY e.alumno_id
                     ) e GROUP BY rango
-                """, (ultimo_tri, grupo_id, area_id))
+                """, (trimestre_actual, grupo_id, area_id))
                 for r in cur.fetchall(): dist[r['rango']] = r['count']
-                
+
             if dist: res["distribucion_notas"][area_nombre] = dist
 
         # 7. Alertas (solo faltas de día completo, no de horas)
         mes_actual = date.today().strftime("%Y-%m")
         cur.execute("SELECT a.nombre, COUNT(*) as count FROM asistencia ast JOIN alumnos a ON a.id = ast.alumno_id WHERE strftime('%Y-%m', ast.fecha) = ? AND ast.estado IN ('falta_justificada', 'falta_no_justificada') AND COALESCE(ast.tipo_ausencia, 'dia') != 'horas' AND a.grupo_id = ? GROUP BY a.id, a.nombre HAVING COUNT(*) >= 3", (mes_actual, grupo_id))
         for row in cur.fetchall(): res["alertas"].append(f"⚠️ {row['nombre']} tiene {row['count']} faltas este mes.")
-        cur.execute("SELECT a.nombre, AVG(e.nota) as media FROM evaluaciones e JOIN alumnos a ON a.id = e.alumno_id WHERE e.trimestre = ? AND a.grupo_id = ? GROUP BY a.id, a.nombre HAVING AVG(e.nota) < 5", (ultimo_tri, grupo_id))
+        cur.execute("SELECT a.nombre, AVG(e.nota) as media FROM evaluaciones e JOIN alumnos a ON a.id = e.alumno_id WHERE e.trimestre = ? AND a.grupo_id = ? AND e.nota IS NOT NULL GROUP BY a.id, a.nombre HAVING AVG(e.nota) < 5", (trimestre_actual, grupo_id))
         for row in cur.fetchall(): res["alertas"].append(f"📉 {row['nombre']} tiene media suspensa ({round(row['media'], 1)}).")
 
         # 8. Próximas Actividades (No completadas)

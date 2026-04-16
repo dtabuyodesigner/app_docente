@@ -1846,7 +1846,7 @@
             e.preventDefault();
             const id = document.getElementById('e-id').value;
             const body = { titulo: document.getElementById('e-titulo').value, autor: document.getElementById('e-autor').value, isbn: document.getElementById('e-isbn').value, editorial: document.getElementById('e-editorial').value, año_publicacion: document.getElementById('e-año').value || null, cantidad_total: parseInt(document.getElementById('e-cantidad').value) || 1, nivel_lectura: document.getElementById('e-nivel').value, genero: document.getElementById('e-genero').value, descripcion: document.getElementById('e-desc').value };
-            const d = await (await fetch(`/ api / libros / ${id} `, {
+            const d = await (await fetch(`/api/libros/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
@@ -1856,7 +1856,7 @@
         }
         async function deleteBook(id, titulo) {
             if (!confirm(`¿Eliminar "${titulo}" ? `)) return;
-            const d = await (await fetch(`/ api / libros / ${id} `, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
+            const d = await (await fetch(`/api/libros/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
             if (d.ok) { loadBooks(); loadStats(); } else alert(`Error: ${d.error} `);
         }
         function closeModal(id) {
@@ -1907,7 +1907,7 @@
             const titulo = document.getElementById('gbSearchInput').value.trim(); if (!titulo) return;
             document.getElementById('gbResults').innerHTML = '<div style="text-align:center;padding:30px;color:#888;">⏳ Buscando...</div>';
             document.getElementById('gbAlert').innerHTML = '';
-            const d = await (await fetch(`/ api / libros / buscar - google ? titulo = ${encodeURIComponent(titulo)} `)).json();
+            const d = await (await fetch(`/api/libros/buscar-google?titulo=${encodeURIComponent(titulo)}`)).json();
             if (!d.ok) { document.getElementById('gbAlert').innerHTML = `<div class="alert alert-danger" >❌ ${d.error}</div> `; document.getElementById('gbResults').innerHTML = ''; return; }
             if (!d.resultados.length) { document.getElementById('gbResults').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>Sin resultados.</p></div>'; return; }
             window._gbResults = d.resultados;
@@ -2143,7 +2143,7 @@
             try {
                 const cfg = await (await fetch('/api/config')).json();
                 const plazo = cfg.max_dias_prestamo || 7;
-                _todosRetrasos = await (await fetch(`/ api / alertas / retrasos ? dias = ${plazo} `)).json();
+                _todosRetrasos = await (await fetch(`/api/alertas/retrasos?dias=${plazo}`)).json();
                 filtrarRetrasos();
             } catch (e) { console.error("Error loading retrasos:", e); }
         }
@@ -2340,7 +2340,7 @@
         }
         // ── EDIT / DELETE PRESTAMO ─────────────────────────────────
         async function openEditPrest(id) {
-            const r = await (await fetch(`/ api / prestamos / ${id} `)).json();
+            const r = await (await fetch(`/api/prestamos/${id}`)).json();
             if (!r.ok) { alert(r.error); return; }
             const p = r.prestamo;
             document.getElementById('ep-id').value = id;
@@ -2382,7 +2382,7 @@
                 fecha_prestamo: document.getElementById('ep-fecha').value,
                 observaciones: document.getElementById('ep-obs').value
             };
-            const d = await (await fetch(`/ api / prestamos / ${id} `, {
+            const d = await (await fetch(`/api/prestamos/${id}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': await getCsrf() },
                 body: JSON.stringify(body)
             })).json();
@@ -2397,7 +2397,7 @@
         function closeEditPrest() { document.getElementById('editPrestModal').style.display = 'none'; }
         async function eliminarPrestamo(id) {
             if (!confirm('¿Eliminar este préstamo? Si estaba activo, el libro volverá a estar disponible.')) return;
-            const d = await (await fetch(`/ api / prestamos / ${id} `, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
+            const d = await (await fetch(`/api/prestamos/${id}`, { method: 'DELETE', headers: { 'X-CSRFToken': await getCsrf() } })).json();
             if (d.ok) { _prestamosLoaded = false; initPrestamos(); loadBooks(); loadStats(); location.reload(); }
             else alert(`Error: ${d.error} `);
         }

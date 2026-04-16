@@ -687,8 +687,9 @@ async function editarExcursion(id) {
 
 function editarExcursionActual() {
     if (_excursionActual) {
+        const id = _excursionActual.id;
         cerrarDetalle();
-        editarExcursion(_excursionActual.id);
+        editarExcursion(id);
     }
 }
 

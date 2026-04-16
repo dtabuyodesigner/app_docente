@@ -4,6 +4,17 @@ Historial de cambios ordenado por versión. El estado actual del proyecto está 
 
 ---
 
+## [v1.5.3] — 16 Abril 2026
+### Fix: editar libro no guardaba + editar excursión volvía a la lista
+- **biblioteca.html:** URLs del fetch con espacios en template literals (`` `/ api / libros / ${id} ` ``) → 404. Corregidas 6 URLs: PUT/DELETE libros, GET/PUT/DELETE préstamos, buscar-google, alertas/retrasos
+- **excursiones.html:** `editarExcursionActual()` llamaba `cerrarDetalle()` que nullificaba `_excursionActual` antes de pasarlo a `editarExcursion()`. Fix: guardar `id` en local antes de cerrar
+- **Instalador Windows (SECRET_KEY):** 3 capas de protección: placeholder en `build_windows.bat`, `ensure_secret_key()` en `desktop.py`, fallback en `app.py` (lee AppData si modo frozen)
+- **instalar_todo_1click.bat:** acceso directo con PowerShell en línea única (evita problema de `%SHORTCUT%` vacío con `^`)
+- **Docs:** INSTRUCCIONES.md, INSTALAR_TODO_1CLICK.md, GUIA_GENERAR_EXE_WINDOWS.md actualizados
+- **Archivos:** `static/biblioteca.html`, `static/excursiones.html`, `app.py`, `desktop.py`, `build_windows.bat`, `instalar_todo_1click.bat`, docs, `VERSION`, `version.py`
+
+---
+
 ## [v1.5.2] — 15 Abril 2026
 ### Dashboard: Rendimiento Académico — fix notas NULL y cálculo de trimestre
 - El gráfico mostraba todas las áreas como "Sobresaliente" al haber evaluaciones con `nota = NULL` en el trimestre actual

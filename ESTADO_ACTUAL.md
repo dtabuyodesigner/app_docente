@@ -1,8 +1,28 @@
 # ESTADO DEL PROYECTO — APP_EVALUAR
 
-**Versión:** `v1.5.2`
+**Versión:** `v1.5.3`
 **Rama activa:** `master`
 **Historial completo:** ver [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## ✅ Fix: editar libro no guardaba + editar excursión volvía a la lista (v1.5.3)
+
+**Fecha:** 16 de Abril 2026 — 18:00
+
+### Qué se hizo
+- **Biblioteca:** el botón "Guardar" al editar un libro no hacía nada porque la URL del `fetch` tenía espacios (`` `/  api / libros / ${id} ` ``). El navegador la enviaba literal → 404. Corregidas 6 URLs afectadas: editar libro, eliminar libro, editar préstamo, eliminar préstamo, reactivar préstamo, búsqueda Google Books, alertas de retraso.
+- **Excursiones:** al pulsar "✏️ Editar" desde la tarjeta de detalle, `editarExcursionActual()` llamaba a `cerrarDetalle()` que ponía `_excursionActual = null` antes de pasarle el `id` a `editarExcursion()` → TypeError silencioso → el modal nunca se abría. Fix: guardar `id` en variable local antes de cerrar.
+- **Instalador Windows:** corregido error SECRET_KEY en EXE (3 capas de protección: placeholder en build, `ensure_secret_key()` en `desktop.py`, fallback en `app.py`). Acceso directo en Escritorio ahora se crea correctamente con PowerShell en una sola línea.
+
+### Archivos modificados
+- `static/biblioteca.html` — 6 URLs de fetch corregidas (espacios en template literals)
+- `static/excursiones.html` — `editarExcursionActual()`: guardar `id` antes de `cerrarDetalle()`
+- `app.py` — fallback SECRET_KEY en modo EXE (lee AppData)
+- `desktop.py` — `ensure_secret_key()` añadida (ya estaba local, faltaba en repo)
+- `build_windows.bat` — SECRET_KEY placeholder antes de PyInstaller
+- `instalar_todo_1click.bat` — acceso directo con PowerShell sin `^` + SECRET_KEY placeholder
+- `INSTRUCCIONES.md`, `INSTALAR_TODO_1CLICK.md`, `GUIA_GENERAR_EXE_WINDOWS.md` — documentación actualizada
 
 ---
 
